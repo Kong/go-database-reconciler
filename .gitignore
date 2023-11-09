@@ -24,10 +24,5 @@ _testmain.go
 *.test
 *.prof
 
-# for this repo only
-deck
-dist/
-docs/cli-docs/
-
 # vscode editor files
 .vscode/
