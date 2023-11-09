@@ -28,6 +28,7 @@ linters:
   - wastedassign
   - errorlint
 issues:
+  max-same-issues: 0
   exclude-rules:
   - linters:
     - gosec
