@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-memdb"
-	"github.com/kong/deck/state/indexers"
-	"github.com/kong/deck/utils"
+	"github.com/kong/go-database-reconciler/pkg/state/indexers"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 )
 
 const (

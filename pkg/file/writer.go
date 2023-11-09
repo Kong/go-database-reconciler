@@ -10,8 +10,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kong/deck/state"
-	"github.com/kong/deck/utils"
+	"github.com/kong/go-database-reconciler/pkg/state"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"sigs.k8s.io/yaml"
 )

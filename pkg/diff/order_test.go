@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kong/deck/crud"
-	"github.com/kong/deck/types"
+	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/types"
 	"github.com/stretchr/testify/require"
 )
 

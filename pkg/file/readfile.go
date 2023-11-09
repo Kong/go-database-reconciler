@@ -11,8 +11,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/imdario/mergo"
-	"github.com/kong/deck/utils"
+	"dario.cat/mergo"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
