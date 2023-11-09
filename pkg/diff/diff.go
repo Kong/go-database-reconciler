@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/kong/deck/cprint"
-	"github.com/kong/deck/crud"
-	"github.com/kong/deck/konnect"
-	"github.com/kong/deck/state"
-	"github.com/kong/deck/types"
-	"github.com/kong/deck/utils"
+	"github.com/kong/go-database-reconciler/pkg/cprint"
+	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/state"
+	"github.com/kong/go-database-reconciler/pkg/types"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
 

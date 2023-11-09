@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/imdario/mergo"
+	"dario.cat/mergo"
 	"github.com/kong/go-kong/kong"
 )
 

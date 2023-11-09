@@ -3,7 +3,7 @@ package state
 import (
 	"reflect"
 
-	"github.com/kong/deck/konnect"
+	"github.com/kong/go-database-reconciler/pkg/konnect"
 )
 
 // Document represents a document in Konnect.

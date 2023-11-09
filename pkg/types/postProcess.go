@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kong/deck/crud"
-	"github.com/kong/deck/state"
+	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/state"
 )
 
 type servicePostAction struct {

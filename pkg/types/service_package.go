@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kong/deck/crud"
-	"github.com/kong/deck/konnect"
-	"github.com/kong/deck/state"
+	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/state"
 )
 
 // servicePackageCRUD implements crud.Actions interface.

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/kong/deck/konnect"
-	"github.com/kong/deck/utils"
+	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kong/deck/konnect"
+	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-kong/kong"
 )
 

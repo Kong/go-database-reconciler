@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kong/deck/state"
+	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 )

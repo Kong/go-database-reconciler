@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kong/deck/dump"
+	"github.com/kong/go-database-reconciler/pkg/dump"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 )

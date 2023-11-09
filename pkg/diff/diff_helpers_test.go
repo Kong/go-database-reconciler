@@ -3,8 +3,8 @@ package diff
 import (
 	"testing"
 
-	"github.com/kong/deck/konnect"
-	"github.com/kong/deck/state"
+	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-kong/kong"
 )
 
