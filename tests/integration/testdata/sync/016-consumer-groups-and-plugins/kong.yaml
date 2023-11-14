@@ -1,0 +1,33 @@
+_format_version: "1.1"
+consumer_groups:
+- name: gold
+  plugins:
+  - config:
+      limit:
+      - 10
+      retry_after_jitter_max: 1
+      window_size:
+      - 60
+      window_type: sliding
+    name: rate-limiting-advanced
+- name: silver
+  plugins:
+  - config:
+      limit:
+      - 7
+      retry_after_jitter_max: 1
+      window_size:
+      - 60
+      window_type: sliding
+    name: rate-limiting-advanced
+consumers:
+- groups:
+  - name: silver
+  username: bar
+  id: 5a5b9369-baeb-4faa-a902-c40ccdc2928e
+- username: baz
+  id: e894ea9e-ad08-4acf-a960-5a23aa7701c7
+- groups:
+  - name: gold
+  username: foo
+  id: 87095815-5395-454e-8c18-a11c9bc0ef04
