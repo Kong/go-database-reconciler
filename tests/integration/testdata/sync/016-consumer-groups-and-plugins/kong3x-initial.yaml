@@ -1,0 +1,35 @@
+_format_version: "3.0"
+consumer_groups:
+- name: gold
+  tags:
+    - tag1
+    - tag2
+  plugins:
+  - name: rate-limiting-advanced
+    config:
+      limit:
+      - 20
+      retry_after_jitter_max: 1
+      window_size:
+      - 50
+      window_type: sliding
+- name: silver
+  tags:
+    - tag1
+  plugins:
+  - name: rate-limiting-advanced
+    config:
+      limit:
+      - 10
+      retry_after_jitter_max: 1
+      window_size:
+      - 50
+      window_type: sliding
+consumers:
+- groups:
+  - name: gold
+  username: bar
+- username: baz
+- groups:
+  - name: gold
+  username: foo
