@@ -10,7 +10,8 @@ on:
   push:
     branches:
     - main
-  pull_request: {}
+  pull_request:
+    - *
 
 jobs:
   test:
@@ -29,7 +30,7 @@ jobs:
       - name: Upload Code Coverage
         uses: codecov/codecov-action@v3
         with:
-          name: codecov-deck
+          name: codecov
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
       - name: Build
