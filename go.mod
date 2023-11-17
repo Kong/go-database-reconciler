@@ -52,7 +52,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yudai/golcs v0.0.0-20150405163532-d1c525dea8ce // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	golang.org/x/net v0.0.0-20191027093000-83d349e8ac1a // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
