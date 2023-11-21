@@ -1,6 +1,3 @@
-.DEFAULT_GOAL := test-all
-
-CLI_DOCS_PATH=docs/cli-docs/
 .PHONY: test-all
 test-all: lint test
 
