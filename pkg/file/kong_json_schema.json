@@ -1217,6 +1217,10 @@
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/KongDefaults"
         },
+        "default_lookup_tags": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/LookUpSelectorTags"
+        },
         "select_tags": {
           "items": {
             "type": "string"
@@ -1333,6 +1337,18 @@
         },
         "runtime_group_name": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LookUpSelectorTags": {
+      "properties": {
+        "consumers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,
