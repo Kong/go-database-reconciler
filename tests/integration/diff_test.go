@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	expectedOutputMasked = `updating service svc1  {
+	expectedOutputMasked = `updatingservicesvc1  {
    "connect_timeout": 60000,
    "enabled": true,
    "host": "[masked]",
@@ -30,14 +30,14 @@ var (
 +  ]
  }
 
-creating plugin rate-limiting (global)
+creatingpluginrate-limiting (global)
 Summary:
   Created: 1
   Updated: 1
   Deleted: 0
 `
 
-	expectedOutputUnMasked = `updating service svc1  {
+	expectedOutputUnMasked = `updatingservicesvc1  {
    "connect_timeout": 60000,
    "enabled": true,
    "host": "mockbin.org",
@@ -53,7 +53,7 @@ Summary:
 +  ]
  }
 
-creating plugin rate-limiting (global)
+creatingpluginrate-limiting (global)
 Summary:
   Created: 1
   Updated: 1
