@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	expectedOutputMasked = `updatingservicesvc1  {
+	expectedOutputMasked = `updatingservicesvc1 {
    "connect_timeout": 60000,
    "enabled": true,
    "host": "[masked]",
@@ -37,7 +37,7 @@ Summary:
   Deleted: 0
 `
 
-	expectedOutputUnMasked = `updatingservicesvc1  {
+	expectedOutputUnMasked = `updatingservicesvc1 {
    "connect_timeout": 60000,
    "enabled": true,
    "host": "mockbin.org",
