@@ -5,8 +5,7 @@ updates:
   schedule:
     interval: daily
   ignore:
-  - dependency-name: "github.com/fatih/color "
-    versions: ">=1.16.0"
+  - dependency-name: "github.com/fatih/color"
 - package-ecosystem: github-actions
   directory: /
   schedule:
