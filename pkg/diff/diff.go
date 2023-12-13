@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/state"
@@ -78,10 +77,6 @@ type Syncer struct {
 	silenceWarnings bool
 	stageDelaySec   int
 
-	createPrintln func(a ...interface{})
-	updatePrintln func(a ...interface{})
-	deletePrintln func(a ...interface{})
-
 	kongClient    *kong.Client
 	konnectClient *konnect.Client
 
@@ -107,10 +102,6 @@ type SyncerOpts struct {
 	IncludeLicenses bool
 
 	IsKonnect bool
-
-	CreatePrintln func(a ...interface{})
-	UpdatePrintln func(a ...interface{})
-	DeletePrintln func(a ...interface{})
 }
 
 // NewSyncer constructs a Syncer.
@@ -127,29 +118,12 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 		noMaskValues: opts.NoMaskValues,
 
-		// TODO From review of existing code in https://github.com/Kong/go-database-reconciler/pull/30, these *Println
-		// allow you to _bring your own output formatter_ These are likely not used in practice (neither KIC nor deck
-		// set them) and can probably be removed. Doing so is technically a breaking change, however.
-		createPrintln: opts.CreatePrintln,
-		updatePrintln: opts.UpdatePrintln,
-		deletePrintln: opts.DeletePrintln,
-
 		includeLicenses: opts.IncludeLicenses,
 		isKonnect:       opts.IsKonnect,
 	}
 
 	if opts.IsKonnect {
 		s.includeLicenses = false
-	}
-
-	if s.createPrintln == nil {
-		s.createPrintln = cprint.CreatePrintln
-	}
-	if s.updatePrintln == nil {
-		s.updatePrintln = cprint.UpdatePrintln
-	}
-	if s.deletePrintln == nil {
-		s.deletePrintln = cprint.DeletePrintln
 	}
 
 	err := s.init()
