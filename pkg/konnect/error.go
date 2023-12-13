@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ func hasError(res *http.Response) error {
 		return nil
 	}
 
-	body, _ := ioutil.ReadAll(res.Body) // TODO error in error?
+	body, _ := io.ReadAll(res.Body) // TODO error in error?
 	return &APIError{
 		httpCode: res.StatusCode,
 		message:  messageFromBody(body),
