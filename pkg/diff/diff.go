@@ -23,6 +23,7 @@ type EntityState struct {
 	Name string `json:"name"`
 	Kind string `json:"kind"`
 	Body any    `json:"body"`
+	Diff string `json:"-"`
 }
 
 type Summary struct {
@@ -552,28 +553,17 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// NOTE TRC currently we emit lines here, need to collect objects instead
 		switch e.Op {
 		case crud.Create:
-			if isJSONOut {
-				output.Creating = append(output.Creating, item)
-			} else {
-				sc.createPrintln("creating", e.Kind, c.Console())
-			}
+			output.Creating = append(output.Creating, item)
 		case crud.Update:
 			// TODO TRC this is not currently available in the item EntityState
 			diffString, err := generateDiffString(e, false, sc.noMaskValues)
 			if err != nil {
 				return nil, err
 			}
-			if isJSONOut {
-				output.Updating = append(output.Updating, item)
-			} else {
-				sc.updatePrintln("updating", e.Kind, c.Console(), diffString)
-			}
+			item.Diff = diffString
+			output.Updating = append(output.Updating, item)
 		case crud.Delete:
-			if isJSONOut {
-				output.Deleting = append(output.Deleting, item)
-			} else {
-				sc.deletePrintln("deleting", e.Kind, c.Console())
-			}
+			output.Deleting = append(output.Deleting, item)
 		default:
 			panic("unknown operation " + e.Op.String())
 		}
