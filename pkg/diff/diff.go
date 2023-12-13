@@ -126,9 +126,13 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 		noMaskValues: opts.NoMaskValues,
 
-		createPrintln:   opts.CreatePrintln,
-		updatePrintln:   opts.UpdatePrintln,
-		deletePrintln:   opts.DeletePrintln,
+		// TODO From review of existing code in https://github.com/Kong/go-database-reconciler/pull/30, these *Println
+		// allow you to _bring your own output formatter_ These are likely not used in practice (neither KIC nor deck
+		// set them) and can probably be removed. Doing so is technically a breaking change, however.
+		createPrintln: opts.CreatePrintln,
+		updatePrintln: opts.UpdatePrintln,
+		deletePrintln: opts.DeletePrintln,
+
 		includeLicenses: opts.IncludeLicenses,
 		isKonnect:       opts.IsKonnect,
 	}
@@ -338,7 +342,7 @@ func (sc *Syncer) wait() {
 }
 
 // Run starts a diff and invokes d for every diff.
-func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
+func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	if parallelism < 1 {
 		return append([]error{}, fmt.Errorf("parallelism can not be negative"))
 	}
@@ -355,7 +359,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
 	wg.Add(parallelism)
 	for i := 0; i < parallelism; i++ {
 		go func() {
-			err := sc.eventLoop(ctx, d)
+			err := sc.eventLoop(ctx, action)
 			if err != nil {
 				sc.errChan <- err
 			}
@@ -408,7 +412,8 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
 // Do is the worker function to sync the diff
 type Do func(a crud.Event) (crud.Arg, error)
 
-func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
+// NOTE TRC part of the return path
+func (sc *Syncer) eventLoop(ctx context.Context, action Do) error {
 	for event := range sc.eventChan {
 		// Stop if program is terminated
 		select {
@@ -417,7 +422,7 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 		default:
 		}
 
-		err := sc.handleEvent(ctx, d, event)
+		err := sc.handleEvent(ctx, action, event)
 		sc.eventCompleted()
 		if err != nil {
 			return err
@@ -426,9 +431,10 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 	return nil
 }
 
-func (sc *Syncer) handleEvent(ctx context.Context, d Do, event crud.Event) error {
+// NOTE TRC part of the return path. this actually runs the
+func (sc *Syncer) handleEvent(ctx context.Context, action Do, event crud.Event) error {
 	err := backoff.Retry(func() error {
-		res, err := d(event)
+		res, err := action(event)
 		if err != nil {
 			err = fmt.Errorf("while processing event: %w", err)
 
@@ -490,6 +496,14 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 	return diffString, err
 }
 
+// NOTE TRC Solve is the entry point for both the local and konnect sync commands
+// those command functions already output other text fwiw
+// although they can iterate over a returned op set and print info for each, this does
+// introduce a delay in output. Solve() currently prints each action as it takes them,
+// whereas the returned set would be printed in a batch at the end. unsure if this should
+// matter in practice, but probably not. we could introduce an event channel and separate
+// goroutine to handle synch output, but probably not worth it
+
 // Solve generates a diff and walks the graph.
 func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
 	[]error, EntityChanges,
@@ -516,6 +530,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		Deleting: []EntityState{},
 	}
 
+	// NOTE TRC the length makes it confusing to read, but the code below _isn't being run here_, it's an anon func
+	// arg to Run(), which parallelizes it. However, because it's defined in Solve()'s scope, the output created above
+	// is available in aggregate and contains most of the content we need already
 	errs := sc.Run(ctx, parallelism, func(e crud.Event) (crud.Arg, error) {
 		var err error
 		var result crud.Arg
@@ -527,9 +544,12 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		}
 		item := EntityState{
 			Body: objDiff,
+			// NOTE TRC currently used directly
 			Name: c.Console(),
+			// NOTE TRC current prints use the kind directly, but it doesn't matter, it's just a string alias anyway
 			Kind: string(e.Kind),
 		}
+		// NOTE TRC currently we emit lines here, need to collect objects instead
 		switch e.Op {
 		case crud.Create:
 			if isJSONOut {
@@ -538,6 +558,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				sc.createPrintln("creating", e.Kind, c.Console())
 			}
 		case crud.Update:
+			// TODO TRC this is not currently available in the item EntityState
 			diffString, err := generateDiffString(e, false, sc.noMaskValues)
 			if err != nil {
 				return nil, err
@@ -579,6 +600,8 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// record operation in both: diff and sync commands
 		recordOp(e.Op)
 
+		// TODO TRC our existing return is a complete object and error. probably need to return some sort of processed
+		// event struct
 		return result, nil
 	})
 	return stats, errs, output
