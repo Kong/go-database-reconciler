@@ -249,3 +249,9 @@ func FormatRouteRegexWarning(unsupportedRoutes []string) string {
 		unsupportedRoutesLen, strings.Join(unsupportedRoutes, "\n"),
 	)
 }
+
+// TODO stub for backwards compatibility pending deck repo changes. Should be removed once deck uses FormatRouteRegexWarning
+
+func PrintRouteRegexWarning(unsupportedRoutes []string) {
+	return
+}
