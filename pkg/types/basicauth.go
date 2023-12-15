@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
@@ -99,16 +98,6 @@ type basicAuthDiffer struct {
 	currentState, targetState *state.KongState
 }
 
-func (d *basicAuthDiffer) warnBasicAuth() {
-	const (
-		basicAuthPasswordWarning = "Warning: import/export of basic-auth" +
-			"credentials using decK doesn't work due to hashing of passwords in Kong."
-	)
-	d.once.Do(func() {
-		cprint.UpdatePrintln(basicAuthPasswordWarning)
-	})
-}
-
 func (d *basicAuthDiffer) Deletes(handler func(crud.Event) error) error {
 	currentBasicAuths, err := d.currentState.BasicAuths.GetAll()
 	if err != nil {
@@ -131,7 +120,6 @@ func (d *basicAuthDiffer) Deletes(handler func(crud.Event) error) error {
 }
 
 func (d *basicAuthDiffer) deleteBasicAuth(basicAuth *state.BasicAuth) (*crud.Event, error) {
-	d.warnBasicAuth()
 	_, err := d.targetState.BasicAuths.Get(*basicAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{
@@ -169,7 +157,6 @@ func (d *basicAuthDiffer) CreateAndUpdates(handler func(crud.Event) error) error
 }
 
 func (d *basicAuthDiffer) createUpdateBasicAuth(basicAuth *state.BasicAuth) (*crud.Event, error) {
-	d.warnBasicAuth()
 	basicAuth = &state.BasicAuth{BasicAuth: *basicAuth.DeepCopy()}
 	currentBasicAuth, err := d.currentState.BasicAuths.Get(*basicAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
