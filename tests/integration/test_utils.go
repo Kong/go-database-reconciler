@@ -284,7 +284,7 @@ type syncOut struct {
 
 // testSync is a stripped-down version of deck's cmd.syncMain for testing changeset expectations. It removes support
 // for JSON output, skipping resources, Konnect, workspaces, selector tags, and resource type filtering.
-func testSync(ctx context.Context, filenames []string, dry bool) (syncOut, error) {
+func testSync(ctx context.Context, filenames []string, nomask, dry bool) (syncOut, error) {
 	enableJSONOutput := false
 	targetContent, err := file.GetContentFromFiles(filenames, false)
 	if err != nil {
@@ -345,15 +345,15 @@ func testSync(ctx context.Context, filenames []string, dry bool) (syncOut, error
 		CurrentState:  currentState,
 		TargetState:   targetState,
 		KongClient:    kongClient,
-		StageDelaySec: 2,
-		NoMaskValues:  false,
+		StageDelaySec: 0,
+		NoMaskValues:  nomask,
 		IsKonnect:     false,
 	})
 	if err != nil {
 		return syncOut{}, err
 	}
 
-	stats, syncErrs, changes := syncer.Solve(ctx, 5, dry, enableJSONOutput)
+	stats, syncErrs, changes := syncer.Solve(ctx, 1, dry, enableJSONOutput)
 	return syncOut{Stats: stats, Errors: syncErrs, Changes: changes}, nil
 }
 func sync(kongFile string, opts ...string) error {

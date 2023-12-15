@@ -11,13 +11,7 @@ import (
 )
 
 var (
-	expectedDiff  = syncOut{}
-	expectedDiff3 = syncOut{}
-)
-
-var (
-	expectedOutputMasked = `creating plugin rate-limiting (global)
-updating service svc1  {
+	expectedOutputMasked = ` {
    "connect_timeout": 60000,
    "enabled": true,
    "host": "[masked]",
@@ -36,15 +30,9 @@ updating service svc1  {
 +    "bar:[masked]"
 +  ]
  }
-
-Summary:
-  Created: 1
-  Updated: 1
-  Deleted: 0
 `
 
-	expectedOutputUnMasked = `creating plugin rate-limiting (global)
-updating service svc1  {
+	expectedOutputUnMasked = ` {
    "connect_timeout": 60000,
    "enabled": true,
    "host": "mockbin.org",
@@ -59,11 +47,6 @@ updating service svc1  {
 +    "test"
 +  ]
  }
-
-Summary:
-  Created: 1
-  Updated: 1
-  Deleted: 0
 `
 
 	diffEnvVars = map[string]string{
@@ -73,446 +56,7 @@ Summary:
 		"DECK_FUB":           "fubfub",   // unused
 		"DECK_FOO":           "foo_test", // unused, partial match
 	}
-
-	expectedOutputUnMaskedJSON = `{
-	"changes": {
-		"creating": [
-			{
-				"name": "rate-limiting (global)",
-				"kind": "plugin",
-				"body": {
-					"new": {
-						"id": "a1368a28-cb5c-4eee-86d8-03a6bdf94b5e",
-						"name": "rate-limiting",
-						"config": {
-							"day": null,
-							"error_code": 429,
-							"error_message": "API rate limit exceeded",
-							"fault_tolerant": true,
-							"header_name": null,
-							"hide_client_headers": false,
-							"hour": null,
-							"limit_by": "consumer",
-							"minute": 123,
-							"month": null,
-							"path": null,
-							"policy": "local",
-							"redis_database": 0,
-							"redis_host": null,
-							"redis_password": null,
-							"redis_port": 6379,
-							"redis_server_name": null,
-							"redis_ssl": false,
-							"redis_ssl_verify": false,
-							"redis_timeout": 2000,
-							"redis_username": null,
-							"second": null,
-							"year": null
-						},
-						"enabled": true,
-						"protocols": [
-							"grpc",
-							"grpcs",
-							"http",
-							"https"
-						]
-					},
-					"old": null
-				}
-			}
-		],
-		"updating": [
-			{
-				"name": "svc1",
-				"kind": "service",
-				"body": {
-					"new": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "mockbin.org",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000,
-						"tags": [
-							"test"
-						]
-					},
-					"old": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "mockbin.org",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000
-					}
-				}
-			}
-		],
-		"deleting": []
-	},
-	"summary": {
-		"creating": 1,
-		"updating": 1,
-		"deleting": 0,
-		"total": 2
-	},
-	"warnings": [],
-	"errors": []
-}
-
-`
-
-	expectedOutputMaskedJSON = `{
-	"changes": {
-		"creating": [
-			{
-				"name": "rate-limiting (global)",
-				"kind": "plugin",
-				"body": {
-					"new": {
-						"id": "a1368a28-cb5c-4eee-86d8-03a6bdf94b5e",
-						"name": "rate-limiting",
-						"config": {
-							"day": null,
-							"error_code": 429,
-							"error_message": "API rate limit exceeded",
-							"fault_tolerant": true,
-							"header_name": null,
-							"hide_client_headers": false,
-							"hour": null,
-							"limit_by": "consumer",
-							"minute": 123,
-							"month": null,
-							"path": null,
-							"policy": "local",
-							"redis_database": 0,
-							"redis_host": null,
-							"redis_password": null,
-							"redis_port": 6379,
-							"redis_server_name": null,
-							"redis_ssl": false,
-							"redis_ssl_verify": false,
-							"redis_timeout": 2000,
-							"redis_username": null,
-							"second": null,
-							"year": null
-						},
-						"enabled": true,
-						"protocols": [
-							"grpc",
-							"grpcs",
-							"http",
-							"https"
-						]
-					},
-					"old": null
-				}
-			}
-		],
-		"updating": [
-			{
-				"name": "svc1",
-				"kind": "service",
-				"body": {
-					"new": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "[masked]",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000,
-						"tags": [
-							"[masked] is an external host. I like [masked]!",
-							"foo:foo",
-							"baz:[masked]",
-							"another:[masked]",
-							"bar:[masked]"
-						]
-					},
-					"old": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "[masked]",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000
-					}
-				}
-			}
-		],
-		"deleting": []
-	},
-	"summary": {
-		"creating": 1,
-		"updating": 1,
-		"deleting": 0,
-		"total": 2
-	},
-	"warnings": [],
-	"errors": []
-}
-
-`
-
-	expectedOutputUnMaskedJSON30x = `{
-	"changes": {
-		"creating": [
-			{
-				"name": "rate-limiting (global)",
-				"kind": "plugin",
-				"body": {
-					"new": {
-						"id": "a1368a28-cb5c-4eee-86d8-03a6bdf94b5e",
-						"name": "rate-limiting",
-						"config": {
-							"day": null,
-							"fault_tolerant": true,
-							"header_name": null,
-							"hide_client_headers": false,
-							"hour": null,
-							"limit_by": "consumer",
-							"minute": 123,
-							"month": null,
-							"path": null,
-							"policy": "local",
-							"redis_database": 0,
-							"redis_host": null,
-							"redis_password": null,
-							"redis_port": 6379,
-							"redis_server_name": null,
-							"redis_ssl": false,
-							"redis_ssl_verify": false,
-							"redis_timeout": 2000,
-							"redis_username": null,
-							"second": null,
-							"year": null
-						},
-						"enabled": true,
-						"protocols": [
-							"grpc",
-							"grpcs",
-							"http",
-							"https"
-						]
-					},
-					"old": null
-				}
-			}
-		],
-		"updating": [
-			{
-				"name": "svc1",
-				"kind": "service",
-				"body": {
-					"new": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "mockbin.org",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000,
-						"tags": [
-							"test"
-						]
-					},
-					"old": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "mockbin.org",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000
-					}
-				}
-			}
-		],
-		"deleting": []
-	},
-	"summary": {
-		"creating": 1,
-		"updating": 1,
-		"deleting": 0,
-		"total": 2
-	},
-	"warnings": [],
-	"errors": []
-}
-
-`
-
-	expectedOutputMaskedJSON30x = `{
-	"changes": {
-		"creating": [
-			{
-				"name": "rate-limiting (global)",
-				"kind": "plugin",
-				"body": {
-					"new": {
-						"id": "a1368a28-cb5c-4eee-86d8-03a6bdf94b5e",
-						"name": "rate-limiting",
-						"config": {
-							"day": null,
-							"fault_tolerant": true,
-							"header_name": null,
-							"hide_client_headers": false,
-							"hour": null,
-							"limit_by": "consumer",
-							"minute": 123,
-							"month": null,
-							"path": null,
-							"policy": "local",
-							"redis_database": 0,
-							"redis_host": null,
-							"redis_password": null,
-							"redis_port": 6379,
-							"redis_server_name": null,
-							"redis_ssl": false,
-							"redis_ssl_verify": false,
-							"redis_timeout": 2000,
-							"redis_username": null,
-							"second": null,
-							"year": null
-						},
-						"enabled": true,
-						"protocols": [
-							"grpc",
-							"grpcs",
-							"http",
-							"https"
-						]
-					},
-					"old": null
-				}
-			}
-		],
-		"updating": [
-			{
-				"name": "svc1",
-				"kind": "service",
-				"body": {
-					"new": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "[masked]",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000,
-						"tags": [
-							"[masked] is an external host. I like [masked]!",
-							"foo:foo",
-							"baz:[masked]",
-							"another:[masked]",
-							"bar:[masked]"
-						]
-					},
-					"old": {
-						"connect_timeout": 60000,
-						"enabled": true,
-						"host": "[masked]",
-						"id": "9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d",
-						"name": "svc1",
-						"port": 80,
-						"protocol": "http",
-						"read_timeout": 60000,
-						"retries": 5,
-						"write_timeout": 60000
-					}
-				}
-			}
-		],
-		"deleting": []
-	},
-	"summary": {
-		"creating": 1,
-		"updating": 1,
-		"deleting": 0,
-		"total": 2
-	},
-	"warnings": [],
-	"errors": []
-}
-
-`
 )
-
-// test scope:
-//   - 1.x
-//   - 2.x
-func Test_Diff_Workspace_OlderThan3x(t *testing.T) {
-	tests := []struct {
-		name          string
-		stateFile     string
-		expectedState utils.KongRawState
-	}{
-		{
-			name:      "diff with not existent workspace doesn't error out",
-			stateFile: "testdata/diff/001-not-existing-workspace/kong.yaml",
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			runWhen(t, "kong", "<3.0.0")
-			setup(t)
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
-			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-}
-
-// test scope:
-//   - 3.x
-func Test_Diff_Workspace_NewerThan3x(t *testing.T) {
-	tests := []struct {
-		name          string
-		stateFile     string
-		expectedState utils.KongRawState
-	}{
-		{
-			name:      "diff with not existent workspace doesn't error out",
-			stateFile: "testdata/diff/001-not-existing-workspace/kong3x.yaml",
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			runWhen(t, "kong", ">=3.0.0")
-			setup(t)
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
-			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-}
 
 // test scope:
 //   - 2.8.0
@@ -542,26 +86,17 @@ func Test_Diff_Masked_OlderThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, false, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-			runWhen(t, "kong", "==2.8.0")
-			setup(t)
-
-			// initialize state
-			assert.NoError(t, sync(tc.initialStateFile))
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
+			assert.Equal(t, int32(1), out.Stats.CreateOps.Count())
+			assert.Equal(t, int32(1), out.Stats.UpdateOps.Count())
+			assert.Equal(t, "rate-limiting (global)", out.Changes.Creating[0].Name)
+			assert.Equal(t, "plugin", out.Changes.Creating[0].Kind)
+			assert.Equal(t, "svc1", out.Changes.Updating[0].Name)
+			assert.Equal(t, "service", out.Changes.Updating[0].Kind)
+			assert.NotEmpty(t, out.Changes.Updating[0].Diff)
+			assert.Equal(t, expectedOutputMasked, out.Changes.Updating[0].Diff)
 		})
 	}
 }
@@ -594,41 +129,17 @@ func Test_Diff_Masked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, false, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-			runWhen(t, "kong", ">=3.0.0 <3.1.0")
-			setup(t)
-
-			// initialize state
-			assert.NoError(t, sync(tc.initialStateFile))
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-			runWhen(t, "kong", ">=3.1.0 <3.4.0")
-			setup(t)
-
-			// initialize state
-			assert.NoError(t, sync(tc.initialStateFile))
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
-			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
+			assert.Equal(t, int32(1), out.Stats.CreateOps.Count())
+			assert.Equal(t, int32(1), out.Stats.UpdateOps.Count())
+			assert.Equal(t, "rate-limiting (global)", out.Changes.Creating[0].Name)
+			assert.Equal(t, "plugin", out.Changes.Creating[0].Kind)
+			assert.Equal(t, "svc1", out.Changes.Updating[0].Name)
+			assert.Equal(t, "service", out.Changes.Updating[0].Kind)
+			assert.NotEmpty(t, out.Changes.Updating[0].Diff)
+			assert.Equal(t, expectedOutputMasked, out.Changes.Updating[0].Diff)
 		})
 	}
 }
@@ -661,25 +172,17 @@ func Test_Diff_Unmasked_OlderThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-			runWhen(t, "kong", "==2.8.0")
-			setup(t)
-
-			// initialize state
-			assert.NoError(t, sync(tc.initialStateFile))
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
+			assert.Equal(t, int32(1), out.Stats.CreateOps.Count())
+			assert.Equal(t, int32(1), out.Stats.UpdateOps.Count())
+			assert.Equal(t, "rate-limiting (global)", out.Changes.Creating[0].Name)
+			assert.Equal(t, "plugin", out.Changes.Creating[0].Kind)
+			assert.Equal(t, "svc1", out.Changes.Updating[0].Name)
+			assert.Equal(t, "service", out.Changes.Updating[0].Kind)
+			assert.NotEmpty(t, out.Changes.Updating[0].Diff)
+			assert.Equal(t, expectedOutputUnMasked, out.Changes.Updating[0].Diff)
 		})
 	}
 }
@@ -712,41 +215,16 @@ func Test_Diff_Unmasked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-			runWhen(t, "kong", ">=3.0.0 <3.1.0")
-			setup(t)
-
-			// initialize state
-			assert.NoError(t, sync(tc.initialStateFile))
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
-			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
-		})
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-			runWhen(t, "kong", ">=3.1.0 <3.4.0")
-			setup(t)
-
-			// initialize state
-			assert.NoError(t, sync(tc.initialStateFile))
-
-			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
-			assert.NoError(t, err)
-			assert.Equal(t, expectedDiff, out)
+			assert.Equal(t, int32(1), out.Stats.CreateOps.Count())
+			assert.Equal(t, int32(1), out.Stats.UpdateOps.Count())
+			assert.Equal(t, "rate-limiting (global)", out.Changes.Creating[0].Name)
+			assert.Equal(t, "plugin", out.Changes.Creating[0].Kind)
+			assert.Equal(t, "svc1", out.Changes.Updating[0].Name)
+			assert.Equal(t, "service", out.Changes.Updating[0].Kind)
+			assert.NotEmpty(t, out.Changes.Updating[0].Diff)
+			assert.Equal(t, expectedOutputUnMasked, out.Changes.Updating[0].Diff)
 		})
 	}
 }
