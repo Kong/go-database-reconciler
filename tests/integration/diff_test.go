@@ -3,10 +3,16 @@
 package integration
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	expectedDiff  = syncOut{}
+	expectedDiff3 = syncOut{}
 )
 
 var (
@@ -476,8 +482,9 @@ func Test_Diff_Workspace_OlderThan3x(t *testing.T) {
 			runWhen(t, "kong", "<3.0.0")
 			setup(t)
 
-			_, err := diff(tc.stateFile)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 }
@@ -500,8 +507,9 @@ func Test_Diff_Workspace_NewerThan3x(t *testing.T) {
 			runWhen(t, "kong", ">=3.0.0")
 			setup(t)
 
-			_, err := diff(tc.stateFile)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 }
@@ -534,9 +542,9 @@ func Test_Diff_Masked_OlderThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputMasked, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 
@@ -551,9 +559,9 @@ func Test_Diff_Masked_OlderThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--json-output")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputMaskedJSON, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 }
@@ -586,9 +594,9 @@ func Test_Diff_Masked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile)
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputMasked, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 	for _, tc := range tests {
@@ -602,9 +610,9 @@ func Test_Diff_Masked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--json-output")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputMaskedJSON30x, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 	for _, tc := range tests {
@@ -618,9 +626,9 @@ func Test_Diff_Masked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--json-output")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputMaskedJSON, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 }
@@ -653,9 +661,9 @@ func Test_Diff_Unmasked_OlderThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--no-mask-deck-env-vars-value")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputUnMasked, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 	for _, tc := range tests {
@@ -669,9 +677,9 @@ func Test_Diff_Unmasked_OlderThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--no-mask-deck-env-vars-value", "--json-output")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputUnMaskedJSON, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 }
@@ -704,9 +712,9 @@ func Test_Diff_Unmasked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--no-mask-deck-env-vars-value")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputUnMasked, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 	for _, tc := range tests {
@@ -720,9 +728,9 @@ func Test_Diff_Unmasked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--no-mask-deck-env-vars-value", "--json-output")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputUnMaskedJSON30x, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 	for _, tc := range tests {
@@ -736,9 +744,9 @@ func Test_Diff_Unmasked_NewerThan3x(t *testing.T) {
 			// initialize state
 			assert.NoError(t, sync(tc.initialStateFile))
 
-			out, err := diff(tc.stateFile, "--no-mask-deck-env-vars-value", "--json-output")
+			out, err := testSync(context.Background(), []string{tc.stateFile}, true)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedOutputUnMaskedJSON, out)
+			assert.Equal(t, expectedDiff, out)
 		})
 	}
 }
