@@ -4787,3 +4787,112 @@ func Test_Sync_ConsumerGroupConsumersWithCustomID(t *testing.T) {
 	require.NoError(t, sync("testdata/sync/028-consumer-group-consumers-custom_id/kong.yaml"))
 	testKongState(t, client, false, expectedState, nil)
 }
+
+// test scope:
+//   - 3.5.0+
+//   - konnect
+func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
+	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
+	runWhenEnterpriseOrKonnect(t, ">=3.5.0")
+	setup(t)
+
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:   kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+					Name: kong.String("cg1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						ID:       kong.String("bcb296c3-22bb-46f6-99c8-4828af750b77"),
+						Username: kong.String("foo"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				ID:       kong.String("bcb296c3-22bb-46f6-99c8-4828af750b77"),
+				Username: kong.String("foo"),
+			},
+		},
+		Routes: []*kong.Route{
+			{
+				Name:                    kong.String("r1"),
+				ID:                      kong.String("a9730e9e-df7e-4042-8bc7-e8b99af70171"),
+				Hosts:                   kong.StringSlice("10.*"),
+				PathHandling:            kong.String("v0"),
+				PreserveHost:            kong.Bool(false),
+				Protocols:               []*string{kong.String("http"), kong.String("https")},
+				RegexPriority:           kong.Int(0),
+				StripPath:               kong.Bool(true),
+				HTTPSRedirectStatusCode: kong.Int(426),
+				RequestBuffering:        kong.Bool(true),
+				ResponseBuffering:       kong.Bool(true),
+			},
+		},
+		Plugins: []*kong.Plugin{
+			{
+				ID:   kong.String("a0b4c8d9-0f1e-4e1f-9e3a-5c8e1c8b9f1a"),
+				Name: kong.String("rate-limiting-advanced"),
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID: kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+				},
+				Route: &kong.Route{
+					ID: kong.String("a9730e9e-df7e-4042-8bc7-e8b99af70171"),
+				},
+				Config: kong.Configuration{
+					"consumer_groups":         nil,
+					"dictionary_name":         string("kong_rate_limiting_counters"),
+					"disable_penalty":         bool(false),
+					"enforce_consumer_groups": bool(false),
+					"error_code":              float64(429),
+					"error_message":           string("API rate limit exceeded"),
+					"header_name":             nil,
+					"hide_client_headers":     bool(false),
+					"identifier":              string("consumer"),
+					"limit":                   []any{float64(1)},
+					"namespace":               string("dmHiQjaGTIYimSXQmRoUDA1XkJXZqxZf"),
+					"path":                    nil,
+					"redis": map[string]any{
+						"cluster_addresses":   nil,
+						"connect_timeout":     nil,
+						"database":            float64(0),
+						"host":                nil,
+						"keepalive_backlog":   nil,
+						"keepalive_pool_size": float64(256),
+						"password":            nil,
+						"port":                nil,
+						"read_timeout":        nil,
+						"send_timeout":        nil,
+						"sentinel_addresses":  nil,
+						"sentinel_master":     nil,
+						"sentinel_password":   nil,
+						"sentinel_role":       nil,
+						"sentinel_username":   nil,
+						"server_name":         nil,
+						"ssl":                 false,
+						"ssl_verify":          false,
+						"timeout":             float64(2000),
+						"username":            nil,
+					},
+					"retry_after_jitter_max": float64(0),
+					"strategy":               string("local"),
+					"sync_rate":              float64(-1),
+					"window_size":            []any{float64(60)},
+					"window_type":            string("sliding"),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/029-plugin-scoped-to-cg-route/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}
