@@ -126,4 +126,4 @@ docker run -d --name $GATEWAY_CONTAINER_NAME \
   -p 8004:8004 \
   $KONG_IMAGE
 
-waitContainer "Kong" $GATEWAY_CONTAINER_NAME kong health
+waitContainer "Kong" $GATEWAY_CONTAINER_NAME "kong health"
