@@ -597,8 +597,16 @@ type KongDefaults struct {
 // Info contains meta-data of the file.
 // +k8s:deepcopy-gen=true
 type Info struct {
-	SelectorTags []string     `json:"select_tags,omitempty" yaml:"select_tags,omitempty"`
-	Defaults     KongDefaults `json:"defaults,omitempty" yaml:"defaults,omitempty"`
+	SelectorTags       []string            `json:"select_tags,omitempty" yaml:"select_tags,omitempty"`
+	LookUpSelectorTags *LookUpSelectorTags `json:"default_lookup_tags,omitempty" yaml:"default_lookup_tags,omitempty"`
+	Defaults           KongDefaults        `json:"defaults,omitempty" yaml:"defaults,omitempty"`
+}
+
+// LookUpSelectorTags contains tags to lookup
+// for corresponding entities already in Kong.
+// +k8s:deepcopy-gen=true
+type LookUpSelectorTags struct {
+	Consumers []string `json:"consumers,omitempty" yaml:"consumers,omitempty"`
 }
 
 // Konnect contains configuration specific to Konnect.
