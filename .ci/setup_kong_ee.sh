@@ -82,7 +82,7 @@ waitPostGres() {
 waitKong() {
   for try in {1..100}; do
     echo "waiting for Kong"
-    docker exec --user root kong kong health && break;
+    docker exec --user root $1 kong health && break;
     sleep 0.2
   done
 }
@@ -134,4 +134,4 @@ docker run -d --name $GATEWAY_CONTAINER_NAME \
   -p 8004:8004 \
   $KONG_IMAGE
 
-waitKong
+waitKong $GATEWAY_CONTAINER_NAME
