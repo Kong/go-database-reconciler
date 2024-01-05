@@ -13,18 +13,10 @@ KONG_PG_HOST=pg
 
 GATEWAY_CONTAINER_NAME=kong
 
-waitPostGres() {
+waitContainer() {
   for try in {1..100}; do
-    echo "waiting for PostgreSQL"
-    nc localhost 5432 && break;
-    sleep 0.2
-  done
-}
-
-waitKong() {
-  for try in {1..100}; do
-    echo "waiting for Kong"
-    docker exec --user root $1 kong health && break;
+    echo "waiting for $1"
+    docker exec --user root $2 $3 && break;
     sleep 0.2
   done
 }
@@ -41,7 +33,7 @@ docker run --rm -d --name $PG_CONTAINER_NAME \
   -e "POSTGRES_PASSWORD=$KONG_DB_PASSWORD" \
   postgres:9.6
 
-waitPostGres
+waitContainer "PostGres" $PG_CONTAINER_NAME pg_isready
 
 # Prepare the Kong database
 docker run --rm --network=$NETWORK_NAME \
@@ -70,4 +62,4 @@ docker run -d --name $GATEWAY_CONTAINER_NAME \
   -p 127.0.0.1:8444:8444 \
   $KONG_IMAGE
 
-waitKong $GATEWAY_CONTAINER_NAME
+waitContainer "Kong" $GATEWAY_CONTAINER_NAME kong health
