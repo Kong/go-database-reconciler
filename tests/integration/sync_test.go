@@ -2851,7 +2851,7 @@ func Test_Sync_Vault(t *testing.T) {
 			}
 
 			res, err := client.Get("https://localhost:8443/r1")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, res.StatusCode, http.StatusOK)
 		})
 	}

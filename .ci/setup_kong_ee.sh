@@ -127,3 +127,4 @@ docker run -d --name $GATEWAY_CONTAINER_NAME \
   $KONG_IMAGE
 
 waitContainer "Kong" $GATEWAY_CONTAINER_NAME "kong health"
+curl --retry 12 --retry-all-errors http://localhost:8001

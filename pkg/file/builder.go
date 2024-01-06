@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
@@ -12,7 +13,11 @@ import (
 	"github.com/kong/go-kong/kong"
 )
 
-const ratelimitingAdvancedPluginName = "rate-limiting-advanced"
+const (
+	ratelimitingAdvancedPluginName = "rate-limiting-advanced"
+	basicAuthPasswordWarning       = "Warning: import/export of basic-auth" +
+		"credentials using decK doesn't work due to hashing of passwords in Kong."
+)
 
 type stateBuilder struct {
 	targetContent   *Content
@@ -36,6 +41,8 @@ type stateBuilder struct {
 	isKonnect bool
 
 	checkRoutePaths bool
+
+	warnBasicAuth sync.Once
 
 	isConsumerGroupScopedPluginSupported bool
 
@@ -361,6 +368,9 @@ func (b *stateBuilder) consumers() {
 
 		var basicAuths []kong.BasicAuth
 		for _, cred := range c.BasicAuths {
+			b.warnBasicAuth.Do(func() {
+				b.rawState.Warnings = append(b.rawState.Warnings, basicAuthPasswordWarning)
+			})
 			cred.Consumer = utils.GetConsumerReference(c.Consumer)
 			basicAuths = append(basicAuths, *cred)
 		}
@@ -811,7 +821,7 @@ func (b *stateBuilder) routes() {
 			}
 		}
 		if len(unsupportedRoutes) > 0 {
-			utils.PrintRouteRegexWarning(unsupportedRoutes)
+			b.rawState.Warnings = append(b.rawState.Warnings, utils.FormatRouteRegexWarning(unsupportedRoutes))
 		}
 	}
 }

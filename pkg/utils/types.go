@@ -54,6 +54,9 @@ type KongRawState struct {
 
 	RBACRoles               []*kong.RBACRole
 	RBACEndpointPermissions []*kong.RBACEndpointPermission
+
+	// Warnings are not Kong data. This field stores any warnings related to Kong data found while building state.
+	Warnings []string
 }
 
 // KonnectRawState contains all of Konnect resources.
