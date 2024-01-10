@@ -254,8 +254,8 @@ github.com/kong/deck v1.29.3-0.20231114000742-27bb40ad93d6 h1:gvpVZ6nNRITEF0jsu2
 github.com/kong/deck v1.29.3-0.20231114000742-27bb40ad93d6/go.mod h1:0Pq1fdfG76+ftGL6rg9qWMcRR7+qKUbM755uWfz7G94=
 github.com/kong/go-apiops v0.1.23 h1:SFDfAS99xt/EchJMWw5pDcYysrFSapZ0L09JeH2dH9M=
 github.com/kong/go-apiops v0.1.23/go.mod h1:kFc+1mlnUpmyCqem9O7aes3UaBnezu4WhgDCfrh5zAA=
-github.com/kong/go-kong v0.49.0 h1:QtO0TtVPYQXjBJ/MNptvyodRNwubbtIkoNhQkh17Q1g=
-github.com/kong/go-kong v0.49.0/go.mod h1:xDf1RfkaE/rAwNE1fS3XniFj/d2JmkEER2S9NDY12Yw=
+github.com/kong/go-kong v0.50.0 h1:HDKn3o/02AH4cURvjzS09gqC4bHZDva5H8JJwYi7T1U=
+github.com/kong/go-kong v0.50.0/go.mod h1:xDf1RfkaE/rAwNE1fS3XniFj/d2JmkEER2S9NDY12Yw=
 github.com/kong/go-slugify v0.0.0-20231027194833-8e212cc29c16 h1:twB8aTpaG0t29jL+VYtkZiP5nMOTznt7/q4mPuNa54E=
 github.com/kong/go-slugify v0.0.0-20231027194833-8e212cc29c16/go.mod h1:dbR2h3J2QKXQ1k0aww6cN7o4cIcwlWflr6RKRdcoaiw=
 github.com/kong/semver/v4 v4.0.1 h1:DIcNR8W3gfx0KabFBADPalxxsp+q/5COwIFkkhrFQ2Y=
