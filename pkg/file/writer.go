@@ -294,7 +294,7 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 	}
 	for _, p := range plugins {
 		p := p
-		if p.Route != nil || p.Consumer != nil {
+		if p.Route != nil || p.Consumer != nil || p.ConsumerGroup != nil {
 			continue
 		}
 		p.Service = nil
@@ -364,7 +364,7 @@ func populateServicelessRoutes(kongState *state.KongState, file *Content,
 		route := &FRoute{Route: r.Route}
 		for _, p := range plugins {
 			p := p
-			if p.Service != nil || p.Consumer != nil {
+			if p.Service != nil || p.Consumer != nil || p.ConsumerGroup != nil {
 				continue
 			}
 			p.Route = nil
@@ -764,6 +764,9 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, plugin := range plugins {
+			if plugin.Service != nil || plugin.Consumer != nil || plugin.Route != nil {
+				continue
+			}
 			if plugin.ID != nil && cg.ID != nil {
 				if plugin.ConsumerGroup != nil && *plugin.ConsumerGroup.ID == *cg.ID {
 					utils.ZeroOutID(plugin, plugin.Name, config.WithID)

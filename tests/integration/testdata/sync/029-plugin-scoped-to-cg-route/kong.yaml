@@ -1,0 +1,77 @@
+_format_version: "3.0"
+consumer_groups:
+- id: 48df7cd3-1cd0-4e53-af73-8f57f257be18
+  name: cg1
+consumers:
+- groups:
+  - id: 48df7cd3-1cd0-4e53-af73-8f57f257be18
+    name: cg1
+  id: bcb296c3-22bb-46f6-99c8-4828af750b77
+  username: foo
+plugins:
+- config:
+    consumer_groups: null
+    dictionary_name: kong_rate_limiting_counters
+    disable_penalty: false
+    enforce_consumer_groups: false
+    error_code: 429
+    error_message: API rate limit exceeded
+    header_name: null
+    hide_client_headers: false
+    identifier: consumer
+    limit:
+    - 1
+    namespace: dmHiQjaGTIYimSXQmRoUDA1XkJXZqxZf
+    path: null
+    redis:
+      cluster_addresses: null
+      connect_timeout: null
+      database: 0
+      host: null
+      keepalive_backlog: null
+      keepalive_pool_size: 256
+      password: null
+      port: null
+      read_timeout: null
+      send_timeout: null
+      sentinel_addresses: null
+      sentinel_master: null
+      sentinel_password: null
+      sentinel_role: null
+      sentinel_username: null
+      server_name: null
+      ssl: false
+      ssl_verify: false
+      timeout: 2000
+      username: null
+    retry_after_jitter_max: 0
+    strategy: local
+    sync_rate: -1
+    window_size:
+    - 60
+    window_type: sliding
+  consumer_group: cg1
+  enabled: true
+  id: f213aa37-6b89-4e5e-bb3f-3ebae9ba5b11
+  name: rate-limiting-advanced
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  route: r1
+routes:
+- hosts:
+  - 10.*
+  https_redirect_status_code: 426
+  id: a9730e9e-df7e-4042-8bc7-e8b99af70171
+  name: r1
+  path_handling: v0
+  preserve_host: false
+  protocols:
+  - http
+  - https
+  regex_priority: 0
+  request_buffering: true
+  response_buffering: true
+  strip_path: true
