@@ -28,8 +28,9 @@ type Config struct {
 	// tags.
 	SelectorTags []string
 
-	// LookUpSelectorTagsConsumers can be used to lookup entities using other
-	// tags.
+	// LookUpSelectorTagsConsumers can be used to ensure state lookup for entities using
+	// these tags. This functionality is essential when using a plugin that references
+	// consumers associated with tags different from those in the sync command.
 	LookUpSelectorTagsConsumers []string
 
 	// KonnectControlPlane
