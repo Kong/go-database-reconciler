@@ -1213,13 +1213,13 @@
     },
     "Info": {
       "properties": {
-        "defaults": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/KongDefaults"
-        },
         "default_lookup_tags": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/LookUpSelectorTags"
+        },
+        "defaults": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/KongDefaults"
         },
         "select_tags": {
           "items": {
@@ -1345,6 +1345,12 @@
     "LookUpSelectorTags": {
       "properties": {
         "consumers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "routes": {
           "items": {
             "type": "string"
           },

@@ -26,6 +26,7 @@ type stateBuilder struct {
 
 	selectTags          []string
 	lookupTagsConsumers []string
+	lookupTagsRoutes    []string
 	skipCACerts         bool
 	intermediate        *state.KongState
 
@@ -1085,6 +1086,21 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 		} else {
 			r.ID = kong.String(*route.ID)
 		}
+	}
+
+	stringTags := make([]string, len(r.Tags))
+	for i, tag := range r.Tags {
+		if tag != nil {
+			stringTags[i] = *tag
+		}
+	}
+	sort.Strings(stringTags)
+	sort.Strings(b.lookupTagsRoutes)
+	// if the consumer tags and the lookup tags are the same, it means
+	// that the route is a global route retrieved from upstream,
+	// therefore we don't want to merge its tags with the selected tags.
+	if !reflect.DeepEqual(stringTags, b.lookupTagsRoutes) {
+		utils.MustMergeTags(&r.Route, b.selectTags)
 	}
 
 	utils.MustMergeTags(&r, b.selectTags)
