@@ -11,7 +11,7 @@ deepcopy-gen --input-dirs github.com/kong/go-database-reconciler/pkg/konnect \
   --output-base $TMP_DIR
 
 cp $TMP_DIR/github.com/kong/go-database-reconciler/pkg/konnect/zz_generated.deepcopy.go \
-  konnect/zz_generated.deepcopy.go
+  pkg/konnect/zz_generated.deepcopy.go
 
 # file package
 deepcopy-gen --input-dirs github.com/kong/go-database-reconciler/pkg/file \
@@ -20,4 +20,4 @@ deepcopy-gen --input-dirs github.com/kong/go-database-reconciler/pkg/file \
   --output-base $TMP_DIR
 
 cp $TMP_DIR/github.com/kong/go-database-reconciler/pkg/file/zz_generated.deepcopy.go \
-  file/zz_generated.deepcopy.go
+  pkg/file/zz_generated.deepcopy.go
