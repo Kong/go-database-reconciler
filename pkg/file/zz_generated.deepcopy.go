@@ -835,6 +835,11 @@ func (in *LookUpSelectorTags) DeepCopyInto(out *LookUpSelectorTags) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.Routes != nil {
+		in, out := &in.Routes, &out.Routes
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

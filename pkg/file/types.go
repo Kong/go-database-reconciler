@@ -607,6 +607,7 @@ type Info struct {
 // +k8s:deepcopy-gen=true
 type LookUpSelectorTags struct {
 	Consumers []string `json:"consumers,omitempty" yaml:"consumers,omitempty"`
+	Routes    []string `json:"routes,omitempty" yaml:"routes,omitempty"`
 }
 
 // Konnect contains configuration specific to Konnect.
