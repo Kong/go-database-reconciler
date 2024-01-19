@@ -57,6 +57,9 @@ func getContent(filenames []string, mockEnvVars bool) (*Content, error) {
 	if err := validateRuntimeGroups(runtimeGroups); err != nil {
 		return nil, err
 	}
+	if err := validateEmptyContent(res); err != nil {
+		return &Content{}, err
+	}
 	return &res, nil
 }
 
