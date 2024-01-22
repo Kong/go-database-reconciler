@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -4822,6 +4823,22 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 				Username: kong.String("foo"),
 			},
 		},
+		Services: []*kong.Service{
+			{
+				ID:             kong.String("1b9d6d8e-9f0f-4a1a-8d5c-9d2a6b2b7f3c"),
+				Host:           kong.String("example.com"),
+				Name:           kong.String("s1"),
+				ConnectTimeout: kong.Int(60000),
+				Port:           kong.Int(80),
+				Path:           nil,
+				Protocol:       kong.String("http"),
+				ReadTimeout:    kong.Int(60000),
+				Retries:        kong.Int(5),
+				WriteTimeout:   kong.Int(60000),
+				Tags:           nil,
+				Enabled:        kong.Bool(true),
+			},
+		},
 		Routes: []*kong.Route{
 			{
 				Name:                    kong.String("r1"),
@@ -4835,6 +4852,9 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 				HTTPSRedirectStatusCode: kong.Int(426),
 				RequestBuffering:        kong.Bool(true),
 				ResponseBuffering:       kong.Bool(true),
+				Service: &kong.Service{
+					ID: kong.String("1b9d6d8e-9f0f-4a1a-8d5c-9d2a6b2b7f3c"),
+				},
 			},
 		},
 		Plugins: []*kong.Plugin{
@@ -4895,4 +4915,20 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 	}
 	require.NoError(t, sync("testdata/sync/029-plugin-scoped-to-cg-route/kong.yaml"))
 	testKongState(t, client, false, expectedState, nil)
+
+	// create a temporary file to dump the state.
+	cwd, err := os.Getwd()
+	require.NoError(t, err)
+	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	assert.NoError(t, err)
+
+	// dump the state.
+	_, err = dump("-o", file.Name(), "--yes")
+	assert.NoError(t, err)
+
+	// verify that the dumped state can be sync'd back and that
+	// the end result is the same.
+	require.NoError(t, sync(file.Name()))
+	testKongState(t, client, false, expectedState, nil)
+
 }
