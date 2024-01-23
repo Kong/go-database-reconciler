@@ -173,13 +173,13 @@ func Test_getContent(t *testing.T) {
 			name:    "empty directory",
 			args:    args{[]string{"testdata/emptydir"}},
 			want:    &Content{},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "directory with empty files",
 			args:    args{[]string{"testdata/emptyfiles"}},
 			want:    &Content{},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "bad yaml",

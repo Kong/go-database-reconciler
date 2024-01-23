@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/xeipuuv/gojsonschema"
@@ -63,6 +64,16 @@ func validateRuntimeGroups(names []string) error {
 		return fmt.Errorf("it seems like you are trying to sync multiple Konnect Runtime Groups "+
 			"at the same time (%v).\ndecK doesn't support syncing multiple Runtime Groups at the same time, "+
 			"please sync one Runtime Group at a time", names)
+	}
+	return nil
+}
+
+func validateEmptyContent(content Content) error {
+	// if content is empty, return an error
+	if reflect.DeepEqual(content, Content{}) {
+		return fmt.Errorf("it seems like you are trying to sync an empty configuration file " +
+			"or directory. That would lead to the removal of the default workspace. Please make " +
+			"sure that the file or directory you are trying to sync references a workspace")
 	}
 	return nil
 }
