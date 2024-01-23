@@ -182,8 +182,8 @@ github.com/klauspost/cpuid/v2 v2.0.10/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuOb
 github.com/klauspost/cpuid/v2 v2.0.12/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuObKfj5c0PQa7c=
 github.com/klauspost/cpuid/v2 v2.2.3 h1:sxCkb+qR91z4vsqw4vGGZlDgPz3G7gjaLyK3V8y70BU=
 github.com/klauspost/cpuid/v2 v2.2.3/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
-github.com/kong/deck v1.30.0 h1:tqvEeKlhpdkhccOWlzqNlRAHGrPN+ovlYF4YA8PATW8=
-github.com/kong/deck v1.30.0/go.mod h1:D+igZLJre5MjYhltMnHHRZhpwqnb+AaKepM5vOIxtbo=
+github.com/kong/deck v1.31.1 h1:zH9Kgivap5iKR791B/dd1/AhOprUH0Z0QeX66yPT8s8=
+github.com/kong/deck v1.31.1/go.mod h1:cyRu/KccI2GJCP+q6hPQY3iy5JJ1MkkDCx9u2jnIi6Q=
 github.com/kong/go-apiops v0.1.27 h1:Jy9HSBtGtO0r0UpXSFenCfOUA0QmeX4i8iGQU0vnC+Q=
 github.com/kong/go-apiops v0.1.27/go.mod h1:TYRNVbQ/lw6D3AUJBVP1w4zmMlJ59K83q+zCFa02uZ4=
 github.com/kong/go-kong v0.50.0 h1:HDKn3o/02AH4cURvjzS09gqC4bHZDva5H8JJwYi7T1U=
