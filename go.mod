@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.30.0
+	github.com/kong/deck v1.31.1
 	github.com/kong/go-kong v0.50.0
 	github.com/shirou/gopsutil/v3 v3.23.12
 	github.com/ssgelm/cookiejarparser v1.0.1
@@ -26,7 +26,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.16.0
-	k8s.io/code-generator v0.29.0
+	k8s.io/code-generator v0.29.1
 	sigs.k8s.io/yaml v1.4.0
 )
 
