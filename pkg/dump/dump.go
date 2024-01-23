@@ -28,10 +28,11 @@ type Config struct {
 	// tags.
 	SelectorTags []string
 
-	// LookUpSelectorTagsConsumers can be used to ensure state lookup for entities using
+	// LookUpSelectorTags* can be used to ensure state lookup for entities using
 	// these tags. This functionality is essential when using a plugin that references
-	// consumers associated with tags different from those in the sync command.
+	// consumers or routes associated with tags different from those in the sync command.
 	LookUpSelectorTagsConsumers []string
+	LookUpSelectorTagsRoutes    []string
 
 	// KonnectControlPlane
 	KonnectControlPlane string
@@ -210,6 +211,25 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		routes, err := GetAllRoutes(ctx, client, config.SelectorTags)
 		if err != nil {
 			return fmt.Errorf("routes: %w", err)
+		}
+		if config.LookUpSelectorTagsRoutes != nil {
+			globalRoutes, err := GetAllRoutes(ctx, client, config.LookUpSelectorTagsRoutes)
+			if err != nil {
+				return fmt.Errorf("error retrieving global routes: %w", err)
+			}
+			// if globalRoutes are not present, add them.
+			for _, globalRoute := range globalRoutes {
+				found := false
+				for _, route := range routes {
+					if *globalRoute.ID == *route.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					routes = append(routes, globalRoute)
+				}
+			}
 		}
 		state.Routes = routes
 		return nil

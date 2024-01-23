@@ -60,18 +60,22 @@ plugins:
   - http
   - https
   route: r1
-routes:
-- hosts:
-  - 10.*
-  https_redirect_status_code: 426
-  id: a9730e9e-df7e-4042-8bc7-e8b99af70171
-  name: r1
-  path_handling: v0
-  preserve_host: false
-  protocols:
-  - http
-  - https
-  regex_priority: 0
-  request_buffering: true
-  response_buffering: true
-  strip_path: true
+services:
+- host: example.com
+  id: 1b9d6d8e-9f0f-4a1a-8d5c-9d2a6b2b7f3c
+  name: s1
+  routes:
+  - hosts:
+    - 10.*
+    https_redirect_status_code: 426
+    id: a9730e9e-df7e-4042-8bc7-e8b99af70171
+    name: r1
+    path_handling: v0
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
