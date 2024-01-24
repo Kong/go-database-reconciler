@@ -1,8 +1,11 @@
 package crud
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
-// Op represents
+// Op represents the type of the operation.
 type Op struct {
 	name string
 }
@@ -48,4 +51,16 @@ func EventFromArg(arg Arg) Event {
 		panic("unexpected type, expected diff.Event")
 	}
 	return event
+}
+
+// ActionError represents an error happens in performing CRUD action of an entity.
+type ActionError struct {
+	OperationType Op     `json:"operation"`
+	Kind          Kind   `json:"kind"`
+	Name          string `json:"name"`
+	Err           error  `json:"error"`
+}
+
+func (e *ActionError) Error() string {
+	return fmt.Sprintf("%s %s %s failed: %v", e.OperationType.String(), e.Kind, e.Name, e.Err)
 }

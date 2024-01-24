@@ -541,7 +541,12 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			// fire the request to Kong
 			result, err = sc.processor.Do(ctx, e.Kind, e.Op, e)
 			if err != nil {
-				return nil, fmt.Errorf("%v %v %v failed: %w", e.Op, e.Kind, c.Console(), err)
+				return nil, &crud.ActionError{
+					OperationType: e.Op,
+					Kind:          e.Kind,
+					Name:          c.Console(),
+					Err:           err,
+				}
 			}
 		} else {
 			// diff mode
