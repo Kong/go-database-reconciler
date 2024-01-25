@@ -4932,3 +4932,150 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 	testKongState(t, client, false, expectedState, nil)
 
 }
+
+// test scope:
+//   - 3.5.0+
+//   - konnect
+func Test_Sync_DeDupPluginsScopedToConsumerGroups(t *testing.T) {
+	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
+	runWhenEnterpriseOrKonnect(t, ">=3.5.0")
+	setup(t)
+
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:   kong.String("19275493-84d3-4c64-92e6-612e908a3a4f"),
+					Name: kong.String("gold"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						ID:       kong.String("7b2c743c-2cec-4998-b9df-e7f8a9a20487"),
+						Username: kong.String("jeff"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:   kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+					Name: kong.String("silver"),
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				ID:       kong.String("7b2c743c-2cec-4998-b9df-e7f8a9a20487"),
+				Username: kong.String("jeff"),
+			},
+		},
+		Plugins: []*kong.Plugin{
+			{
+				ID:   kong.String("1c93dd1f-f188-473d-bec8-053bd526a693"),
+				Name: kong.String("rate-limiting-advanced"),
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID: kong.String("19275493-84d3-4c64-92e6-612e908a3a4f"),
+				},
+				Config: kong.Configuration{
+					"consumer_groups":         nil,
+					"dictionary_name":         string("kong_rate_limiting_counters"),
+					"disable_penalty":         bool(false),
+					"enforce_consumer_groups": bool(false),
+					"error_code":              float64(429),
+					"error_message":           string("API rate limit exceeded"),
+					"header_name":             nil,
+					"hide_client_headers":     bool(false),
+					"identifier":              string("consumer"),
+					"limit":                   []any{float64(1000)},
+					"namespace":               string("OsFDaDQxdb1MFGHBdZENho51f3zqMLy"),
+					"path":                    nil,
+					"redis": map[string]any{
+						"cluster_addresses":   nil,
+						"connect_timeout":     nil,
+						"database":            float64(0),
+						"host":                nil,
+						"keepalive_backlog":   nil,
+						"keepalive_pool_size": float64(256),
+						"password":            nil,
+						"port":                nil,
+						"read_timeout":        nil,
+						"send_timeout":        nil,
+						"sentinel_addresses":  nil,
+						"sentinel_master":     nil,
+						"sentinel_password":   nil,
+						"sentinel_role":       nil,
+						"sentinel_username":   nil,
+						"server_name":         nil,
+						"ssl":                 false,
+						"ssl_verify":          false,
+						"timeout":             float64(2000),
+						"username":            nil,
+					},
+					"retry_after_jitter_max": float64(0),
+					"strategy":               string("local"),
+					"sync_rate":              float64(-1),
+					"window_size":            []any{float64(60)},
+					"window_type":            string("sliding"),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			},
+			{
+				ID:   kong.String("bcb296c3-22bb-46f6-99c8-4828af750b77"),
+				Name: kong.String("rate-limiting-advanced"),
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID: kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+				},
+				Config: kong.Configuration{
+					"consumer_groups":         nil,
+					"dictionary_name":         string("kong_rate_limiting_counters"),
+					"disable_penalty":         bool(false),
+					"enforce_consumer_groups": bool(false),
+					"error_code":              float64(429),
+					"error_message":           string("API rate limit exceeded"),
+					"header_name":             nil,
+					"hide_client_headers":     bool(false),
+					"identifier":              string("consumer"),
+					"limit":                   []any{float64(100)},
+					"namespace":               string("OsFDaDQxdb1MFGHBdZENho51f3zqMLy"),
+					"path":                    nil,
+					"redis": map[string]any{
+						"cluster_addresses":   nil,
+						"connect_timeout":     nil,
+						"database":            float64(0),
+						"host":                nil,
+						"keepalive_backlog":   nil,
+						"keepalive_pool_size": float64(256),
+						"password":            nil,
+						"port":                nil,
+						"read_timeout":        nil,
+						"send_timeout":        nil,
+						"sentinel_addresses":  nil,
+						"sentinel_master":     nil,
+						"sentinel_password":   nil,
+						"sentinel_role":       nil,
+						"sentinel_username":   nil,
+						"server_name":         nil,
+						"ssl":                 false,
+						"ssl_verify":          false,
+						"timeout":             float64(2000),
+						"username":            nil,
+					},
+					"retry_after_jitter_max": float64(0),
+					"strategy":               string("local"),
+					"sync_rate":              float64(-1),
+					"window_size":            []any{float64(60)},
+					"window_type":            string("sliding"),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/030-plugin-dedup-consumer-groups/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}

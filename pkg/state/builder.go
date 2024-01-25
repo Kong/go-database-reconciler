@@ -124,6 +124,7 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 						Name:          p.Name,
 						Config:        p.Config,
 						ConsumerGroup: cg.ConsumerGroup,
+						ConfigSource:  p.ConfigSource,
 					},
 				},
 			)

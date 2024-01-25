@@ -333,6 +333,9 @@
     },
     "ConsumerGroupPlugin": {
       "properties": {
+        "_config": {
+          "type": "string"
+        },
         "config": {
           "additionalProperties": true,
           "type": "object"

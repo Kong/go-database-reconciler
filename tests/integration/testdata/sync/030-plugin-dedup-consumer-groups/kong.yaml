@@ -1,0 +1,41 @@
+_format_version: "3.0"
+_plugin_configs:
+  route-default-limit:
+    hide_client_headers: false
+    identifier: consumer
+    limit:
+    - 100
+    strategy: local
+    sync_rate: -1
+    window_size:
+    - 60
+    namespace: OsFDaDQxdb1MFGHBdZENho51f3zqMLy
+  gold-tier-limit:
+    hide_client_headers: false
+    identifier: consumer
+    limit:
+    - 1000
+    strategy: local
+    sync_rate: -1
+    window_size:
+    - 60
+    namespace: OsFDaDQxdb1MFGHBdZENho51f3zqMLy
+consumer_groups:
+- id: 19275493-84d3-4c64-92e6-612e908a3a4f
+  name: gold
+  plugins:
+  - id: 1c93dd1f-f188-473d-bec8-053bd526a693
+    name: rate-limiting-advanced
+    _config: gold-tier-limit
+- id: 48df7cd3-1cd0-4e53-af73-8f57f257be18
+  name: silver
+  plugins:
+  - id: bcb296c3-22bb-46f6-99c8-4828af750b77
+    name: rate-limiting-advanced
+    _config: route-default-limit
+consumers:
+- groups:
+  - id: 19275493-84d3-4c64-92e6-612e908a3a4f
+    name: gold
+  id: 7b2c743c-2cec-4998-b9df-e7f8a9a20487
+  username: jeff
