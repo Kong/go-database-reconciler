@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.31.1
+	github.com/kong/deck v1.32.0
 	github.com/kong/go-kong v0.51.0
 	github.com/shirou/gopsutil/v3 v3.23.12
 	github.com/ssgelm/cookiejarparser v1.0.1
@@ -68,7 +68,7 @@ require (
 	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kong/go-apiops v0.1.27 // indirect
+	github.com/kong/go-apiops v0.1.29 // indirect
 	github.com/kong/go-slugify v1.0.0 // indirect
 	github.com/kong/semver/v4 v4.0.1 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
