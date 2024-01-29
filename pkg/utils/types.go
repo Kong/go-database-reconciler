@@ -95,12 +95,7 @@ type KongClientConfig struct {
 	Address   string
 	Workspace string
 
-	TLSServerName string
-
-	TLSCACert string
-
-	TLSSkipVerify bool
-	Debug         bool
+	Debug bool
 
 	SkipWorkspaceCrud bool
 
@@ -112,12 +107,10 @@ type KongClientConfig struct {
 
 	CookieJarPath string
 
-	TLSClientCert string
-
-	TLSClientKey string
-
 	// whether or not the client should retry on 429s
 	Retryable bool
+
+	TLSConfig TLSConfig
 }
 
 type KonnectConfig struct {
@@ -131,6 +124,16 @@ type KonnectConfig struct {
 	Headers []string
 
 	ControlPlaneName string
+
+	TLSConfig TLSConfig
+}
+
+type TLSConfig struct {
+	ServerName string
+	CACert     string
+	ClientCert string
+	ClientKey  string
+	SkipVerify bool
 }
 
 // ForWorkspace returns a copy of KongClientConfig that produces a KongClient for the workspace specified by argument.
@@ -209,30 +212,9 @@ func getRetryableClient(client *http.Client) *http.Client {
 
 // GetKongClient returns a Kong client
 func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
-	var tlsConfig tls.Config
-	if opt.TLSSkipVerify {
-		tlsConfig.InsecureSkipVerify = true //nolint:gosec
-	}
-	if opt.TLSServerName != "" {
-		tlsConfig.ServerName = opt.TLSServerName
-	}
-
-	if opt.TLSCACert != "" {
-		certPool := x509.NewCertPool()
-		ok := certPool.AppendCertsFromPEM([]byte(opt.TLSCACert))
-		if !ok {
-			return nil, fmt.Errorf("failed to load TLSCACert")
-		}
-		tlsConfig.RootCAs = certPool
-	}
-
-	if opt.TLSClientCert != "" && opt.TLSClientKey != "" {
-		// Read the key pair to create certificate
-		cert, err := tls.X509KeyPair([]byte(opt.TLSClientCert), []byte(opt.TLSClientKey))
-		if err != nil {
-			return nil, fmt.Errorf("failed to load client certificate: %w", err)
-		}
-		tlsConfig.Certificates = []tls.Certificate{cert}
+	tlsConfig, err := getTLSConfig(opt.TLSConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
 	clientTimeout = time.Duration(opt.Timeout) * time.Second
@@ -241,7 +223,7 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 		c = HTTPClient()
 	}
 	defaultTransport := http.DefaultTransport.(*http.Transport)
-	defaultTransport.TLSClientConfig = &tlsConfig
+	defaultTransport.TLSClientConfig = tlsConfig
 	c.Transport = defaultTransport
 	address := CleanAddress(opt.Address)
 
@@ -296,13 +278,47 @@ func parseHeaders(headers []string) (http.Header, error) {
 	return res, nil
 }
 
+func getTLSConfig(opt TLSConfig) (*tls.Config, error) {
+	var tlsConfig tls.Config
+	if opt.SkipVerify {
+		tlsConfig.InsecureSkipVerify = true //nolint:gosec
+	}
+	if opt.ServerName != "" {
+		tlsConfig.ServerName = opt.ServerName
+	}
+
+	if opt.CACert != "" {
+		certPool := x509.NewCertPool()
+		ok := certPool.AppendCertsFromPEM([]byte(opt.CACert))
+		if !ok {
+			return nil, fmt.Errorf("failed to load TLSCACert")
+		}
+		tlsConfig.RootCAs = certPool
+	}
+
+	if opt.ClientCert != "" && opt.ClientKey != "" {
+		// Read the key pair to create certificate
+		cert, err := tls.X509KeyPair([]byte(opt.ClientCert), []byte(opt.ClientKey))
+		if err != nil {
+			return nil, fmt.Errorf("failed to load client certificate: %w", err)
+		}
+		tlsConfig.Certificates = []tls.Certificate{cert}
+	}
+	return &tlsConfig, nil
+}
+
 func GetKonnectClient(httpClient *http.Client, config KonnectConfig) (*konnect.Client,
 	error,
 ) {
 	address := CleanAddress(config.Address)
 
 	if httpClient == nil {
+		tlsConfig, err := getTLSConfig(config.TLSConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load TLS config: %w", err)
+		}
 		defaultTransport := http.DefaultTransport.(*http.Transport)
+		defaultTransport.TLSClientConfig = tlsConfig
 		defaultTransport.Proxy = http.ProxyFromEnvironment
 		httpClient = http.DefaultClient
 		httpClient.Transport = defaultTransport
@@ -344,4 +360,26 @@ func HTTPClient() *http.Client {
 			Proxy:               http.ProxyFromEnvironment,
 		},
 	}
+}
+
+func HTTPClientWithTLSConfig(opt TLSConfig) (*http.Client, error) {
+	httpClient := &http.Client{
+		Timeout: clientTimeout,
+		Transport: &http.Transport{
+			DialContext:         (&net.Dialer{Timeout: clientTimeout}).DialContext,
+			TLSHandshakeTimeout: clientTimeout,
+			Proxy:               http.ProxyFromEnvironment,
+		},
+	}
+
+	tlsConfig, err := getTLSConfig(opt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load TLS config: %w", err)
+	}
+	defaultTransport := http.DefaultTransport.(*http.Transport)
+	defaultTransport.TLSClientConfig = tlsConfig
+	defaultTransport.Proxy = http.ProxyFromEnvironment
+	httpClient = http.DefaultClient
+	httpClient.Transport = defaultTransport
+	return httpClient, nil
 }
