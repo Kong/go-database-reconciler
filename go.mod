@@ -20,7 +20,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.32.1
 	github.com/kong/go-kong v0.51.1-0.20240125175037-0c077f5b9ac7
-	github.com/shirou/gopsutil/v3 v3.23.12
+	github.com/shirou/gopsutil/v3 v3.24.1
 	github.com/ssgelm/cookiejarparser v1.0.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xeipuuv/gojsonschema v1.2.0
