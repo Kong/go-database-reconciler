@@ -1110,9 +1110,35 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 		return err
 	}
 	r.Route.StripPath = stripPath
+
+	hasExpression := r.Route.Expression != nil
+	hasRegexPriority := r.Route.RegexPriority != nil
+	hasPathHandling := r.Route.PathHandling != nil
+
 	b.defaulter.MustSet(&r.Route)
 	if route != nil {
 		r.Route.CreatedAt = route.CreatedAt
+	}
+
+	// Kong Gateway supports different schemas for different router versions.
+	// On the other hand, Konnect can support only one schema including all
+	// fields from 'traditional' and 'expressions' router schemas.
+	// This may be problematic when it comes to defaults injection, because
+	// the defaults for the 'traditiona' router schema can be wrongly injected
+	// into the 'expressions' route configuration.
+	//
+	// Here we make sure that only the fields that are supported for a given
+	// router version are set in the route configuration.
+	if b.isKonnect && hasExpression && !(hasRegexPriority || hasPathHandling) {
+		if r.Route.PathHandling != nil {
+			r.Route.PathHandling = nil
+		}
+		if r.Route.RegexPriority != nil {
+			r.Route.RegexPriority = nil
+		}
+		if r.Route.Priority == nil {
+			r.Route.Priority = kong.Uint64(0)
+		}
 	}
 
 	b.rawState.Routes = append(b.rawState.Routes, &r.Route)
