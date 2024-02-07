@@ -196,6 +196,19 @@ func (b *stateBuilder) consumerGroups() {
 		if current != nil {
 			cgo.ConsumerGroup.CreatedAt = current.CreatedAt
 		}
+
+		for _, consumer := range cg.Consumers {
+			if consumer != nil {
+				c, err := b.ingestConsumerGroupConsumer(&FConsumer{
+					Consumer: *consumer,
+				})
+				if err != nil {
+					b.err = err
+					return
+				}
+				cgo.Consumers = append(cgo.Consumers, c)
+			}
+		}
 		b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, &cgo)
 	}
 }
@@ -293,6 +306,65 @@ func (b *stateBuilder) caCertificates() {
 		b.rawState.CACertificates = append(b.rawState.CACertificates,
 			&c.CACertificate)
 	}
+}
+
+func (b *stateBuilder) ingestConsumerGroupConsumer(c *FConsumer) (*kong.Consumer, error) {
+	var (
+		consumer *state.Consumer
+		err      error
+	)
+
+	// if the consumer is already present in the target state because it is pulled from
+	// upstream via the lookup tags, we don't want to create a new consumer.
+	for _, tc := range b.targetContent.Consumers {
+		stringTCTags := make([]string, len(tc.Tags))
+		for i, tag := range tc.Tags {
+			if tag != nil {
+				stringTCTags[i] = *tag
+			}
+		}
+		sort.Strings(stringTCTags)
+		if reflect.DeepEqual(stringTCTags, b.lookupTagsConsumers) && !utils.Empty(tc.ID) {
+			if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
+				(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
+				return &kong.Consumer{
+					ID:       tc.ID,
+					Username: tc.Username,
+					CustomID: tc.CustomID,
+					Tags:     tc.Tags,
+				}, nil
+			}
+		}
+	}
+
+	if c.Username != nil {
+		consumer, err = b.currentState.Consumers.GetByIDOrUsername(*c.Username)
+	}
+	if errors.Is(err, state.ErrNotFound) || consumer == nil {
+		if c.CustomID != nil {
+			consumer, err = b.currentState.Consumers.GetByCustomID(*c.CustomID)
+		}
+	}
+	if utils.Empty(c.ID) {
+		if errors.Is(err, state.ErrNotFound) {
+			c.ID = uuid()
+		} else if err != nil {
+			return nil, err
+		} else {
+			c.ID = kong.String(*consumer.ID)
+		}
+	}
+	utils.MustMergeTags(&c.Consumer, b.selectTags)
+	if consumer != nil {
+		c.Consumer.CreatedAt = consumer.CreatedAt
+	}
+
+	b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
+	err = b.intermediate.Consumers.Add(state.Consumer{Consumer: c.Consumer})
+	if err != nil {
+		return nil, err
+	}
+	return &c.Consumer, nil
 }
 
 func (b *stateBuilder) consumers() {
