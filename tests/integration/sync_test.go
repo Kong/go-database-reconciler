@@ -5137,7 +5137,7 @@ func Test_Sync_DeDupPluginsScopedToConsumerGroups(t *testing.T) {
 //   - konnect
 func Test_Sync_ConsumerGroupConsumerFromUpstream(t *testing.T) {
 	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
-	runWhenEnterpriseOrKonnect(t, ">=3.5.0")
+	runWhenEnterpriseOrKonnect(t, ">=3.4.0")
 	setup(t)
 
 	client, err := getTestClient()

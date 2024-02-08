@@ -199,7 +199,7 @@ func (b *stateBuilder) consumerGroups() {
 
 		for _, consumer := range cg.Consumers {
 			if consumer != nil {
-				c, err := b.ingestConsumerGroupConsumer(&FConsumer{
+				c, err := b.ingestConsumerGroupConsumer(cg.ID, &FConsumer{
 					Consumer: *consumer,
 				})
 				if err != nil {
@@ -308,7 +308,7 @@ func (b *stateBuilder) caCertificates() {
 	}
 }
 
-func (b *stateBuilder) ingestConsumerGroupConsumer(c *FConsumer) (*kong.Consumer, error) {
+func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (*kong.Consumer, error) {
 	var (
 		consumer *state.Consumer
 		err      error
@@ -361,6 +361,15 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(c *FConsumer) (*kong.Consumer
 
 	b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
 	err = b.intermediate.Consumers.Add(state.Consumer{Consumer: c.Consumer})
+	if err != nil {
+		return nil, err
+	}
+	err = b.intermediate.ConsumerGroupConsumers.Add(state.ConsumerGroupConsumer{
+		ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
+			ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
+			Consumer:      &c.Consumer,
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -417,17 +426,35 @@ func (b *stateBuilder) consumers() {
 		if consumer != nil {
 			c.Consumer.CreatedAt = consumer.CreatedAt
 		}
-		b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
-		err = b.intermediate.Consumers.Add(state.Consumer{Consumer: c.Consumer})
+
+		// check if consumer was already added in the consumer groups section.
+		// if it was, we don't want to add it again.
+		consumerAlreadyAdded := false
+		consumerGroupConsumers, err := b.intermediate.ConsumerGroupConsumers.GetAll()
 		if err != nil {
 			b.err = err
 			return
 		}
-
-		// ingest consumer into consumer group
-		if err := b.ingestIntoConsumerGroup(c); err != nil {
-			b.err = err
-			return
+		for _, cgc := range consumerGroupConsumers {
+			if cgc.Consumer != nil && (c.Username != nil && cgc.Consumer.Username != nil && *cgc.Consumer.Username == *c.Username ||
+				c.CustomID != nil && cgc.Consumer.CustomID != nil && *cgc.Consumer.CustomID == *c.CustomID) {
+				c.ID = cgc.Consumer.ID
+				consumerAlreadyAdded = true
+				break
+			}
+		}
+		if !consumerAlreadyAdded {
+			b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
+			err = b.intermediate.Consumers.Add(state.Consumer{Consumer: c.Consumer})
+			if err != nil {
+				b.err = err
+				return
+			}
+			// ingest consumer into consumer group
+			if err := b.ingestIntoConsumerGroup(c); err != nil {
+				b.err = err
+				return
+			}
 		}
 
 		// plugins for the Consumer
