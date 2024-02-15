@@ -26,7 +26,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.17.0
-	k8s.io/code-generator v0.29.1
+	k8s.io/code-generator v0.29.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
