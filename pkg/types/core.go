@@ -119,6 +119,8 @@ const (
 
 	// Vault identifies a Vault in Kong.
 	Vault EntityType = "vault"
+	// License identifies a License in Kong Enterprise.
+	License EntityType = "license"
 )
 
 // AllTypes represents all types defined in the
@@ -140,7 +142,7 @@ var AllTypes = []EntityType{
 
 	ServicePackage, ServiceVersion, Document,
 
-	Vault,
+	Vault, License,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -525,6 +527,22 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &vaultDiffer{
 				kind:         entityTypeToKind(Vault),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case License:
+		return entityImpl{
+			typ: License,
+			crudActions: &licenseCRUD{
+				client:    opts.KongClient,
+				isKonnect: opts.IsKonnect,
+			},
+			postProcessActions: &licensePostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &licenseDiffer{
+				kind:         entityTypeToKind(License),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

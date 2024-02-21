@@ -1610,3 +1610,40 @@ func (v1 *Vault) EqualWithOpts(v2 *Vault, ignoreID, ignoreTS bool) bool {
 	}
 	return reflect.DeepEqual(v1Copy, v2Copy)
 }
+
+type License struct {
+	kong.License `yaml:",inline"`
+	Meta
+}
+
+// TODO: add a variable definition to notate that License (and definition of other entities) should satisfy crud.Event interface?
+
+func (l *License) Identifier() string {
+	return *l.ID
+}
+
+func (l *License) Console() string {
+	return l.FriendlyName()
+}
+
+func (l1 *License) Equal(l2 *License) bool {
+	return l1.EqualWithOpts(l2, false, false)
+}
+
+func (l1 *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
+	l1Copy := l1.License.DeepCopy()
+	l2Copy := l2.License.DeepCopy()
+
+	if ignoreID {
+		l1Copy.ID = nil
+		l2Copy.ID = nil
+	}
+	if ignoreTS {
+		l1Copy.CreatedAt = nil
+		l2Copy.CreatedAt = nil
+
+		l1Copy.UpdatedAt = nil
+		l2Copy.UpdatedAt = nil
+	}
+	return reflect.DeepEqual(l1Copy, l2Copy)
+}

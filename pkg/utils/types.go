@@ -42,7 +42,8 @@ type KongRawState struct {
 	ConsumerGroups []*kong.ConsumerGroupObject
 	CustomEntities []*custom.Entity
 
-	Vaults []*kong.Vault
+	Vaults   []*kong.Vault
+	Licenses []*kong.License
 
 	KeyAuths    []*kong.KeyAuth
 	HMACAuths   []*kong.HMACAuth

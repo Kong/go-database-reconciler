@@ -938,6 +938,7 @@ func (b *stateBuilder) routes() {
 func (b *stateBuilder) enterprise() {
 	b.rbacRoles()
 	b.vaults()
+	b.licenses()
 }
 
 func (b *stateBuilder) vaults() {
@@ -964,6 +965,29 @@ func (b *stateBuilder) vaults() {
 		}
 
 		b.rawState.Vaults = append(b.rawState.Vaults, &v.Vault)
+	}
+}
+
+func (b *stateBuilder) licenses() {
+	if b.err != nil {
+		return
+	}
+
+	for _, l := range b.targetContent.Licenses {
+		l := l
+		if utils.Empty(l.ID) {
+			license, err := b.currentState.Licenses.Get(*l.ID)
+			if err == state.ErrNotFound {
+				l.ID = uuid()
+			} else if err != nil {
+				b.err = err
+				return
+			} else {
+				l.ID = kong.String(*license.ID)
+			}
+		}
+
+		b.rawState.Licenses = append(b.rawState.Licenses, &l.License)
 	}
 }
 

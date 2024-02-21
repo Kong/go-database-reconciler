@@ -24,6 +24,9 @@ type Config struct {
 	// If true, CA certificates are not exported.
 	SkipCACerts bool
 
+	// If true, licenses are not exported.
+	SkipLicenses bool
+
 	// SelectorTags can be used to export entities tagged with only specific
 	// tags.
 	SelectorTags []string
@@ -300,6 +303,17 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		state.Vaults = vaults
 		return nil
 	})
+
+	if !config.SkipLicenses {
+		group.Go(func() error {
+			licenses, err := GetAllLicenses(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("licenses: %w", err)
+			}
+			state.Licenses = licenses
+			return nil
+		})
+	}
 }
 
 func getEnterpriseRBACConfiguration(ctx context.Context, group *errgroup.Group,
@@ -905,6 +919,34 @@ func GetAllRBACREndpointPermissions(ctx context.Context,
 	}
 
 	return eps, nil
+}
+
+// GetAllLicenses queries Kong for all the Licenses using client.
+func GetAllLicenses(
+	ctx context.Context, client *kong.Client, tags []string,
+) ([]*kong.License, error) {
+	var licenses []*kong.License
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.Licenses.List(ctx, opt)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			return licenses, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		licenses = append(licenses, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+
+	return licenses, nil
 }
 
 // excludeConsumersPlugins filter out consumer plugins
