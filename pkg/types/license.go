@@ -11,7 +11,7 @@ import (
 
 type licenseCRUD struct {
 	client *kong.Client
-	// TODO: disable CRUDs when Konnect is enabled?
+	// isKonnect indicates whether it is syncing with Konnect and licenses should not get changed.
 	isKonnect bool
 }
 
@@ -30,6 +30,9 @@ func licenseFromEventStruct(arg crud.Event) *state.License {
 // else the function will panic.
 // It returns a the created *state.Licen
 func (s *licenseCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
+	if s.isKonnect {
+		return nil, nil
+	}
 	event := crud.EventFromArg(arg[0])
 	license := licenseFromEventStruct(event)
 	createdLicense, err := s.client.Licenses.Create(ctx, &license.License)
@@ -44,6 +47,9 @@ func (s *licenseCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, er
 // else the function will panic.
 // It returns a the deleted *state.License.
 func (s *licenseCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
+	if s.isKonnect {
+		return nil, nil
+	}
 	event := crud.EventFromArg(arg[0])
 	license := licenseFromEventStruct(event)
 	err := s.client.Licenses.Delete(ctx, license.ID)
@@ -58,6 +64,9 @@ func (s *licenseCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.Arg, er
 // else the function will panic.
 // It returns a the updated *state.License.
 func (s *licenseCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
+	if s.isKonnect {
+		return nil, nil
+	}
 	event := crud.EventFromArg(arg[0])
 	license := licenseFromEventStruct(event)
 

@@ -172,7 +172,8 @@ func (sc *Syncer) init() error {
 		types.HMACAuth, types.JWTAuth, types.OAuth2Cred,
 		types.MTLSAuth,
 
-		types.Vault, types.License,
+		types.Vault,
+		types.License,
 
 		types.RBACRole, types.RBACEndpointPermission,
 
