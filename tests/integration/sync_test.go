@@ -4,18 +4,25 @@ package integration
 
 import (
 	"context"
+	"crypto/sha1"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	deckDiff "github.com/kong/go-database-reconciler/pkg/diff"
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/file"
+	deckFile "github.com/kong/go-database-reconciler/pkg/file"
+	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
@@ -5182,4 +5189,61 @@ func Test_Sync_ConsumerGroupConsumerFromUpstream(t *testing.T) {
 	// if default_lookup_tags are defined to pull consumers from upstream.
 	require.NoError(t, sync("testdata/sync/031-consumer-group-consumers-from-upstream/consumer-groups.yaml"))
 	testKongState(t, client, false, expectedState, nil)
+}
+
+// test scope:
+// - Enterprise & Non-Konnect
+func TestSync_License(t *testing.T) {
+	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
+	runWhen(t, "enterprise", ">=3.0.0")
+	kongLicensePayload := os.Getenv("KONG_LICENSE_DATA")
+	if kongLicensePayload == "" {
+		t.Skip("Skipping because environment variable KONG_LICENSE_DATA not found")
+	}
+	setup(t)
+
+	buf, err := os.ReadFile("testdata/sync/032-licenses/kong.yaml")
+	require.NoError(t, err)
+	fileContent := strings.ReplaceAll(string(buf), "__KONG_LICENSE_DATA__", fmt.Sprintf("'%s'", kongLicensePayload))
+	configFile, err := os.CreateTemp("/tmp", "kong-license-test")
+	require.NoError(t, err)
+	defer os.Remove(configFile.Name())
+
+	os.WriteFile(configFile.Name(), []byte(fileContent), os.ModeTemporary)
+	client, err := getTestClient()
+	ctx := context.Background()
+
+	currentState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+	require.NoError(t, err)
+	targetContent, err := deckFile.GetContentFromFiles([]string{configFile.Name()}, false)
+	require.NoError(t, err)
+	rawState, err := file.Get(ctx, targetContent, file.RenderConfig{
+		CurrentState: currentState,
+		KongVersion:  semver.MustParse("3.6.0"),
+	}, deckDump.Config{IncludeLicenses: true}, client)
+	require.NoError(t, err)
+	targetState, err := state.Get(rawState)
+	require.NoError(t, err)
+
+	syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+		CurrentState: currentState,
+		TargetState:  targetState,
+
+		KongClient:      client,
+		IncludeLicenses: true,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, err, "Should get test client")
+	_, errs, _ := syncer.Solve(ctx, 1, false, false)
+	require.Len(t, errs, 0, "Should have no errors in syncing")
+	newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+	require.NoError(t, err)
+
+	licenses, err := newState.Licenses.GetAll()
+	require.NoError(t, err)
+	require.Len(t, licenses, 1)
+	expectedLicenseHash := sha1.Sum([]byte(kongLicensePayload))
+	actualLicenseHash := sha1.Sum([]byte(*licenses[0].Payload))
+	require.Equal(t, expectedLicenseHash, actualLicenseHash, "Hash of license payload should be the same as env KONG_LICENSE_DATA")
 }

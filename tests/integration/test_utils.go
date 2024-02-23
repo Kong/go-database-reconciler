@@ -13,6 +13,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/kong/deck/cmd"
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
@@ -352,4 +353,17 @@ func ping(opts ...string) error {
 	}
 	deckCmd.SetArgs(args)
 	return deckCmd.ExecuteContext(context.Background())
+}
+
+func fetchCurrentState(ctx context.Context, client *kong.Client, dumpConfig deckDump.Config) (*state.KongState, error) {
+	rawState, err := deckDump.Get(ctx, client, dumpConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	currentState, err := state.Get(rawState)
+	if err != nil {
+		return nil, err
+	}
+	return currentState, nil
 }

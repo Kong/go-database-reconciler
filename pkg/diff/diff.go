@@ -86,7 +86,8 @@ type Syncer struct {
 
 	entityDiffers map[types.EntityType]types.Differ
 
-	noMaskValues bool
+	noMaskValues    bool
+	includeLicenses bool
 
 	isKonnect bool
 }
@@ -101,7 +102,8 @@ type SyncerOpts struct {
 	SilenceWarnings bool
 	StageDelaySec   int
 
-	NoMaskValues bool
+	NoMaskValues    bool
+	IncludeLicenses bool
 
 	IsKonnect bool
 
@@ -124,10 +126,15 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 		noMaskValues: opts.NoMaskValues,
 
-		createPrintln: opts.CreatePrintln,
-		updatePrintln: opts.UpdatePrintln,
-		deletePrintln: opts.DeletePrintln,
-		isKonnect:     opts.IsKonnect,
+		createPrintln:   opts.CreatePrintln,
+		updatePrintln:   opts.UpdatePrintln,
+		deletePrintln:   opts.DeletePrintln,
+		includeLicenses: opts.IncludeLicenses,
+		isKonnect:       opts.IsKonnect,
+	}
+
+	if opts.IsKonnect {
+		s.includeLicenses = false
 	}
 
 	if s.createPrintln == nil {
@@ -179,6 +186,7 @@ func (sc *Syncer) init() error {
 
 		types.ServicePackage, types.ServiceVersion, types.Document,
 	}
+
 	sc.entityDiffers = map[types.EntityType]types.Differ{}
 	for _, entityType := range entities {
 		entity, err := types.NewEntity(entityType, opts)

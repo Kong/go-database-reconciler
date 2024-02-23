@@ -46,6 +46,7 @@ setup-kong-ee:
 test-integration:
 	go test -v -count=1 -tags=integration \
 		-race \
+		${GOTESTFLAGS} \
 		./tests/integration/...
 
 .PHONY: clean

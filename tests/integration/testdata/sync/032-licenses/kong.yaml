@@ -1,0 +1,4 @@
+_format_version: "3.0"
+licenses:
+  - id: af870cde-3d72-476d-823a-2c7930be1bd0
+    payload: __KONG_LICENSE_DATA__
