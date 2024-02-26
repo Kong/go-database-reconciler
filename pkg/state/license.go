@@ -68,7 +68,6 @@ func (k *LicensesCollection) Get(id string) (*License, error) {
 	defer txn.Abort()
 
 	l, err := getLicense(txn, id)
-
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return nil, ErrNotFound
@@ -142,5 +141,4 @@ func (k *LicensesCollection) GetAll() ([]*License, error) {
 	}
 	txn.Commit()
 	return res, nil
-
 }

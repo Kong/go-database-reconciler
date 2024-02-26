@@ -8,14 +8,18 @@ import (
 	"testing"
 
 	"github.com/acarl005/stripansi"
+	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/kong/deck/cmd"
+	deckDiff "github.com/kong/go-database-reconciler/pkg/diff"
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/file"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/stretchr/testify/require"
 )
 
 func int32p(i int) *int32 {
@@ -366,4 +370,56 @@ func fetchCurrentState(ctx context.Context, client *kong.Client, dumpConfig deck
 		return nil, err
 	}
 	return currentState, nil
+}
+
+func getKongVersion(ctx context.Context, t *testing.T, client *kong.Client) semver.Version {
+	root, err := client.Root(ctx)
+	require.NoError(t, err, "Should get no error in getting root endpoint of Kong")
+	versionStr := kong.VersionFromInfo(root)
+	kv, err := kong.ParseSemanticVersion(versionStr)
+	require.NoErrorf(t, err, "failed to parse semantic version from version string", versionStr)
+	return semver.Version{
+		Major: kv.Major(),
+		Minor: kv.Minor(),
+		Patch: kv.Patch(),
+	}
+}
+
+func stateFromFile(
+	ctx context.Context, t *testing.T,
+	filename string, client *kong.Client, dumpConfig deckDump.Config,
+) *state.KongState {
+	currentState, err := state.NewKongState()
+	require.NoError(t, err, "stateFromFile: failed to build an initial empty KongState")
+
+	targetContent, err := file.GetContentFromFiles([]string{filename}, false)
+	require.NoErrorf(t, err, "failed to get file content from file %s", filename)
+
+	rawState, err := file.Get(ctx, targetContent, file.RenderConfig{
+		CurrentState: currentState,
+		KongVersion:  getKongVersion(ctx, t, client),
+	}, dumpConfig, client)
+	require.NoError(t, err, "failed to get raw Kong state from client")
+
+	targetState, err := state.Get(rawState)
+	require.NoError(t, err, "failed to get KongState from raw state")
+
+	return targetState
+}
+
+func logEntityChanges(t *testing.T, stats deckDiff.Stats, entityChanges deckDiff.EntityChanges) {
+	for _, creating := range entityChanges.Creating {
+		t.Logf("creating %s %s", creating.Kind, creating.Name)
+	}
+	for _, updating := range entityChanges.Updating {
+		t.Logf("updating %s %s", updating.Kind, updating.Name)
+	}
+	for _, deleting := range entityChanges.Deleting {
+		t.Logf("deleting %s %s", deleting.Kind, deleting.Name)
+	}
+	t.Logf("Summary: %d creates, %d updates, %d deletes",
+		stats.CreateOps.Count(),
+		stats.UpdateOps.Count(),
+		stats.UpdateOps.Count(),
+	)
 }

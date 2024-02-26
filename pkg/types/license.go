@@ -88,7 +88,6 @@ var _ Differ = &licenseDiffer{}
 func (d *licenseDiffer) maybeCreateOrUpdateLicense(targetLicense *state.License) (*crud.Event, error) {
 	licenseCopy := &state.License{License: *targetLicense.License.DeepCopy()}
 	currentLicense, err := d.currentState.Licenses.Get(*targetLicense.ID)
-
 	if err != nil {
 		if errors.Is(err, state.ErrNotFound) {
 			return &crud.Event{

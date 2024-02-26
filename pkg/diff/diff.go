@@ -47,6 +47,8 @@ type EntityChanges struct {
 
 var errEnqueueFailed = errors.New("failed to queue event")
 
+const KindLicense = "license"
+
 func defaultBackOff() backoff.BackOff {
 	// For various reasons, Kong can temporarily fail to process
 	// a valid request (e.g. when the database is under heavy load).
@@ -415,6 +417,11 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 }
 
 func (sc *Syncer) handleEvent(ctx context.Context, d Do, event crud.Event) error {
+	// Skip licenses if includeLicense is disabled.
+	// TODO: use a clearer or more general way to ignore licenses when includeLicenses=false?
+	if !sc.includeLicenses && event.Kind == KindLicense {
+		return nil
+	}
 	err := backoff.Retry(func() error {
 		res, err := d(event)
 		if err != nil {

@@ -216,5 +216,4 @@ func TestLicenseCollection_GetAll(t *testing.T) {
 	licenses, err = c.GetAll()
 	assert.NoError(t, err)
 	assert.Len(t, licenses, 1, "Should have 1 license after adding")
-
 }

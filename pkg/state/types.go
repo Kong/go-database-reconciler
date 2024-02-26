@@ -1616,7 +1616,8 @@ type License struct {
 	Meta
 }
 
-// TODO: add a variable definition to notate that License (and definition of other entities) should satisfy crud.Event interface?
+// TODO: add a variable definition to notate that License
+// (and definition of other entities) should satisfy crud.Event interface?
 
 func (l *License) Identifier() string {
 	return *l.ID
@@ -1626,12 +1627,12 @@ func (l *License) Console() string {
 	return l.FriendlyName()
 }
 
-func (l1 *License) Equal(l2 *License) bool {
-	return l1.EqualWithOpts(l2, false, false)
+func (l *License) Equal(l2 *License) bool {
+	return l.EqualWithOpts(l2, false, false)
 }
 
-func (l1 *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
-	l1Copy := l1.License.DeepCopy()
+func (l *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
+	l1Copy := l.License.DeepCopy()
 	l2Copy := l2.License.DeepCopy()
 
 	if ignoreID {
