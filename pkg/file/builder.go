@@ -28,6 +28,7 @@ type stateBuilder struct {
 	lookupTagsConsumers []string
 	lookupTagsRoutes    []string
 	skipCACerts         bool
+	includeLicenses     bool
 	intermediate        *state.KongState
 
 	client *kong.Client
@@ -938,7 +939,9 @@ func (b *stateBuilder) routes() {
 func (b *stateBuilder) enterprise() {
 	b.rbacRoles()
 	b.vaults()
-	b.licenses()
+	if b.includeLicenses && !b.isKonnect {
+		b.licenses()
+	}
 }
 
 func (b *stateBuilder) vaults() {

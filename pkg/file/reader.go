@@ -53,6 +53,7 @@ func GetForKonnect(ctx context.Context, fileContent *Content,
 	builder.client = client
 	builder.ctx = ctx
 	builder.disableDynamicDefaults = true
+	builder.includeLicenses = false
 
 	if fileContent.Transform != nil && !*fileContent.Transform {
 		return nil, nil, ErrorTransformFalseNotSupported
@@ -79,6 +80,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.ctx = ctx
 	builder.skipCACerts = dumpConfig.SkipCACerts
 	builder.isKonnect = dumpConfig.KonnectControlPlane != ""
+	builder.includeLicenses = dumpConfig.IncludeLicenses
 
 	if len(dumpConfig.SelectorTags) > 0 {
 		builder.selectTags = dumpConfig.SelectorTags

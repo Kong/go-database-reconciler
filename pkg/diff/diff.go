@@ -191,6 +191,10 @@ func (sc *Syncer) init() error {
 
 	sc.entityDiffers = map[types.EntityType]types.Differ{}
 	for _, entityType := range entities {
+		// Skip licenses if includeLicenses is disabled.
+		if !sc.includeLicenses && entityType == types.License {
+			continue
+		}
 		entity, err := types.NewEntity(entityType, opts)
 		if err != nil {
 			return err
@@ -275,8 +279,12 @@ func (sc *Syncer) processDeleteDuplicates(eventsByLevel [][]crud.Event) error {
 }
 
 func (sc *Syncer) delete() error {
-	for _, types := range reverseOrder() {
-		for _, entityType := range types {
+	for _, typeSet := range reverseOrder() {
+		for _, entityType := range typeSet {
+			// Skip licenses if includeLicenses is disabled.
+			if !sc.includeLicenses && entityType == types.License {
+				continue
+			}
 			err := sc.entityDiffers[entityType].Deletes(sc.queueEvent)
 			if err != nil {
 				return err
@@ -288,8 +296,12 @@ func (sc *Syncer) delete() error {
 }
 
 func (sc *Syncer) createUpdate() error {
-	for _, types := range order() {
-		for _, entityType := range types {
+	for _, typeSet := range order() {
+		for _, entityType := range typeSet {
+			// Skip licenses if includeLicenses is disabled.
+			if !sc.includeLicenses && entityType == types.License {
+				continue
+			}
 			err := sc.entityDiffers[entityType].CreateAndUpdates(sc.queueEvent)
 			if err != nil {
 				return err
@@ -417,11 +429,6 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 }
 
 func (sc *Syncer) handleEvent(ctx context.Context, d Do, event crud.Event) error {
-	// Skip licenses if includeLicense is disabled.
-	// TODO: use a clearer or more general way to ignore licenses when includeLicenses=false?
-	if !sc.includeLicenses && event.Kind == KindLicense {
-		return nil
-	}
 	err := backoff.Retry(func() error {
 		res, err := d(event)
 		if err != nil {
