@@ -29,7 +29,8 @@ type KongRawState struct {
 	Services []*kong.Service
 	Routes   []*kong.Route
 
-	Plugins []*kong.Plugin
+	Plugins      []*kong.Plugin
+	FilterChains []*kong.FilterChain
 
 	Upstreams []*kong.Upstream
 	Targets   []*kong.Target
@@ -232,6 +233,7 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing headers: %w", err)
 	}
+
 	c = kong.HTTPClientWithHeaders(c, headers)
 
 	if opt.Retryable {

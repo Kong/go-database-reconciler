@@ -310,6 +310,31 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, f := range raw.FilterChains {
+		if f.Service != nil && !utils.Empty(f.Service.ID) {
+			ok, s, err := ensureService(kongState, *f.Service.ID)
+			if err != nil {
+				return err
+			}
+			if ok {
+				f.Service = s
+			}
+		}
+		if f.Route != nil && !utils.Empty(f.Route.ID) {
+			ok, r, err := ensureRoute(kongState, *f.Route.ID)
+			if err != nil {
+				return err
+			}
+			if ok {
+				f.Route = r
+			}
+		}
+		err := kongState.FilterChains.Add(FilterChain{FilterChain: *f})
+		if err != nil {
+			return fmt.Errorf("inserting filter chains into state: %w", err)
+		}
+	}
+
 	for _, r := range raw.RBACRoles {
 		err := kongState.RBACRoles.Add(RBACRole{RBACRole: *r})
 		if err != nil {

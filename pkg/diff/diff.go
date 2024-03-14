@@ -256,6 +256,8 @@ func (sc *Syncer) init() error {
 		types.RBACRole, types.RBACEndpointPermission,
 
 		types.ServicePackage, types.ServiceVersion, types.Document,
+
+		types.FilterChain,
 	}
 
 	sc.entityDiffers = map[types.EntityType]types.Differ{}

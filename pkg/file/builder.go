@@ -93,6 +93,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.consumerGroups()
 	b.consumers()
 	b.plugins()
+	b.filterChains()
 	b.enterprise()
 
 	// konnect
@@ -894,6 +895,16 @@ func (b *stateBuilder) ingestService(s *FService) error {
 		return err
 	}
 
+	// filter chains for the service
+	var filterChains []FFilterChain
+	for _, f := range s.FilterChains {
+		f.Service = utils.GetServiceReference(s.Service)
+		filterChains = append(filterChains, *f)
+	}
+	if err := b.ingestFilterChains(filterChains); err != nil {
+		return err
+	}
+
 	// routes for the service
 	for _, r := range s.Routes {
 		r := r
@@ -1153,6 +1164,48 @@ func (b *stateBuilder) plugins() {
 	}
 }
 
+func (b *stateBuilder) filterChains() {
+	if b.err != nil {
+		return
+	}
+
+	var filterChains []FFilterChain
+	for _, f := range b.targetContent.FilterChains {
+		f := f
+		if f.Service != nil && !utils.Empty(f.Service.ID) {
+			s, err := b.intermediate.Services.Get(*f.Service.ID)
+			if errors.Is(err, state.ErrNotFound) {
+				b.err = fmt.Errorf("service %v for filterChain %v: %w",
+					f.Service.FriendlyName(), *f.Name, err)
+
+				return
+			} else if err != nil {
+				b.err = err
+				return
+			}
+			f.Service = utils.GetServiceReference(s.Service)
+		}
+		if f.Route != nil && !utils.Empty(f.Route.ID) {
+			r, err := b.intermediate.Routes.Get(*f.Route.ID)
+			if errors.Is(err, state.ErrNotFound) {
+				b.err = fmt.Errorf("route %v for filterChain %v: %w",
+					f.Route.FriendlyName(), *f.Name, err)
+
+				return
+			} else if err != nil {
+				b.err = err
+				return
+			}
+			f.Route = utils.GetRouteReference(r.Route)
+		}
+		filterChains = append(filterChains, f)
+	}
+	if err := b.ingestFilterChains(filterChains); err != nil {
+		b.err = err
+		return
+	}
+}
+
 func (b *stateBuilder) validatePlugin(p FPlugin) error {
 	if b.isConsumerGroupScopedPluginSupported && *p.Name == ratelimitingAdvancedPluginName {
 		// check if deprecated consumer-groups configuration is present in the config
@@ -1267,6 +1320,16 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	b.rawState.Routes = append(b.rawState.Routes, &r.Route)
 	err = b.intermediate.Routes.Add(state.Route{Route: r.Route})
 	if err != nil {
+		return err
+	}
+
+	// filter chains for the route
+	var filterChains []FFilterChain
+	for _, f := range r.FilterChains {
+		f.Route = utils.GetRouteReference(r.Route)
+		filterChains = append(filterChains, *f)
+	}
+	if err := b.ingestFilterChains(filterChains); err != nil {
 		return err
 	}
 
@@ -1394,6 +1457,40 @@ func pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
 	}
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
 		cgID = *plugin.ConsumerGroup.ID
+	}
+	return
+}
+
+func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
+	for _, f := range filterChains {
+		f := f
+		rID, sID := filterChainRelations(&f.FilterChain)
+		filterChain, err := b.currentState.FilterChains.GetByProp(sID, rID)
+		if utils.Empty(f.ID) {
+			if errors.Is(err, state.ErrNotFound) {
+				f.ID = uuid()
+			} else if err != nil {
+				return err
+			} else {
+				f.ID = kong.String(*filterChain.ID)
+			}
+		}
+		fmt.Printf("name: %s, rID: %s, sID: %s, current: %v\n", f.FriendlyName(), rID, sID, filterChain)
+		if filterChain != nil {
+			f.FilterChain.CreatedAt = filterChain.CreatedAt
+		}
+		utils.MustMergeTags(&f, b.selectTags)
+		b.rawState.FilterChains = append(b.rawState.FilterChains, &f.FilterChain)
+	}
+	return nil
+}
+
+func filterChainRelations(filterChain *kong.FilterChain) (rID, sID string) {
+	if filterChain.Route != nil && !utils.Empty(filterChain.Route.ID) {
+		rID = *filterChain.Route.ID
+	}
+	if filterChain.Service != nil && !utils.Empty(filterChain.Service.ID) {
+		sID = *filterChain.Service.ID
 	}
 	return
 }
