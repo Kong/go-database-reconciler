@@ -253,6 +253,15 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 	})
 
 	group.Go(func() error {
+		filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("filter chains: %w", err)
+		}
+		state.FilterChains = filterChains
+		return nil
+	})
+
+	group.Go(func() error {
 		certificates, err := GetAllCertificates(ctx, client, config.SelectorTags)
 		if err != nil {
 			return fmt.Errorf("certificates: %w", err)
@@ -439,6 +448,30 @@ func GetAllPlugins(ctx context.Context,
 		opt = nextopt
 	}
 	return plugins, nil
+}
+
+// GetAllFilterChains queries Kong for all the filter chains using client.
+func GetAllFilterChains(ctx context.Context,
+	client *kong.Client, tags []string,
+) ([]*kong.FilterChain, error) {
+	var filterChains []*kong.FilterChain
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.FilterChains.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		filterChains = append(filterChains, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return filterChains, nil
 }
 
 // GetAllCertificates queries Kong for all the certificates using client.

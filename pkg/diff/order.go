@@ -22,7 +22,8 @@ L3      +---------------------------> Service <---+  +-> Route               |
         |                             Version        |     |                 |
         |                                 |          |     |                 |
         |                                 |          |     v                 |
-L4      +----------> Document   <---------+          +-> Plugins  <----------+
+L4      +----------> Document   <---------+          +-> Plugins / <---------+
+                                                         FilterChains
 */
 
 // dependencyOrder defines the order in which entities will be synced by decK.
@@ -61,6 +62,7 @@ var dependencyOrder = [][]types.EntityType{
 	},
 	{
 		types.Plugin,
+		types.FilterChain,
 		types.Document,
 	},
 }

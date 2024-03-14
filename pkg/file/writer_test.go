@@ -195,6 +195,31 @@ func Test_compareOrder(t *testing.T) {
 			},
 			expected: true,
 		},
+		{
+			sortable1: FFilterChain{
+				FilterChain: kong.FilterChain{
+					Name: kong.String("my-filter-chain-1"),
+					ID:   kong.String("my-id-1"),
+					Filters: []*kong.Filter{
+						{
+							Name: kong.String("example-filter"),
+						},
+					},
+				},
+			},
+			sortable2: FFilterChain{
+				FilterChain: kong.FilterChain{
+					Name: kong.String("my-filter-chain-2"),
+					ID:   kong.String("my-id-2"),
+					Filters: []*kong.Filter{
+						{
+							Name: kong.String("example-filter"),
+						},
+					},
+				},
+			},
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
