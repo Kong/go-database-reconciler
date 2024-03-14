@@ -83,6 +83,11 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, err
 	}
 
+	err = populateFilterChains(kongState, file, config)
+	if err != nil {
+		return nil, err
+	}
+
 	err = populateUpstreams(kongState, file, config)
 	if err != nil {
 		return nil, err
@@ -145,6 +150,11 @@ func KonnectStateToFile(kongState *state.KongState, config WriteConfig) error {
 	// we do not know if konnect supports these or not
 
 	err = populatePlugins(kongState, file, config)
+	if err != nil {
+		return err
+	}
+
+	err = populateFilterChains(kongState, file, config)
 	if err != nil {
 		return err
 	}
@@ -284,6 +294,49 @@ func populateServices(kongState *state.KongState, file *Content,
 	return nil
 }
 
+func getFRouteFromRoute(r *state.Route, kongState *state.KongState, config WriteConfig) (*FRoute, error) {
+	plugins, err := kongState.Plugins.GetAllByRouteID(*r.ID)
+	if err != nil {
+		return nil, err
+	}
+	filterChains, err := kongState.FilterChains.GetAllByRouteID(*r.ID)
+	if err != nil {
+		return nil, err
+	}
+	utils.ZeroOutID(r, r.Name, config.WithID)
+	utils.ZeroOutTimestamps(r)
+	utils.MustRemoveTags(&r.Route, config.SelectTags)
+
+	route := &FRoute{Route: r.Route}
+
+	for _, p := range plugins {
+		if p.Service != nil || p.Consumer != nil || p.ConsumerGroup != nil {
+			continue
+		}
+		p.Route = nil
+		utils.ZeroOutID(p, p.Name, config.WithID)
+		utils.ZeroOutTimestamps(p)
+		utils.MustRemoveTags(&p.Plugin, config.SelectTags)
+		route.Plugins = append(route.Plugins, &FPlugin{Plugin: p.Plugin})
+	}
+	sort.SliceStable(route.Plugins, func(i, j int) bool {
+		return compareOrder(route.Plugins[i], route.Plugins[j])
+	})
+
+	for _, f := range filterChains {
+		f.Route = nil
+		utils.ZeroOutID(f, f.Name, config.WithID)
+		utils.ZeroOutTimestamps(f)
+		utils.MustRemoveTags(&f.FilterChain, config.SelectTags)
+		route.FilterChains = append(route.FilterChains, &FFilterChain{FilterChain: f.FilterChain})
+	}
+	sort.SliceStable(route.FilterChains, func(i, j int) bool {
+		return compareOrder(route.FilterChains[i], route.FilterChains[j])
+	})
+
+	return route, nil
+}
+
 func fetchService(id string, kongState *state.KongState, config WriteConfig) (*FService, error) {
 	kongService, err := kongState.Services.Get(id)
 	if err != nil {
@@ -295,6 +348,10 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 		return nil, err
 	}
 	plugins, err := kongState.Plugins.GetAllByServiceID(*s.ID)
+	if err != nil {
+		return nil, err
+	}
+	filterChains, err := kongState.FilterChains.GetAllByServiceID(*s.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -314,33 +371,25 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 	})
 	for _, r := range routes {
 		r := r
-		plugins, err := kongState.Plugins.GetAllByRouteID(*r.ID)
+		r.Service = nil
+		route, err := getFRouteFromRoute(r, kongState, config)
 		if err != nil {
 			return nil, err
 		}
-		r.Service = nil
-		utils.ZeroOutID(r, r.Name, config.WithID)
-		utils.ZeroOutTimestamps(r)
-		utils.MustRemoveTags(&r.Route, config.SelectTags)
-		route := &FRoute{Route: r.Route}
-		for _, p := range plugins {
-			p := p
-			if p.Service != nil || p.Consumer != nil || p.ConsumerGroup != nil {
-				continue
-			}
-			p.Route = nil
-			utils.ZeroOutID(p, p.Name, config.WithID)
-			utils.ZeroOutTimestamps(p)
-			utils.MustRemoveTags(&p.Plugin, config.SelectTags)
-			route.Plugins = append(route.Plugins, &FPlugin{Plugin: p.Plugin})
-		}
-		sort.SliceStable(route.Plugins, func(i, j int) bool {
-			return compareOrder(route.Plugins[i], route.Plugins[j])
-		})
 		s.Routes = append(s.Routes, route)
 	}
 	sort.SliceStable(s.Routes, func(i, j int) bool {
 		return compareOrder(s.Routes[i], s.Routes[j])
+	})
+	for _, f := range filterChains {
+		f.Service = nil
+		utils.ZeroOutID(f, f.Name, config.WithID)
+		utils.ZeroOutTimestamps(f)
+		utils.MustRemoveTags(&f.FilterChain, config.SelectTags)
+		s.FilterChains = append(s.FilterChains, &FFilterChain{FilterChain: f.FilterChain})
+	}
+	sort.SliceStable(s.FilterChains, func(i, j int) bool {
+		return compareOrder(s.FilterChains[i], s.FilterChains[j])
 	})
 	utils.ZeroOutID(&s, s.Name, config.WithID)
 	utils.ZeroOutTimestamps(&s)
@@ -360,28 +409,10 @@ func populateServicelessRoutes(kongState *state.KongState, file *Content,
 		if r.Service != nil {
 			continue
 		}
-		plugins, err := kongState.Plugins.GetAllByRouteID(*r.ID)
+		route, err := getFRouteFromRoute(r, kongState, config)
 		if err != nil {
 			return err
 		}
-		utils.ZeroOutID(r, r.Name, config.WithID)
-		utils.ZeroOutTimestamps(r)
-		utils.MustRemoveTags(&r.Route, config.SelectTags)
-		route := &FRoute{Route: r.Route}
-		for _, p := range plugins {
-			p := p
-			if p.Service != nil || p.Consumer != nil || p.ConsumerGroup != nil {
-				continue
-			}
-			p.Route = nil
-			utils.ZeroOutID(p, p.Name, config.WithID)
-			utils.ZeroOutTimestamps(p)
-			utils.MustRemoveTags(&p.Plugin, config.SelectTags)
-			route.Plugins = append(route.Plugins, &FPlugin{Plugin: p.Plugin})
-		}
-		sort.SliceStable(route.Plugins, func(i, j int) bool {
-			return compareOrder(route.Plugins[i], route.Plugins[j])
-		})
 		file.Routes = append(file.Routes, *route)
 	}
 	sort.SliceStable(file.Routes, func(i, j int) bool {
@@ -458,6 +489,50 @@ func populatePlugins(kongState *state.KongState, file *Content,
 	}
 	sort.SliceStable(file.Plugins, func(i, j int) bool {
 		return compareOrder(file.Plugins[i], file.Plugins[j])
+	})
+	return nil
+}
+
+func populateFilterChains(kongState *state.KongState, file *Content,
+	_ WriteConfig,
+) error {
+	filterChains, err := kongState.FilterChains.GetAll()
+	if err != nil {
+		return err
+	}
+
+	for _, f := range filterChains {
+		associations := 0
+		if f.Service != nil {
+			associations++
+			sID := *f.Service.ID
+			service, err := kongState.Services.Get(sID)
+			if err != nil {
+				return fmt.Errorf("unable to get service %s for filter chain %s [%s]: %w", sID, *f.Name, *f.ID, err)
+			}
+			if !utils.Empty(service.Name) {
+				sID = *service.Name
+			}
+			f.Service.ID = &sID
+		}
+		if f.Route != nil {
+			associations++
+			rID := *f.Route.ID
+			route, err := kongState.Routes.Get(rID)
+			if err != nil {
+				return fmt.Errorf("unable to get route %s for filter chain %s [%s]: %w", rID, *f.Name, *f.ID, err)
+			}
+			if !utils.Empty(route.Name) {
+				rID = *route.Name
+			}
+			f.Route.ID = &rID
+		}
+		if associations != 1 {
+			return fmt.Errorf("unable to determine route or service entity associated with filter chain %s [%s]", *f.Name, *f.ID)
+		}
+	}
+	sort.SliceStable(file.FilterChains, func(i, j int) bool {
+		return compareOrder(file.FilterChains[i], file.FilterChains[j])
 	})
 	return nil
 }

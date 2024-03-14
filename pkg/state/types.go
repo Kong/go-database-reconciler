@@ -434,6 +434,75 @@ func (s1 *SNI) EqualWithOpts(s2 *SNI, ignoreID,
 	return reflect.DeepEqual(s1Copy, s2Copy)
 }
 
+// FilterChain represents a filter chain in Kong.
+type FilterChain struct {
+	kong.FilterChain `yaml:",inline"`
+	Meta
+}
+
+// Console returns an entity's identity in a human
+// readable string.
+func (p1 *FilterChain) Console() string {
+	res := ""
+	if p1.Name != nil {
+		res += *p1.Name + " "
+	} else if p1.ID != nil {
+		res += *p1.ID + " "
+	}
+
+	if p1.Service != nil {
+		res += "for service " + p1.Service.FriendlyName()
+	} else if p1.Route != nil {
+		res += "for route " + p1.Route.FriendlyName()
+	}
+
+	return res
+}
+
+// EqualWithOpts returns true if p1 and p2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+// If ignoreTS is set to true, timestamp fields will be ignored.
+func (p1 *FilterChain) EqualWithOpts(p2 *FilterChain, ignoreID,
+	ignoreTS, ignoreForeign bool,
+) bool {
+	p1Copy := p1.FilterChain.DeepCopy()
+	p2Copy := p2.FilterChain.DeepCopy()
+
+	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
+	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
+
+	if ignoreID {
+		p1Copy.ID = nil
+		p2Copy.ID = nil
+	}
+	if ignoreTS {
+		p1Copy.CreatedAt = nil
+		p2Copy.CreatedAt = nil
+		p1Copy.UpdatedAt = nil
+		p2Copy.UpdatedAt = nil
+	}
+	if ignoreForeign {
+		p1Copy.Service = nil
+		p1Copy.Route = nil
+		p2Copy.Service = nil
+		p2Copy.Route = nil
+	}
+
+	if p1Copy.Service != nil {
+		p1Copy.Service.Name = nil
+	}
+	if p2Copy.Service != nil {
+		p2Copy.Service.Name = nil
+	}
+	if p1Copy.Route != nil {
+		p1Copy.Route.Name = nil
+	}
+	if p2Copy.Route != nil {
+		p2Copy.Route.Name = nil
+	}
+	return reflect.DeepEqual(p1Copy, p2Copy)
+}
+
 // Plugin represents a route in Kong.
 // It adds some helper methods along with Meta to the original Plugin object.
 type Plugin struct {
