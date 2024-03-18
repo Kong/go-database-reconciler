@@ -26,7 +26,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.18.0
-	k8s.io/code-generator v0.29.2
+	k8s.io/code-generator v0.29.3
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -54,7 +54,7 @@ require (
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20230926050212-f7f687d19a98 // indirect
