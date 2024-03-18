@@ -1516,6 +1516,14 @@ func (r1 *RBACEndpointPermission) EqualWithOpts(r2 *RBACEndpointPermission, igno
 		r2Copy.CreatedAt = nil
 	}
 
+	sort.Slice(r1Copy.Actions, func(i, j int) bool {
+		return *r1Copy.Actions[i] < *r1Copy.Actions[j]
+	})
+
+	sort.Slice(r2Copy.Actions, func(i, j int) bool {
+		return *r2Copy.Actions[i] < *r2Copy.Actions[j]
+	})
+
 	return reflect.DeepEqual(r1Copy, r2Copy)
 }
 
