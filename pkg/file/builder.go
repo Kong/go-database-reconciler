@@ -939,6 +939,8 @@ func (b *stateBuilder) routes() {
 func (b *stateBuilder) enterprise() {
 	b.rbacRoles()
 	b.vaults()
+	// In Konnect, licenses are managed by Konnect cloud,
+	// so licenses should not be included running against Konnect when building Kong state from files.
 	if b.includeLicenses && !b.isKonnect {
 		b.licenses()
 	}

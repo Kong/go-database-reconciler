@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
@@ -49,6 +50,10 @@ func (e entityImpl) PostProcessActions() crud.Actions {
 func (e entityImpl) Differ() Differ {
 	return e.differ
 }
+
+var (
+	ErrEmptyCRUDArgs = errors.New("empty CRUD arguments")
+)
 
 type EntityOpts struct {
 	CurrentState  *state.KongState

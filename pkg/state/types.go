@@ -1611,6 +1611,8 @@ func (v1 *Vault) EqualWithOpts(v2 *Vault, ignoreID, ignoreTS bool) bool {
 	return reflect.DeepEqual(v1Copy, v2Copy)
 }
 
+// License represents a license in Kong.
+// It adds some helper methods along with Meta to the original License object.
 type License struct {
 	kong.License `yaml:",inline"`
 	Meta
@@ -1619,18 +1621,25 @@ type License struct {
 // TODO: add a variable definition to notate that License
 // (and definition of other entities) should satisfy crud.Event interface?
 
+// Identifier returns the ID of the License.
 func (l *License) Identifier() string {
 	return *l.ID
 }
 
+// Console returns the string to identify the License.
+// Since License do not have an alternative field to identify them, it also returns the ID.
 func (l *License) Console() string {
 	return l.FriendlyName()
 }
 
+// Equal returns true if licenses l and l2 are equal.
 func (l *License) Equal(l2 *License) bool {
 	return l.EqualWithOpts(l2, false, false)
 }
 
+// EqualWithOpts returns true if licenses l and l2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+// If ignoreTS is set to true, timestamp fields will be ignored.
 func (l *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
 	l1Copy := l.License.DeepCopy()
 	l2Copy := l2.License.DeepCopy()

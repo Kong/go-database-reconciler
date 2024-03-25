@@ -930,7 +930,7 @@ func GetAllLicenses(
 
 	for {
 		s, nextopt, err := client.Licenses.List(ctx, opt)
-		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+		if kong.IsNotFoundErr(err) {
 			return licenses, nil
 		}
 		if err != nil {

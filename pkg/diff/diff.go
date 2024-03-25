@@ -47,8 +47,6 @@ type EntityChanges struct {
 
 var errEnqueueFailed = errors.New("failed to queue event")
 
-const KindLicense = "license"
-
 func defaultBackOff() backoff.BackOff {
 	// For various reasons, Kong can temporarily fail to process
 	// a valid request (e.g. when the database is under heavy load).

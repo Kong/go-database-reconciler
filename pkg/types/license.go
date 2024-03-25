@@ -33,6 +33,10 @@ func (s *licenseCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, er
 	if s.isKonnect {
 		return nil, nil
 	}
+
+	if len(arg) == 0 {
+		return nil, ErrEmptyCRUDArgs
+	}
 	event := crud.EventFromArg(arg[0])
 	license := licenseFromEventStruct(event)
 	createdLicense, err := s.client.Licenses.Create(ctx, &license.License)
@@ -50,6 +54,10 @@ func (s *licenseCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.Arg, er
 	if s.isKonnect {
 		return nil, nil
 	}
+
+	if len(arg) == 0 {
+		return nil, ErrEmptyCRUDArgs
+	}
 	event := crud.EventFromArg(arg[0])
 	license := licenseFromEventStruct(event)
 	err := s.client.Licenses.Delete(ctx, license.ID)
@@ -66,6 +74,10 @@ func (s *licenseCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.Arg, er
 func (s *licenseCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	if s.isKonnect {
 		return nil, nil
+	}
+
+	if len(arg) == 0 {
+		return nil, ErrEmptyCRUDArgs
 	}
 	event := crud.EventFromArg(arg[0])
 	license := licenseFromEventStruct(event)
@@ -91,8 +103,7 @@ func (d *licenseDiffer) maybeCreateOrUpdateLicense(targetLicense *state.License)
 	if err != nil {
 		if errors.Is(err, state.ErrNotFound) {
 			return &crud.Event{
-				Op: crud.Create,
-				// TODO: define consts for used `crud.Kind`s?
+				Op:   crud.Create,
 				Kind: "license",
 				Obj:  licenseCopy,
 			}, nil
