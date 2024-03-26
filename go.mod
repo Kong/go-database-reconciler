@@ -10,7 +10,7 @@ require (
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/alecthomas/jsonschema v0.0.0-20191017121752-4bb6e3fae4f2
 	github.com/blang/semver/v4 v4.0.0
-	github.com/cenkalti/backoff/v4 v4.2.1
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/fatih/color v1.15.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-querystring v1.1.0
