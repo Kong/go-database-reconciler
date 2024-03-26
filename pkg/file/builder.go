@@ -980,16 +980,10 @@ func (b *stateBuilder) licenses() {
 
 	for _, l := range b.targetContent.Licenses {
 		l := l
+		// Fill with a random ID if the ID is not given.
+		// If ID is not given in the file to sync from, a NEW license will be created.
 		if utils.Empty(l.ID) {
-			license, err := b.currentState.Licenses.Get(*l.ID)
-			if err == state.ErrNotFound {
-				l.ID = uuid()
-			} else if err != nil {
-				b.err = err
-				return
-			} else {
-				l.ID = kong.String(*license.ID)
-			}
+			l.ID = uuid()
 		}
 
 		b.rawState.Licenses = append(b.rawState.Licenses, &l.License)
