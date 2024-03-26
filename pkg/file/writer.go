@@ -112,6 +112,12 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	if err != nil {
 		return nil, err
 	}
+
+	err = populateLicenses(kongState, file, config)
+	if err != nil {
+		return nil, err
+	}
+
 	return file, nil
 }
 
@@ -786,6 +792,26 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 	}
 	sort.SliceStable(file.ConsumerGroups, func(i, j int) bool {
 		return compareOrder(file.ConsumerGroups[i], file.ConsumerGroups[j])
+	})
+	return nil
+}
+
+func populateLicenses(kongState *state.KongState, file *Content,
+	config WriteConfig,
+) error {
+	licenses, err := kongState.Licenses.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, l := range licenses {
+		l := FLicense{License: l.License}
+		utils.ZeroOutID(&l, l.Payload, config.WithID)
+		utils.ZeroOutTimestamps(&l)
+		utils.MustRemoveTags(&l.License, config.SelectTags)
+		file.Licenses = append(file.Licenses, l)
+	}
+	sort.SliceStable(file.Licenses, func(i, j int) bool {
+		return compareOrder(file.Licenses[i], file.Licenses[j])
 	})
 	return nil
 }

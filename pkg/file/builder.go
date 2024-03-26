@@ -28,6 +28,7 @@ type stateBuilder struct {
 	lookupTagsConsumers []string
 	lookupTagsRoutes    []string
 	skipCACerts         bool
+	includeLicenses     bool
 	intermediate        *state.KongState
 
 	client *kong.Client
@@ -938,6 +939,11 @@ func (b *stateBuilder) routes() {
 func (b *stateBuilder) enterprise() {
 	b.rbacRoles()
 	b.vaults()
+	// In Konnect, licenses are managed by Konnect cloud,
+	// so licenses should not be included running against Konnect when building Kong state from files.
+	if b.includeLicenses && !b.isKonnect {
+		b.licenses()
+	}
 }
 
 func (b *stateBuilder) vaults() {
@@ -964,6 +970,23 @@ func (b *stateBuilder) vaults() {
 		}
 
 		b.rawState.Vaults = append(b.rawState.Vaults, &v.Vault)
+	}
+}
+
+func (b *stateBuilder) licenses() {
+	if b.err != nil {
+		return
+	}
+
+	for _, l := range b.targetContent.Licenses {
+		l := l
+		// Fill with a random ID if the ID is not given.
+		// If ID is not given in the file to sync from, a NEW license will be created.
+		if utils.Empty(l.ID) {
+			l.ID = uuid()
+		}
+
+		b.rawState.Licenses = append(b.rawState.Licenses, &l.License)
 	}
 }
 

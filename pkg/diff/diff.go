@@ -86,7 +86,8 @@ type Syncer struct {
 
 	entityDiffers map[types.EntityType]types.Differ
 
-	noMaskValues bool
+	noMaskValues    bool
+	includeLicenses bool
 
 	isKonnect bool
 }
@@ -101,7 +102,8 @@ type SyncerOpts struct {
 	SilenceWarnings bool
 	StageDelaySec   int
 
-	NoMaskValues bool
+	NoMaskValues    bool
+	IncludeLicenses bool
 
 	IsKonnect bool
 
@@ -124,10 +126,15 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 		noMaskValues: opts.NoMaskValues,
 
-		createPrintln: opts.CreatePrintln,
-		updatePrintln: opts.UpdatePrintln,
-		deletePrintln: opts.DeletePrintln,
-		isKonnect:     opts.IsKonnect,
+		createPrintln:   opts.CreatePrintln,
+		updatePrintln:   opts.UpdatePrintln,
+		deletePrintln:   opts.DeletePrintln,
+		includeLicenses: opts.IncludeLicenses,
+		isKonnect:       opts.IsKonnect,
+	}
+
+	if opts.IsKonnect {
+		s.includeLicenses = false
 	}
 
 	if s.createPrintln == nil {
@@ -173,13 +180,19 @@ func (sc *Syncer) init() error {
 		types.MTLSAuth,
 
 		types.Vault,
+		types.License,
 
 		types.RBACRole, types.RBACEndpointPermission,
 
 		types.ServicePackage, types.ServiceVersion, types.Document,
 	}
+
 	sc.entityDiffers = map[types.EntityType]types.Differ{}
 	for _, entityType := range entities {
+		// Skip licenses if includeLicenses is disabled.
+		if !sc.includeLicenses && entityType == types.License {
+			continue
+		}
 		entity, err := types.NewEntity(entityType, opts)
 		if err != nil {
 			return err
@@ -264,8 +277,12 @@ func (sc *Syncer) processDeleteDuplicates(eventsByLevel [][]crud.Event) error {
 }
 
 func (sc *Syncer) delete() error {
-	for _, types := range reverseOrder() {
-		for _, entityType := range types {
+	for _, typeSet := range reverseOrder() {
+		for _, entityType := range typeSet {
+			// Skip licenses if includeLicenses is disabled.
+			if !sc.includeLicenses && entityType == types.License {
+				continue
+			}
 			err := sc.entityDiffers[entityType].Deletes(sc.queueEvent)
 			if err != nil {
 				return err
@@ -277,8 +294,12 @@ func (sc *Syncer) delete() error {
 }
 
 func (sc *Syncer) createUpdate() error {
-	for _, types := range order() {
-		for _, entityType := range types {
+	for _, typeSet := range order() {
+		for _, entityType := range typeSet {
+			// Skip licenses if includeLicenses is disabled.
+			if !sc.includeLicenses && entityType == types.License {
+				continue
+			}
 			err := sc.entityDiffers[entityType].CreateAndUpdates(sc.queueEvent)
 			if err != nil {
 				return err

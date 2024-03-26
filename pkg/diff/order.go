@@ -39,6 +39,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.CACertificate,
 		types.Consumer,
 		types.Vault,
+		types.License,
 	},
 	{
 		types.ConsumerGroup,

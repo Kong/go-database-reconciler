@@ -4,17 +4,20 @@ package integration
 
 import (
 	"context"
+	"crypto/sha1"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	deckDiff "github.com/kong/go-database-reconciler/pkg/diff"
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -4982,7 +4985,6 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 	// the end result is the same.
 	require.NoError(t, sync(file.Name()))
 	testKongState(t, client, false, expectedState, nil)
-
 }
 
 // test scope:
@@ -5182,4 +5184,125 @@ func Test_Sync_ConsumerGroupConsumerFromUpstream(t *testing.T) {
 	// if default_lookup_tags are defined to pull consumers from upstream.
 	require.NoError(t, sync("testdata/sync/031-consumer-group-consumers-from-upstream/consumer-groups.yaml"))
 	testKongState(t, client, false, expectedState, nil)
+}
+
+// test scope:
+// - Enterprise & Non-Konnect
+func TestSync_License(t *testing.T) {
+	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
+	runWhen(t, "enterprise", ">=3.0.0")
+	kongLicensePayload := os.Getenv("KONG_LICENSE_DATA")
+	if kongLicensePayload == "" {
+		t.Skip("Skipping because environment variable KONG_LICENSE_DATA not found")
+	}
+	setup(t)
+
+	buf, err := os.ReadFile("testdata/sync/032-licenses/config-with-license.yaml")
+	require.NoError(t, err)
+	fileContent := strings.ReplaceAll(string(buf), "__KONG_LICENSE_DATA__", fmt.Sprintf("'%s'", kongLicensePayload))
+	configFile, err := os.CreateTemp("/tmp", "kong-license-test")
+	require.NoError(t, err)
+	defer os.Remove(configFile.Name())
+
+	os.WriteFile(configFile.Name(), []byte(fileContent), os.ModeTemporary)
+	client, err := getTestClient()
+	ctx := context.Background()
+
+	t.Run("create_license_and_dump_results", func(t *testing.T) {
+		currentState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t, configFile.Name(), client, deckDump.Config{
+			IncludeLicenses: true,
+		})
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient:      client,
+			IncludeLicenses: true,
+		})
+		require.NoError(t, err)
+
+		require.NoError(t, err, "Should get test client")
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+		require.NoError(t, err)
+
+		licenses, err := newState.Licenses.GetAll()
+		require.NoError(t, err)
+		// Avoid dumping of `licenses` to leak sensitive content.
+		require.Equal(t, 1, len(licenses))
+		// Compare hashes to avoid content of licenses to be leaked.
+		expectedLicenseHash := sha1.Sum([]byte(kongLicensePayload))
+		actualLicenseHash := sha1.Sum([]byte(*licenses[0].Payload))
+		require.Equal(t, expectedLicenseHash, actualLicenseHash, "Hash of license payload should be the same as env KONG_LICENSE_DATA")
+	})
+
+	t.Run("dump_with_includeLicense_disabled", func(t *testing.T) {
+		stateWithoutLicenses, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: false})
+		require.NoError(t, err)
+		licenses, err := stateWithoutLicenses.Licenses.GetAll()
+		require.NoError(t, err)
+		require.Equal(t, 0, len(licenses))
+	})
+
+	t.Run("sync_with_includeLicenses_false", func(t *testing.T) {
+		currentState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+		require.NoError(t, err)
+		stateWithoutLicense := stateFromFile(ctx, t,
+			"testdata/sync/032-licenses/config-without-license.yaml",
+			client,
+			deckDump.Config{IncludeLicenses: true},
+		)
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  stateWithoutLicense,
+
+			KongClient:      client,
+			IncludeLicenses: false,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+		require.NoError(t, err)
+		licenses, err := newState.Licenses.GetAll()
+		require.NoError(t, err)
+		require.Len(t, licenses, 1)
+	})
+
+	t.Run("delete_existing_license", func(t *testing.T) {
+		currentState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+		require.NoError(t, err)
+		stateWithoutLicense := stateFromFile(ctx, t,
+			"testdata/sync/032-licenses/config-without-license.yaml",
+			client,
+			deckDump.Config{IncludeLicenses: true},
+		)
+
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  stateWithoutLicense,
+
+			KongClient:      client,
+			IncludeLicenses: true,
+		})
+		require.NoError(t, err)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Empty(t, errs, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+		require.NoError(t, err)
+		licenses, err := newState.Licenses.GetAll()
+		require.NoError(t, err)
+		require.Empty(t, licenses)
+	})
 }
