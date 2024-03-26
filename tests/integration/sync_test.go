@@ -5275,7 +5275,7 @@ func TestSync_License(t *testing.T) {
 		require.NoError(t, err)
 		licenses, err := newState.Licenses.GetAll()
 		require.NoError(t, err)
-		require.Equal(t, 1, len(licenses))
+		require.Len(t, licenses, 1)
 	})
 
 	t.Run("delete_existing_license", func(t *testing.T) {
@@ -5296,13 +5296,13 @@ func TestSync_License(t *testing.T) {
 		})
 		require.NoError(t, err)
 		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Len(t, errs, 0, "Should have no errors in syncing")
+		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
 		newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
 		require.NoError(t, err)
 		licenses, err := newState.Licenses.GetAll()
 		require.NoError(t, err)
-		require.Equal(t, 0, len(licenses))
+		require.Empty(t, licenses)
 	})
 }
