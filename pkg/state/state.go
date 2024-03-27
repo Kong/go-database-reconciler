@@ -22,6 +22,7 @@ type KongState struct {
 	SNIs                   *SNIsCollection
 	CACertificates         *CACertificatesCollection
 	Plugins                *PluginsCollection
+	FilterChains           *FilterChainsCollection
 	Consumers              *ConsumersCollection
 	Vaults                 *VaultsCollection
 	Licenses               *LicensesCollection
@@ -65,6 +66,7 @@ func NewKongState() (*KongState, error) {
 			sniTableName:                    sniTableSchema,
 			caCertTableName:                 caCertTableSchema,
 			pluginTableName:                 pluginTableSchema,
+			filterChainTableName:            filterChainTableSchema,
 			consumerTableName:               consumerTableSchema,
 			consumerGroupTableName:          consumerGroupTableSchema,
 			consumerGroupConsumerTableName:  consumerGroupConsumerTableSchema,
@@ -107,6 +109,7 @@ func NewKongState() (*KongState, error) {
 	state.SNIs = (*SNIsCollection)(&state.common)
 	state.CACertificates = (*CACertificatesCollection)(&state.common)
 	state.Plugins = (*PluginsCollection)(&state.common)
+	state.FilterChains = (*FilterChainsCollection)(&state.common)
 	state.Consumers = (*ConsumersCollection)(&state.common)
 	state.ConsumerGroups = (*ConsumerGroupsCollection)(&state.common)
 	state.ConsumerGroupConsumers = (*ConsumerGroupConsumersCollection)(&state.common)

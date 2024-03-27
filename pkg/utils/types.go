@@ -29,7 +29,8 @@ type KongRawState struct {
 	Services []*kong.Service
 	Routes   []*kong.Route
 
-	Plugins []*kong.Plugin
+	Plugins      []*kong.Plugin
+	FilterChains []*kong.FilterChain
 
 	Upstreams []*kong.Upstream
 	Targets   []*kong.Target

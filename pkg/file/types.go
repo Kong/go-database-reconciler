@@ -30,12 +30,180 @@ const (
 	httpsPort = 443
 )
 
+// FFilterChain represents a Kong FilterChain.
+// +k8s:deepcopy-gen=true
+type FFilterChain struct {
+	kong.FilterChain `yaml:",inline,omitempty"`
+}
+
+// SerializableFilter is a shadow type
+// used for custom marshalling of filters in a FilterChain.
+type SerializableFilter struct {
+	Name    *string          `json:"name,omitempty" yaml:"name,omitempty"`
+	Config  *json.RawMessage `json:"config,omitempty" yaml:"name,omitempty"`
+	Enabled *bool            `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+}
+
+// SerializableFilterChain is a shadow type
+// used for custom marshalling of FilterChain.
+type SerializableFilterChain struct {
+	CreatedAt *int                  `json:"created_at,omitempty" yaml:"created_at,omitempty"`
+	UpdatedAt *int                  `json:"updated_at,omitempty" yaml:"updated_at,omitempty"`
+	ID        *string               `json:"id,omitempty" yaml:"id,omitempty"`
+	Name      *string               `json:"name,omitempty" yaml:"name,omitempty"`
+	Enabled   *bool                 `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Route     string                `json:"route,omitempty" yaml:",omitempty"`
+	Service   string                `json:"service,omitempty" yaml:",omitempty"`
+	Filters   []*SerializableFilter `json:"filters,omitempty" yaml:",omitempty"`
+	Tags      []*string             `json:"tags,omitempty" yaml:"tags,omitempty"`
+}
+
+func copyToSerializableFilterChain(f FFilterChain) SerializableFilterChain {
+	sf := SerializableFilterChain{}
+	if f.CreatedAt != nil {
+		sf.CreatedAt = f.CreatedAt
+	}
+	if f.UpdatedAt != nil {
+		sf.UpdatedAt = f.UpdatedAt
+	}
+	if f.ID != nil {
+		sf.ID = f.ID
+	}
+	if f.Name != nil {
+		sf.Name = f.Name
+	}
+	if f.Enabled != nil {
+		sf.Enabled = f.Enabled
+	}
+	if f.FilterChain.Route != nil {
+		sf.Route = *f.FilterChain.Route.ID
+	}
+	if f.FilterChain.Service != nil {
+		sf.Service = *f.FilterChain.Service.ID
+	}
+	if f.Filters != nil {
+		sf.Filters = []*SerializableFilter{}
+		for _, filter := range f.Filters {
+			sfilter := &SerializableFilter{}
+			if filter.Name != nil {
+				sfilter.Name = filter.Name
+			}
+			if filter.Config != nil {
+				sfilter.Config = filter.Config
+			}
+			if filter.Enabled != nil {
+				sfilter.Enabled = filter.Enabled
+			}
+			sf.Filters = append(sf.Filters, sfilter)
+		}
+	}
+	if f.Tags != nil {
+		sf.Tags = f.Tags
+	}
+	return sf
+}
+
+func copyFromSerializableFilterChain(sf SerializableFilterChain, f *FFilterChain) {
+	if sf.CreatedAt != nil {
+		f.CreatedAt = sf.CreatedAt
+	}
+	if sf.UpdatedAt != nil {
+		f.UpdatedAt = sf.UpdatedAt
+	}
+	if sf.ID != nil {
+		f.ID = sf.ID
+	}
+	if sf.Name != nil {
+		f.Name = sf.Name
+	}
+	if sf.Enabled != nil {
+		f.Enabled = sf.Enabled
+	}
+	if sf.Filters != nil {
+		f.Filters = []*kong.Filter{}
+		for _, sfilter := range sf.Filters {
+			filter := &kong.Filter{}
+			if sfilter.Name != nil {
+				filter.Name = sfilter.Name
+			}
+			if sfilter.Config != nil {
+				filter.Config = sfilter.Config
+			}
+			if sfilter.Enabled != nil {
+				filter.Enabled = sfilter.Enabled
+			}
+			f.Filters = append(f.Filters, filter)
+		}
+	}
+	if sf.Tags != nil {
+		f.Tags = sf.Tags
+	}
+	if sf.Route != "" {
+		f.Route = &kong.Route{
+			ID: kong.String(sf.Route),
+		}
+	}
+	if sf.Service != "" {
+		f.Service = &kong.Service{
+			ID: kong.String(sf.Service),
+		}
+	}
+}
+
+// MarshalYAML is a custom marshal method to handle
+// foreign references.
+func (f FFilterChain) MarshalYAML() (interface{}, error) {
+	return copyToSerializableFilterChain(f), nil
+}
+
+// UnmarshalYAML is a custom marshal method to handle
+// foreign references.
+func (f *FFilterChain) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var sf SerializableFilterChain
+	if err := unmarshal(&sf); err != nil {
+		return err
+	}
+	copyFromSerializableFilterChain(sf, f)
+	return nil
+}
+
+// MarshalJSON is a custom marshal method to handle
+// foreign references.
+func (f FFilterChain) MarshalJSON() ([]byte, error) {
+	sf := copyToSerializableFilterChain(f)
+	return json.Marshal(sf)
+}
+
+// UnmarshalJSON is a custom marshal method to handle
+// foreign references.
+func (f *FFilterChain) UnmarshalJSON(b []byte) error {
+	var sf SerializableFilterChain
+	err := json.Unmarshal(b, &sf)
+	if err != nil {
+		return err
+	}
+	copyFromSerializableFilterChain(sf, f)
+	return nil
+}
+
+// sortKey is used for sorting.
+func (f FFilterChain) sortKey() string {
+	if f.Name != nil {
+		return *f.Name
+	}
+	if f.ID != nil {
+		return *f.ID
+	}
+	return ""
+}
+
 // FService represents a Kong Service and it's associated routes and plugins.
 // +k8s:deepcopy-gen=true
 type FService struct {
 	kong.Service
-	Routes  []*FRoute  `json:"routes,omitempty" yaml:",omitempty"`
-	Plugins []*FPlugin `json:"plugins,omitempty" yaml:",omitempty"`
+	Routes       []*FRoute       `json:"routes,omitempty" yaml:",omitempty"`
+	Plugins      []*FPlugin      `json:"plugins,omitempty" yaml:",omitempty"`
+	FilterChains []*FFilterChain `json:"filter_chains,omitempty" yaml:",omitempty"`
 
 	// sugar property
 	URL *string `json:"url,omitempty" yaml:",omitempty"`
@@ -53,26 +221,27 @@ func (s FService) sortKey() string {
 }
 
 type service struct {
-	ClientCertificate *string    `json:"client_certificate,omitempty" yaml:"client_certificate,omitempty"`
-	ConnectTimeout    *int       `json:"connect_timeout,omitempty" yaml:"connect_timeout,omitempty"`
-	CreatedAt         *int       `json:"created_at,omitempty" yaml:"created_at,omitempty"`
-	Host              *string    `json:"host,omitempty" yaml:"host,omitempty"`
-	ID                *string    `json:"id,omitempty" yaml:"id,omitempty"`
-	Name              *string    `json:"name,omitempty" yaml:"name,omitempty"`
-	Path              *string    `json:"path,omitempty" yaml:"path,omitempty"`
-	Port              *int       `json:"port,omitempty" yaml:"port,omitempty"`
-	Protocol          *string    `json:"protocol,omitempty" yaml:"protocol,omitempty"`
-	ReadTimeout       *int       `json:"read_timeout,omitempty" yaml:"read_timeout,omitempty"`
-	Retries           *int       `json:"retries,omitempty" yaml:"retries,omitempty"`
-	UpdatedAt         *int       `json:"updated_at,omitempty" yaml:"updated_at,omitempty"`
-	WriteTimeout      *int       `json:"write_timeout,omitempty" yaml:"write_timeout,omitempty"`
-	Tags              []*string  `json:"tags,omitempty" yaml:"tags,omitempty"`
-	TLSVerify         *bool      `json:"tls_verify,omitempty" yaml:"tls_verify,omitempty"`
-	TLSVerifyDepth    *int       `json:"tls_verify_depth,omitempty" yaml:"tls_verify_depth,omitempty"`
-	CACertificates    []*string  `json:"ca_certificates,omitempty" yaml:"ca_certificates,omitempty"`
-	Enabled           *bool      `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	Routes            []*FRoute  `json:"routes,omitempty" yaml:",omitempty"`
-	Plugins           []*FPlugin `json:"plugins,omitempty" yaml:",omitempty"`
+	ClientCertificate *string         `json:"client_certificate,omitempty" yaml:"client_certificate,omitempty"`
+	ConnectTimeout    *int            `json:"connect_timeout,omitempty" yaml:"connect_timeout,omitempty"`
+	CreatedAt         *int            `json:"created_at,omitempty" yaml:"created_at,omitempty"`
+	Host              *string         `json:"host,omitempty" yaml:"host,omitempty"`
+	ID                *string         `json:"id,omitempty" yaml:"id,omitempty"`
+	Name              *string         `json:"name,omitempty" yaml:"name,omitempty"`
+	Path              *string         `json:"path,omitempty" yaml:"path,omitempty"`
+	Port              *int            `json:"port,omitempty" yaml:"port,omitempty"`
+	Protocol          *string         `json:"protocol,omitempty" yaml:"protocol,omitempty"`
+	ReadTimeout       *int            `json:"read_timeout,omitempty" yaml:"read_timeout,omitempty"`
+	Retries           *int            `json:"retries,omitempty" yaml:"retries,omitempty"`
+	UpdatedAt         *int            `json:"updated_at,omitempty" yaml:"updated_at,omitempty"`
+	WriteTimeout      *int            `json:"write_timeout,omitempty" yaml:"write_timeout,omitempty"`
+	Tags              []*string       `json:"tags,omitempty" yaml:"tags,omitempty"`
+	TLSVerify         *bool           `json:"tls_verify,omitempty" yaml:"tls_verify,omitempty"`
+	TLSVerifyDepth    *int            `json:"tls_verify_depth,omitempty" yaml:"tls_verify_depth,omitempty"`
+	CACertificates    []*string       `json:"ca_certificates,omitempty" yaml:"ca_certificates,omitempty"`
+	Enabled           *bool           `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Routes            []*FRoute       `json:"routes,omitempty" yaml:",omitempty"`
+	Plugins           []*FPlugin      `json:"plugins,omitempty" yaml:",omitempty"`
+	FilterChains      []*FFilterChain `json:"filter_chains,omitempty" yaml:",omitempty"`
 
 	// sugar property
 	URL *string `json:"url,omitempty" yaml:",omitempty"`
@@ -102,6 +271,7 @@ func copyToService(fService FService) service {
 	s.Tags = fService.Tags
 	s.Routes = fService.Routes
 	s.Plugins = fService.Plugins
+	s.FilterChains = fService.FilterChains
 	s.Enabled = fService.Enabled
 
 	return s
@@ -180,6 +350,7 @@ func copyFromService(service service, fService *FService) error {
 	fService.TLSVerifyDepth = service.TLSVerifyDepth
 	fService.Routes = service.Routes
 	fService.Plugins = service.Plugins
+	fService.FilterChains = service.FilterChains
 	fService.Enabled = service.Enabled
 	return nil
 }
@@ -218,11 +389,12 @@ func (s *FService) UnmarshalJSON(b []byte) error {
 	return copyFromService(service, s)
 }
 
-// FRoute represents a Kong Route and it's associated plugins.
+// FRoute represents a Kong Route and it's associated plugins and filter chains.
 // +k8s:deepcopy-gen=true
 type FRoute struct {
-	kong.Route `yaml:",inline,omitempty"`
-	Plugins    []*FPlugin `json:"plugins,omitempty" yaml:",omitempty"`
+	kong.Route   `yaml:",inline,omitempty"`
+	Plugins      []*FPlugin      `json:"plugins,omitempty" yaml:",omitempty"`
+	FilterChains []*FFilterChain `json:"filter_chains,omitempty" yaml:",omitempty"`
 }
 
 // sortKey is used for sorting.
@@ -736,6 +908,7 @@ type Content struct {
 	Consumers      []FConsumer            `json:"consumers,omitempty" yaml:",omitempty"`
 	ConsumerGroups []FConsumerGroupObject `json:"consumer_groups,omitempty" yaml:",omitempty"`
 	Plugins        []FPlugin              `json:"plugins,omitempty" yaml:",omitempty"`
+	FilterChains   []FFilterChain         `json:"filter_chains,omitempty" yaml:",omitempty"`
 	Upstreams      []FUpstream            `json:"upstreams,omitempty" yaml:",omitempty"`
 	Certificates   []FCertificate         `json:"certificates,omitempty" yaml:",omitempty"`
 	CACertificates []FCACertificate       `json:"ca_certificates,omitempty" yaml:"ca_certificates,omitempty"`

@@ -30,6 +30,8 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
+replace github.com/kong/go-kong v0.51.1-0.20240125175037-0c077f5b9ac7 => ../go-kong
+
 require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect
