@@ -18,7 +18,7 @@ import (
 const (
 	ratelimitingAdvancedPluginName = "rate-limiting-advanced"
 	basicAuthPasswordWarning       = "Warning: import/export of basic-auth" +
-		"credentials using decK doesn't work due to hashing of passwords in Kong."
+		" credentials using decK doesn't work due to hashing of passwords in Kong."
 )
 
 type stateBuilder struct {

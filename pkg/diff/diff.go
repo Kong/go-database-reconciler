@@ -183,13 +183,6 @@ func (sc *Syncer) init() error {
 		sc.processor.MustRegister(crud.Kind(entityType), entity.CRUDActions())
 		sc.entityDiffers[entityType] = entity.Differ()
 	}
-
-	sc.eventLog = EntityChanges{
-		Creating: []EntityState{},
-		Updating: []EntityState{},
-		Deleting: []EntityState{},
-	}
-
 	return nil
 }
 
@@ -425,7 +418,6 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 // Do is the worker function to sync the diff
 type Do func(a crud.Event) (crud.Arg, error)
 
-// NOTE TRC part of the return path
 func (sc *Syncer) eventLoop(ctx context.Context, action Do) error {
 	for event := range sc.eventChan {
 		// Stop if program is terminated
@@ -444,7 +436,6 @@ func (sc *Syncer) eventLoop(ctx context.Context, action Do) error {
 	return nil
 }
 
-// NOTE TRC part of the return path. this actually runs the
 func (sc *Syncer) handleEvent(ctx context.Context, action Do, event crud.Event) error {
 	err := backoff.Retry(func() error {
 		res, err := action(event)
@@ -509,13 +500,13 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 	return diffString, err
 }
 
-// NOTE TRC Solve is the entry point for both the local and konnect sync commands
-// those command functions already output other text fwiw
-// although they can iterate over a returned op set and print info for each, this does
-// introduce a delay in output. Solve() currently prints each action as it takes them,
-// whereas the returned set would be printed in a batch at the end. unsure if this should
-// matter in practice, but probably not. we could introduce an event channel and separate
-// goroutine to handle synch output, but probably not worth it
+// Solve originally printed event actions as it processed them. https://github.com/Kong/go-database-reconciler/pull/30
+// refactored these and other direct prints out of this library in favor of returning an event set to the caller
+// (the "sync" command in deck's case and the DB update strategy in KIC's case), leaving it up to the caller whether
+// or not to print them. This change means that the event set is not available to print until it is complete, however,
+// and it no longer can serve as a de facto progress bar. If we want to restore that UX or hit changesets large enough
+// where holding events in memory to return is a performance concern, we'd need to expose a channel that can allow
+// clients to perform streaming post-processing of events.
 
 // Solve generates a diff and walks the graph.
 func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
@@ -537,9 +528,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		}
 	}
 
-	// NOTE TRC the length makes it confusing to read, but the code below _isn't being run here_, it's an anon func
+	// The length makes it confusing to read, but the code below _isn't being run here_, it's an anon func
 	// arg to Run(), which parallelizes it. However, because it's defined in Solve()'s scope, the output created above
-	// is available in aggregate and contains most of the content we need already
+	// is available in aggregate and contains most of the content we need already.
 	errs := sc.Run(ctx, parallelism, func(e crud.Event) (crud.Arg, error) {
 		var err error
 		var result crud.Arg
@@ -551,17 +542,13 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		}
 		item := EntityState{
 			Body: objDiff,
-			// NOTE TRC currently used directly
 			Name: c.Console(),
-			// NOTE TRC current prints use the kind directly, but it doesn't matter, it's just a string alias anyway
 			Kind: string(e.Kind),
 		}
-		// NOTE TRC currently we emit lines here, need to collect objects instead
 		switch e.Op {
 		case crud.Create:
 			sc.LogCreate(item)
 		case crud.Update:
-			// TODO TRC this is not currently available in the item EntityState
 			diffString, err := generateDiffString(e, false, sc.noMaskValues)
 			if err != nil {
 				return nil, err
@@ -596,8 +583,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// record operation in both: diff and sync commands
 		recordOp(e.Op)
 
-		// TODO TRC our existing return is a complete object and error. probably need to return some sort of processed
-		// event struct
 		return result, nil
 	})
 	return stats, errs, sc.GetEventLog()
