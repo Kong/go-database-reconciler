@@ -32,6 +32,12 @@ type Summary struct {
 	Total    int32 `json:"total"`
 }
 
+// TODO https://github.com/Kong/go-database-reconciler/issues/22
+// JSONOutputObject is defined here but only used in deck currently, which has the actual code to build it. It may make
+// sense to extract this into deck, though it may also make sense to move the build/format functions into here, as
+// a generic utility for formatting entity change info into structured text, even if GDR doesn't actually print that
+// text.
+
 type JSONOutputObject struct {
 	Changes  EntityChanges `json:"changes"`
 	Summary  Summary       `json:"summary"`
