@@ -338,7 +338,7 @@ func (sc *Syncer) wait() {
 }
 
 // Run starts a diff and invokes d for every diff.
-func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
+func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	if parallelism < 1 {
 		return append([]error{}, fmt.Errorf("parallelism can not be negative"))
 	}
@@ -355,7 +355,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
 	wg.Add(parallelism)
 	for i := 0; i < parallelism; i++ {
 		go func() {
-			err := sc.eventLoop(ctx, d)
+			err := sc.eventLoop(ctx, action)
 			if err != nil {
 				sc.errChan <- err
 			}
