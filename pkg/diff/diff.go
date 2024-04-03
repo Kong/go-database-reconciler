@@ -125,7 +125,7 @@ type Syncer struct {
 	eventChan  chan crud.Event
 	errChan    chan error
 	stopChan   chan struct{}
-	ResultChan chan EntityAction
+	resultChan chan EntityAction
 
 	inFlightOps int32
 
@@ -147,7 +147,7 @@ type Syncer struct {
 	isKonnect bool
 
 	// enableEntityActions enables entity actions and disables direct output prints. If set to true, clients must
-	// consume the Syncer.ResultChan channel or Syncer.Solve() will block.
+	// consume the Syncer.resultChan channel or Syncer.Solve() will block.
 	enableEntityActions bool
 }
 
@@ -170,8 +170,8 @@ type SyncerOpts struct {
 	UpdatePrintln func(a ...interface{})
 	DeletePrintln func(a ...interface{})
 
-	// EnableEntityActions instructs the Syncer to send EntityActions to its ResultChan. If enabled, clients must
-	// consume the Syncer.ResultChan channel or Syncer.Solve() will block.
+	// EnableEntityActions instructs the Syncer to send EntityActions to its resultChan. If enabled, clients must
+	// consume the Syncer.resultChan channel or Syncer.Solve() will block.
 	EnableEntityActions bool
 }
 
@@ -216,9 +216,14 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.ResultChan = make(chan EntityAction, eventBuffer)
+	s.resultChan = make(chan EntityAction, eventBuffer)
 
 	return s, nil
+}
+
+// GetResultChan returns the Syncer's result channel.
+func (sc *Syncer) GetResultChan() chan EntityAction {
+	return sc.resultChan
 }
 
 func (sc *Syncer) init() error {
@@ -403,7 +408,7 @@ func (sc *Syncer) wait() {
 	}
 }
 
-// Run starts a diff and invokes d for every diff.
+// Run starts a diff and invokes action for every diff.
 func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	if parallelism < 1 {
 		return append([]error{}, fmt.Errorf("parallelism can not be negative"))
@@ -443,7 +448,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	go func() {
 		wg.Wait()
 		close(sc.errChan)
-		close(sc.ResultChan)
+		close(sc.resultChan)
 	}()
 
 	var errs []error
@@ -629,7 +634,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				if err != nil {
 					actionResult.Error = err
 					select {
-					case sc.ResultChan <- actionResult:
+					case sc.resultChan <- actionResult:
 					case <-ctx.Done():
 					}
 					return nil, err
@@ -666,7 +671,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				if sc.enableEntityActions {
 					actionResult.Error = err
 					select {
-					case sc.ResultChan <- actionResult:
+					case sc.resultChan <- actionResult:
 					case <-ctx.Done():
 					}
 				}
@@ -684,7 +689,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			utils.ZeroOutTimestamps(e.OldObj)
 			if sc.enableEntityActions {
 				select {
-				case sc.ResultChan <- actionResult:
+				case sc.resultChan <- actionResult:
 				case <-ctx.Done():
 				}
 			}
