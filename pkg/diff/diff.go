@@ -582,6 +582,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		Deleting: []EntityState{},
 	}
 
+	// The length makes it confusing to read, but the code below _isn't being run here_, it's an anon func
+	// arg to Run(), which parallelizes it. However, because it's defined in Solve()'s scope, the output created above
+	// is available in aggregate and contains most of the content we need already.
 	errs := sc.Run(ctx, parallelism, func(e crud.Event) (crud.Arg, error) {
 		var err error
 		var result crud.Arg
