@@ -565,6 +565,9 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
 	[]error, EntityChanges,
 ) {
+	// TODO https://github.com/Kong/go-database-reconciler/issues/22
+	// this can probably be extracted to clients (only deck uses it) by having clients count events through the result
+	// channel, rather than returning them from Solve.
 	stats := Stats{
 		CreateOps: &utils.AtomicInt32Counter{},
 		UpdateOps: &utils.AtomicInt32Counter{},
@@ -618,6 +621,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		switch e.Op {
 		case crud.Create:
+			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
+			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
+			// prints and JSON blob building will be moved to the deck client.
 			if sc.enableEntityActions {
 				actionResult.Action = CreateAction
 			} else {
@@ -629,6 +635,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			}
 		case crud.Update:
 			diffString, err := generateDiffString(e, false, sc.noMaskValues)
+			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
+			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
+			// prints and JSON blob building will be moved to the deck client.
 			if sc.enableEntityActions {
 				actionResult.Action = UpdateAction
 				if err != nil {
@@ -650,6 +659,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				}
 			}
 		case crud.Delete:
+			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
+			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
+			// prints and JSON blob building will be moved to the deck client.
 			if sc.enableEntityActions {
 				actionResult.Action = DeleteAction
 			} else {
@@ -668,6 +680,10 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			// fire the request to Kong
 			result, err = sc.processor.Do(ctx, e.Kind, e.Op, e)
 			if err != nil {
+				// TODO https://github.com/Kong/go-database-reconciler/issues/22 this does not print, but is switched on
+				// sc.enableEntityActions because the existing behavior returns a result from the anon Run function.
+				// Refactoring should use only the channel and simplify the return, probably to just an error (all the other
+				// data will have been sent through the result channel).
 				if sc.enableEntityActions {
 					actionResult.Error = err
 					select {
@@ -687,6 +703,10 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			// return the new obj as is but with timestamps zeroed out
 			utils.ZeroOutTimestamps(e.Obj)
 			utils.ZeroOutTimestamps(e.OldObj)
+			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this does not print, but is switched on
+			// sc.enableEntityActions because the existing behavior returns a result from the anon Run function.
+			// Refactoring should use only the channel and simplify the return, probably to just an error (all the other
+			// data will have been sent through the result channel).
 			if sc.enableEntityActions {
 				select {
 				case sc.resultChan <- actionResult:
