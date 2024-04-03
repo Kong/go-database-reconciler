@@ -625,7 +625,10 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				actionResult.Action = UpdateAction
 				if err != nil {
 					actionResult.Error = err
-					sc.ResultChan <- actionResult
+					select {
+					case sc.ResultChan <- actionResult:
+					case <-ctx.Done():
+					}
 					return nil, err
 				}
 			} else {
@@ -659,7 +662,10 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if err != nil {
 				if sc.enableEntityActions {
 					actionResult.Error = err
-					sc.ResultChan <- actionResult
+					select {
+					case sc.ResultChan <- actionResult:
+					case <-ctx.Done():
+					}
 				}
 				return nil, &crud.ActionError{
 					OperationType: e.Op,
@@ -674,7 +680,10 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			utils.ZeroOutTimestamps(e.Obj)
 			utils.ZeroOutTimestamps(e.OldObj)
 			if sc.enableEntityActions {
-				sc.ResultChan <- actionResult
+				select {
+				case sc.ResultChan <- actionResult:
+				case <-ctx.Done():
+				}
 			}
 			result = e.Obj
 		}
