@@ -146,7 +146,8 @@ type Syncer struct {
 
 	isKonnect bool
 
-	// enableEntityActions enables entity actions and disables direct output prints.
+	// enableEntityActions enables entity actions and disables direct output prints. If set to true, clients must
+	// consume the Syncer.ResultChan channel or Syncer.Solve() will block.
 	enableEntityActions bool
 }
 
@@ -170,7 +171,7 @@ type SyncerOpts struct {
 	DeletePrintln func(a ...interface{})
 
 	// EnableEntityActions instructs the Syncer to send EntityActions to its ResultChan. If enabled, clients must
-	// consume the channel to avoid blocking.
+	// consume the Syncer.ResultChan channel or Syncer.Solve() will block.
 	EnableEntityActions bool
 }
 
