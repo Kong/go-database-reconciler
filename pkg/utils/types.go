@@ -380,7 +380,6 @@ func HTTPClientWithTLSConfig(opt TLSConfig) (*http.Client, error) {
 	defaultTransport := http.DefaultTransport.(*http.Transport)
 	defaultTransport.TLSClientConfig = tlsConfig
 	defaultTransport.Proxy = http.ProxyFromEnvironment
-	httpClient = http.DefaultClient
 	httpClient.Transport = defaultTransport
 	return httpClient, nil
 }

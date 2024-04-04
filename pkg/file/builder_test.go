@@ -377,7 +377,6 @@ func TestMain(m *testing.M) {
 }
 
 func Test_stateBuilder_services(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		targetContent *Content
@@ -459,13 +458,12 @@ func Test_stateBuilder_services(t *testing.T) {
 				selectTags:    []string{"tag1"},
 			}
 			b.build()
-			assert.Equal(tt.want, b.rawState)
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_ingestRoute(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		currentState *state.KongState
@@ -573,13 +571,12 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			if err := b.ingestRoute(tt.args.route); (err != nil) != tt.wantErr {
 				t.Errorf("stateBuilder.ingestPlugins() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			assert.Equal(tt.wantState, b.rawState)
+			assert.Equal(t, tt.wantState, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_ingestTargets(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		currentState *state.KongState
@@ -679,13 +676,12 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			if err := b.ingestTargets(tt.args.targets); (err != nil) != tt.wantErr {
 				t.Errorf("stateBuilder.ingestPlugins() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			assert.Equal(tt.wantState, b.rawState)
+			assert.Equal(t, tt.wantState, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_ingestPlugins(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		currentState *state.KongState
@@ -804,7 +800,7 @@ func Test_stateBuilder_ingestPlugins(t *testing.T) {
 			if err := b.ingestPlugins(tt.args.plugins); (err != nil) != tt.wantErr {
 				t.Errorf("stateBuilder.ingestPlugins() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			assert.Equal(tt.wantState, b.rawState)
+			assert.Equal(t, tt.wantState, b.rawState)
 		})
 	}
 }
@@ -876,7 +872,6 @@ func Test_pluginRelations(t *testing.T) {
 }
 
 func Test_stateBuilder_consumers(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		currentState  *state.KongState
@@ -1350,13 +1345,12 @@ func Test_stateBuilder_consumers(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			b.build()
-			assert.Equal(tt.want, b.rawState)
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_certificates(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		currentState  *state.KongState
@@ -1518,13 +1512,12 @@ func Test_stateBuilder_certificates(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			b.build()
-			assert.Equal(tt.want, b.rawState)
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_caCertificates(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		currentState  *state.KongState
@@ -1592,13 +1585,12 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			b.build()
-			assert.Equal(tt.want, b.rawState)
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_upstream(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		targetContent *Content
@@ -1945,13 +1937,12 @@ func Test_stateBuilder_upstream(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			b.build()
-			assert.Equal(tt.want, b.rawState)
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
 
 func Test_stateBuilder_documents(t *testing.T) {
-	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
 		targetContent *Content
@@ -2049,13 +2040,12 @@ func Test_stateBuilder_documents(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			b.build()
-			assert.Equal(tt.want, b.konnectRawState)
+			assert.Equal(t, tt.want, b.konnectRawState)
 		})
 	}
 }
 
 func Test_stateBuilder(t *testing.T) {
-	assert := assert.New(t)
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -2602,7 +2592,7 @@ func Test_stateBuilder(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			b.build()
-			assert.Equal(tt.want, b.rawState)
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
