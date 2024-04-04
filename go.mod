@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.34.0
-	github.com/kong/go-kong v0.52.0
+	github.com/kong/go-kong v0.54.0
 	github.com/shirou/gopsutil/v3 v3.24.3
 	github.com/ssgelm/cookiejarparser v1.0.1
 	github.com/stretchr/testify v1.9.0
@@ -102,7 +102,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/tidwall/gjson v1.17.0 // indirect
+	github.com/tidwall/gjson v1.17.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
