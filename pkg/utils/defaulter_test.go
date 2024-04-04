@@ -75,11 +75,10 @@ func TestDefaulter(t *testing.T) {
 }
 
 func TestServiceSetTest(t *testing.T) {
-	assert := assert.New(t)
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
-	assert.NotNil(d)
-	assert.Nil(err)
+	require.NotNil(t, d)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		desc string
