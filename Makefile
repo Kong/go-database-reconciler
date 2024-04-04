@@ -9,10 +9,6 @@ test:
 lint:
 	golangci-lint run -v ./...
 
-.PHONY: build
-build:
-	CGO_ENABLED=0 go build -o deck main.go
-
 .PHONY: verify-codegen
 verify-codegen:
 	./scripts/verify-codegen.sh
