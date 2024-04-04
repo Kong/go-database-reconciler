@@ -437,8 +437,9 @@ func (b *stateBuilder) consumers() {
 			return
 		}
 		for _, cgc := range consumerGroupConsumers {
-			if cgc.Consumer != nil && (c.Username != nil && cgc.Consumer.Username != nil && *cgc.Consumer.Username == *c.Username ||
-				c.CustomID != nil && cgc.Consumer.CustomID != nil && *cgc.Consumer.CustomID == *c.CustomID) {
+			if cgc.Consumer != nil &&
+				(c.Username != nil && cgc.Consumer.Username != nil && *cgc.Consumer.Username == *c.Username ||
+					c.CustomID != nil && cgc.Consumer.CustomID != nil && *cgc.Consumer.CustomID == *c.CustomID) {
 				c.ID = cgc.Consumer.ID
 				consumerAlreadyAdded = true
 				break

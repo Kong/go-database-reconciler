@@ -133,7 +133,7 @@ func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Val
 	switch typ {
 	case reflect.TypeOf(ar):
 
-		return func(dst, src reflect.Value) error {
+		return func(dst, _ reflect.Value) error {
 			if dst.CanSet() {
 				if reflect.DeepEqual(reflect.Zero(dst.Type()).Interface(), dst.Interface()) {
 					return nil
@@ -143,7 +143,7 @@ func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Val
 		}
 	case reflect.TypeOf(a):
 
-		return func(dst, src reflect.Value) error {
+		return func(dst, _ reflect.Value) error {
 			if dst.CanSet() {
 				if reflect.DeepEqual(reflect.Zero(dst.Type()).Interface(), dst.Interface()) {
 					return nil
@@ -153,7 +153,7 @@ func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Val
 		}
 	case reflect.TypeOf(b):
 
-		return func(dst, src reflect.Value) error {
+		return func(dst, _ reflect.Value) error {
 			if dst.CanSet() {
 				if reflect.DeepEqual(reflect.Zero(dst.Type()).Interface(), dst.Interface()) {
 					return nil

@@ -28,7 +28,7 @@ const (
 var allIndex = &memdb.IndexSchema{
 	Name: all,
 	Indexer: &memdb.ConditionalIndex{
-		Conditional: func(v interface{}) (bool, error) {
+		Conditional: func(_ interface{}) (bool, error) {
 			return true, nil
 		},
 	},

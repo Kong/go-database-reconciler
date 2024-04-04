@@ -51,9 +51,7 @@ func (e entityImpl) Differ() Differ {
 	return e.differ
 }
 
-var (
-	ErrEmptyCRUDArgs = errors.New("empty CRUD arguments")
-)
+var ErrEmptyCRUDArgs = errors.New("empty CRUD arguments")
 
 type EntityOpts struct {
 	CurrentState  *state.KongState

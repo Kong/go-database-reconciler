@@ -7,6 +7,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type kongDefaultForTesting struct {
@@ -74,11 +75,10 @@ func TestDefaulter(t *testing.T) {
 }
 
 func TestServiceSetTest(t *testing.T) {
-	assert := assert.New(t)
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
-	assert.NotNil(d)
-	assert.Nil(err)
+	require.NotNil(t, d)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		desc string
@@ -149,18 +149,17 @@ func TestServiceSetTest(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			err := d.Set(tC.arg)
-			assert.Nil(err)
-			assert.Equal(tC.want, tC.arg)
+			assert.Nil(t, err)
+			assert.Equal(t, tC.want, tC.arg)
 		})
 	}
 }
 
 func TestRouteSetTest(t *testing.T) {
-	assert := assert.New(t)
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
-	assert.NotNil(d)
-	assert.Nil(err)
+	require.NotNil(t, d)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		desc string
@@ -242,18 +241,17 @@ func TestRouteSetTest(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			err := d.Set(tC.arg)
-			assert.Nil(err)
-			assert.Equal(tC.want, tC.arg)
+			assert.Nil(t, err)
+			assert.Equal(t, tC.want, tC.arg)
 		})
 	}
 }
 
 func TestUpstreamSetTest(t *testing.T) {
-	assert := assert.New(t)
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
-	assert.NotNil(d)
-	assert.Nil(err)
+	require.NotNil(t, d)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		desc string
@@ -495,8 +493,8 @@ func TestUpstreamSetTest(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			err := d.Set(tC.arg)
-			assert.Nil(err)
-			assert.Equal(tC.want, tC.arg)
+			assert.Nil(t, err)
+			assert.Equal(t, tC.want, tC.arg)
 		})
 	}
 }

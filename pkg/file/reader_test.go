@@ -11,6 +11,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/dump"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_ensureJSON(t *testing.T) {
@@ -152,15 +153,14 @@ func TestReadKongStateFromStdin(t *testing.T) {
 
 func TestReadKongStateFromFile(t *testing.T) {
 	filenames := []string{"testdata/config.yaml"}
-	assert := assert.New(t)
-	assert.Equal("testdata/config.yaml", filenames[0])
+	require.Equal(t, "testdata/config.yaml", filenames[0])
 
 	c, err := GetContentFromFiles(filenames, false)
-	assert.NotNil(c)
-	assert.Nil(err)
+	require.NotNil(t, c)
+	require.Nil(t, err)
 
 	t.Run("enabled field for service is read", func(t *testing.T) {
-		assert.Equal(kong.Service{
+		assert.Equal(t, kong.Service{
 			Name:    kong.String("svc1"),
 			Host:    kong.String("mockbin.org"),
 			Enabled: kong.Bool(true),

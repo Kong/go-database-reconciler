@@ -25,7 +25,8 @@ jobs:
         - 'kong:3.3'
         - 'kong:3.4'
         - 'kong:3.5'
-        - 'kong/kong:master-alpine'
+        - 'kong:3.6'
+        - 'kong/kong:master'
     env:
       KONG_ANONYMOUS_REPORTS: "off"
       KONG_IMAGE: ${{ matrix.kong_image }}
@@ -34,9 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Setup go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '^1.20'
+        uses: actions/setup-go@v5
       - name: Setup Kong
         run: make setup-kong
       - name: Run integration tests

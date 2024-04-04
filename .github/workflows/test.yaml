@@ -11,7 +11,8 @@ on:
     branches:
     - main
   pull_request:
-    - *
+    branches:
+    - '**'
 
 jobs:
   test:
@@ -20,11 +21,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Setup go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '^1.20'
+        uses: actions/setup-go@v5
       - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v4
       - name: Run tests with Coverage
         run: make coverage
       - name: Upload Code Coverage
@@ -33,5 +32,3 @@ jobs:
           name: codecov
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-      - name: Build
-        run: make build
