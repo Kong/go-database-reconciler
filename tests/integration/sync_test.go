@@ -939,7 +939,7 @@ var (
 		},
 	}
 
-	consumerGroupScopedPlugins35x = []*kong.Plugin{
+	consumerGroupScopedPlugins36x = []*kong.Plugin{
 		{
 			Name: kong.String("rate-limiting-advanced"),
 			ConsumerGroup: &kong.ConsumerGroup{
@@ -985,6 +985,7 @@ var (
 				"sync_rate":              float64(-1),
 				"window_size":            []any{float64(60)},
 				"window_type":            string("sliding"),
+				"realm":                  nil,
 			},
 			Enabled:   kong.Bool(true),
 			Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
@@ -4343,9 +4344,8 @@ func Test_Sync_ConsumerGroupsScopedPlugins_After350(t *testing.T) {
 		maxRegularRequestsNumber = 5
 	)
 	client, err := getTestClient()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+	require.NoError(t, err)
+
 	tests := []struct {
 		name          string
 		kongFile      string
@@ -4378,7 +4378,7 @@ func Test_Sync_ConsumerGroupsScopedPlugins_After350(t *testing.T) {
 						},
 					},
 				},
-				Plugins:  consumerGroupScopedPlugins35x,
+				Plugins:  consumerGroupScopedPlugins36x,
 				Services: svc1_207,
 				Routes:   route1_20x,
 				KeyAuths: []*kong.KeyAuth{
@@ -4539,7 +4539,7 @@ func Test_Sync_ConsumerGroupsScopedPluginsKonnect(t *testing.T) {
 						},
 					},
 				},
-				Plugins:  consumerGroupScopedPlugins35x,
+				Plugins:  consumerGroupScopedPlugins36x,
 				Services: svc1_207,
 				Routes:   route1_20x,
 				KeyAuths: []*kong.KeyAuth{
