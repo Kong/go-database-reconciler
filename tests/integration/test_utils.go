@@ -3,6 +3,7 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -14,7 +15,9 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/kong/deck/cmd"
 	deckDiff "github.com/kong/go-database-reconciler/pkg/diff"
+	pkgdiff "github.com/kong/go-database-reconciler/pkg/diff"
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	pkgdump "github.com/kong/go-database-reconciler/pkg/dump"
 	"github.com/kong/go-database-reconciler/pkg/file"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
@@ -195,7 +198,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 
 	// Get entities from Kong
 	ctx := context.Background()
-	dumpConfig := deckDump.Config{}
+	dumpConfig := pkgdump.Config{}
 	if expectedState.RBACEndpointPermissions != nil {
 		dumpConfig.RBACResourcesOnly = true
 	}
@@ -210,7 +213,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 			dumpConfig.KonnectControlPlane = "default"
 		}
 	}
-	kongState, err := deckDump.Get(ctx, client, dumpConfig)
+	kongState, err := pkgdump.Get(ctx, client, dumpConfig)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -275,6 +278,86 @@ func setup(t *testing.T) {
 	})
 }
 
+type syncOut struct {
+	Stats   pkgdiff.Stats
+	Errors  []error
+	Changes pkgdiff.EntityChanges
+}
+
+// testSync is a stripped-down version of deck's cmd.syncMain for testing changeset expectations. It removes support
+// for JSON output, skipping resources, Konnect, workspaces, selector tags, and resource type filtering.
+func testSync(ctx context.Context, filenames []string, nomask, dry bool) (syncOut, error) {
+	enableJSONOutput := false
+	targetContent, err := file.GetContentFromFiles(filenames, false)
+	if err != nil {
+		return syncOut{}, err
+	}
+
+	// TODO static config
+	kongClient, err := getTestClient()
+	if err != nil {
+		return syncOut{}, err
+	}
+
+	var parsedKongVersion semver.Version
+	root, err := kongClient.Root(ctx)
+	if err != nil {
+		return syncOut{}, fmt.Errorf("reading Kong version: %w", err)
+	}
+	kongVersion, ok := root["version"].(string)
+	if !ok {
+		return syncOut{}, fmt.Errorf("no Kong version found")
+	}
+	parsedKongVersion, err = utils.ParseKongVersion(kongVersion)
+	if err != nil {
+		return syncOut{}, fmt.Errorf("parsing Kong version: %w", err)
+	}
+
+	dumpConfig := pkgdump.Config{}
+
+	if utils.Kong340Version.LTE(parsedKongVersion) {
+		dumpConfig.IsConsumerGroupScopedPluginSupported = true
+	}
+
+	// read the current state
+	rawState, err := pkgdump.Get(ctx, kongClient, dumpConfig)
+	if err != nil {
+		return syncOut{}, fmt.Errorf("could not dump state: %w", err)
+	}
+
+	currentState, err := state.Get(rawState)
+	if err != nil {
+		return syncOut{}, fmt.Errorf("could not convert state: %w", err)
+	}
+
+	// read the target state
+	rawTargetState, err := file.Get(ctx, targetContent, file.RenderConfig{
+		CurrentState: currentState,
+		KongVersion:  parsedKongVersion,
+	}, dumpConfig, kongClient)
+	if err != nil {
+		return syncOut{}, err
+	}
+	targetState, err := state.Get(rawTargetState)
+	if err != nil {
+		return syncOut{}, err
+	}
+
+	syncer, err := pkgdiff.NewSyncer(pkgdiff.SyncerOpts{
+		CurrentState:  currentState,
+		TargetState:   targetState,
+		KongClient:    kongClient,
+		StageDelaySec: 0,
+		NoMaskValues:  nomask,
+		IsKonnect:     false,
+	})
+	if err != nil {
+		return syncOut{}, err
+	}
+
+	stats, syncErrs, changes := syncer.Solve(ctx, 1, dry, enableJSONOutput)
+	return syncOut{Stats: stats, Errors: syncErrs, Changes: changes}, nil
+}
 func sync(kongFile string, opts ...string) error {
 	deckCmd := cmd.NewRootCmd()
 	args := []string{"sync", "-s", kongFile}

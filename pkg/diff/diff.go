@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/state"
@@ -23,6 +22,7 @@ type EntityState struct {
 	Name string `json:"name"`
 	Kind string `json:"kind"`
 	Body any    `json:"body"`
+	Diff string `json:"-"`
 }
 
 type Summary struct {
@@ -31,6 +31,12 @@ type Summary struct {
 	Deleting int32 `json:"deleting"`
 	Total    int32 `json:"total"`
 }
+
+// TODO https://github.com/Kong/go-database-reconciler/issues/22
+// JSONOutputObject is defined here but only used in deck currently, which has the actual code to build it. It may make
+// sense to extract this into deck, though it may also make sense to move the build/format functions into here, as
+// a generic utility for formatting entity change info into structured text, even if GDR doesn't actually print that
+// text.
 
 type JSONOutputObject struct {
 	Changes  EntityChanges `json:"changes"`
@@ -77,10 +83,6 @@ type Syncer struct {
 	silenceWarnings bool
 	stageDelaySec   int
 
-	createPrintln func(a ...interface{})
-	updatePrintln func(a ...interface{})
-	deletePrintln func(a ...interface{})
-
 	kongClient    *kong.Client
 	konnectClient *konnect.Client
 
@@ -90,6 +92,9 @@ type Syncer struct {
 	includeLicenses bool
 
 	isKonnect bool
+
+	eventLog      EntityChanges
+	eventLogMutex sync.Mutex
 }
 
 type SyncerOpts struct {
@@ -106,10 +111,6 @@ type SyncerOpts struct {
 	IncludeLicenses bool
 
 	IsKonnect bool
-
-	CreatePrintln func(a ...interface{})
-	UpdatePrintln func(a ...interface{})
-	DeletePrintln func(a ...interface{})
 }
 
 // NewSyncer constructs a Syncer.
@@ -126,25 +127,12 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 		noMaskValues: opts.NoMaskValues,
 
-		createPrintln:   opts.CreatePrintln,
-		updatePrintln:   opts.UpdatePrintln,
-		deletePrintln:   opts.DeletePrintln,
 		includeLicenses: opts.IncludeLicenses,
 		isKonnect:       opts.IsKonnect,
 	}
 
 	if opts.IsKonnect {
 		s.includeLicenses = false
-	}
-
-	if s.createPrintln == nil {
-		s.createPrintln = cprint.CreatePrintln
-	}
-	if s.updatePrintln == nil {
-		s.updatePrintln = cprint.UpdatePrintln
-	}
-	if s.deletePrintln == nil {
-		s.deletePrintln = cprint.DeletePrintln
 	}
 
 	err := s.init()
@@ -337,8 +325,36 @@ func (sc *Syncer) wait() {
 	}
 }
 
+// LogCreate adds a create action to the event log.
+func (sc *Syncer) LogCreate(state EntityState) {
+	sc.eventLogMutex.Lock()
+	defer sc.eventLogMutex.Unlock()
+	sc.eventLog.Creating = append(sc.eventLog.Creating, state)
+}
+
+// LogUpdate adds an update action to the event log.
+func (sc *Syncer) LogUpdate(state EntityState) {
+	sc.eventLogMutex.Lock()
+	defer sc.eventLogMutex.Unlock()
+	sc.eventLog.Updating = append(sc.eventLog.Updating, state)
+}
+
+// LogDelete adds a delete action to the event log.
+func (sc *Syncer) LogDelete(state EntityState) {
+	sc.eventLogMutex.Lock()
+	defer sc.eventLogMutex.Unlock()
+	sc.eventLog.Deleting = append(sc.eventLog.Deleting, state)
+}
+
+// GetEventLog returns the syncer event log.
+func (sc *Syncer) GetEventLog() EntityChanges {
+	sc.eventLogMutex.Lock()
+	defer sc.eventLogMutex.Unlock()
+	return sc.eventLog
+}
+
 // Run starts a diff and invokes d for every diff.
-func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
+func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	if parallelism < 1 {
 		return append([]error{}, fmt.Errorf("parallelism can not be negative"))
 	}
@@ -355,7 +371,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
 	wg.Add(parallelism)
 	for i := 0; i < parallelism; i++ {
 		go func() {
-			err := sc.eventLoop(ctx, d)
+			err := sc.eventLoop(ctx, action)
 			if err != nil {
 				sc.errChan <- err
 			}
@@ -408,7 +424,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, d Do) []error {
 // Do is the worker function to sync the diff
 type Do func(a crud.Event) (crud.Arg, error)
 
-func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
+func (sc *Syncer) eventLoop(ctx context.Context, action Do) error {
 	for event := range sc.eventChan {
 		// Stop if program is terminated
 		select {
@@ -417,7 +433,7 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 		default:
 		}
 
-		err := sc.handleEvent(ctx, d, event)
+		err := sc.handleEvent(ctx, action, event)
 		sc.eventCompleted()
 		if err != nil {
 			return err
@@ -426,9 +442,9 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 	return nil
 }
 
-func (sc *Syncer) handleEvent(ctx context.Context, d Do, event crud.Event) error {
+func (sc *Syncer) handleEvent(ctx context.Context, action Do, event crud.Event) error {
 	err := backoff.Retry(func() error {
-		res, err := d(event)
+		res, err := action(event)
 		if err != nil {
 			err = fmt.Errorf("while processing event: %w", err)
 
@@ -490,6 +506,14 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 	return diffString, err
 }
 
+// Solve originally printed event actions as it processed them. https://github.com/Kong/go-database-reconciler/pull/30
+// refactored these and other direct prints out of this library in favor of returning an event set to the caller
+// (the "sync" command in deck's case and the DB update strategy in KIC's case), leaving it up to the caller whether
+// or not to print them. This change means that the event set is not available to print until it is complete, however,
+// and it no longer can serve as a de facto progress bar. If we want to restore that UX or hit changesets large enough
+// where holding events in memory to return is a performance concern, we'd need to expose a channel that can allow
+// clients to perform streaming post-processing of events.
+
 // Solve generates a diff and walks the graph.
 func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
 	[]error, EntityChanges,
@@ -510,12 +534,9 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		}
 	}
 
-	output := EntityChanges{
-		Creating: []EntityState{},
-		Updating: []EntityState{},
-		Deleting: []EntityState{},
-	}
-
+	// The length makes it confusing to read, but the code below _isn't being run here_, it's an anon func
+	// arg to Run(), which parallelizes it. However, because it's defined in Solve()'s scope, the output created above
+	// is available in aggregate and contains most of the content we need already.
 	errs := sc.Run(ctx, parallelism, func(e crud.Event) (crud.Arg, error) {
 		var err error
 		var result crud.Arg
@@ -532,27 +553,16 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		}
 		switch e.Op {
 		case crud.Create:
-			if isJSONOut {
-				output.Creating = append(output.Creating, item)
-			} else {
-				sc.createPrintln("creating", e.Kind, c.Console())
-			}
+			sc.LogCreate(item)
 		case crud.Update:
 			diffString, err := generateDiffString(e, false, sc.noMaskValues)
 			if err != nil {
 				return nil, err
 			}
-			if isJSONOut {
-				output.Updating = append(output.Updating, item)
-			} else {
-				sc.updatePrintln("updating", e.Kind, c.Console(), diffString)
-			}
+			item.Diff = diffString
+			sc.LogUpdate(item)
 		case crud.Delete:
-			if isJSONOut {
-				output.Deleting = append(output.Deleting, item)
-			} else {
-				sc.deletePrintln("deleting", e.Kind, c.Console())
-			}
+			sc.LogDelete(item)
 		default:
 			panic("unknown operation " + e.Op.String())
 		}
@@ -581,5 +591,5 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		return result, nil
 	})
-	return stats, errs, output
+	return stats, errs, sc.GetEventLog()
 }
