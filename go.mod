@@ -24,7 +24,7 @@ require (
 	github.com/ssgelm/cookiejarparser v1.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sync v0.6.0
+	golang.org/x/sync v0.7.0
 	golang.org/x/term v0.19.0
 	k8s.io/code-generator v0.29.3
 	sigs.k8s.io/yaml v1.4.0
