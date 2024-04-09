@@ -64,20 +64,20 @@ GATEWAY_CONTAINER_NAME=kong-enterprise
 
 initNetwork
 initDb
-initMigrations "$KONG_IMAGE" \
-    -e "KONG_LICENSE_DATA=$KONG_LICENSE_DATA"
+initMigrations "${KONG_IMAGE}" \
+    -e "KONG_LICENSE_DATA=${KONG_LICENSE_DATA}"
 
 # Start Kong Gateway EE
 docker run \
     --detach \
     "${DOCKER_ARGS[@]}" \
-    --name $GATEWAY_CONTAINER_NAME \
+    --name ${GATEWAY_CONTAINER_NAME} \
     -e "KONG_ADMIN_LISTEN=0.0.0.0:8001" \
     -e "KONG_PORTAL_GUI_URI=127.0.0.1:8003" \
     -e "KONG_ADMIN_GUI_URL=http://127.0.0.1:8002" \
-    -e "KONG_LICENSE_DATA=$KONG_LICENSE_DATA" \
-    -e "MY_SECRET_CERT=$MY_SECRET_CERT" \
-    -e "MY_SECRET_KEY=$MY_SECRET_KEY" \
+    -e "KONG_LICENSE_DATA=${KONG_LICENSE_DATA}" \
+    -e "MY_SECRET_CERT=${MY_SECRET_CERT}" \
+    -e "MY_SECRET_KEY=${MY_SECRET_KEY}" \
     -p 8000:8000 \
     -p 8443:8443 \
     -p 8001:8001 \
@@ -86,6 +86,6 @@ docker run \
     -p 8445:8445 \
     -p 8003:8003 \
     -p 8004:8004 \
-    "$KONG_IMAGE"
+    "${KONG_IMAGE}"
 
-waitContainer "$GATEWAY_CONTAINER_NAME" kong health
+waitContainer "${GATEWAY_CONTAINER_NAME}" kong health
