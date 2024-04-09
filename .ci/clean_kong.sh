@@ -1,29 +1,23 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-NETWORK_NAME=deck-test
+source ./.ci/lib.sh
 
-PG_CONTAINER_NAME=pg
-GATEWAY_CONTAINER_NAME=kong
+cleanup() {
+    local -r resource=${1?resource type required}
+    shift
 
-if [[ $(docker ps -a --filter Name=${GATEWAY_CONTAINER_NAME}) != "" ]]; then
-    echo "remove container ${GATEWAY_CONTAINER_NAME}"
-    docker rm -f  ${GATEWAY_CONTAINER_NAME}
-else
-    echo "container ${GATEWAY_CONTAINER_NAME} not found, skip removing"
-fi
+    docker "$resource" ls "$@" \
+        --filter "label=$DOCKER_LABEL" \
+        --quiet \
+    | while read -r id; do
+        docker "$resource" rm \
+            --force \
+            "$id"
+    done
+}
 
-if [[ $(docker ps -a --filter Name=${PG_CONTAINER_NAME}) != "" ]]; then
-    echo "remove container ${PG_CONTAINER_NAME}"
-    docker rm -f  ${PG_CONTAINER_NAME}
-else
-    echo "container ${PG_CONTAINER_NAME} not found, skip removing"
-fi
-
-if [[ $(docker network ls --filter Name=${NETWORK_NAME}) != "" ]]; then
-    echo "remove docker network ${NETWORK_NAME}"
-    docker network rm ${NETWORK_NAME}
-else
-    echo "docker network ${NETWORK_NAME} does not exist, skip removing"
-fi
+cleanup container --all
+cleanup volume
+cleanup network
