@@ -90,3 +90,27 @@ func TestRemoveTags(t *testing.T) {
 	RemoveTags(&f, nil)
 	assert.True(equalArray([]*string{&a, &b}, f.Tags))
 }
+
+func TestHasTags(t *testing.T) {
+	type Foo struct {
+		Tags []*string
+	}
+	type Bar struct{}
+
+	assert := assert.New(t)
+
+	a := "tag1"
+	b := "tag2"
+
+	var f Foo
+	assert.False(HasTags(f, []string{"tag1"}))
+
+	var bar Bar
+	assert.False(HasTags(&bar, []string{"tag1"}))
+
+	f = Foo{Tags: []*string{&a, &b}}
+	assert.True(HasTags(&f, []string{"tag1"}))
+	assert.True(HasTags(&f, []string{"tag1", "tag2"}))
+	assert.True(HasTags(&f, []string{"tag1", "tag2", "tag3"}))
+	assert.False(HasTags(&f, []string{"tag3"}))
+}

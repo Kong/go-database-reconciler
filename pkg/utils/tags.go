@@ -82,3 +82,33 @@ func RemoveTags(obj interface{}, tags []string) error {
 	structTags.Set(res)
 	return nil
 }
+
+func HasTags(obj interface{}, tags []string) bool {
+	if len(tags) == 0 {
+		return true
+	}
+
+	m := make(map[string]bool)
+	for _, tag := range tags {
+		m[tag] = true
+	}
+
+	ptr := reflect.ValueOf(obj)
+	if ptr.Kind() != reflect.Ptr {
+		return false
+	}
+	v := reflect.Indirect(ptr)
+	structTags := v.FieldByName("Tags")
+	var zero reflect.Value
+	if structTags == zero {
+		return false
+	}
+
+	for i := 0; i < structTags.Len(); i++ {
+		tag := reflect.Indirect(structTags.Index(i)).String()
+		if m[tag] {
+			return true
+		}
+	}
+	return false
+}
