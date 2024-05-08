@@ -1236,6 +1236,9 @@ func (b1 *BasicAuth) EqualWithOpts(b2 *BasicAuth, ignoreID,
 	b1Copy := b1.BasicAuth.DeepCopy()
 	b2Copy := b2.BasicAuth.DeepCopy()
 
+	b1Copy.SkipHash = nil
+	b2Copy.SkipHash = nil
+
 	if len(b1Copy.Tags) == 0 {
 		b1Copy.Tags = nil
 	}

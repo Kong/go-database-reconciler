@@ -41,8 +41,17 @@ func (s *basicAuthCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, 
 	if !utils.Empty(basicAuth.Consumer.ID) {
 		cid = *basicAuth.Consumer.ID
 	}
+
 	createdBasicAuth, err := s.client.BasicAuths.Create(ctx, &cid,
-		&basicAuth.BasicAuth)
+		&kong.BasicAuthSkipHash{
+			Username:  basicAuth.Username,
+			Password:  basicAuth.Password,
+			ID:        basicAuth.ID,
+			Consumer:  basicAuth.Consumer,
+			CreatedAt: basicAuth.CreatedAt,
+			Tags:      basicAuth.Tags,
+			SkipHash:  basicAuth.SkipHash,
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +94,15 @@ func (s *basicAuthCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.Arg, 
 	if !utils.Empty(basicAuth.Consumer.ID) {
 		cid = *basicAuth.Consumer.ID
 	}
-	updatedBasicAuth, err := s.client.BasicAuths.Create(ctx, &cid, &basicAuth.BasicAuth)
+	updatedBasicAuth, err := s.client.BasicAuths.Create(ctx, &cid, &kong.BasicAuthSkipHash{
+		Username:  basicAuth.Username,
+		Password:  basicAuth.Password,
+		ID:        basicAuth.ID,
+		Consumer:  basicAuth.Consumer,
+		CreatedAt: basicAuth.CreatedAt,
+		Tags:      basicAuth.Tags,
+		SkipHash:  basicAuth.SkipHash,
+	})
 	if err != nil {
 		return nil, err
 	}

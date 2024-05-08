@@ -202,6 +202,9 @@
         "password"
       ],
       "properties": {
+        "_skip_hash": {
+          "type": "boolean"
+        },
         "consumer": {
           "$ref": "#/definitions/Consumer"
         },

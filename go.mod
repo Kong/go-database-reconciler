@@ -6,6 +6,8 @@ toolchain go1.24.0
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
+replace github.com/kong/go-kong v0.54.0 => /Users/ggerbino/go/github.com/Kong/go-kong
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/Kong/gojsondiff v1.3.2
