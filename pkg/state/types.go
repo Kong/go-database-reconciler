@@ -507,6 +507,9 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
 	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
 
+	p1Copy.Config = sortNestedArrays(p1Copy.Config)
+	p2Copy.Config = sortNestedArrays(p2Copy.Config)
+
 	if ignoreID {
 		p1Copy.ID = nil
 		p2Copy.ID = nil
@@ -550,6 +553,49 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 		p2Copy.ConsumerGroup.Name = nil
 	}
 	return reflect.DeepEqual(p1Copy, p2Copy)
+}
+
+// Helper function to sort a slice of interface{}
+func sortInterfaceSlice(slice []interface{}) []interface{} {
+	// Convert []interface{} to []string for sorting
+	strSlice := make([]string, len(slice))
+	for i, v := range slice {
+		strSlice[i] = fmt.Sprintf("%v", v)
+	}
+
+	sort.Strings(strSlice)
+
+	// Convert back to []interface{}
+	sortedSlice := make([]interface{}, len(strSlice))
+	for i, v := range strSlice {
+		sortedSlice[i] = v
+	}
+
+	return sortedSlice
+}
+
+// Helper function to sort nested arrays in a map
+func sortNestedArrays(m map[string]interface{}) map[string]interface{} {
+	sortedMap := make(map[string]interface{})
+
+	for k, v := range m {
+		switch value := v.(type) {
+		case []interface{}:
+			// Recursively sort each element if it's a map
+			for i, elem := range value {
+				if elemMap, ok := elem.(map[string]interface{}); ok {
+					value[i] = sortNestedArrays(elemMap)
+				}
+			}
+			sortedMap[k] = sortInterfaceSlice(value)
+		case map[string]interface{}:
+			sortedMap[k] = sortNestedArrays(value)
+		default:
+			sortedMap[k] = value
+		}
+	}
+
+	return sortedMap
 }
 
 // Consumer represents a consumer in Kong.
