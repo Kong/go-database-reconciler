@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.34.0
-	github.com/kong/go-kong v0.54.0
+	github.com/kong/go-kong v0.55.0
 	github.com/shirou/gopsutil/v3 v3.24.4
 	github.com/ssgelm/cookiejarparser v1.0.1
 	github.com/stretchr/testify v1.9.0
