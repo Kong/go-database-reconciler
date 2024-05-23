@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 
+	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -89,4 +90,34 @@ func TestRemoveTags(t *testing.T) {
 	f = Foo{Tags: []*string{&a, &b}}
 	RemoveTags(&f, nil)
 	assert.True(equalArray([]*string{&a, &b}, f.Tags))
+}
+
+func TestHasTags(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.False(HasTags(&kong.Consumer{}, []string{"tag1"}))
+
+	consumer := &kong.Consumer{
+		Tags: []*string{
+			kong.String("tag1"),
+			kong.String("tag2"),
+		},
+	}
+	assert.True(HasTags(consumer, []string{"tag1"}))
+	assert.True(HasTags(consumer, []string{"tag1", "tag2"}))
+	assert.True(HasTags(consumer, []string{"tag1", "tag2", "tag3"}))
+	assert.False(HasTags(consumer, []string{"tag3"}))
+}
+
+func BenchmarkHasTags(b *testing.B) {
+	consumer := &kong.Consumer{
+		Tags: []*string{
+			kong.String("tag1"),
+			kong.String("tag2"),
+		},
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		HasTags(consumer, []string{"tag1", "tag2", "tag3"})
+	}
 }

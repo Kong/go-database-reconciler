@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/kong/go-kong/kong"
 )
 
 // MustMergeTags is same as MergeTags but panics if there is an error.
@@ -81,4 +83,32 @@ func RemoveTags(obj interface{}, tags []string) error {
 	}
 	structTags.Set(res)
 	return nil
+}
+
+// HasTags checks if the given object has any of the specified tags.
+// The function returns true if at least one of the provided tags is present in the object's tags.
+func HasTags[T *kong.Consumer](obj T, tags []string) bool {
+	if len(tags) == 0 {
+		return true
+	}
+
+	m := make(map[string]struct{})
+	for _, tag := range tags {
+		m[tag] = struct{}{}
+	}
+
+	switch obj := any(obj).(type) {
+	case *kong.Consumer:
+		for _, tag := range obj.Tags {
+			if tag == nil {
+				continue
+			}
+			if _, ok := m[*tag]; ok {
+				return true
+			}
+		}
+	default:
+		return false
+	}
+	return false
 }

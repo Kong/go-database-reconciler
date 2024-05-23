@@ -647,9 +647,17 @@ func GetAllConsumerGroups(ctx context.Context,
 			}
 			group := &kong.ConsumerGroupObject{
 				ConsumerGroup: r.ConsumerGroup,
-				Consumers:     r.Consumers,
 				Plugins:       r.Plugins,
 			}
+			consumers := []*kong.Consumer{}
+			for _, c := range r.Consumers {
+				// if tags are set and if the consumer is not tagged, skip it
+				if len(tags) > 0 && !utils.HasTags(c, tags) {
+					continue
+				}
+				consumers = append(consumers, c)
+			}
+			group.Consumers = consumers
 			consumerGroupObjects = append(consumerGroupObjects, group)
 		}
 		if nextopt == nil {
