@@ -612,7 +612,7 @@ func GetAllConsumerGroups(ctx context.Context,
 			consumers := []*kong.Consumer{}
 			for _, c := range r.Consumers {
 				// if tags are set and if the consumer is not tagged, skip it
-				if len(tags) > 0 && !utils.HasTags(c, tags) {
+				if len(tags) > 0 && !utils.HasTagsNew(c, tags) {
 					continue
 				}
 				consumers = append(consumers, c)
