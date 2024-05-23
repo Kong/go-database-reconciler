@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 
+	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,25 +93,31 @@ func TestRemoveTags(t *testing.T) {
 }
 
 func TestHasTags(t *testing.T) {
-	type Foo struct {
-		Tags []*string
-	}
-	type Bar struct{}
-
 	assert := assert.New(t)
 
-	a := "tag1"
-	b := "tag2"
+	assert.False(HasTags(&kong.Consumer{}, []string{"tag1"}))
 
-	var f Foo
-	assert.False(HasTags(f, []string{"tag1"}))
+	consumer := &kong.Consumer{
+		Tags: []*string{
+			kong.String("tag1"),
+			kong.String("tag2"),
+		},
+	}
+	assert.True(HasTags(consumer, []string{"tag1"}))
+	assert.True(HasTags(consumer, []string{"tag1", "tag2"}))
+	assert.True(HasTags(consumer, []string{"tag1", "tag2", "tag3"}))
+	assert.False(HasTags(consumer, []string{"tag3"}))
+}
 
-	var bar Bar
-	assert.False(HasTags(&bar, []string{"tag1"}))
-
-	f = Foo{Tags: []*string{&a, &b}}
-	assert.True(HasTags(&f, []string{"tag1"}))
-	assert.True(HasTags(&f, []string{"tag1", "tag2"}))
-	assert.True(HasTags(&f, []string{"tag1", "tag2", "tag3"}))
-	assert.False(HasTags(&f, []string{"tag3"}))
+func BenchmarkHasTags(b *testing.B) {
+	consumer := &kong.Consumer{
+		Tags: []*string{
+			kong.String("tag1"),
+			kong.String("tag2"),
+		},
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		HasTags(consumer, []string{"tag1", "tag2", "tag3"})
+	}
 }
