@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 
+	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/kong/go-kong/kong"
 )
 
 // MustMergeTags is same as MergeTags but panics if there is an error.
