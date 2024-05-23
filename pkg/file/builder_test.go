@@ -345,6 +345,46 @@ func existingDocumentState() *state.KongState {
 	return s
 }
 
+func existingFilterChainState() *state.KongState {
+	s, _ := state.NewKongState()
+	s.FilterChains.Add(state.FilterChain{
+		FilterChain: kong.FilterChain{
+			Name:    kong.String("my-service-chain"),
+			ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+			Enabled: kong.Bool(true),
+			Service: &kong.Service{
+				ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+			},
+			Filters: []*kong.Filter{
+				{
+					Name:    kong.String("my-filter"),
+					Config:  jsonRawMessage(`"config!"`),
+					Enabled: kong.Bool(false),
+				},
+			},
+		},
+	})
+	s.FilterChains.Add(state.FilterChain{
+		FilterChain: kong.FilterChain{
+			Name:    kong.String("my-route-chain"),
+			ID:      kong.String("ac6758a5-41d4-4493-827f-de9df5b75859"),
+			Enabled: kong.Bool(true),
+			Route: &kong.Route{
+				ID: kong.String("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
+			},
+			Filters: []*kong.Filter{
+				{
+					Name:    kong.String("my-filter"),
+					Config:  jsonRawMessage(`"config!"`),
+					Enabled: kong.Bool(false),
+				},
+			},
+		},
+	})
+
+	return s
+}
+
 var deterministicUUID = func() *string {
 	version := byte(4)
 	uuid := make([]byte, 16)
@@ -674,7 +714,7 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
 			if err := b.ingestTargets(tt.args.targets); (err != nil) != tt.wantErr {
-				t.Errorf("stateBuilder.ingestPlugins() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("stateBuilder.ingestTargets() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			assert.Equal(t, tt.wantState, b.rawState)
 		})
@@ -867,6 +907,108 @@ func Test_pluginRelations(t *testing.T) {
 			if gotCGID != tt.wantCGID {
 				t.Errorf("pluginRelations() gotCGID = %v, want %v", gotCGID, tt.wantCGID)
 			}
+		})
+	}
+}
+
+func Test_stateBuilder_ingestFilterChains(t *testing.T) {
+	rand.Seed(42)
+	type fields struct {
+		currentState *state.KongState
+	}
+	type args struct {
+		filterChains []FFilterChain
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		wantErr   bool
+		wantState *utils.KongRawState
+	}{
+		{
+			name: "generates ID for a non-existing filter chain",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				filterChains: []FFilterChain{
+					{
+						FilterChain: kong.FilterChain{
+							Name: kong.String("my-filter-chain"),
+							Service: &kong.Service{
+								ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				FilterChains: []*kong.FilterChain{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("my-filter-chain"),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "matches up IDs of filter chains correctly",
+			fields: fields{
+				currentState: existingFilterChainState(),
+			},
+			args: args{
+				filterChains: []FFilterChain{
+					{
+						FilterChain: kong.FilterChain{
+							Service: &kong.Service{
+								ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+							},
+						},
+					},
+					{
+						FilterChain: kong.FilterChain{
+							Route: &kong.Route{
+								ID: kong.String("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				FilterChains: []*kong.FilterChain{
+					{
+						ID: kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+						Service: &kong.Service{
+							ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+						},
+					},
+					{
+						ID: kong.String("ac6758a5-41d4-4493-827f-de9df5b75859"),
+						Route: &kong.Route{
+							ID: kong.String("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				currentState: tt.fields.currentState,
+			}
+			b.rawState = &utils.KongRawState{}
+			if err := b.ingestFilterChains(tt.args.filterChains); (err != nil) != tt.wantErr {
+				t.Errorf("stateBuilder.ingestFilterChains() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			assert.Equal(t, tt.wantState, b.rawState)
 		})
 	}
 }
