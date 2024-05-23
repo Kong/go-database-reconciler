@@ -1475,7 +1475,6 @@ func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
 				f.ID = kong.String(*filterChain.ID)
 			}
 		}
-		fmt.Printf("name: %s, rID: %s, sID: %s, current: %v\n", f.FriendlyName(), rID, sID, filterChain)
 		if filterChain != nil {
 			f.FilterChain.CreatedAt = filterChain.CreatedAt
 		}
