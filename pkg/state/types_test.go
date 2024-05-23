@@ -2,6 +2,7 @@ package state
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/kong/go-kong/kong"
@@ -556,7 +557,7 @@ func TestSortInterfaceSlice(t *testing.T) {
 		{
 			name:     "integers",
 			input:    []interface{}{3, 1, 2},
-			expected: []interface{}{"1", "2", "3"},
+			expected: []interface{}{1, 2, 3},
 		},
 		{
 			name:     "strings",
@@ -566,15 +567,15 @@ func TestSortInterfaceSlice(t *testing.T) {
 		{
 			name:     "mixed types",
 			input:    []interface{}{"b", 2, "a", 1},
-			expected: []interface{}{"1", "2", "a", "b"},
+			expected: []interface{}{1, 2, "a", "b"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := sortInterfaceSlice(tt.input)
-			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf("expected %v, got %v", tt.expected, result)
+			sort.Sort(EmptyInterfaceUsingUnderlyingType(tt.input))
+			if !reflect.DeepEqual(tt.input, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, tt.input)
 			}
 		})
 	}
@@ -606,7 +607,7 @@ func TestSortNestedArrays(t *testing.T) {
 			expected: map[string]interface{}{
 				"key1": []interface{}{"a", "b", "c"},
 				"key2": map[string]interface{}{
-					"nestedKey1": []interface{}{"1", "2", "3"},
+					"nestedKey1": []interface{}{1, 2, 3},
 				},
 			},
 		},

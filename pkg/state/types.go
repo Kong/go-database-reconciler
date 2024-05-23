@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/kong/go-kong/kong"
 )
@@ -555,23 +557,30 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	return reflect.DeepEqual(p1Copy, p2Copy)
 }
 
-// Helper function to sort a slice of interface{}
-func sortInterfaceSlice(slice []interface{}) []interface{} {
-	// Convert []interface{} to []string for sorting
-	strSlice := make([]string, len(slice))
-	for i, v := range slice {
-		strSlice[i] = fmt.Sprintf("%v", v)
+// EmptyInterfaceUsingUnderlyingType is a type to sort an array of empty interfaces
+// using the underlying type of the interface. The entries are compared as strings.
+// The underlying type can be string or int. If it's neither, it panics.
+// This is used to sort the Config field of a Plugin object.
+// The underlying type remains unchanged.
+type EmptyInterfaceUsingUnderlyingType []interface{}
+
+func (e EmptyInterfaceUsingUnderlyingType) Len() int      { return len(e) }
+func (e EmptyInterfaceUsingUnderlyingType) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
+func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
+	toString := func(obj interface{}) string {
+		switch obj.(type) {
+		case string:
+			return obj.(string)
+		case int:
+			return strconv.Itoa(obj.(int))
+		default:
+			panic(fmt.Sprintf("unsupported type %T", obj))
+		}
 	}
 
-	sort.Strings(strSlice)
-
-	// Convert back to []interface{}
-	sortedSlice := make([]interface{}, len(strSlice))
-	for i, v := range strSlice {
-		sortedSlice[i] = v
-	}
-
-	return sortedSlice
+	objI := toString(e[i])
+	objJ := toString(e[j])
+	return strings.Compare(objI, objJ) == -1
 }
 
 // Helper function to sort nested arrays in a map
@@ -587,7 +596,8 @@ func sortNestedArrays(m map[string]interface{}) map[string]interface{} {
 					value[i] = sortNestedArrays(elemMap)
 				}
 			}
-			sortedMap[k] = sortInterfaceSlice(value)
+			sort.Sort(EmptyInterfaceUsingUnderlyingType(value))
+			sortedMap[k] = value
 		case map[string]interface{}:
 			sortedMap[k] = sortNestedArrays(value)
 		default:
