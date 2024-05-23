@@ -568,11 +568,11 @@ func (e EmptyInterfaceUsingUnderlyingType) Len() int      { return len(e) }
 func (e EmptyInterfaceUsingUnderlyingType) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
 func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 	toString := func(obj interface{}) string {
-		switch obj.(type) {
+		switch v := obj.(type) {
 		case string:
-			return obj.(string)
+			return v
 		case int:
-			return strconv.Itoa(obj.(int))
+			return strconv.Itoa(v)
 		default:
 			panic(fmt.Sprintf("unsupported type %T", obj))
 		}
