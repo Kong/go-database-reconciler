@@ -85,6 +85,8 @@ func RemoveTags(obj interface{}, tags []string) error {
 	return nil
 }
 
+// HasTags checks if the given object has any of the specified tags.
+// The function returns true if at least one of the provided tags is present in the object's tags.
 func HasTags[T *kong.Consumer](obj T, tags []string) bool {
 	if len(tags) == 0 {
 		return true
