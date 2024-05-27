@@ -1,6 +1,8 @@
 package state
 
 import (
+	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/kong/go-kong/kong"
@@ -296,6 +298,51 @@ func TestPluginEqual(t *testing.T) {
 
 	p1.Service = &kong.Service{ID: kong.String("2")}
 	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+
+	p1.Config = kong.Configuration{"foo": "bar"}
+	p2.Config = kong.Configuration{"foo": "bar"}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+
+	p2.Config = kong.Configuration{"foo": "baz"}
+	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+
+	p1.Config = kong.Configuration{"foo": []interface{}{"b", "a", "c"}, "bar": "baz"}
+	p2.Config = kong.Configuration{"foo": []interface{}{"a", "b", "c"}, "bar": "baz"}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+
+	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+
+	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+
+	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "bar"}
+	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+
+	p1.Config = kong.Configuration{
+		"foo": []interface{}{"b", "a", "c"},
+		"bar": "baz",
+		"nested": map[string]interface{}{
+			"key1": []interface{}{"b", "a", "c"},
+		},
+	}
+	p2.Config = kong.Configuration{
+		"foo": []interface{}{"a", "b", "c"},
+		"bar": "baz",
+		"nested": map[string]interface{}{
+			"key1": []interface{}{"a", "b", "c"},
+		},
+	}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+
+	p2.Config = kong.Configuration{
+		"foo": []interface{}{"a", "c", "c"},
+		"bar": "baz",
+		"nested": map[string]interface{}{
+			"key1": []interface{}{"a", "b", "c"},
+		},
+	}
+	assert.False(p1.EqualWithOpts(&p2, true, true, false))
 }
 
 func TestConsumerEqual(t *testing.T) {
@@ -499,4 +546,96 @@ func TestStripKey(t *testing.T) {
 	assert.Equal("hello", stripKey("hello"))
 	assert.Equal("yolo", stripKey("yolo"))
 	assert.Equal("world", stripKey("hello world"))
+}
+
+func TestSortInterfaceSlice(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []interface{}
+		expected []interface{}
+	}{
+		{
+			name:     "integers",
+			input:    []interface{}{3, 1, 2},
+			expected: []interface{}{1, 2, 3},
+		},
+		{
+			name:     "strings",
+			input:    []interface{}{"b", "c", "a"},
+			expected: []interface{}{"a", "b", "c"},
+		},
+		{
+			name:     "mixed types",
+			input:    []interface{}{"b", 2, "a", 1},
+			expected: []interface{}{1, 2, "a", "b"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sort.Sort(EmptyInterfaceUsingUnderlyingType(tt.input))
+			if !reflect.DeepEqual(tt.input, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, tt.input)
+			}
+		})
+	}
+}
+
+func TestSortNestedArrays(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    map[string]interface{}
+		expected map[string]interface{}
+	}{
+		{
+			name: "single level",
+			input: map[string]interface{}{
+				"key1": []interface{}{"b", "a", "c"},
+			},
+			expected: map[string]interface{}{
+				"key1": []interface{}{"a", "b", "c"},
+			},
+		},
+		{
+			name: "nested map",
+			input: map[string]interface{}{
+				"key1": []interface{}{"b", "a", "c"},
+				"key2": map[string]interface{}{
+					"nestedKey1": []interface{}{3, 1, 2},
+				},
+			},
+			expected: map[string]interface{}{
+				"key1": []interface{}{"a", "b", "c"},
+				"key2": map[string]interface{}{
+					"nestedKey1": []interface{}{1, 2, 3},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := sortNestedArrays(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestDeepEqualWithSorting(t *testing.T) {
+	map1 := map[string]interface{}{
+		"key1": []interface{}{"a", "c", "b"},
+	}
+
+	map2 := map[string]interface{}{
+		"key1": []interface{}{"a", "b", "c"},
+	}
+
+	sortedMap1 := sortNestedArrays(map1)
+	sortedMap2 := sortNestedArrays(map2)
+
+	if !reflect.DeepEqual(sortedMap1, sortedMap2) {
+		t.Errorf("expected maps to be equal, but they are not")
+	}
 }

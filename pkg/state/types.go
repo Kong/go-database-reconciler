@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/kong/go-kong/kong"
 )
@@ -576,6 +578,9 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
 	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
 
+	p1Copy.Config = sortNestedArrays(p1Copy.Config)
+	p2Copy.Config = sortNestedArrays(p2Copy.Config)
+
 	if ignoreID {
 		p1Copy.ID = nil
 		p2Copy.ID = nil
@@ -619,6 +624,57 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 		p2Copy.ConsumerGroup.Name = nil
 	}
 	return reflect.DeepEqual(p1Copy, p2Copy)
+}
+
+// EmptyInterfaceUsingUnderlyingType is a type to sort an array of empty interfaces
+// using the underlying type of the interface. The entries are compared as strings.
+// The underlying type can be string or int. If it's neither, it panics.
+// This is used to sort the Config field of a Plugin object.
+// The underlying type remains unchanged.
+type EmptyInterfaceUsingUnderlyingType []interface{}
+
+func (e EmptyInterfaceUsingUnderlyingType) Len() int      { return len(e) }
+func (e EmptyInterfaceUsingUnderlyingType) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
+func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
+	toString := func(obj interface{}) string {
+		switch v := obj.(type) {
+		case string:
+			return v
+		case int:
+			return strconv.Itoa(v)
+		default:
+			panic(fmt.Sprintf("unsupported type %T", obj))
+		}
+	}
+
+	objI := toString(e[i])
+	objJ := toString(e[j])
+	return strings.Compare(objI, objJ) == -1
+}
+
+// Helper function to sort nested arrays in a map
+func sortNestedArrays(m map[string]interface{}) map[string]interface{} {
+	sortedMap := make(map[string]interface{})
+
+	for k, v := range m {
+		switch value := v.(type) {
+		case []interface{}:
+			// Recursively sort each element if it's a map
+			for i, elem := range value {
+				if elemMap, ok := elem.(map[string]interface{}); ok {
+					value[i] = sortNestedArrays(elemMap)
+				}
+			}
+			sort.Sort(EmptyInterfaceUsingUnderlyingType(value))
+			sortedMap[k] = value
+		case map[string]interface{}:
+			sortedMap[k] = sortNestedArrays(value)
+		default:
+			sortedMap[k] = value
+		}
+	}
+
+	return sortedMap
 }
 
 // Consumer represents a consumer in Kong.
