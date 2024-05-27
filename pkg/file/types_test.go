@@ -39,6 +39,11 @@ protocols:
 `
 )
 
+func jsonRawMessage(s string) *json.RawMessage {
+	j := json.RawMessage(s)
+	return &j
+}
+
 func Test_sortKey(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -280,6 +285,37 @@ func Test_sortKey(t *testing.T) {
 			sortable:    FServiceVersion{},
 			expectedKey: "",
 		},
+		{
+			sortable: &FFilterChain{
+				FilterChain: kong.FilterChain{
+					Name: kong.String("my-name"),
+				},
+			},
+			expectedKey: "my-name",
+		},
+		{
+			sortable: &FFilterChain{
+				FilterChain: kong.FilterChain{
+					ID:   kong.String("my-id"),
+					Name: kong.String("my-name"),
+				},
+			},
+			expectedKey: "my-name",
+		},
+		{
+			sortable: &FFilterChain{
+				FilterChain: kong.FilterChain{
+					ID: kong.String("my-id"),
+				},
+			},
+			expectedKey: "my-id",
+		},
+		{
+			sortable: &FFilterChain{
+				FilterChain: kong.FilterChain{},
+			},
+			expectedKey: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -333,6 +369,80 @@ func TestPluginUnmarshalJSON(t *testing.T) {
 			ID: kong.String("bar"),
 		},
 	}, p.Plugin)
+}
+
+func TestFilterChainUnmarshalJSON(t *testing.T) {
+	var fc FFilterChain
+	fcJSON := `{
+	"name": "my-filter-chain",
+	"id": "fa7bd007-e0c6-4ef2-b254-e60d3a341b0c",
+	"enabled": true,
+	"filters": [
+		{
+			"name": "my-filter",
+			"config": {"a":1}
+		},
+		{
+			"name": "my-other-filter",
+			"config": "config!",
+			"enabled": false
+		}
+	]
+}`
+
+	assert := assert.New(t)
+	assert.Nil(json.Unmarshal([]byte(fcJSON), &fc))
+	assert.Equal(kong.FilterChain{
+		Name:    kong.String("my-filter-chain"),
+		ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+		Enabled: kong.Bool(true),
+		Filters: []*kong.Filter{
+			{
+				Name:   kong.String("my-filter"),
+				Config: jsonRawMessage(`{"a":1}`),
+			},
+			{
+				Name:    kong.String("my-other-filter"),
+				Config:  jsonRawMessage(`"config!"`),
+				Enabled: kong.Bool(false),
+			},
+		},
+	}, fc.FilterChain)
+}
+
+func TestFilterChainUnmarshalYAML(t *testing.T) {
+	var fc FFilterChain
+	fcYaml := `
+name: my-filter-chain
+id: fa7bd007-e0c6-4ef2-b254-e60d3a341b0c
+enabled: true
+filters:
+  - name: my-filter
+    config:
+      a: 1
+  - name: my-other-filter
+    config: config!
+    enabled: false
+`
+
+	assert := assert.New(t)
+	assert.Nil(yaml.Unmarshal([]byte(fcYaml), &fc))
+	assert.Equal(kong.FilterChain{
+		Name:    kong.String("my-filter-chain"),
+		ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+		Enabled: kong.Bool(true),
+		Filters: []*kong.Filter{
+			{
+				Name:   kong.String("my-filter"),
+				Config: jsonRawMessage(`{"a":1}`),
+			},
+			{
+				Name:    kong.String("my-other-filter"),
+				Config:  jsonRawMessage(`"config!"`),
+				Enabled: kong.Bool(false),
+			},
+		},
+	}, fc.FilterChain)
 }
 
 func Test_unwrapURL(t *testing.T) {

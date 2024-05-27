@@ -124,6 +124,9 @@ const (
 	Vault EntityType = "vault"
 	// License identifies a License in Kong Enterprise.
 	License EntityType = "license"
+
+	// FilterChain identifies a FilterChain in Kong.
+	FilterChain EntityType = "filter-chain"
 )
 
 // AllTypes represents all types defined in the
@@ -146,6 +149,8 @@ var AllTypes = []EntityType{
 	ServicePackage, ServiceVersion, Document,
 
 	Vault, License,
+
+	FilterChain,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -546,6 +551,21 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &licenseDiffer{
 				kind:         entityTypeToKind(License),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case FilterChain:
+		return entityImpl{
+			typ: FilterChain,
+			crudActions: &filterChainCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &filterChainPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &filterChainDiffer{
+				kind:         entityTypeToKind(FilterChain),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

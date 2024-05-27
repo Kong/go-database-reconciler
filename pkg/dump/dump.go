@@ -42,6 +42,9 @@ type Config struct {
 
 	// IsConsumerGroupScopedPluginSupported
 	IsConsumerGroupScopedPluginSupported bool
+
+	// IsFilterChainsSupported
+	IsFilterChainsSupported bool
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -252,6 +255,19 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
+	if config.IsFilterChainsSupported {
+		group.Go(func() error {
+			filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("filter chains: %w", err)
+			}
+			state.FilterChains = filterChains
+			return nil
+		})
+	} else {
+		state.FilterChains = make([]*kong.FilterChain, 0)
+	}
+
 	group.Go(func() error {
 		certificates, err := GetAllCertificates(ctx, client, config.SelectorTags)
 		if err != nil {
@@ -441,6 +457,30 @@ func GetAllPlugins(ctx context.Context,
 	return plugins, nil
 }
 
+// GetAllFilterChains queries Kong for all the filter chains using client.
+func GetAllFilterChains(ctx context.Context,
+	client *kong.Client, tags []string,
+) ([]*kong.FilterChain, error) {
+	var filterChains []*kong.FilterChain
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.FilterChains.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		filterChains = append(filterChains, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return filterChains, nil
+}
+
 // GetAllCertificates queries Kong for all the certificates using client.
 func GetAllCertificates(ctx context.Context, client *kong.Client,
 	tags []string,
@@ -607,9 +647,17 @@ func GetAllConsumerGroups(ctx context.Context,
 			}
 			group := &kong.ConsumerGroupObject{
 				ConsumerGroup: r.ConsumerGroup,
-				Consumers:     r.Consumers,
 				Plugins:       r.Plugins,
 			}
+			consumers := []*kong.Consumer{}
+			for _, c := range r.Consumers {
+				// if tags are set and if the consumer is not tagged, skip it
+				if len(tags) > 0 && !utils.HasTags(c, tags) {
+					continue
+				}
+				consumers = append(consumers, c)
+			}
+			group.Consumers = consumers
 			consumerGroupObjects = append(consumerGroupObjects, group)
 		}
 		if nextopt == nil {

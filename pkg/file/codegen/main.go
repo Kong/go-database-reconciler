@@ -76,6 +76,51 @@ func main() {
 		},
 	}
 
+	schema.Definitions["FFilterChain"].AnyOf = []*jsonschema.Type{
+		{
+			Required: []string{"filters", "name"},
+		},
+		{
+			Required: []string{"filters", "id"},
+		},
+	}
+
+	schema.Definitions["FFilterChain"].Properties["enabled"] = &jsonschema.Type{
+		Type: "boolean",
+	}
+
+	schema.Definitions["FFilterChain"].Properties["filters"] = &jsonschema.Type{
+		Type: "array",
+		Items: &jsonschema.Type{
+			Ref: "#/definitions/FFilter",
+		},
+	}
+
+	schema.Definitions["FFilter"] = &jsonschema.Type{
+		Type:                 "object",
+		Required:             []string{"name"},
+		AdditionalProperties: json.RawMessage(`false`),
+		Properties: map[string]*jsonschema.Type{
+			"name": {
+				Type: "string",
+			},
+			"config": {
+				OneOf: []*jsonschema.Type{
+					{Type: "array"},
+					{Type: "boolean"},
+					{Type: "integer"},
+					{Type: "number"},
+					{Type: "null"},
+					{Type: "object"},
+					{Type: "string"},
+				},
+			},
+			"enabled": {
+				Type: "boolean",
+			},
+		},
+	}
+
 	// creds
 	schema.Definitions["ACLGroup"].Required = []string{"group"}
 	schema.Definitions["BasicAuth"].Required = []string{"username", "password"}
@@ -101,6 +146,9 @@ func main() {
 	schema.Definitions["FPlugin"].Properties["service"] = stringType
 	schema.Definitions["FPlugin"].Properties["route"] = stringType
 	schema.Definitions["FPlugin"].Properties["consumer_group"] = stringType
+
+	schema.Definitions["FFilterChain"].Properties["service"] = stringType
+	schema.Definitions["FFilterChain"].Properties["route"] = stringType
 
 	schema.Definitions["FService"].Properties["client_certificate"] = stringType
 
