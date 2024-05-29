@@ -569,6 +569,16 @@ func TestSortInterfaceSlice(t *testing.T) {
 			input:    []interface{}{"b", 2, "a", 1},
 			expected: []interface{}{1, 2, "a", "b"},
 		},
+		{
+			name:     "floats",
+			input:    []interface{}{2.2, 3.3, 1.1},
+			expected: []interface{}{1.1, 2.2, 3.3},
+		},
+		{
+			name:     "maps",
+			input:    []interface{}{map[string]interface{}{"key": "b"}, map[string]interface{}{"key": "a"}},
+			expected: []interface{}{map[string]interface{}{"key": "a"}, map[string]interface{}{"key": "b"}},
+		},
 	}
 
 	for _, tt := range tests {
@@ -603,11 +613,19 @@ func TestSortNestedArrays(t *testing.T) {
 				"key2": map[string]interface{}{
 					"nestedKey1": []interface{}{3, 1, 2},
 				},
+				"key3": []map[string]interface{}{
+					{"nestedKey1": map[string]interface{}{"key": "b", "key2": "a"}},
+					{"nestedKey2": map[string]interface{}{"key": "a", "key2": "b"}},
+				},
 			},
 			expected: map[string]interface{}{
 				"key1": []interface{}{"a", "b", "c"},
 				"key2": map[string]interface{}{
 					"nestedKey1": []interface{}{1, 2, 3},
+				},
+				"key3": []map[string]interface{}{
+					{"nestedKey1": map[string]interface{}{"key": "b", "key2": "a"}},
+					{"nestedKey2": map[string]interface{}{"key": "a", "key2": "b"}},
 				},
 			},
 		},
@@ -626,10 +644,16 @@ func TestSortNestedArrays(t *testing.T) {
 func TestDeepEqualWithSorting(t *testing.T) {
 	map1 := map[string]interface{}{
 		"key1": []interface{}{"a", "c", "b"},
+		"key2": map[string]interface{}{
+			"nestedKey1": []interface{}{3, 1, 2},
+		},
 	}
 
 	map2 := map[string]interface{}{
 		"key1": []interface{}{"a", "b", "c"},
+		"key2": map[string]interface{}{
+			"nestedKey1": []interface{}{1, 2, 3},
+		},
 	}
 
 	sortedMap1 := sortNestedArrays(map1)
