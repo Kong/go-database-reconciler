@@ -1,6 +1,7 @@
 package state
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -642,6 +643,14 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 			return v
 		case int:
 			return strconv.Itoa(v)
+		case float64:
+			return strconv.FormatFloat(v, 'f', -1, 64)
+		case map[string]interface{}:
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				panic(fmt.Sprintf("error converting map to JSON string: %v", err))
+			}
+			return string(jsonBytes)
 		default:
 			panic(fmt.Sprintf("unsupported type %T", obj))
 		}
