@@ -364,6 +364,57 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 							},
 						},
 					},
+					{
+						Service: kong.Service{
+							Name: kong.String("service-with-filter-chain"),
+							Host: kong.String("test"),
+						},
+						Routes: []*FRoute{
+							{
+								Route: kong.Route{
+									Name:      kong.String("route-with-filter-chain"),
+									Hosts:     kong.StringSlice("test"),
+									Protocols: kong.StringSlice("http"),
+								},
+								FilterChains: []*FFilterChain{
+									{
+										FilterChain: kong.FilterChain{
+											Filters: []*kong.Filter{
+												{
+													Name:   kong.String("filter-1"),
+													Config: kong.JSONRawMessage(`{"add":{"headers":["x-foo:123456"]}}`),
+												},
+												{
+													Name:   kong.String("filter-2"),
+													Config: kong.JSONRawMessage(`"my config"`),
+												},
+												{
+													Name: kong.String("filter-3"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						FilterChains: []*FFilterChain{
+							{
+								FilterChain: kong.FilterChain{
+									Filters: []*kong.Filter{
+										{
+											Name:   kong.String("filter-1"),
+											Config: kong.JSONRawMessage(`{"add":{"headers":["x-foo:123456"]}}`),
+										},
+										{
+											Name:    kong.String("filter-2"),
+											Config:  kong.JSONRawMessage(`"{\n  \"test\": 123\n}\n"`),
+											Enabled: kong.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 				Consumers: []FConsumer{
 					{

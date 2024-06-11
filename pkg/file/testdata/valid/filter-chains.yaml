@@ -1,0 +1,32 @@
+services:
+- name: service-with-filter-chain
+  host: test
+  routes:
+  - hosts:
+    - test
+    name: route-with-filter-chain
+    protocols:
+    - http
+    filter_chains:
+    - filters:
+      - config:
+          add:
+            headers:
+            - x-foo:123456
+        name: filter-1
+      - config: my config
+        name: filter-2
+      - name: filter-3
+  filter_chains:
+  - filters:
+    - config:
+        add:
+          headers:
+          - x-foo:123456
+      name: filter-1
+    - config: |
+        {
+          "test": 123
+        }
+      enabled: true
+      name: filter-2
