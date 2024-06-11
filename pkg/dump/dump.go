@@ -42,9 +42,6 @@ type Config struct {
 
 	// IsConsumerGroupScopedPluginSupported
 	IsConsumerGroupScopedPluginSupported bool
-
-	// IsFilterChainsSupported
-	IsFilterChainsSupported bool
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -255,18 +252,25 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
-	if config.IsFilterChainsSupported {
-		group.Go(func() error {
-			filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
-			if err != nil {
-				return fmt.Errorf("filter chains: %w", err)
-			}
-			state.FilterChains = filterChains
-			return nil
-		})
-	} else {
+	group.Go(func() error {
 		state.FilterChains = make([]*kong.FilterChain, 0)
-	}
+		filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
+		if err != nil {
+			var kongErr *kong.APIError
+			if errors.As(err, &kongErr) {
+				// GET /filter-chains returns:
+				//   -> 200 on success
+				//   -> 404 if Kong version < 3.4
+				//   -> 400 if Kong version >= 3.4 but wasm is not enabled
+				if kongErr.Code() == http.StatusNotFound || kongErr.Code() == http.StatusBadRequest {
+					return nil
+				}
+			}
+			return fmt.Errorf("filter chains: %w", err)
+		}
+		state.FilterChains = filterChains
+		return nil
+	})
 
 	group.Go(func() error {
 		certificates, err := GetAllCertificates(ctx, client, config.SelectorTags)
