@@ -76,14 +76,7 @@ func main() {
 		},
 	}
 
-	schema.Definitions["FFilterChain"].AnyOf = []*jsonschema.Type{
-		{
-			Required: []string{"filters", "name"},
-		},
-		{
-			Required: []string{"filters", "id"},
-		},
-	}
+	schema.Definitions["FFilterChain"].Required = []string{"filters"}
 
 	schema.Definitions["FFilterChain"].Properties["enabled"] = &jsonschema.Type{
 		Type: "boolean",

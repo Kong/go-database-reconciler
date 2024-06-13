@@ -618,6 +618,9 @@
       "type": "object"
     },
     "FFilterChain": {
+      "required": [
+        "filters"
+      ],
       "properties": {
         "created_at": {
           "type": "integer"
@@ -654,21 +657,7 @@
         }
       },
       "additionalProperties": false,
-      "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "filters",
-            "name"
-          ]
-        },
-        {
-          "required": [
-            "filters",
-            "id"
-          ]
-        }
-      ]
+      "type": "object"
     },
     "FLicense": {
       "properties": {
