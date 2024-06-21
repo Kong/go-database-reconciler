@@ -9,11 +9,19 @@ import (
 	"text/template"
 )
 
+// default env var prefix, can be set using SetEnvVarPrefix
+var envVarPrefix = "DECK_"
+
+// SetEnvVarPrefix sets the prefix for environment variables used in the state file.
+// The default prefix is "DECK_". This sets a library global(!!) value.
+func SetEnvVarPrefix(prefix string) {
+	envVarPrefix = prefix
+}
+
 func getPrefixedEnvVar(key string) (string, error) {
-	const envVarPrefix = "DECK_"
 	if !strings.HasPrefix(key, envVarPrefix) {
 		return "", fmt.Errorf("environment variables in the state file must "+
-			"be prefixed with 'DECK_', found: '%s'", key)
+			"be prefixed with '%s', found: '%s'", envVarPrefix, key)
 	}
 	value, exists := os.LookupEnv(key)
 	if !exists {
@@ -25,10 +33,9 @@ func getPrefixedEnvVar(key string) (string, error) {
 // getPrefixedEnvVarMocked is used when we mock the env variables while rendering a template.
 // It will always return the name of the environment variable in this case.
 func getPrefixedEnvVarMocked(key string) (string, error) {
-	const envVarPrefix = "DECK_"
 	if !strings.HasPrefix(key, envVarPrefix) {
 		return "", fmt.Errorf("environment variables in the state file must "+
-			"be prefixed with 'DECK_', found: '%s'", key)
+			"be prefixed with '%s', found: '%s'", envVarPrefix, key)
 	}
 	return key, nil
 }
