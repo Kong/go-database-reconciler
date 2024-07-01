@@ -2,10 +2,14 @@ package file
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"reflect"
+	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
@@ -1033,6 +1037,65 @@ func (b *stateBuilder) rbacRoles() {
 	}
 }
 
+var (
+	IPv6HasPortPattern    = regexp.MustCompile(`\]\:\d+$`)
+	IPv6HasBracketPattern = regexp.MustCompile(`\[\S+\]$`)
+)
+
+func isIPv6(hostname string) bool {
+	parts := strings.Split(hostname, ":")
+	return len(parts) > 2
+}
+
+// expandIPv6 decompress an ipv6 address into its 'long' format.
+// for example:
+//
+// from ::1 to 0000:0000:0000:0000:0000:0000:0000:0001.
+func expandIPv6(address string) string {
+	ip := net.ParseIP(address).To16()
+	dst := make([]byte, hex.EncodedLen(len(ip)))
+	hex.Encode(dst, ip)
+	var final string
+	for i := 0; i < len(dst); i += 4 {
+		final += fmt.Sprintf("%s:", dst[i:i+4])
+	}
+	if len(final) == 0 {
+		return ""
+	}
+	// remove last colon
+	return final[:len(final)-1]
+}
+
+func normalizeIPv6(target string) (string, error) {
+	ip := target
+	port := "8000"
+	match := IPv6HasPortPattern.FindStringSubmatch(target)
+	if len(match) > 0 {
+		// has [address]:port pattern
+		port = strings.ReplaceAll(match[0], "]:", "")
+		ip = strings.ReplaceAll(target, match[0], "")
+		ip = removeBrackets(ip)
+	} else {
+		match = IPv6HasBracketPattern.FindStringSubmatch(target)
+		if len(match) > 0 {
+			ip = removeBrackets(match[0])
+		}
+		if net.ParseIP(ip).To16() == nil {
+			return "", fmt.Errorf("invalid ipv6 address %s", target)
+		}
+	}
+	expandedIPv6 := expandIPv6(ip)
+	if expandedIPv6 == "" {
+		return "", fmt.Errorf("invalid ipv6 address %s", target)
+	}
+	return fmt.Sprintf("[%s]:%s", expandedIPv6, port), nil
+}
+
+func removeBrackets(ip string) string {
+	ip = strings.ReplaceAll(ip, "[", "")
+	return strings.ReplaceAll(ip, "]", "")
+}
+
 func (b *stateBuilder) upstreams() {
 	if b.err != nil {
 		return
@@ -1087,6 +1150,13 @@ func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 		}
 		utils.MustMergeTags(&t, b.selectTags)
 		b.defaulter.MustSet(&t)
+		if t.Target != nil && isIPv6(*t.Target) {
+			normalizedTarget, err := normalizeIPv6(*t.Target)
+			if err != nil {
+				return err
+			}
+			t.Target = kong.String(normalizedTarget)
+		}
 		b.rawState.Targets = append(b.rawState.Targets, &t)
 	}
 	return nil
