@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"net/netip"
 	"reflect"
 	"regexp"
@@ -1056,7 +1055,6 @@ func expandIPv6(address string) string {
 	if err != nil {
 		return ""
 	}
-	addr.StringExpanded()
 	return addr.StringExpanded()
 }
 
@@ -1069,21 +1067,27 @@ func normalizeIPv6(target string) (string, error) {
 	match := IPv6HasPortPattern.FindStringSubmatch(target)
 	if len(match) > 0 {
 		// has [address]:port pattern
-		port = strings.ReplaceAll(match[0], "]:", "")
-		ip = strings.ReplaceAll(target, match[0], "")
-		ip = removeBrackets(ip)
+		ipAndPort, err := netip.ParseAddrPort(ip)
+		if err != nil {
+			return "", fmt.Errorf("invalid ipv6 address and port %s", target)
+		}
+		port = fmt.Sprint(ipAndPort.Port())
+		ip = ipAndPort.Addr().String()
 	} else {
 		match = IPv6HasBracketPattern.FindStringSubmatch(target)
 		if len(match) > 0 {
+			// has [address] pattern
 			ip = removeBrackets(match[0])
 		}
-		if net.ParseIP(ip).To16() == nil {
+		ipAddr, err := netip.ParseAddr(ip)
+		if err != nil {
 			return "", fmt.Errorf("invalid ipv6 address %s", target)
 		}
+		ip = ipAddr.String()
 	}
 	expandedIPv6 := expandIPv6(ip)
 	if expandedIPv6 == "" {
-		return "", fmt.Errorf("invalid ipv6 address %s", target)
+		return "", fmt.Errorf("failed while expanding ipv6 address %s", target)
 	}
 	return fmt.Sprintf("[%s]:%s", expandedIPv6, port), nil
 }
