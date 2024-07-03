@@ -2,10 +2,10 @@ package file
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
+	"net/netip"
 	"reflect"
 	"regexp"
 	"sort"
@@ -1052,20 +1052,17 @@ func isIPv6(hostname string) bool {
 //
 // from ::1 to 0000:0000:0000:0000:0000:0000:0000:0001.
 func expandIPv6(address string) string {
-	ip := net.ParseIP(address).To16()
-	dst := make([]byte, hex.EncodedLen(len(ip)))
-	hex.Encode(dst, ip)
-	var final string
-	for i := 0; i < len(dst); i += 4 {
-		final += fmt.Sprintf("%s:", dst[i:i+4])
-	}
-	if len(final) == 0 {
+	addr, err := netip.ParseAddr(address)
+	if err != nil {
 		return ""
 	}
-	// remove last colon
-	return final[:len(final)-1]
+	addr.StringExpanded()
+	return addr.StringExpanded()
 }
 
+// normalizeIPv6 normalizes an ipv6 address to the format [address]:port.
+// for example:
+// from ::1 to [0000:0000:0000:0000:0000:0000:0000:0001]:8000.
 func normalizeIPv6(target string) (string, error) {
 	ip := target
 	port := "8000"
@@ -1138,6 +1135,15 @@ func (b *stateBuilder) upstreams() {
 func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 	for _, t := range targets {
 		t := t
+
+		if t.Target != nil && isIPv6(*t.Target) {
+			normalizedTarget, err := normalizeIPv6(*t.Target)
+			if err != nil {
+				return err
+			}
+			t.Target = kong.String(normalizedTarget)
+		}
+
 		if utils.Empty(t.ID) {
 			target, err := b.currentState.Targets.Get(*t.Upstream.ID, *t.Target)
 			if errors.Is(err, state.ErrNotFound) {
@@ -1150,13 +1156,6 @@ func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 		}
 		utils.MustMergeTags(&t, b.selectTags)
 		b.defaulter.MustSet(&t)
-		if t.Target != nil && isIPv6(*t.Target) {
-			normalizedTarget, err := normalizeIPv6(*t.Target)
-			if err != nil {
-				return err
-			}
-			t.Target = kong.String(normalizedTarget)
-		}
 		b.rawState.Targets = append(b.rawState.Targets, &t)
 	}
 	return nil
