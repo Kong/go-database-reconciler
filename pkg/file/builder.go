@@ -1041,7 +1041,10 @@ var (
 	IPv6HasBracketPattern = regexp.MustCompile(`\[\S+\]$`)
 )
 
-func isIPv6(hostname string) bool {
+// hasIPv6Format checks if the hostname is in ipv6 format.
+// This is a best effort check, it doesn't guarantee that the hostname is a valid ipv6 address,
+// but it checks if the hostname has more than 2 colons.
+func hasIPv6Format(hostname string) bool {
 	parts := strings.Split(hostname, ":")
 	return len(parts) > 2
 }
@@ -1140,7 +1143,7 @@ func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 	for _, t := range targets {
 		t := t
 
-		if t.Target != nil && isIPv6(*t.Target) {
+		if t.Target != nil && hasIPv6Format(*t.Target) {
 			normalizedTarget, err := normalizeIPv6(*t.Target)
 			if err != nil {
 				return err
