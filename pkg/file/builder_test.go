@@ -703,6 +703,150 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "expands IPv6 address and port correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: kong.String("[2001:db8:fd73::e]:1326"),
+						Upstream: &kong.Upstream{
+							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				Targets: []*kong.Target{
+					{
+						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: kong.String("[2001:0db8:fd73:0000:0000:0000:0000:000e]:1326"),
+						Weight: kong.Int(100),
+						Upstream: &kong.Upstream{
+							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "expands IPv6 address correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: kong.String("::1"),
+						Upstream: &kong.Upstream{
+							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				Targets: []*kong.Target{
+					{
+						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: kong.String("[0000:0000:0000:0000:0000:0000:0000:0001]:8000"),
+						Weight: kong.Int(100),
+						Upstream: &kong.Upstream{
+							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "expands IPv6 address with square brackets correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: kong.String("[::1]"),
+						Upstream: &kong.Upstream{
+							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				Targets: []*kong.Target{
+					{
+						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: kong.String("[0000:0000:0000:0000:0000:0000:0000:0001]:8000"),
+						Weight: kong.Int(100),
+						Upstream: &kong.Upstream{
+							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "handles invalid IPv6 address correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						Target: kong.String("[invalid:ipv6::address]:1326"),
+						Upstream: &kong.Upstream{
+							ID: kong.String("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr:   true,
+			wantState: &utils.KongRawState{},
+		},
+		{
+			name: "handles invalid IPv6 address correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						Target: kong.String("1:2:3:4"),
+						Upstream: &kong.Upstream{
+							ID: kong.String("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr:   true,
+			wantState: &utils.KongRawState{},
+		},
+		{
+			name: "handles invalid IPv6 address correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						Target: kong.String("this:is:nuts:!"),
+						Upstream: &kong.Upstream{
+							ID: kong.String("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr:   true,
+			wantState: &utils.KongRawState{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

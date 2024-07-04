@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/netip"
 	"reflect"
+	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
@@ -1033,6 +1036,70 @@ func (b *stateBuilder) rbacRoles() {
 	}
 }
 
+var (
+	IPv6HasPortPattern    = regexp.MustCompile(`\]\:\d+$`)
+	IPv6HasBracketPattern = regexp.MustCompile(`\[\S+\]$`)
+)
+
+// hasIPv6Format checks if the hostname is in ipv6 format.
+// This is a best effort check, it doesn't guarantee that the hostname is a valid ipv6 address,
+// but it checks if the hostname has more than 2 colons.
+func hasIPv6Format(hostname string) bool {
+	parts := strings.Split(hostname, ":")
+	return len(parts) > 2
+}
+
+// expandIPv6 decompress an ipv6 address into its 'long' format.
+// for example:
+//
+// from ::1 to 0000:0000:0000:0000:0000:0000:0000:0001.
+func expandIPv6(address string) string {
+	addr, err := netip.ParseAddr(address)
+	if err != nil {
+		return ""
+	}
+	return addr.StringExpanded()
+}
+
+// normalizeIPv6 normalizes an ipv6 address to the format [address]:port.
+// for example:
+// from ::1 to [0000:0000:0000:0000:0000:0000:0000:0001]:8000.
+func normalizeIPv6(target string) (string, error) {
+	ip := target
+	port := "8000"
+	match := IPv6HasPortPattern.FindStringSubmatch(target)
+	if len(match) > 0 {
+		// has [address]:port pattern
+		ipAndPort, err := netip.ParseAddrPort(ip)
+		if err != nil {
+			return "", fmt.Errorf("invalid ipv6 address and port %s", target)
+		}
+		port = fmt.Sprint(ipAndPort.Port())
+		ip = ipAndPort.Addr().String()
+	} else {
+		match = IPv6HasBracketPattern.FindStringSubmatch(target)
+		if len(match) > 0 {
+			// has [address] pattern
+			ip = removeBrackets(match[0])
+		}
+		ipAddr, err := netip.ParseAddr(ip)
+		if err != nil {
+			return "", fmt.Errorf("invalid ipv6 address %s", target)
+		}
+		ip = ipAddr.String()
+	}
+	expandedIPv6 := expandIPv6(ip)
+	if expandedIPv6 == "" {
+		return "", fmt.Errorf("failed while expanding ipv6 address %s", target)
+	}
+	return fmt.Sprintf("[%s]:%s", expandedIPv6, port), nil
+}
+
+func removeBrackets(ip string) string {
+	ip = strings.ReplaceAll(ip, "[", "")
+	return strings.ReplaceAll(ip, "]", "")
+}
+
 func (b *stateBuilder) upstreams() {
 	if b.err != nil {
 		return
@@ -1075,6 +1142,15 @@ func (b *stateBuilder) upstreams() {
 func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 	for _, t := range targets {
 		t := t
+
+		if t.Target != nil && hasIPv6Format(*t.Target) {
+			normalizedTarget, err := normalizeIPv6(*t.Target)
+			if err != nil {
+				return err
+			}
+			t.Target = kong.String(normalizedTarget)
+		}
+
 		if utils.Empty(t.ID) {
 			target, err := b.currentState.Targets.Get(*t.Upstream.ID, *t.Target)
 			if errors.Is(err, state.ErrNotFound) {
