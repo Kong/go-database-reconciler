@@ -157,7 +157,7 @@ func TestRBACRolesCollection_Get(t *testing.T) {
 	k.Add(rbacRole1)
 	k.Add(rbacRole2)
 	for _, tt := range tests {
-		tc := &tt //nolint:gosec
+		tc := &tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := k.Get(tc.args.nameOrID)
