@@ -1,3 +1,5 @@
+run:
+  timeout: 5m
 linters:
   enable:
   - asciicheck
@@ -15,7 +17,9 @@ linters:
   - govet
   - importas
   - lll
-  - megacheck
+  - gosimple
+  - staticcheck
+  - unused
   - misspell
   - nakedret
   - nilerr
