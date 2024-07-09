@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/kong/go-kong/kong/custom"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -26,6 +28,9 @@ type Config struct {
 
 	// If true, licenses are exported.
 	IncludeLicenses bool
+
+	// CustomEntityTypes lists types of custom entities to list.
+	CustomEntityTypes []string
 
 	// SelectorTags can be used to export entities tagged with only specific
 	// tags.
@@ -333,6 +338,34 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			state.Licenses = licenses
 			return nil
 		})
+	}
+
+	if len(config.CustomEntityTypes) > 0 {
+		// get custom entities with types given in config.CustomEntityTypes.
+		addCustomEntityLock := sync.Mutex{}
+		// first register the required entity types.
+		// TODO: There are some entities that have different CRUD path with type, or do not use "id" as primary key.
+		// For general usage we should support it.
+		for _, entityType := range config.CustomEntityTypes {
+			client.Register(custom.Type(entityType), &custom.EntityCRUDDefinition{
+				Name:       custom.Type(entityType),
+				CRUDPath:   entityType,
+				PrimaryKey: "id",
+			})
+		}
+		for _, entityType := range config.CustomEntityTypes {
+			t := entityType
+			group.Go(func() error {
+				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
+				if err != nil {
+					return fmt.Errorf("custom entity %s: %w", t, err)
+				}
+				addCustomEntityLock.Lock()
+				state.CustomEntities = append(state.CustomEntities, entities...)
+				addCustomEntityLock.Unlock()
+				return nil
+			})
+		}
 	}
 }
 
@@ -999,6 +1032,33 @@ func GetAllLicenses(
 	}
 
 	return licenses, nil
+}
+
+// GetAllCustomEntitiesWithType quries Kong for all Custom entities with the given type.
+func GetAllCustomEntitiesWithType(
+	ctx context.Context, client *kong.Client, entityType string,
+) ([]custom.Entity, error) {
+	entities := []custom.Entity{}
+	opt := newOpt(nil)
+	e := custom.NewEntityObject(custom.Type(entityType))
+	for {
+		s, nextOpt, err := client.CustomEntities.List(ctx, opt, e)
+		if kong.IsNotFoundErr(err) {
+			return entities, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		entities = append(entities, s...)
+		if nextOpt == nil {
+			break
+		}
+		opt = nextOpt
+	}
+	return entities, nil
 }
 
 // excludeConsumersPlugins filter out consumer plugins
