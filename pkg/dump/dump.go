@@ -341,32 +341,43 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 	}
 
 	if len(config.CustomEntityTypes) > 0 {
-		// get custom entities with types given in config.CustomEntityTypes.
-		addCustomEntityLock := sync.Mutex{}
-		// first register the required entity types.
-		// TODO: There are some entities that have different CRUD path with type, or do not use "id" as primary key.
-		// For general usage we should support it.
-		for _, entityType := range config.CustomEntityTypes {
-			client.Register(custom.Type(entityType), &custom.EntityCRUDDefinition{
-				Name:       custom.Type(entityType),
-				CRUDPath:   entityType,
-				PrimaryKey: "id",
-			})
-		}
+		// Get custom entities with types given in config.CustomEntityTypes.
+		customEntityLock := sync.Mutex{}
 		for _, entityType := range config.CustomEntityTypes {
 			t := entityType
 			group.Go(func() error {
+				// Register entity type.
+				// Because client writes an unprotected map to register entity types, we need to use mutex to protect it.
+				customEntityLock.Lock()
+				err := tryRegisterEntityType(client, custom.Type(t))
+				customEntityLock.Unlock()
+				if err != nil {
+					return fmt.Errorf("custom entity %s: %w", t, err)
+				}
+				// Fetch all entities with the given type.
 				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
 				if err != nil {
 					return fmt.Errorf("custom entity %s: %w", t, err)
 				}
-				addCustomEntityLock.Lock()
+				// Add custom entities to rawstate.
+				customEntityLock.Lock()
 				state.CustomEntities = append(state.CustomEntities, entities...)
-				addCustomEntityLock.Unlock()
+				customEntityLock.Unlock()
 				return nil
 			})
 		}
 	}
+}
+
+func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
+	if client.Lookup(typ) != nil {
+		return nil
+	}
+	return client.Register(typ, &custom.EntityCRUDDefinition{
+		Name:       typ,
+		CRUDPath:   "/" + string(typ),
+		PrimaryKey: "id",
+	})
 }
 
 func getEnterpriseRBACConfiguration(ctx context.Context, group *errgroup.Group,
@@ -408,6 +419,7 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 	} else {
 		// regular case
 		getProxyConfiguration(ctx, group, client, config, &state)
+
 		if !config.SkipConsumers {
 			getConsumerGroupsConfiguration(ctx, group, client, config, &state)
 			getConsumerConfiguration(ctx, group, client, config, &state)
