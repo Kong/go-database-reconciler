@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/kong/go-kong/kong/custom"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -26,6 +28,9 @@ type Config struct {
 
 	// If true, licenses are exported.
 	IncludeLicenses bool
+
+	// CustomEntityTypes lists types of custom entities to list.
+	CustomEntityTypes []string
 
 	// SelectorTags can be used to export entities tagged with only specific
 	// tags.
@@ -334,6 +339,45 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			return nil
 		})
 	}
+
+	if len(config.CustomEntityTypes) > 0 {
+		// Get custom entities with types given in config.CustomEntityTypes.
+		customEntityLock := sync.Mutex{}
+		for _, entityType := range config.CustomEntityTypes {
+			t := entityType
+			group.Go(func() error {
+				// Register entity type.
+				// Because client writes an unprotected map to register entity types, we need to use mutex to protect it.
+				customEntityLock.Lock()
+				err := tryRegisterEntityType(client, custom.Type(t))
+				customEntityLock.Unlock()
+				if err != nil {
+					return fmt.Errorf("custom entity %s: %w", t, err)
+				}
+				// Fetch all entities with the given type.
+				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
+				if err != nil {
+					return fmt.Errorf("custom entity %s: %w", t, err)
+				}
+				// Add custom entities to rawstate.
+				customEntityLock.Lock()
+				state.CustomEntities = append(state.CustomEntities, entities...)
+				customEntityLock.Unlock()
+				return nil
+			})
+		}
+	}
+}
+
+func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
+	if client.Lookup(typ) != nil {
+		return nil
+	}
+	return client.Register(typ, &custom.EntityCRUDDefinition{
+		Name:       typ,
+		CRUDPath:   "/" + string(typ),
+		PrimaryKey: "id",
+	})
 }
 
 func getEnterpriseRBACConfiguration(ctx context.Context, group *errgroup.Group,
@@ -375,6 +419,7 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 	} else {
 		// regular case
 		getProxyConfiguration(ctx, group, client, config, &state)
+
 		if !config.SkipConsumers {
 			getConsumerGroupsConfiguration(ctx, group, client, config, &state)
 			getConsumerConfiguration(ctx, group, client, config, &state)
@@ -999,6 +1044,33 @@ func GetAllLicenses(
 	}
 
 	return licenses, nil
+}
+
+// GetAllCustomEntitiesWithType quries Kong for all Custom entities with the given type.
+func GetAllCustomEntitiesWithType(
+	ctx context.Context, client *kong.Client, entityType string,
+) ([]custom.Entity, error) {
+	entities := []custom.Entity{}
+	opt := newOpt(nil)
+	e := custom.NewEntityObject(custom.Type(entityType))
+	for {
+		s, nextOpt, err := client.CustomEntities.List(ctx, opt, e)
+		if kong.IsNotFoundErr(err) {
+			return entities, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		entities = append(entities, s...)
+		if nextOpt == nil {
+			break
+		}
+		opt = nextOpt
+	}
+	return entities, nil
 }
 
 // excludeConsumersPlugins filter out consumer plugins

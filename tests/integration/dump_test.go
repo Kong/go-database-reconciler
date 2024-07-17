@@ -3,8 +3,12 @@
 package integration
 
 import (
+	"context"
 	"testing"
 
+	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-kong/kong"
+	"github.com/kong/go-kong/kong/custom"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -283,4 +287,49 @@ func Test_Dump_ConsumerGroupConsumersWithCustomID_Konnect(t *testing.T) {
 	expected, err := readFile("testdata/dump/003-consumer-group-consumers-custom_id/konnect.yaml")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
+}
+
+func Test_Dump_CustomEntities(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
+	// Create a degraphql_route attached to the service after created a service by dedicated client
+	// because deck sync does not support custom entities.
+	const serviceID = "58076db2-28b6-423b-ba39-a797193017f7" // ID of the service in the config file
+	client, err := getTestClient()
+	require.NoError(t, err)
+	r, err := client.DegraphqlRoutes.Create(context.Background(), &kong.DegraphqlRoute{
+		Service: &kong.Service{
+			ID: kong.String(serviceID),
+		},
+		URI:   kong.String("/graphql"),
+		Query: kong.String("query{ name }"),
+	})
+	require.NoError(t, err, "Should create degraphql_routes sucessfully")
+	t.Logf("Created degraphql_routes %s attached to service %s", *r.ID, serviceID)
+
+	// Since degraphql_route does not run cascade delete on services, we need to clean it up after the test.
+	t.Cleanup(func() {
+		err := client.DegraphqlRoutes.Delete(context.Background(), kong.String(serviceID), r.ID)
+		require.NoError(t, err, "should delete degraphql_routes in cleanup")
+	})
+
+	// Call dump.Get with custom entities because deck's `dump` command does not support custom entities.
+	rawState, err := deckDump.Get(context.Background(), client, deckDump.Config{
+		CustomEntityTypes: []string{"degraphql_routes"},
+	})
+	require.NoError(t, err, "Should dump from Kong successfully")
+	require.Len(t, rawState.CustomEntities, 1, "Dumped raw state should contain 1 custom entity")
+	// check entity type
+	typ := rawState.CustomEntities[0].Type()
+	require.Equal(t, custom.Type("degraphql_routes"), typ, "Entity should have type degraphql_routes")
+	// check fields of the entity
+	obj := rawState.CustomEntities[0].Object()
+	uri, ok := obj["uri"].(string)
+	require.Truef(t, ok, "'uri' field should have type 'string' but actual '%T'", obj["uri"])
+	require.Equal(t, "/graphql", uri)
+	query, ok := obj["query"].(string)
+	require.Truef(t, ok, "'query' field should have type 'string' but actual '%T'", obj["query"])
+	require.Equal(t, "query{ name }", query)
 }
