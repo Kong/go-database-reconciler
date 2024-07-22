@@ -1376,12 +1376,12 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// On the other hand, Konnect can support only one schema including all
 	// fields from 'traditional' and 'expressions' router schemas.
 	// This may be problematic when it comes to defaults injection, because
-	// the defaults for the 'traditiona' router schema can be wrongly injected
+	// the defaults for the 'traditional' router schema can be wrongly injected
 	// into the 'expressions' route configuration.
 	//
 	// Here we make sure that only the fields that are supported for a given
 	// router version are set in the route configuration.
-	if b.isKonnect && hasExpression && !(hasRegexPriority || hasPathHandling) {
+	if hasExpression && !(hasRegexPriority || hasPathHandling) {
 		if r.Route.PathHandling != nil {
 			r.Route.PathHandling = nil
 		}
