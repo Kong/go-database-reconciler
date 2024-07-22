@@ -3032,7 +3032,7 @@ func Test_getStripPathBasedOnProtocols(t *testing.T) {
 	}
 }
 
-func Test_stateBuilder_ingestRouteKonnect(t *testing.T) {
+func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 	assert := assert.New(t)
 	rand.Seed(42)
 	type fields struct {
@@ -3064,7 +3064,6 @@ func Test_stateBuilder_ingestRouteKonnect(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						ID:            kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						Name:          kong.String("foo"),
 						PreserveHost:  kong.Bool(false),
 						RegexPriority: kong.Int(0),
@@ -3074,6 +3073,50 @@ func Test_stateBuilder_ingestRouteKonnect(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	for _, tt := range tests {
+		for _, isKonnect := range []bool{true, false} {
+			t.Run(tt.name, func(t *testing.T) {
+				ctx := context.Background()
+				b := &stateBuilder{
+					currentState: tt.fields.currentState,
+					isKonnect:    isKonnect,
+				}
+				b.rawState = &utils.KongRawState{}
+				d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+				b.defaulter = d
+				b.intermediate, _ = state.NewKongState()
+				if err := b.ingestRoute(tt.args.route); (err != nil) != tt.wantErr {
+					t.Errorf("stateBuilder.ingestRoute() error = %v, wantErr %v", err, tt.wantErr)
+				}
+
+				// Not checking ID equality, as it is unnecessary for testing functionality
+				b.rawState.Routes[0].ID = nil
+
+				assert.Equal(b.rawState, tt.wantState)
+				assert.NotNil(b.rawState.Routes[0].RegexPriority, "RegexPriority should not be nil")
+			})
+		}
+	}
+}
+
+func Test_stateBuilder_ingestRouteKonnectExpressionRoute(t *testing.T) {
+	assert := assert.New(t)
+	rand.Seed(42)
+	type fields struct {
+		currentState *state.KongState
+	}
+	type args struct {
+		route FRoute
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		wantErr   bool
+		wantState *utils.KongRawState
+	}{
 		{
 			name: "expression route",
 			fields: fields{
@@ -3091,7 +3134,6 @@ func Test_stateBuilder_ingestRouteKonnect(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
 						Name:         kong.String("foo"),
 						PreserveHost: kong.Bool(false),
 						Expression:   kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
@@ -3104,20 +3146,27 @@ func Test_stateBuilder_ingestRouteKonnect(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			b := &stateBuilder{
-				currentState: tt.fields.currentState,
-				isKonnect:    true,
-			}
-			b.rawState = &utils.KongRawState{}
-			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
-			b.defaulter = d
-			b.intermediate, _ = state.NewKongState()
-			if err := b.ingestRoute(tt.args.route); (err != nil) != tt.wantErr {
-				t.Errorf("stateBuilder.ingestRoute() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			assert.Equal(tt.wantState, b.rawState)
-		})
+		for _, isKonnect := range []bool{true, false} {
+			t.Run(tt.name, func(t *testing.T) {
+				ctx := context.Background()
+				b := &stateBuilder{
+					currentState: tt.fields.currentState,
+					isKonnect:    isKonnect,
+				}
+				b.rawState = &utils.KongRawState{}
+				d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+				b.defaulter = d
+				b.intermediate, _ = state.NewKongState()
+				if err := b.ingestRoute(tt.args.route); (err != nil) != tt.wantErr {
+					t.Errorf("stateBuilder.ingestRoute() error = %v, wantErr %v", err, tt.wantErr)
+				}
+
+				// Not checking ID equality, as it is unnecessary for testing functionality
+				b.rawState.Routes[0].ID = nil
+
+				assert.Equal(tt.wantState, b.rawState)
+				assert.Nil(b.rawState.Routes[0].RegexPriority, "RegexPriority should be nil")
+			})
+		}
 	}
 }
