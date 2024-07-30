@@ -632,17 +632,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			Diff:   "pspsps",
 			Error:  nil,
 		}
-		extraSpoopyGhostResult := EntityAction{
-			Entity: Entity{
-				Name: "extraspoopyghost",
-				Kind: "apparition",
-				Old:  "tomi",
-				New:  "lotte",
-			},
-			Action: UpdateAction,
-			Diff:   "pspsps",
-			Error:  nil,
-		}
 
 		select {
 		case sc.resultChan <- spoopyGhostResult:
@@ -650,7 +639,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		case <-ctx.Done():
 			fmt.Println("donedonedone")
 		}
-		sc.resultChan <- extraSpoopyGhostResult
 
 		switch e.Op {
 		case crud.Create:
