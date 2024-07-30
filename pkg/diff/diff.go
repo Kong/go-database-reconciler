@@ -681,18 +681,18 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			// sync mode
 			// fire the request to Kong
 			result, err = sc.processor.Do(ctx, e.Kind, e.Op, e)
-			if err != nil {
-				// TODO https://github.com/Kong/go-database-reconciler/issues/22 this does not print, but is switched on
-				// sc.enableEntityActions because the existing behavior returns a result from the anon Run function.
-				// Refactoring should use only the channel and simplify the return, probably to just an error (all the other
-				// data will have been sent through the result channel).
-				if sc.enableEntityActions {
-					actionResult.Error = err
-					select {
-					case sc.resultChan <- actionResult:
-					case <-ctx.Done():
-					}
+			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this does not print, but is switched on
+			// sc.enableEntityActions because the existing behavior returns a result from the anon Run function.
+			// Refactoring should use only the channel and simplify the return, probably to just an error (all the other
+			// data will have been sent through the result channel).
+			if sc.enableEntityActions {
+				actionResult.Error = err
+				select {
+				case sc.resultChan <- actionResult:
+				case <-ctx.Done():
 				}
+			}
+			if err != nil {
 				return nil, &crud.ActionError{
 					OperationType: e.Op,
 					Kind:          e.Kind,
