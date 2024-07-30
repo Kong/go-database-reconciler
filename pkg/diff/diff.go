@@ -621,6 +621,37 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			},
 		}
 
+		spoopyGhostResult := EntityAction{
+			Entity: Entity{
+				Name: "spoopyghost",
+				Kind: "apparition",
+				Old:  "aypi",
+				New:  "beetlejuice",
+			},
+			Action: UpdateAction,
+			Diff:   "pspsps",
+			Error:  nil,
+		}
+		extraSpoopyGhostResult := EntityAction{
+			Entity: Entity{
+				Name: "extraspoopyghost",
+				Kind: "apparition",
+				Old:  "tomi",
+				New:  "lotte",
+			},
+			Action: UpdateAction,
+			Diff:   "pspsps",
+			Error:  nil,
+		}
+
+		select {
+		case sc.resultChan <- spoopyGhostResult:
+			fmt.Println(fmt.Sprintf("ghost activity: %s/%s", string(e.Kind), c.Console()))
+		case <-ctx.Done():
+			fmt.Println("donedonedone")
+		}
+		sc.resultChan <- extraSpoopyGhostResult
+
 		switch e.Op {
 		case crud.Create:
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
