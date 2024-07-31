@@ -47,6 +47,10 @@ type stateBuilder struct {
 
 	isConsumerGroupScopedPluginSupported bool
 
+	removeRegexPriorityFromExpressionRoute bool
+
+	removePathHandlingFromExpressionRoute bool
+
 	err error
 }
 
@@ -83,6 +87,11 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 
 	if utils.Kong340Version.LTE(b.kongVersion) || b.isKonnect {
 		b.isConsumerGroupScopedPluginSupported = true
+	}
+
+	if utils.Kong370Version.GT(b.kongVersion) || b.isKonnect {
+		b.removeRegexPriorityFromExpressionRoute = true
+		b.removePathHandlingFromExpressionRoute = true
 	}
 
 	// build
@@ -1364,8 +1373,6 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	r.Route.StripPath = stripPath
 
 	hasExpression := r.Route.Expression != nil
-	hasRegexPriority := r.Route.RegexPriority != nil
-	hasPathHandling := r.Route.PathHandling != nil
 
 	b.defaulter.MustSet(&r.Route)
 	if route != nil {
@@ -1373,6 +1380,10 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	}
 
 	// Kong Gateway supports different schemas for different router versions.
+	// For version < v3.7.0, expression routes can't support fields like regex_priority
+	// However, this changes in v3.7.0. Changelog link:
+	// (https://github.com/Kong/kong/blob/release/3.7.0/changelog/3.7.0/3.7.0.md?plain=1#L138)
+	//
 	// On the other hand, Konnect can support only one schema including all
 	// fields from 'traditional' and 'expressions' router schemas.
 	// This may be problematic when it comes to defaults injection, because
@@ -1381,13 +1392,16 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	//
 	// Here we make sure that only the fields that are supported for a given
 	// router version are set in the route configuration.
-	if hasExpression && !(hasRegexPriority || hasPathHandling) {
+	if hasExpression && (b.removePathHandlingFromExpressionRoute || b.removeRegexPriorityFromExpressionRoute) {
 		if r.Route.PathHandling != nil {
 			r.Route.PathHandling = nil
 		}
 		if r.Route.RegexPriority != nil {
 			r.Route.RegexPriority = nil
 		}
+	}
+
+	if hasExpression {
 		if r.Route.Priority == nil {
 			r.Route.Priority = kong.Uint64(0)
 		}
