@@ -1,4 +1,11 @@
 name: Enterprise Integration Test
+run-name: Enterprise Integration Test, branch:${{ github.ref_name }}, triggered by @${{ github.actor }}
+
+concurrency:
+  # Run only for most recent commit in PRs but for all tags and commits on main
+  # Ref: https://docs.github.com/en/actions/using-jobs/using-concurrency
+  group: integration-enterprise-${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
 
 on:
   workflow_call:
@@ -24,6 +31,7 @@ jobs:
         - 'kong/kong-gateway:3.4'
         - 'kong/kong-gateway:3.5'
         - 'kong/kong-gateway:3.6'
+        - 'kong/kong-gateway:3.7'
         - 'kong/kong-gateway-dev:latest'
     env:
       KONG_ANONYMOUS_REPORTS: "off"
@@ -31,10 +39,8 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Setup go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -43,7 +49,6 @@ jobs:
       - uses: Kong/kong-license@master
         id: license
         with:
-          password: ${{ secrets.PULP_PASSWORD }}
           op-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
       - name: Setup Kong
         env:
