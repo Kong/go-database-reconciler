@@ -105,7 +105,8 @@ func TestRBACRolesCollection_Get(t *testing.T) {
 	}
 	rbacRole1 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID: kong.String("foo-id"),
+			ID:   kong.String("foo-id"),
+			Name: kong.String("foo-name"),
 		},
 	}
 	rbacRole2 := RBACRole{
