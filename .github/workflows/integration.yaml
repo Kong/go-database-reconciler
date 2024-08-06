@@ -1,4 +1,11 @@
 name: Integration Test
+run-name: Integration Test, branch:${{ github.ref_name }}, triggered by @${{ github.actor }}
+
+concurrency:
+  # Run only for most recent commit in PRs but for all tags and commits on main
+  # Ref: https://docs.github.com/en/actions/using-jobs/using-concurrency
+  group: integration-${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
 
 on:
   workflow_call:
@@ -26,16 +33,15 @@ jobs:
         - 'kong:3.4'
         - 'kong:3.5'
         - 'kong:3.6'
+        - 'kong:3.7'
         - 'kong/kong:master'
     env:
       KONG_ANONYMOUS_REPORTS: "off"
       KONG_IMAGE: ${{ matrix.kong_image }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Setup go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
       - name: Setup Kong
         run: make setup-kong
       - name: Run integration tests
