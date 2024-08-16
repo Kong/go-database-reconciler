@@ -15,7 +15,9 @@ linters:
   - govet
   - importas
   - lll
-  - megacheck
+  - gosimple
+  - staticcheck
+  - unused
   - misspell
   - nakedret
   - nilerr

@@ -212,7 +212,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 	}
 	kongState, err := deckDump.Get(ctx, client, dumpConfig)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	opt := []cmp.Option{
@@ -238,7 +238,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 	opt = append(opt, ignoreFields...)
 
 	if diff := cmp.Diff(kongState, &expectedState, opt...); diff != "" {
-		t.Errorf(diff)
+		t.Error(diff)
 	}
 }
 

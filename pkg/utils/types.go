@@ -155,7 +155,7 @@ func (kc *KongClientConfig) ForWorkspace(name string) KongClientConfig {
 //
 // This is the same as DefaultBackoff (https://github.com/hashicorp/go-retryablehttp/blob/v0.7.1/client.go#L503)
 // except that here we are only retrying on 429s.
-func backoffStrategy(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+func backoffStrategy(minDuration, maxDuration time.Duration, attemptNum int, resp *http.Response) time.Duration {
 	const (
 		base            = 10
 		bitSize         = 64
@@ -169,10 +169,10 @@ func backoffStrategy(min, max time.Duration, attemptNum int, resp *http.Response
 		}
 	}
 
-	mult := math.Pow(baseExponential, float64(attemptNum)) * float64(min)
+	mult := math.Pow(baseExponential, float64(attemptNum)) * float64(minDuration)
 	sleep := time.Duration(mult)
-	if float64(sleep) != mult || sleep > max {
-		sleep = max
+	if float64(sleep) != mult || sleep > maxDuration {
+		sleep = maxDuration
 	}
 	return sleep
 }

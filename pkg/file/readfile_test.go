@@ -646,7 +646,7 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				cmpopts.EquateEmpty(),
 			}
 			if diff := cmp.Diff(got, tt.want, opt...); diff != "" {
-				t.Errorf(diff)
+				t.Error(diff)
 			}
 		})
 	}
