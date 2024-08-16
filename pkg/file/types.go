@@ -280,10 +280,10 @@ func copyToService(fService FService) service {
 func unwrapURL(urlString string, fService *FService) error {
 	parsed, err := url.Parse(urlString)
 	if err != nil {
-		return fmt.Errorf("invalid url: " + urlString)
+		return fmt.Errorf("invalid url: %s", urlString)
 	}
 	if parsed.Scheme == "" {
-		return fmt.Errorf("invalid url:" + urlString)
+		return fmt.Errorf("invalid url: %s", urlString)
 	}
 
 	fService.Protocol = kong.String(parsed.Scheme)
@@ -721,7 +721,7 @@ func (u FConsumerGroupObject) sortKey() string {
 // +k8s:deepcopy-gen=true
 type FRBACRole struct {
 	kong.RBACRole       `yaml:",inline,omitempty"`
-	EndpointPermissions []*FRBACEndpointPermission `json:"endpoint_permissions,omitempty" yaml:"endpoint_permissions,omitempty"` //nolint
+	EndpointPermissions []*FRBACEndpointPermission `json:"endpoint_permissions,omitempty" yaml:"endpoint_permissions,omitempty"` //nolint:lll
 }
 
 // FRBACEndpointPermission is a wrapper type for RBACEndpointPermission.

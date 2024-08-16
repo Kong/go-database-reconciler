@@ -83,7 +83,7 @@ func insertFilterChain(txn *memdb.Txn, filterChain FilterChain) error {
 		return err
 	}
 
-	if filterChain.Filters == nil || len(filterChain.Filters) == 0 {
+	if len(filterChain.Filters) == 0 {
 		return fmt.Errorf("inserting filter chain %v: at least one filter is required", filterChain.Console())
 	}
 

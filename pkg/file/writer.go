@@ -906,7 +906,7 @@ func WriteContentToFile(content *Content, filename string, format Format) error 
 			return err
 		}
 	default:
-		return fmt.Errorf("unknown file format: " + string(format))
+		return fmt.Errorf("unknown file format: %s", format)
 	}
 
 	if filename == "-" {
