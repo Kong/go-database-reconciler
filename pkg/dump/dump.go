@@ -166,14 +166,17 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
-	group.Go(func() error {
-		oauth2Creds, err := GetAllOauth2Creds(ctx, client, config.SelectorTags)
-		if err != nil {
-			return fmt.Errorf("oauth2: %w", err)
-		}
-		state.Oauth2Creds = oauth2Creds
-		return nil
-	})
+	// OAuth2 credentials are not supported in Konnect.
+	if config.KonnectControlPlane == "" {
+		group.Go(func() error {
+			oauth2Creds, err := GetAllOauth2Creds(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("oauth2: %w", err)
+			}
+			state.Oauth2Creds = oauth2Creds
+			return nil
+		})
+	}
 
 	group.Go(func() error {
 		aclGroups, err := GetAllACLGroups(ctx, client, config.SelectorTags)
