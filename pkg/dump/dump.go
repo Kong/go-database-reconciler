@@ -40,9 +40,9 @@ type Config struct {
 	// these tags. This functionality is essential when using a plugin that references
 	// consumers or routes associated with tags different from those in the sync command.
 	LookUpSelectorTagsConsumerGroups []string
-	LookUpSelectorTagsConsumers []string
-	LookUpSelectorTagsRoutes    []string
-	LookUpSelectorTagsServices  []string
+	LookUpSelectorTagsConsumers      []string
+	LookUpSelectorTagsRoutes         []string
+	LookUpSelectorTagsServices       []string
 
 	// KonnectControlPlane
 	KonnectControlPlane string
