@@ -188,8 +188,8 @@ func (b *stateBuilder) consumerGroups() {
 		}
 		sort.Strings(stringTags)
 		sort.Strings(b.lookupTagsConsumerGroups)
-		// if the consumer tags and the lookup tags are the same, it means
-		// that the consumer is a global consumer retrieved from upstream,
+		// if the consumer group tags and the lookup tags are the same, it means
+		// that the consumer group is a global consumer group retrieved from upstream,
 		// therefore we don't want to merge its tags with the selected tags.
 		if !reflect.DeepEqual(stringTags, b.lookupTagsConsumerGroups) {
 			utils.MustMergeTags(&cg.ConsumerGroup, b.selectTags)
