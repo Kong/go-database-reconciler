@@ -27,12 +27,14 @@ type stateBuilder struct {
 	defaulter       *utils.Defaulter
 	kongVersion     semver.Version
 
-	selectTags          []string
-	lookupTagsConsumers []string
-	lookupTagsRoutes    []string
-	skipCACerts         bool
-	includeLicenses     bool
-	intermediate        *state.KongState
+	selectTags               []string
+	lookupTagsConsumerGroups []string
+	lookupTagsConsumers      []string
+	lookupTagsRoutes         []string
+	lookupTagsServices       []string
+	skipCACerts              bool
+	includeLicenses          bool
+	intermediate             *state.KongState
 
 	client *kong.Client
 	ctx    context.Context
@@ -177,7 +179,21 @@ func (b *stateBuilder) consumerGroups() {
 				cg.ID = kong.String(*current.ID)
 			}
 		}
-		utils.MustMergeTags(&cg.ConsumerGroup, b.selectTags)
+		
+		stringTags := make([]string, len(cg.Tags))
+		for i, tag := range cg.Tags {
+			if tag != nil {
+				stringTags[i] = *tag
+			}
+		}
+		sort.Strings(stringTags)
+		sort.Strings(b.lookupTagsConsumers)
+		// if the consumer tags and the lookup tags are the same, it means
+		// that the consumer is a global consumer retrieved from upstream,
+		// therefore we don't want to merge its tags with the selected tags.
+		if !reflect.DeepEqual(stringTags, b.lookupTagsConsumers) {
+			utils.MustMergeTags(&cg.ConsumerGroup, b.selectTags)
+		}
 
 		cgo := kong.ConsumerGroupObject{
 			ConsumerGroup: &cg.ConsumerGroup,
@@ -886,7 +902,23 @@ func (b *stateBuilder) ingestService(s *FService) error {
 			s.ID = kong.String(*svc.ID)
 		}
 	}
-	utils.MustMergeTags(&s.Service, b.selectTags)
+
+	stringTags := make([]string, len(s.Tags))
+	for i, tag := range s.Tags {
+		if tag != nil {
+			stringTags[i] = *tag
+		}
+	}
+	sort.Strings(stringTags)
+	sort.Strings(b.lookupTagsServices)
+	// if the service tags and the lookup tags are the same, it means
+	// that the service is a global service retrieved from upstream,
+	// therefore we don't want to merge its tags with the selected tags.
+	if !reflect.DeepEqual(stringTags, b.lookupTagsServices) {
+		utils.MustMergeTags(&s.Service, b.selectTags)
+	}
+
+	// utils.MustMergeTags(&s, b.selectTags)
 	b.defaulter.MustSet(&s.Service)
 	if svc != nil {
 		s.Service.CreatedAt = svc.CreatedAt

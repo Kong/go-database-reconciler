@@ -886,6 +886,11 @@ func (in *LookUpSelectorTags) DeepCopyInto(out *LookUpSelectorTags) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.Services != nil {
+		in, out := &in.Services, &out.Services
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
