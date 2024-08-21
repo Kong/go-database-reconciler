@@ -294,7 +294,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		plugins = excludeKonnectManagedPlugins(plugins)
 		if config.SkipConsumers {
 			plugins = excludeConsumersPlugins(plugins)
-			plugins = excludeConsumerGroupsPlugins(plugins)
 		}
 		state.Plugins = plugins
 		return nil
