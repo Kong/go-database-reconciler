@@ -22,11 +22,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func int32p(i int) *int32 {
-	p := int32(i)
-	return &p
-}
-
 func getKongAddress() string {
 	address := os.Getenv("DECK_KONG_ADDR")
 	if address != "" {
