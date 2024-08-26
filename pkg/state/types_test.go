@@ -663,3 +663,49 @@ func TestDeepEqualWithSorting(t *testing.T) {
 		t.Errorf("expected maps to be equal, but they are not")
 	}
 }
+
+func TestConsole(t *testing.T) {
+	assert := assert.New(t)
+
+	var p1 Plugin
+	p1.ID = kong.String("foo")
+	p1.Name = kong.String("foo-plugin")
+
+	// Testing for global
+	expected := "foo-plugin (global)"
+	actual := p1.Console()
+	assert.Equal(expected, actual)
+
+	// Adding a service
+	p1.Service = &kong.Service{ID: kong.String("bar")}
+	expected = "foo-plugin for service bar"
+	actual = p1.Console()
+	assert.Equal(expected, actual)
+
+	// Adding a route with service
+	p1.Route = &kong.Route{ID: kong.String("baz")}
+	expected = "foo-plugin for service bar and route baz"
+	actual = p1.Console()
+	assert.Equal(expected, actual)
+
+	// Adding a consumer with service and route
+	p1.Consumer = &kong.Consumer{ID: kong.String("demo")}
+	expected = "foo-plugin for service bar and route baz and consumer demo"
+	actual = p1.Console()
+	assert.Equal(expected, actual)
+
+	// Adding a consumer-group with service, route and consumer
+	p1.ConsumerGroup = &kong.ConsumerGroup{ID: kong.String("demo-group")}
+	expected = "foo-plugin for service bar and route baz and consumer demo and consumer-group demo-group"
+	actual = p1.Console()
+	assert.Equal(expected, actual)
+
+	// Making everything nil
+	p1.Service = nil
+	p1.Route = nil
+	p1.Consumer = nil
+	p1.ConsumerGroup = nil
+	expected = "foo-plugin (global)"
+	actual = p1.Console()
+	assert.Equal(expected, actual)
+}
