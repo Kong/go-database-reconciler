@@ -5532,9 +5532,7 @@ func TestSync_License(t *testing.T) {
 func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
 
 	client, err := getTestClient()
-	// TODO: 'opentelemetry' is a plugin that is available in 3.0 and later.
-	// Should we use another plugin available in 2.8?
-	runWhen(t, "kong", ">=3.0.0")
+
 	require.NoError(t, err)
 	ctx := context.Background()
 	t.Run("empty_fields_of_plugin_config", func(t *testing.T) {
@@ -5577,17 +5575,17 @@ func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
 			plugin, ok := body["new"].(*state.Plugin)
 			require.True(t, ok)
 
-			endpoint, ok := plugin.Config["endpoint"]
+			path, ok := plugin.Config["path"]
 			require.True(t, ok)
-			require.Equal(t, "http://example.test", endpoint, "endpoint should be same as specified in file")
+			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
 
-			headerType, ok := plugin.Config["header_type"]
-			require.True(t, ok, "'header_type' field should be filled")
-			require.Equal(t, "preserve", headerType, "should be the same as default value")
+			reopen, ok := plugin.Config["reopen"]
+			require.True(t, ok, "'reopen' field should be filled")
+			require.Equal(t, false, reopen, "should be the same as default value")
 
-			headers, ok := plugin.Config["headers"]
-			require.True(t, ok, "'headers' field should be filled")
-			require.Nil(t, headers, "should be an explicit nil")
+			custom_fields_by_lua, ok := plugin.Config["custom_fields_by_lua"]
+			require.True(t, ok, "'custom_fields_by_lua' field should be filled")
+			require.Nil(t, custom_fields_by_lua, "should be an explicit nil")
 		})
 
 		// But the default values should not be filled in request sent to Kong.
@@ -5603,15 +5601,15 @@ func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
 			err = json.Unmarshal(buf, &plugin)
 			require.NoError(t, err, "Should unmarshal request body to plugin type")
 
-			endpoint, ok := plugin.Config["endpoint"]
+			path, ok := plugin.Config["path"]
 			require.True(t, ok)
-			require.Equal(t, "http://example.test", endpoint, "endpoint should be same as specified in file")
+			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
 
-			_, ok = plugin.Config["header_type"]
-			require.False(t, ok, "'header_type' field should not be filled")
+			_, ok = plugin.Config["reopen"]
+			require.False(t, ok, "'reopen' field should not be filled")
 
-			_, ok = plugin.Config["headers"]
-			require.False(t, ok, "'headers' field should not be filled")
+			_, ok = plugin.Config["custom_fields_by_lua"]
+			require.False(t, ok, "'custom_fields_by_lua' field should not be filled")
 		})
 
 		// Should update Kong state successfully.
@@ -5622,10 +5620,10 @@ func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, plugins, 1)
 			plugin := plugins[0]
-			require.Equal(t, "opentelemetry", *plugin.Name)
-			endpoint, ok := plugin.Config["endpoint"]
+			require.Equal(t, "file-log", *plugin.Name)
+			path, ok := plugin.Config["path"]
 			require.True(t, ok)
-			require.Equal(t, "http://example.test", endpoint, "endpoint should be same as specified in file")
+			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
 		})
 	})
 }

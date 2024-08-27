@@ -1,9 +1,9 @@
 _format_version: "3.0"
 plugins:
 - config:
-    endpoint: http://example.test
+    path: /tmp/file.log
   enabled: true
-  name: opentelemetry
+  name: file-log
   protocols:
   - grpc
   - grpcs
