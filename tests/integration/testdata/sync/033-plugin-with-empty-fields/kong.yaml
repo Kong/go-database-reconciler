@@ -1,0 +1,11 @@
+_format_version: "3.0"
+plugins:
+- config:
+    path: /tmp/file.log
+  enabled: true
+  name: file-log
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
