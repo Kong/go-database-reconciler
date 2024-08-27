@@ -664,48 +664,65 @@ func TestDeepEqualWithSorting(t *testing.T) {
 	}
 }
 
-func TestConsole(t *testing.T) {
-	assert := assert.New(t)
+func TestPluginConsole(t *testing.T) {
+	tests := []struct {
+		plugin   kong.Plugin
+		name     string
+		expected string
+	}{
+		{
+			name:     "plugin default case",
+			plugin:   kong.Plugin{},
+			expected: "foo-plugin (global)",
+		},
+		{
+			name: "plugin associated with service",
+			plugin: kong.Plugin{
+				Service: &kong.Service{ID: kong.String("bar")},
+			},
+			expected: "foo-plugin for service bar",
+		},
+		{
+			name: "plugin associated with route",
+			plugin: kong.Plugin{
+				Route: &kong.Route{ID: kong.String("baz")},
+			},
+			expected: "foo-plugin for route baz",
+		},
+		{
+			name: "plugin associated with consumer",
+			plugin: kong.Plugin{
+				Consumer: &kong.Consumer{ID: kong.String("demo")},
+			},
+			expected: "foo-plugin for consumer demo",
+		},
+		{
+			name: "plugin associated with consumer group",
+			plugin: kong.Plugin{
+				ConsumerGroup: &kong.ConsumerGroup{ID: kong.String("demo-group")},
+			},
+			expected: "foo-plugin for consumer-group demo-group",
+		},
+		{
+			name: "plugin associated with >1 entities",
+			plugin: kong.Plugin{
+				Service:       &kong.Service{ID: kong.String("bar")},
+				Route:         &kong.Route{ID: kong.String("baz")},
+				Consumer:      &kong.Consumer{ID: kong.String("demo")},
+				ConsumerGroup: &kong.ConsumerGroup{ID: kong.String("demo-group")},
+			},
+			expected: "foo-plugin for service bar and route baz and consumer demo and consumer-group demo-group",
+		},
+	}
+	for _, tt := range tests {
+		var p1 Plugin
+		p1.Plugin = tt.plugin
+		p1.ID = kong.String("foo")
+		p1.Name = kong.String("foo-plugin")
 
-	var p1 Plugin
-	p1.ID = kong.String("foo")
-	p1.Name = kong.String("foo-plugin")
-
-	// Testing for global
-	expected := "foo-plugin (global)"
-	actual := p1.Console()
-	assert.Equal(expected, actual)
-
-	// Adding a service
-	p1.Service = &kong.Service{ID: kong.String("bar")}
-	expected = "foo-plugin for service bar"
-	actual = p1.Console()
-	assert.Equal(expected, actual)
-
-	// Adding a route with service
-	p1.Route = &kong.Route{ID: kong.String("baz")}
-	expected = "foo-plugin for service bar and route baz"
-	actual = p1.Console()
-	assert.Equal(expected, actual)
-
-	// Adding a consumer with service and route
-	p1.Consumer = &kong.Consumer{ID: kong.String("demo")}
-	expected = "foo-plugin for service bar and route baz and consumer demo"
-	actual = p1.Console()
-	assert.Equal(expected, actual)
-
-	// Adding a consumer-group with service, route and consumer
-	p1.ConsumerGroup = &kong.ConsumerGroup{ID: kong.String("demo-group")}
-	expected = "foo-plugin for service bar and route baz and consumer demo and consumer-group demo-group"
-	actual = p1.Console()
-	assert.Equal(expected, actual)
-
-	// Making everything nil
-	p1.Service = nil
-	p1.Route = nil
-	p1.Consumer = nil
-	p1.ConsumerGroup = nil
-	expected = "foo-plugin (global)"
-	actual = p1.Console()
-	assert.Equal(expected, actual)
+		t.Run(tt.name, func(t *testing.T) {
+			actual := p1.Console()
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
 }
