@@ -5530,7 +5530,11 @@ func TestSync_License(t *testing.T) {
 }
 
 func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
+
 	client, err := getTestClient()
+	// TODO: 'opentelemetry' is a plugin that is available in 3.0 and later.
+	// Should we use another plugin available in 2.8?
+	runWhen(t, "kong", ">=3.0.0")
 	require.NoError(t, err)
 	ctx := context.Background()
 	t.Run("empty_fields_of_plugin_config", func(t *testing.T) {

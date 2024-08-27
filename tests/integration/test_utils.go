@@ -406,7 +406,7 @@ func mustResetKongState(ctx context.Context, t *testing.T, client *kong.Client, 
 	require.NoError(t, err, "failed to create syncer")
 
 	_, errs, _ := sc.Solve(ctx, 1, false, false)
-	require.Lenf(t, errs, 0, "failed to apply diffs to Kong: %d errors occured", len(errs))
+	require.Empty(t, errs, 0, "failed to apply diffs to Kong: %d errors occurred", len(errs))
 }
 
 func stateFromFile(
@@ -450,20 +450,20 @@ func logEntityChanges(t *testing.T, stats deckDiff.Stats, entityChanges deckDiff
 
 // recordRequestProxy is a reverse proxy of Kong gateway admin API endpoints
 // to record the request sent to Kong.
-type recordRequestProxy struct {
+type RecordRequestProxy struct {
 	lock     gosync.RWMutex
 	proxy    *httputil.ReverseProxy
 	requests []*http.Request
 }
 
 // NewRecordRequestProxy returns a recordRequestProxy sending requests to the target URL.
-func NewRecordRequestProxy(target *url.URL) *recordRequestProxy {
-	return &recordRequestProxy{
+func NewRecordRequestProxy(target *url.URL) *RecordRequestProxy {
+	return &RecordRequestProxy{
 		proxy: httputil.NewSingleHostReverseProxy(target),
 	}
 }
 
-func (p *recordRequestProxy) addRequest(req *http.Request, bodyContent []byte) {
+func (p *RecordRequestProxy) addRequest(req *http.Request, bodyContent []byte) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	// Create a new reader to replace the body because the original body closes after request sent.
@@ -472,7 +472,7 @@ func (p *recordRequestProxy) addRequest(req *http.Request, bodyContent []byte) {
 	p.requests = append(p.requests, req)
 }
 
-func (p *recordRequestProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (p *RecordRequestProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	buf, _ := io.ReadAll(req.Body)
 	p.addRequest(req.Clone(context.Background()), buf)
 	reader := io.NopCloser(bytes.NewBuffer(buf))
@@ -480,7 +480,7 @@ func (p *recordRequestProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	p.proxy.ServeHTTP(rw, req)
 }
 
-func (p *recordRequestProxy) dumpRequests() []*http.Request {
+func (p *RecordRequestProxy) dumpRequests() []*http.Request {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 	reqs := make([]*http.Request, 0, len(p.requests))
@@ -490,4 +490,4 @@ func (p *recordRequestProxy) dumpRequests() []*http.Request {
 	return reqs
 }
 
-var _ http.Handler = &recordRequestProxy{}
+var _ http.Handler = &RecordRequestProxy{}
