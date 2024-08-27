@@ -1,0 +1,11 @@
+_format_version: "3.0"
+plugins:
+- config:
+    endpoint: http://example.test
+  enabled: true
+  name: opentelemetry
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
