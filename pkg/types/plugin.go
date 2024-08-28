@@ -88,6 +88,7 @@ type pluginDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+	kongClient                *kong.Client
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
@@ -174,8 +175,18 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	}
 	currentPlugin = &state.Plugin{Plugin: *currentPlugin.DeepCopy()}
 	// found, check if update needed
+	// before checking the diff, fill in the defaults
+	schema, err := d.kongClient.Plugins.GetFullSchema(context.TODO(), plugin.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting schema: %w", err)
+	}
+	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
+	err = kong.FillPluginsDefaultsAutoFields(&pluginWithDefaults.Plugin, schema, &currentPlugin.Plugin)
+	if err != nil {
+		return nil, fmt.Errorf("failed processing auto fields: %w", err)
+	}
 
-	if !currentPlugin.EqualWithOpts(plugin, false, true, false) {
+	if !currentPlugin.EqualWithOpts(pluginWithDefaults, false, true, false) {
 		return &crud.Event{
 			Op:     crud.Update,
 			Kind:   d.kind,
