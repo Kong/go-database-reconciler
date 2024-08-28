@@ -15,6 +15,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -5624,6 +5625,64 @@ func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
 			path, ok := plugin.Config["path"]
 			require.True(t, ok)
 			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
+		})
+	})
+}
+
+func Test_Sync_PluginAutoFields(t *testing.T) {
+	client, err := getTestClient()
+
+	require.NoError(t, err)
+	ctx := context.Background()
+	t.Run("plugin_with_auto_fields", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, deckDump.Config{})
+
+		currentState, err := fetchCurrentState(ctx, client, deckDump.Config{})
+		require.NoError(t, err)
+		targetState := stateFromFile(ctx, t,
+			"testdata/sync/034-fill-auto-oauth2/kong.yaml",
+			client,
+			deckDump.Config{},
+		)
+
+		kongURL, err := url.Parse(client.BaseRootURL())
+		require.NoError(t, err)
+		p := NewRecordRequestProxy(kongURL)
+		s := httptest.NewServer(p)
+		c, err := utils.GetKongClient(utils.KongClientConfig{
+			Address: s.URL,
+		})
+		require.NoError(t, err)
+
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: c,
+		})
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Empty(t, errs, "Should have no errors in syncing")
+		require.NoError(t, err)
+
+		require.Equal(t, int32(1), stats.CreateOps.Count(), "Should create 1 entity")
+		require.Len(t, changes.Creating, 1, "Should have 1 creating record in changes")
+
+		t.Run("should not override auto values with nils", func(t *testing.T) {
+			newState, err := fetchCurrentState(ctx, client, deckDump.Config{})
+			require.NoError(t, err)
+			plugins, err := newState.Plugins.GetAll()
+			require.NoError(t, err)
+			require.Len(t, plugins, 1)
+			plugin := plugins[0]
+			require.Equal(t, "oauth2", *plugin.Name)
+			provisionKey, ok := plugin.Config["provision_key"]
+			require.True(t, ok)
+
+			provisionKeyStr, ok := provisionKey.(string)
+			require.True(t, ok, "provision_key is not a string")
+			pattern := `^[a-zA-Z0-9]+$`
+			re := regexp.MustCompile(pattern)
+			require.True(t, re.MatchString(provisionKeyStr), "provision_key does not match the pattern")
 		})
 	})
 }
