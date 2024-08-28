@@ -663,3 +663,66 @@ func TestDeepEqualWithSorting(t *testing.T) {
 		t.Errorf("expected maps to be equal, but they are not")
 	}
 }
+
+func TestPluginConsole(t *testing.T) {
+	tests := []struct {
+		plugin   kong.Plugin
+		name     string
+		expected string
+	}{
+		{
+			name:     "plugin default case",
+			plugin:   kong.Plugin{},
+			expected: "foo-plugin (global)",
+		},
+		{
+			name: "plugin associated with service",
+			plugin: kong.Plugin{
+				Service: &kong.Service{ID: kong.String("bar")},
+			},
+			expected: "foo-plugin for service bar",
+		},
+		{
+			name: "plugin associated with route",
+			plugin: kong.Plugin{
+				Route: &kong.Route{ID: kong.String("baz")},
+			},
+			expected: "foo-plugin for route baz",
+		},
+		{
+			name: "plugin associated with consumer",
+			plugin: kong.Plugin{
+				Consumer: &kong.Consumer{ID: kong.String("demo")},
+			},
+			expected: "foo-plugin for consumer demo",
+		},
+		{
+			name: "plugin associated with consumer group",
+			plugin: kong.Plugin{
+				ConsumerGroup: &kong.ConsumerGroup{ID: kong.String("demo-group")},
+			},
+			expected: "foo-plugin for consumer-group demo-group",
+		},
+		{
+			name: "plugin associated with >1 entities",
+			plugin: kong.Plugin{
+				Service:       &kong.Service{ID: kong.String("bar")},
+				Route:         &kong.Route{ID: kong.String("baz")},
+				Consumer:      &kong.Consumer{ID: kong.String("demo")},
+				ConsumerGroup: &kong.ConsumerGroup{ID: kong.String("demo-group")},
+			},
+			expected: "foo-plugin for service bar and route baz and consumer demo and consumer-group demo-group",
+		},
+	}
+	for _, tt := range tests {
+		var p1 Plugin
+		p1.Plugin = tt.plugin
+		p1.ID = kong.String("foo")
+		p1.Name = kong.String("foo-plugin")
+
+		t.Run(tt.name, func(t *testing.T) {
+			actual := p1.Console()
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}

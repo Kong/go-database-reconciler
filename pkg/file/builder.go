@@ -1475,44 +1475,6 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	return nil
 }
 
-func (b *stateBuilder) getPluginSchema(pluginName string) (map[string]interface{}, error) {
-	var schema map[string]interface{}
-
-	// lookup in cache
-	if schema, ok := b.schemasCache[pluginName]; ok {
-		return schema, nil
-	}
-
-	exists, err := utils.WorkspaceExists(b.ctx, b.client)
-	if err != nil {
-		return nil, fmt.Errorf("ensure workspace exists: %w", err)
-	}
-	if !exists {
-		return schema, ErrWorkspaceNotFound
-	}
-
-	schema, err = b.client.Plugins.GetFullSchema(b.ctx, &pluginName)
-	if err != nil {
-		return schema, err
-	}
-	b.schemasCache[pluginName] = schema
-	return schema, nil
-}
-
-func (b *stateBuilder) addPluginDefaults(plugin *FPlugin) error {
-	if b.client == nil {
-		return nil
-	}
-	schema, err := b.getPluginSchema(*plugin.Name)
-	if err != nil {
-		if errors.Is(err, ErrWorkspaceNotFound) {
-			return nil
-		}
-		return fmt.Errorf("retrieve schema for %v from Kong: %w", *plugin.Name, err)
-	}
-	return kong.FillPluginsDefaults(&plugin.Plugin, schema)
-}
-
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
 		p := p
@@ -1535,9 +1497,6 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		err = b.fillPluginConfig(&p)
 		if err != nil {
 			return err
-		}
-		if err := b.addPluginDefaults(&p); err != nil {
-			return fmt.Errorf("add defaults to plugin '%v': %w", *p.Name, err)
 		}
 		utils.MustMergeTags(&p, b.selectTags)
 		if plugin != nil {

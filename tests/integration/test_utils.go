@@ -2,9 +2,14 @@
 package integration
 
 import (
+	"bytes"
 	"context"
 	"io"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
+	gosync "sync"
 	"testing"
 
 	"github.com/acarl005/stripansi"
@@ -21,11 +26,6 @@ import (
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/require"
 )
-
-func int32p(i int) *int32 {
-	p := int32(i)
-	return &p
-}
 
 func getKongAddress() string {
 	address := os.Getenv("DECK_KONG_ADDR")
@@ -387,6 +387,28 @@ func getKongVersion(ctx context.Context, t *testing.T, client *kong.Client) semv
 	}
 }
 
+// mustResetKongState resets Kong state. Intended to replace `reset` which uses deck command.
+func mustResetKongState(ctx context.Context, t *testing.T, client *kong.Client, dumpConfig deckDump.Config) {
+	t.Helper()
+
+	emptyRawState := utils.KongRawState{}
+	targetState, err := state.Get(&emptyRawState)
+	require.NoError(t, err)
+
+	currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+	require.NoError(t, err, "failed to fetch current state")
+
+	sc, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+		CurrentState: currentState,
+		TargetState:  targetState,
+		KongClient:   client,
+	})
+	require.NoError(t, err, "failed to create syncer")
+
+	_, errs, _ := sc.Solve(ctx, 1, false, false)
+	require.Empty(t, errs, 0, "failed to apply diffs to Kong: %d errors occurred", len(errs))
+}
+
 func stateFromFile(
 	ctx context.Context, t *testing.T,
 	filename string, client *kong.Client, dumpConfig deckDump.Config,
@@ -425,3 +447,47 @@ func logEntityChanges(t *testing.T, stats deckDiff.Stats, entityChanges deckDiff
 		stats.UpdateOps.Count(),
 	)
 }
+
+// recordRequestProxy is a reverse proxy of Kong gateway admin API endpoints
+// to record the request sent to Kong.
+type RecordRequestProxy struct {
+	lock     gosync.RWMutex
+	proxy    *httputil.ReverseProxy
+	requests []*http.Request
+}
+
+// NewRecordRequestProxy returns a recordRequestProxy sending requests to the target URL.
+func NewRecordRequestProxy(target *url.URL) *RecordRequestProxy {
+	return &RecordRequestProxy{
+		proxy: httputil.NewSingleHostReverseProxy(target),
+	}
+}
+
+func (p *RecordRequestProxy) addRequest(req *http.Request, bodyContent []byte) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	// Create a new reader to replace the body because the original body closes after request sent.
+	reader := io.NopCloser(bytes.NewBuffer(bodyContent))
+	req.Body = reader
+	p.requests = append(p.requests, req)
+}
+
+func (p *RecordRequestProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	buf, _ := io.ReadAll(req.Body)
+	p.addRequest(req.Clone(context.Background()), buf)
+	reader := io.NopCloser(bytes.NewBuffer(buf))
+	req.Body = reader
+	p.proxy.ServeHTTP(rw, req)
+}
+
+func (p *RecordRequestProxy) dumpRequests() []*http.Request {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	reqs := make([]*http.Request, 0, len(p.requests))
+	for _, req := range p.requests {
+		reqs = append(reqs, req.Clone(context.Background()))
+	}
+	return reqs
+}
+
+var _ http.Handler = &RecordRequestProxy{}
