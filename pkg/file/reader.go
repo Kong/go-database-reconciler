@@ -102,7 +102,6 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 		builder.lookupTagsConsumerGroups = dumpConfig.LookUpSelectorTagsConsumerGroups
 	}
 
-
 	if fileContent.Transform != nil && !*fileContent.Transform {
 		return nil, ErrorTransformFalseNotSupported
 	}

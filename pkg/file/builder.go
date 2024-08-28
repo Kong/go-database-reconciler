@@ -179,7 +179,7 @@ func (b *stateBuilder) consumerGroups() {
 				cg.ID = kong.String(*current.ID)
 			}
 		}
-		
+
 		stringTags := make([]string, len(cg.Tags))
 		for i, tag := range cg.Tags {
 			if tag != nil {
