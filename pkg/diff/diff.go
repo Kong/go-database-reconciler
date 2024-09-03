@@ -609,10 +609,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// that will be used for the diff. This is needed to avoid highlighting
 		// default values that were populated by Kong as differences.
 		if plugin, ok := e.Obj.(*state.Plugin); ok {
-			pluginCopy := &state.Plugin{
-				Plugin: *plugin.DeepCopy(),
-				Meta:   plugin.Meta,
-			}
+			pluginCopy := &state.Plugin{Plugin: *plugin.DeepCopy()}
 			e.Obj = pluginCopy
 
 			exists, err := utils.WorkspaceExists(ctx, sc.kongClient)
@@ -623,8 +620,13 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 					return nil, err
 				}
 
-				if err := kong.FillPluginsDefaults(&pluginCopy.Plugin, schema); err != nil {
-					return nil, fmt.Errorf("failed filling plugin defaults: %w", err)
+				var oldPlugin *kong.Plugin
+				if kongStatePlugin, ok := e.OldObj.(*state.Plugin); ok {
+					oldPlugin = &kongStatePlugin.Plugin
+				}
+				newPlugin := &pluginCopy.Plugin
+				if err := kong.FillPluginsDefaultsAutoFields(newPlugin, schema, oldPlugin); err != nil {
+					return nil, fmt.Errorf("failed processing auto fields: %w", err)
 				}
 			}
 		}
