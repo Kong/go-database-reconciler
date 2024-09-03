@@ -621,8 +621,8 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				}
 
 				var oldPlugin *kong.Plugin
-				if e.OldObj != nil && e.OldObj.(*state.Plugin) != nil {
-					oldPlugin = &e.OldObj.(*state.Plugin).Plugin
+				if kongStatePlugin, ok := e.OldObj.(*state.Plugin); ok {
+					oldPlugin = &kongStatePlugin.Plugin
 				}
 				newPlugin := &pluginCopy.Plugin
 				if err := kong.FillPluginsDefaultsAutoFields(newPlugin, schema, oldPlugin); err != nil {
