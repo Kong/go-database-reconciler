@@ -5688,7 +5688,8 @@ func Test_Sync_PluginAutoFields(t *testing.T) {
 }
 
 // test scope:
-// - 3.x
+// - enterprise
+// - >=3.4.0
 func Test_Sync_MoreThanOneConsumerGroupForOneConsumer(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.4.0")
 	setup(t)
