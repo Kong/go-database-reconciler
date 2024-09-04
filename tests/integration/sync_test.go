@@ -5686,3 +5686,42 @@ func Test_Sync_PluginAutoFields(t *testing.T) {
 		})
 	})
 }
+
+// test scope:
+// - 3.x
+func Test_Sync_MoreThanOneConsumerGroupForOneConsumer(t *testing.T) {
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group2"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				Username: kong.String("my-test-consumer"),
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/xxx-more-than-one-consumer-group-with-a-consumer/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}

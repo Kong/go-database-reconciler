@@ -151,12 +151,21 @@ func getConsumerGroupConsumer(txn *memdb.Txn, consumerGroupID string, IDs ...str
 
 	for _, id := range IDs {
 		for _, index := range indexes {
-			res, err := txn.First(consumerGroupConsumerTableName, index, id)
+			res, err := txn.Get(consumerGroupConsumerTableName, index, id)
 			if err != nil {
 				return nil, err
 			}
-			if res != nil {
-				consumer := res.(*ConsumerGroupConsumer)
+
+			for {
+				resultValue := res.Next()
+				if resultValue == nil {
+					break
+				}
+				consumer, ok := resultValue.(*ConsumerGroupConsumer)
+				if !ok {
+					break
+				}
+
 				if *consumer.ConsumerGroup.ID == consumerGroupID {
 					return consumer, nil
 				}
