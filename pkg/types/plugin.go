@@ -181,7 +181,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed getting schema: %w", err)
 	}
 	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
-	err = kong.FillPluginsDefaultsAutoFields(&pluginWithDefaults.Plugin, schema, &currentPlugin.Plugin)
+	err = kong.FillPluginsDefaults(&pluginWithDefaults.Plugin, schema)
 	if err != nil {
 		return nil, fmt.Errorf("failed processing auto fields: %w", err)
 	}
