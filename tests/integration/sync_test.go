@@ -5690,6 +5690,9 @@ func Test_Sync_PluginAutoFields(t *testing.T) {
 // test scope:
 // - 3.x
 func Test_Sync_MoreThanOneConsumerGroupForOneConsumer(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.4.0")
+	setup(t)
+
 	client, err := getTestClient()
 	require.NoError(t, err)
 
