@@ -5667,3 +5667,89 @@ func Test_Sync_PluginAutoFields(t *testing.T) {
 			"Should error out due to missing provision_key")
 	})
 }
+
+// test scope:
+// - enterprise
+// - >=3.4.0
+func Test_Sync_MoreThanOneConsumerGroupForOneConsumer(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.4.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group2"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				Username: kong.String("my-test-consumer"),
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/xxx-more-than-one-consumer-group-with-a-consumer/kong3x.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}
+
+// test scope:
+// - enterprise
+// - 2.8.0
+func Test_Sync_MoreThanOneConsumerGroupForOneConsumer_2_8(t *testing.T) {
+	runWhen(t, "enterprise", ">=2.8.0 <3.0.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group2"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				Username: kong.String("my-test-consumer"),
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/xxx-more-than-one-consumer-group-with-a-consumer/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}
