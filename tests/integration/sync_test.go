@@ -15,7 +15,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -5660,30 +5659,12 @@ func Test_Sync_PluginAutoFields(t *testing.T) {
 
 			KongClient: c,
 		})
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Empty(t, errs, "Should have no errors in syncing")
-		require.NoError(t, err)
+		_, errs, _ := syncer.Solve(ctx, 1, false, true)
 
-		require.Equal(t, int32(1), stats.CreateOps.Count(), "Should create 1 entity")
-		require.Len(t, changes.Creating, 1, "Should have 1 creating record in changes")
-
-		t.Run("should not override auto values with nils", func(t *testing.T) {
-			newState, err := fetchCurrentState(ctx, client, deckDump.Config{})
-			require.NoError(t, err)
-			plugins, err := newState.Plugins.GetAll()
-			require.NoError(t, err)
-			require.Len(t, plugins, 1)
-			plugin := plugins[0]
-			require.Equal(t, "oauth2", *plugin.Name)
-			provisionKey, ok := plugin.Config["provision_key"]
-			require.True(t, ok)
-
-			provisionKeyStr, ok := provisionKey.(string)
-			require.True(t, ok, "provision_key is not a string")
-			pattern := `^[a-zA-Z0-9]+$`
-			re := regexp.MustCompile(pattern)
-			require.True(t, re.MatchString(provisionKeyStr), "provision_key does not match the pattern")
-		})
+		require.NotNil(t, errs)
+		require.Len(t, errs, 1)
+		require.Contains(t, errs[0].Error(), "provision_key: required field missing",
+			"Should error out due to missing provision_key")
 	})
 }
 

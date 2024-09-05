@@ -603,7 +603,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// Below the configuration in `e` may be modified. This is done solely for
 		// the purpose of displaying a correct diff and should not affect the
 		// configuration that is sent to Kong.
-		originalE := e
+		eventForKong := e
 
 		// If the event is for a plugin, inject defaults in the plugin's config
 		// that will be used for the diff. This is needed to avoid highlighting
@@ -620,12 +620,19 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 					return nil, err
 				}
 
-				var oldPlugin *kong.Plugin
-				if kongStatePlugin, ok := e.OldObj.(*state.Plugin); ok {
-					oldPlugin = &kongStatePlugin.Plugin
-				}
+				// fill defaults and auto fields for the configuration that will be used for the diff
 				newPlugin := &pluginCopy.Plugin
-				if err := kong.FillPluginsDefaultsAutoFields(newPlugin, schema, oldPlugin); err != nil {
+				if err := kong.FillPluginsDefaults(newPlugin, schema); err != nil {
+					return nil, fmt.Errorf("failed processing auto fields: %w", err)
+				}
+
+				// only fill auto fields for the configuration sent to Kong
+				// this is done because we want to avoid Kong to auto generate fields, which
+				// would make decK's configuration no longer fully "declarative"
+				if err := kong.FillPluginsDefaultsWithOpts(&plugin.Plugin, schema, kong.FillRecordOptions{
+					FillDefaults: false,
+					FillAuto:     true,
+				}); err != nil {
 					return nil, fmt.Errorf("failed processing auto fields: %w", err)
 				}
 			}
@@ -712,7 +719,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		if !dry {
 			// sync mode
 			// fire the request to Kong
-			result, err = sc.processor.Do(ctx, originalE.Kind, originalE.Op, originalE)
+			result, err = sc.processor.Do(ctx, eventForKong.Kind, eventForKong.Op, eventForKong)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this does not print, but is switched on
 			// sc.enableEntityActions because the existing behavior returns a result from the anon Run function.
 			// Refactoring should use only the channel and simplify the return, probably to just an error (all the other
