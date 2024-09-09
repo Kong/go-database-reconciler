@@ -291,7 +291,30 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("plugins: %w", err)
 		}
+
+		if config.LookUpSelectorTagsConsumerGroups != nil {
+			globalConsumerGroupsPlugins, err := GetAllPlugins(ctx, client, config.LookUpSelectorTagsConsumerGroups)
+			if err != nil {
+				return fmt.Errorf("error retrieving global plugins: %w", err)
+			}
+			// if globalServices are not present, add them.
+			
+			for _, globalConsumerGroupsPlugin := range globalConsumerGroupsPlugins {
+				found := false
+				for _, plugin := range plugins {
+					if *globalConsumerGroupsPlugin.ID == *plugin.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					plugins = append(plugins, globalConsumerGroupsPlugin)
+				}
+			}
+		}
+
 		plugins = excludeKonnectManagedPlugins(plugins)
+
 		if config.SkipConsumers {
 			plugins = excludeConsumersPlugins(plugins)
 			plugins = excludeConsumerGroupsPlugins(plugins)
