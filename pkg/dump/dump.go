@@ -298,7 +298,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 				return fmt.Errorf("error retrieving global plugins: %w", err)
 			}
 			// if globalServices are not present, add them.
-			
+
 			for _, globalConsumerGroupsPlugin := range globalConsumerGroupsPlugins {
 				found := false
 				for _, plugin := range plugins {
