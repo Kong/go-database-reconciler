@@ -144,7 +144,6 @@ func TestPluginsCollection_Add(t *testing.T) {
 	k.Add(plugin2)
 	k.Add(plugin3)
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := k.Add(tt.args.plugin); (err != nil) != tt.wantErr {
@@ -291,7 +290,6 @@ func TestPluginsCollection_Update(t *testing.T) {
 	k.Add(plugin3)
 	k.Add(plugin4)
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := k.Update(tt.args.plugin); (err != nil) != tt.wantErr {

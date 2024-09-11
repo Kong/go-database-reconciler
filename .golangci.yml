@@ -4,7 +4,6 @@ linters:
   - dogsled
   - durationcheck
   - exhaustive
-  - exportloopref
   - gci
   - goconst
   - gofmt
@@ -29,6 +28,7 @@ linters:
   - unparam
   - wastedassign
   - errorlint
+  - copyloopvar
 issues:
   max-same-issues: 0
   exclude-rules:
