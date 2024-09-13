@@ -232,6 +232,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Plugin),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				kongClient:   opts.KongClient,
 			},
 		}, nil
 	case Consumer:
