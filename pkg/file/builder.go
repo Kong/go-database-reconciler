@@ -918,7 +918,6 @@ func (b *stateBuilder) ingestService(s *FService) error {
 		utils.MustMergeTags(&s.Service, b.selectTags)
 	}
 
-	// utils.MustMergeTags(&s, b.selectTags)
 	b.defaulter.MustSet(&s.Service)
 	if svc != nil {
 		s.Service.CreatedAt = svc.CreatedAt
