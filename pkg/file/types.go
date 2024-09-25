@@ -778,8 +778,10 @@ type Info struct {
 // for corresponding entities already in Kong.
 // +k8s:deepcopy-gen=true
 type LookUpSelectorTags struct {
-	Consumers []string `json:"consumers,omitempty" yaml:"consumers,omitempty"`
-	Routes    []string `json:"routes,omitempty" yaml:"routes,omitempty"`
+	ConsumerGroups []string `json:"consumer_groups,omitempty" yaml:"consumer_groups,omitempty"`
+	Consumers      []string `json:"consumers,omitempty" yaml:"consumers,omitempty"`
+	Routes         []string `json:"routes,omitempty" yaml:"routes,omitempty"`
+	Services       []string `json:"services,omitempty" yaml:"services,omitempty"`
 }
 
 // Konnect contains configuration specific to Konnect.

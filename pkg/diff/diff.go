@@ -599,6 +599,45 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		var err error
 		var result crud.Arg
 
+		// This variable holds the original event with the unchanged configuration
+		// Below the configuration in `e` may be modified. This is done solely for
+		// the purpose of displaying a correct diff and should not affect the
+		// configuration that is sent to Kong.
+		eventForKong := e
+
+		// If the event is for a plugin, inject defaults in the plugin's config
+		// that will be used for the diff. This is needed to avoid highlighting
+		// default values that were populated by Kong as differences.
+		if plugin, ok := e.Obj.(*state.Plugin); ok {
+			pluginCopy := &state.Plugin{Plugin: *plugin.DeepCopy()}
+			e.Obj = pluginCopy
+
+			exists, err := utils.WorkspaceExists(ctx, sc.kongClient)
+			if err == nil && exists {
+				var schema map[string]interface{}
+				schema, err = sc.kongClient.Plugins.GetFullSchema(ctx, pluginCopy.Plugin.Name)
+				if err != nil {
+					return nil, err
+				}
+
+				// fill defaults and auto fields for the configuration that will be used for the diff
+				newPlugin := &pluginCopy.Plugin
+				if err := kong.FillPluginsDefaults(newPlugin, schema); err != nil {
+					return nil, fmt.Errorf("failed processing auto fields: %w", err)
+				}
+
+				// only fill auto fields for the configuration sent to Kong
+				// this is done because we want to avoid Kong to auto generate fields, which
+				// would make decK's configuration no longer fully "declarative"
+				if err := kong.FillPluginsDefaultsWithOpts(&plugin.Plugin, schema, kong.FillRecordOptions{
+					FillDefaults: false,
+					FillAuto:     true,
+				}); err != nil {
+					return nil, fmt.Errorf("failed processing auto fields: %w", err)
+				}
+			}
+		}
+
 		c := e.Obj.(state.ConsoleString)
 		objDiff := map[string]interface{}{
 			"old": e.OldObj,
@@ -680,7 +719,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		if !dry {
 			// sync mode
 			// fire the request to Kong
-			result, err = sc.processor.Do(ctx, e.Kind, e.Op, e)
+			result, err = sc.processor.Do(ctx, eventForKong.Kind, eventForKong.Op, eventForKong)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this does not print, but is switched on
 			// sc.enableEntityActions because the existing behavior returns a result from the anon Run function.
 			// Refactoring should use only the channel and simplify the return, probably to just an error (all the other

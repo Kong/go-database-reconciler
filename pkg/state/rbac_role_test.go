@@ -105,7 +105,8 @@ func TestRBACRolesCollection_Get(t *testing.T) {
 	}
 	rbacRole1 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID: kong.String("foo-id"),
+			ID:   kong.String("foo-id"),
+			Name: kong.String("foo-name"),
 		},
 	}
 	rbacRole2 := RBACRole{
@@ -157,7 +158,7 @@ func TestRBACRolesCollection_Get(t *testing.T) {
 	k.Add(rbacRole1)
 	k.Add(rbacRole2)
 	for _, tt := range tests {
-		tc := &tt //nolint:gosec
+		tc := &tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := k.Get(tc.args.nameOrID)

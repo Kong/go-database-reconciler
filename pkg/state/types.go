@@ -526,7 +526,7 @@ func (p1 *Plugin) Identifier() string {
 func (p1 *Plugin) Console() string {
 	res := *p1.Name + " "
 
-	if p1.Service == nil && p1.Route == nil && p1.Consumer == nil {
+	if p1.Service == nil && p1.Route == nil && p1.Consumer == nil && p1.ConsumerGroup == nil {
 		return res + "(global)"
 	}
 	associations := []string{}

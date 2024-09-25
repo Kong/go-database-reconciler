@@ -27,12 +27,14 @@ type stateBuilder struct {
 	defaulter       *utils.Defaulter
 	kongVersion     semver.Version
 
-	selectTags          []string
-	lookupTagsConsumers []string
-	lookupTagsRoutes    []string
-	skipCACerts         bool
-	includeLicenses     bool
-	intermediate        *state.KongState
+	selectTags               []string
+	lookupTagsConsumerGroups []string
+	lookupTagsConsumers      []string
+	lookupTagsRoutes         []string
+	lookupTagsServices       []string
+	skipCACerts              bool
+	includeLicenses          bool
+	intermediate             *state.KongState
 
 	client *kong.Client
 	ctx    context.Context
@@ -177,7 +179,21 @@ func (b *stateBuilder) consumerGroups() {
 				cg.ID = kong.String(*current.ID)
 			}
 		}
-		utils.MustMergeTags(&cg.ConsumerGroup, b.selectTags)
+
+		stringTags := make([]string, len(cg.Tags))
+		for i, tag := range cg.Tags {
+			if tag != nil {
+				stringTags[i] = *tag
+			}
+		}
+		sort.Strings(stringTags)
+		sort.Strings(b.lookupTagsConsumerGroups)
+		// if the consumer group tags and the lookup tags are the same, it means
+		// that the consumer group is a global consumer group retrieved from upstream,
+		// therefore we don't want to merge its tags with the selected tags.
+		if !reflect.DeepEqual(stringTags, b.lookupTagsConsumerGroups) {
+			utils.MustMergeTags(&cg.ConsumerGroup, b.selectTags)
+		}
 
 		cgo := kong.ConsumerGroupObject{
 			ConsumerGroup: &cg.ConsumerGroup,
@@ -886,7 +902,22 @@ func (b *stateBuilder) ingestService(s *FService) error {
 			s.ID = kong.String(*svc.ID)
 		}
 	}
-	utils.MustMergeTags(&s.Service, b.selectTags)
+
+	stringTags := make([]string, len(s.Tags))
+	for i, tag := range s.Tags {
+		if tag != nil {
+			stringTags[i] = *tag
+		}
+	}
+	sort.Strings(stringTags)
+	sort.Strings(b.lookupTagsServices)
+	// if the service tags and the lookup tags are the same, it means
+	// that the service is a global service retrieved from upstream,
+	// therefore we don't want to merge its tags with the selected tags.
+	if !reflect.DeepEqual(stringTags, b.lookupTagsServices) {
+		utils.MustMergeTags(&s.Service, b.selectTags)
+	}
+
 	b.defaulter.MustSet(&s.Service)
 	if svc != nil {
 		s.Service.CreatedAt = svc.CreatedAt
@@ -1443,44 +1474,6 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	return nil
 }
 
-func (b *stateBuilder) getPluginSchema(pluginName string) (map[string]interface{}, error) {
-	var schema map[string]interface{}
-
-	// lookup in cache
-	if schema, ok := b.schemasCache[pluginName]; ok {
-		return schema, nil
-	}
-
-	exists, err := utils.WorkspaceExists(b.ctx, b.client)
-	if err != nil {
-		return nil, fmt.Errorf("ensure workspace exists: %w", err)
-	}
-	if !exists {
-		return schema, ErrWorkspaceNotFound
-	}
-
-	schema, err = b.client.Plugins.GetFullSchema(b.ctx, &pluginName)
-	if err != nil {
-		return schema, err
-	}
-	b.schemasCache[pluginName] = schema
-	return schema, nil
-}
-
-func (b *stateBuilder) addPluginDefaults(plugin *FPlugin) error {
-	if b.client == nil {
-		return nil
-	}
-	schema, err := b.getPluginSchema(*plugin.Name)
-	if err != nil {
-		if errors.Is(err, ErrWorkspaceNotFound) {
-			return nil
-		}
-		return fmt.Errorf("retrieve schema for %v from Kong: %w", *plugin.Name, err)
-	}
-	return kong.FillPluginsDefaults(&plugin.Plugin, schema)
-}
-
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
 		p := p
@@ -1503,9 +1496,6 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		err = b.fillPluginConfig(&p)
 		if err != nil {
 			return err
-		}
-		if err := b.addPluginDefaults(&p); err != nil {
-			return fmt.Errorf("add defaults to plugin '%v': %w", *p.Name, err)
 		}
 		utils.MustMergeTags(&p, b.selectTags)
 		if plugin != nil {

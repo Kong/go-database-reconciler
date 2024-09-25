@@ -39,8 +39,10 @@ type Config struct {
 	// LookUpSelectorTags* can be used to ensure state lookup for entities using
 	// these tags. This functionality is essential when using a plugin that references
 	// consumers or routes associated with tags different from those in the sync command.
-	LookUpSelectorTagsConsumers []string
-	LookUpSelectorTagsRoutes    []string
+	LookUpSelectorTagsConsumerGroups []string
+	LookUpSelectorTagsConsumers      []string
+	LookUpSelectorTagsRoutes         []string
+	LookUpSelectorTagsServices       []string
 
 	// KonnectControlPlane
 	KonnectControlPlane string
@@ -93,6 +95,25 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 				return nil
 			}
 			return fmt.Errorf("consumer_groups: %w", err)
+		}
+		if config.LookUpSelectorTagsConsumerGroups != nil {
+			globalConsumerGroups, err := GetAllConsumerGroups(ctx, client, config.LookUpSelectorTagsConsumerGroups)
+			if err != nil {
+				return fmt.Errorf("error retrieving global consumer groups: %w", err)
+			}
+			// if globalConsumers are not present, add them.
+			for _, globalConsumerGroup := range globalConsumerGroups {
+				found := false
+				for _, consumerGroup := range consumerGroups {
+					if *globalConsumerGroup.ConsumerGroup.ID == *consumerGroup.ConsumerGroup.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					consumerGroups = append(consumerGroups, globalConsumerGroup)
+				}
+			}
 		}
 		state.ConsumerGroups = consumerGroups
 		return nil
@@ -214,6 +235,25 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("services: %w", err)
 		}
+		if config.LookUpSelectorTagsServices != nil {
+			globalServices, err := GetAllServices(ctx, client, config.LookUpSelectorTagsServices)
+			if err != nil {
+				return fmt.Errorf("error retrieving global services: %w", err)
+			}
+			// if globalServices are not present, add them.
+			for _, globalService := range globalServices {
+				found := false
+				for _, service := range services {
+					if *globalService.ID == *service.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					services = append(services, globalService)
+				}
+			}
+		}
 		state.Services = services
 		return nil
 	})
@@ -251,7 +291,9 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("plugins: %w", err)
 		}
+
 		plugins = excludeKonnectManagedPlugins(plugins)
+
 		if config.SkipConsumers {
 			plugins = excludeConsumersPlugins(plugins)
 			plugins = excludeConsumerGroupsPlugins(plugins)

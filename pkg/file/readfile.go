@@ -67,7 +67,7 @@ func getContent(filenames []string, mockEnvVars bool) (*Content, error) {
 func getReaders(fileOrDir string) (map[string]io.Reader, error) {
 	// special case where `-` means stdin
 	if fileOrDir == "-" {
-		if term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stderr.Fd())) { //nolint:gosec
+		if term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stderr.Fd())) {
 			fmt.Fprintf(os.Stderr, "reading input from stdin...\n")
 		}
 		return map[string]io.Reader{"STDIN": os.Stdin}, nil

@@ -7,9 +7,13 @@ import (
 	"crypto/sha1"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -19,8 +23,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	deckDiff "github.com/kong/go-database-reconciler/pkg/diff"
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -5521,4 +5527,229 @@ func TestSync_License(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, licenses)
 	})
+}
+
+func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
+
+	client, err := getTestClient()
+
+	require.NoError(t, err)
+	ctx := context.Background()
+	t.Run("empty_fields_of_plugin_config", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, deckDump.Config{})
+
+		currrentState, err := fetchCurrentState(ctx, client, deckDump.Config{})
+		require.NoError(t, err)
+		targetState := stateFromFile(ctx, t,
+			"testdata/sync/033-plugin-with-empty-fields/kong.yaml",
+			client,
+			deckDump.Config{},
+		)
+
+		kongURL, err := url.Parse(client.BaseRootURL())
+		require.NoError(t, err)
+		p := NewRecordRequestProxy(kongURL)
+		s := httptest.NewServer(p)
+		c, err := utils.GetKongClient(utils.KongClientConfig{
+			Address: s.URL,
+		})
+		require.NoError(t, err)
+
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currrentState,
+			TargetState:  targetState,
+
+			KongClient: c,
+		})
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Empty(t, errs, "Should have no errors in syncing")
+		require.NoError(t, err)
+
+		require.Equal(t, int32(1), stats.CreateOps.Count(), "Should create 1 entity")
+		require.Len(t, changes.Creating, 1, "Should have 1 creating record in changes")
+
+		// The change records which are returned in `diff` command should fill default values.
+		t.Run("should fill default values in change records", func(t *testing.T) {
+			body, ok := changes.Creating[0].Body.(map[string]any)
+			require.True(t, ok)
+			plugin, ok := body["new"].(*state.Plugin)
+			require.True(t, ok)
+
+			path, ok := plugin.Config["path"]
+			require.True(t, ok)
+			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
+
+			reopen, ok := plugin.Config["reopen"]
+			require.True(t, ok, "'reopen' field should be filled")
+			require.Equal(t, false, reopen, "should be the same as default value")
+
+			custom_fields_by_lua, ok := plugin.Config["custom_fields_by_lua"]
+			require.True(t, ok, "'custom_fields_by_lua' field should be filled")
+			require.Nil(t, custom_fields_by_lua, "should be an explicit nil")
+		})
+
+		// But the default values should not be filled in request sent to Kong.
+		t.Run("should not fill default values in requests sent to Kong", func(t *testing.T) {
+			reqs := p.dumpRequests()
+			req, found := lo.Find(reqs, func(r *http.Request) bool {
+				return r.Method == "PUT" && strings.Contains(r.URL.Path, "/plugins")
+			})
+			require.True(t, found, "Should find request to create plugin")
+			buf, err := io.ReadAll(req.Body)
+			require.NoError(t, err, "Should read request body from record")
+			plugin := state.Plugin{}
+			err = json.Unmarshal(buf, &plugin)
+			require.NoError(t, err, "Should unmarshal request body to plugin type")
+
+			path, ok := plugin.Config["path"]
+			require.True(t, ok)
+			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
+
+			_, ok = plugin.Config["reopen"]
+			require.False(t, ok, "'reopen' field should not be filled")
+
+			_, ok = plugin.Config["custom_fields_by_lua"]
+			require.False(t, ok, "'custom_fields_by_lua' field should not be filled")
+		})
+
+		// Should update Kong state successfully.
+		t.Run("Should get the plugin config from update Kong", func(t *testing.T) {
+			newState, err := fetchCurrentState(ctx, client, deckDump.Config{})
+			require.NoError(t, err)
+			plugins, err := newState.Plugins.GetAll()
+			require.NoError(t, err)
+			require.Len(t, plugins, 1)
+			plugin := plugins[0]
+			require.Equal(t, "file-log", *plugin.Name)
+			path, ok := plugin.Config["path"]
+			require.True(t, ok)
+			require.Equal(t, "/tmp/file.log", path, "path should be same as specified in file")
+		})
+	})
+}
+
+func Test_Sync_PluginAutoFields(t *testing.T) {
+	client, err := getTestClient()
+
+	require.NoError(t, err)
+	ctx := context.Background()
+	t.Run("plugin_with_auto_fields", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, deckDump.Config{})
+
+		currentState, err := fetchCurrentState(ctx, client, deckDump.Config{})
+		require.NoError(t, err)
+		targetState := stateFromFile(ctx, t,
+			"testdata/sync/034-fill-auto-oauth2/kong.yaml",
+			client,
+			deckDump.Config{},
+		)
+
+		kongURL, err := url.Parse(client.BaseRootURL())
+		require.NoError(t, err)
+		p := NewRecordRequestProxy(kongURL)
+		s := httptest.NewServer(p)
+		c, err := utils.GetKongClient(utils.KongClientConfig{
+			Address: s.URL,
+		})
+		require.NoError(t, err)
+
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: c,
+		})
+		_, errs, _ := syncer.Solve(ctx, 1, false, true)
+
+		require.NotNil(t, errs)
+		require.Len(t, errs, 1)
+		require.Contains(t, errs[0].Error(), "provision_key: required field missing",
+			"Should error out due to missing provision_key")
+	})
+}
+
+// test scope:
+// - enterprise
+// - >=3.4.0
+func Test_Sync_MoreThanOneConsumerGroupForOneConsumer(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.4.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group2"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				Username: kong.String("my-test-consumer"),
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/xxx-more-than-one-consumer-group-with-a-consumer/kong3x.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}
+
+// test scope:
+// - enterprise
+// - 2.8.0
+func Test_Sync_MoreThanOneConsumerGroupForOneConsumer_2_8(t *testing.T) {
+	runWhen(t, "enterprise", ">=2.8.0 <3.0.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					Name: kong.String("group2"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("my-test-consumer"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				Username: kong.String("my-test-consumer"),
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/xxx-more-than-one-consumer-group-with-a-consumer/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
 }
