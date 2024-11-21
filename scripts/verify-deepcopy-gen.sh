@@ -1,23 +1,24 @@
 #!/bin/bash -e
 
-go install k8s.io/code-generator/cmd/deepcopy-gen
+set -x
+
+SCRIPT_DIR="$(dirname $0)"
+source ${SCRIPT_DIR}/_lib.sh
+
 TMP_DIR=$(mktemp -d)
 trap "rm -rf $TMP_DIR" EXIT
 
-# konnect package
-deepcopy-gen --input-dirs github.com/kong/go-database-reconciler/pkg/konnect \
-  -O zz_generated.deepcopy \
-  --go-header-file scripts/header-template.go.tmpl \
-  --output-base $TMP_DIR
+function run-deepcopy-and-diff() {
+  local pkg="${1}"
 
-diff -Naur konnect/zz_generated.deepcopy.go \
-  $TMP_DIR/github.com/kong/go-database-reconciler/pkg/konnect/zz_generated.deepcopy.go
+  cp ./pkg/${pkg}/zz_generated.deepcopy.go ${TMP_DIR}/${pkg}.zz_generated.deepcopy.go
+  run-deepcopy-gen ./pkg/${pkg}
 
-# file package
-deepcopy-gen --input-dirs github.com/kong/go-database-reconciler/pkg/file \
-  -O zz_generated.deepcopy \
-  --go-header-file scripts/header-template.go.tmpl \
-  --output-base $TMP_DIR
+  diff -Naur ./pkg/${pkg}/zz_generated.deepcopy.go \
+    ${TMP_DIR}/${pkg}.zz_generated.deepcopy.go
+}
 
-diff -Naur file/zz_generated.deepcopy.go \
-  $TMP_DIR/github.com/kong/go-database-reconciler/pkg/file/zz_generated.deepcopy.go
+install-deepcopy-gen
+
+run-deepcopy-and-diff konnect
+run-deepcopy-and-diff file
