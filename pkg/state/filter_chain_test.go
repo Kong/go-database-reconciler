@@ -247,7 +247,6 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 	}
 
 	for _, tt := range commonCases {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -259,7 +258,6 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -371,7 +369,6 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 	})
 
 	for _, tt := range commonCases {
-		tt := tt
 		if utils.Empty(tt.filterChain.ID) {
 			continue
 		}
@@ -406,7 +403,6 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

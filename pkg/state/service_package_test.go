@@ -90,7 +90,6 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 	}
 	k.Add(svc1)
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := k.Add(tt.args.servicePackage); (err != nil) != tt.wantErr {
