@@ -5753,3 +5753,305 @@ func Test_Sync_MoreThanOneConsumerGroupForOneConsumer_2_8(t *testing.T) {
 	require.NoError(t, sync("testdata/sync/xxx-more-than-one-consumer-group-with-a-consumer/kong.yaml"))
 	testKongState(t, client, false, expectedState, nil)
 }
+
+func Test_Sync_PluginDeprecatedFields36x(t *testing.T) {
+	runWhen(t, "kong", ">=3.6.0 <3.8.0")
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+
+	rateLimitingConfigurationInitial := DefaultConfigFactory.RateLimitingConfiguration()
+	expectedInitialState := utils.KongRawState{
+		Plugins: []*kong.Plugin{
+			DefaultConfigFactory.Plugin(
+				"2705d985-de4b-4ca8-87fd-2b361e30a3e7", "rate-limiting", rateLimitingConfigurationInitial,
+			),
+		},
+	}
+
+	rateLimitingConfigurationUpdatedOldFields := rateLimitingConfigurationInitial.DeepCopy()
+	rateLimitingConfigurationUpdatedOldFields["redis_host"] = string("localhost-2")
+	rateLimitingConfigurationUpdatedOldFields["redis_database"] = float64(2)
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["host"] = string("localhost-2")
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["database"] = float64(2)
+
+	expectedStateAfterChangeUsingOldFields := utils.KongRawState{
+		Plugins: []*kong.Plugin{
+			{
+				ID:        kong.String("2705d985-de4b-4ca8-87fd-2b361e30a3e7"),
+				Name:      kong.String("rate-limiting"),
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+				Config:    rateLimitingConfigurationUpdatedOldFields,
+			},
+		},
+	}
+
+	rateLimitingConfigurationUpdatedNewFields := rateLimitingConfigurationInitial.DeepCopy()
+	rateLimitingConfigurationUpdatedNewFields["redis_host"] = string("localhost-3")
+	rateLimitingConfigurationUpdatedNewFields["redis_database"] = float64(3)
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["host"] = string("localhost-3")
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["database"] = float64(3)
+
+	expectedStateAfterChangeUsingNewFields := utils.KongRawState{
+		Plugins: []*kong.Plugin{
+			{
+				ID:        kong.String("2705d985-de4b-4ca8-87fd-2b361e30a3e7"),
+				Name:      kong.String("rate-limiting"),
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+				Config:    rateLimitingConfigurationUpdatedNewFields,
+			},
+		},
+	}
+
+	tests := []struct {
+		name          string
+		stateFile     string
+		expectedState utils.KongRawState
+	}{
+		{
+			name:          "initial sync",
+			stateFile:     "testdata/sync/035-deprecated-fields/kong-ce/kong-initial.yaml",
+			expectedState: expectedInitialState,
+		},
+		{
+			name:          "syncing but not update - using only old (deprecated) fields",
+			stateFile:     "testdata/sync/035-deprecated-fields/kong-ce/kong-no-change-old-fields.yaml",
+			expectedState: expectedInitialState,
+		},
+		{
+			name:          "syncing but not update - using only new (not deprecated) fields",
+			stateFile:     "testdata/sync/035-deprecated-fields/kong-ce/kong-no-change-new-fields.yaml",
+			expectedState: expectedInitialState,
+		},
+		{
+			name:          "syncing but with update - using only old (deprecated) fields",
+			stateFile:     "testdata/sync/035-deprecated-fields/kong-ce/kong-update-old-fields.yaml",
+			expectedState: expectedStateAfterChangeUsingOldFields,
+		},
+		{
+			name:          "syncing but with update - using only new (not deprecated) fields",
+			stateFile:     "testdata/sync/035-deprecated-fields/kong-ce/kong-update-new-fields.yaml",
+			expectedState: expectedStateAfterChangeUsingNewFields,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// initialize state
+			require.NoError(t, sync(tc.stateFile))
+
+			// test
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
+	runWhen(t, "kong", ">=3.8.0")
+
+	// Setup RateLimitingAdvanced ==============================
+	rateLimitingAdvancedConfigurationInitial := DefaultConfigFactory.RateLimitingAdvancedConfiguration()
+	rateLimitingAdvancedConfigurationInitial["sync_rate"] = float64(10)
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] =
+		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6381)},
+	}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["timeout"] = float64(2000)
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["connect_timeout"] = float64(2000)
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["read_timeout"] = float64(2000)
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["send_timeout"] = float64(2000)
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_addresses"] =
+		[]any{string("127.0.2.0:6379"), string("127.0.2.0:6380"), string("127.0.2.0:6381")}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
+		map[string]any{"host": string("127.0.2.0"), "port": float64(6379)},
+		map[string]any{"host": string("127.0.2.0"), "port": float64(6380)},
+		map[string]any{"host": string("127.0.2.0"), "port": float64(6381)},
+	}
+
+	// Setup OpenIdConnect ==============================
+	openidConnectConfigurationInitial := DefaultConfigFactory.OpenIDConnectConfiguration()
+	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_max_redirections"] = nil
+	openidConnectConfigurationInitial["session_redis_cluster_max_redirections"] = nil
+	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] = nil
+	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_nodes"] = nil
+	openidConnectConfigurationInitial["session_redis_cluster_nodes"] = nil
+
+	// Initial State
+	expectedInitialState := utils.KongRawState{
+		Services: []*kong.Service{
+			DefaultConfigFactory.Service("9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d", "mockbin.org", "svc1"),
+		},
+		Plugins: []*kong.Plugin{
+			DefaultConfigFactory.Plugin(
+				"a1368a28-cb5c-4eee-86d8-03a6bdf94b5e", "rate-limiting-advanced", rateLimitingAdvancedConfigurationInitial,
+			),
+			DefaultConfigFactory.Plugin(
+				"777496e1-8b35-4512-ad30-51f9fe5d3147", "openid-connect", openidConnectConfigurationInitial,
+			),
+		},
+	}
+
+	rateLimitingConfigurationUpdatedOldFields := rateLimitingAdvancedConfigurationInitial.DeepCopy()
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] =
+		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7381)},
+	}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["timeout"] = float64(2007)
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["connect_timeout"] = float64(2007)
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["read_timeout"] = float64(2007)
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["send_timeout"] = float64(2007)
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_addresses"] =
+		[]any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
+		map[string]any{"host": string("127.0.2.0"), "port": float64(8379)},
+		map[string]any{"host": string("127.0.2.0"), "port": float64(8380)},
+		map[string]any{"host": string("127.0.2.0"), "port": float64(8381)},
+	}
+	rateLimitingConfigurationUpdatedOldFields["sync_rate"] = float64(11)
+
+	openidConnectConfigurationUpdatedOldFields := openidConnectConfigurationInitial.DeepCopy()
+	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_max_redirections"] = float64(7)
+	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] =
+		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
+	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6381)},
+	}
+	openidConnectConfigurationUpdatedOldFields["session_redis_cluster_max_redirections"] = float64(7)
+	openidConnectConfigurationUpdatedOldFields["session_redis_cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(6381)},
+	}
+
+	expectedStateAfterChangeUsingOldFields := utils.KongRawState{
+		Services: []*kong.Service{
+			DefaultConfigFactory.Service("9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d", "mockbin.org", "svc1"),
+		},
+		Plugins: []*kong.Plugin{
+			DefaultConfigFactory.Plugin(
+				"a1368a28-cb5c-4eee-86d8-03a6bdf94b5e", "rate-limiting-advanced", rateLimitingConfigurationUpdatedOldFields,
+			),
+			DefaultConfigFactory.Plugin(
+				"777496e1-8b35-4512-ad30-51f9fe5d3147", "openid-connect", openidConnectConfigurationUpdatedOldFields,
+			),
+		},
+	}
+
+	rateLimitingConfigurationUpdatedNewFields := rateLimitingAdvancedConfigurationInitial.DeepCopy()
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] =
+		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7381)},
+	}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["timeout"] = float64(2005)
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["connect_timeout"] = float64(2005)
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["read_timeout"] = float64(2006)
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["send_timeout"] = float64(2007)
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_addresses"] =
+		[]any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
+		map[string]any{"host": string("127.0.2.0"), "port": float64(8379)},
+		map[string]any{"host": string("127.0.2.0"), "port": float64(8380)},
+		map[string]any{"host": string("127.0.2.0"), "port": float64(8381)},
+	}
+	rateLimitingConfigurationUpdatedNewFields["sync_rate"] = float64(11)
+
+	openidConnectConfigurationUpdatedNewFields := openidConnectConfigurationInitial.DeepCopy()
+	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_max_redirections"] = float64(11)
+	openidConnectConfigurationUpdatedNewFields["session_redis_cluster_max_redirections"] = float64(11)
+	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] =
+		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7381)},
+	}
+	openidConnectConfigurationUpdatedNewFields["session_redis_cluster_nodes"] = []any{
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
+		map[string]any{"ip": string("127.0.1.0"), "port": float64(7381)},
+	}
+
+	expectedStateAfterChangeUsingNewFields := utils.KongRawState{
+		Services: []*kong.Service{
+			DefaultConfigFactory.Service("9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d", "mockbin.org", "svc1"),
+		},
+		Plugins: []*kong.Plugin{
+			DefaultConfigFactory.Plugin(
+				"a1368a28-cb5c-4eee-86d8-03a6bdf94b5e", "rate-limiting-advanced", rateLimitingConfigurationUpdatedNewFields,
+			),
+			DefaultConfigFactory.Plugin(
+				"777496e1-8b35-4512-ad30-51f9fe5d3147", "openid-connect", openidConnectConfigurationUpdatedNewFields,
+			),
+		},
+	}
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := context.Background()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		stateFile        string
+		expectedState    utils.KongRawState
+	}{
+		{
+			name:             "initial sync",
+			initialStateFile: "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-initial.yaml",
+			stateFile:        "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-initial.yaml",
+			expectedState:    expectedInitialState,
+		},
+		{
+			name:             "syncing but not update - using only old (deprecated) fields",
+			initialStateFile: "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-initial.yaml",
+			stateFile:        "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-no-change-old-fields.yaml",
+			expectedState:    expectedInitialState,
+		},
+		{
+			name:             "syncing but not update - using only new (not deprecated) fields",
+			initialStateFile: "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-initial.yaml",
+			stateFile:        "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-no-change-new-fields.yaml",
+			expectedState:    expectedInitialState,
+		},
+		{
+			name:             "syncing but with update - using only old (deprecated) fields",
+			initialStateFile: "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-initial.yaml",
+			stateFile:        "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-update-old-fields.yaml",
+			expectedState:    expectedStateAfterChangeUsingOldFields,
+		},
+		{
+			name:             "syncing but with update - using only new (not deprecated) fields",
+			initialStateFile: "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-initial.yaml",
+			stateFile:        "testdata/sync/035-deprecated-fields/kong-ee/kong-ee-update-new-fields.yaml",
+			expectedState:    expectedStateAfterChangeUsingNewFields,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// initialize state
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			require.NoError(t, sync(tc.initialStateFile))
+
+			// make tested changes
+			require.NoError(t, sync(tc.stateFile))
+
+			// test
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}

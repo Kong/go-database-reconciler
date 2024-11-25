@@ -1,0 +1,9 @@
+_format_version: "3.0"
+plugins:
+- id: 2705d985-de4b-4ca8-87fd-2b361e30a3e7
+  name: rate-limiting
+  config:
+    hour: 10000
+    policy: redis
+    redis_database: 2
+    redis_host: localhost-2

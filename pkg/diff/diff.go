@@ -612,8 +612,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			pluginCopy := &state.Plugin{Plugin: *plugin.DeepCopy()}
 			e.Obj = pluginCopy
 
-			exists, err := utils.WorkspaceExists(ctx, sc.kongClient)
-			if err == nil && exists {
+			if exists, _ := utils.WorkspaceExists(ctx, sc.kongClient); exists {
 				var schema map[string]interface{}
 				schema, err = sc.kongClient.Plugins.GetFullSchema(ctx, pluginCopy.Plugin.Name)
 				if err != nil {
@@ -621,8 +620,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				}
 
 				// fill defaults and auto fields for the configuration that will be used for the diff
-				newPlugin := &pluginCopy.Plugin
-				if err := kong.FillPluginsDefaults(newPlugin, schema); err != nil {
+				if err := kong.FillPluginsDefaults(&pluginCopy.Plugin, schema); err != nil {
 					return nil, fmt.Errorf("failed processing auto fields: %w", err)
 				}
 
@@ -634,6 +632,17 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 					FillAuto:     true,
 				}); err != nil {
 					return nil, fmt.Errorf("failed processing auto fields: %w", err)
+				}
+
+				// `oldPlugin` contains both new and deprecated fields.
+				// If `plugin` (the new plugin) contains only deprecated fields,
+				// we need to remove the new fields from `oldPlugin` to ensure both configurations align correctly.
+				if oldPlugin, ok := e.OldObj.(*state.Plugin); ok {
+					oldPluginCopy := &state.Plugin{Plugin: *oldPlugin.DeepCopy()}
+					e.OldObj = oldPluginCopy
+					if err := kong.ClearUnmatchingDeprecations(&pluginCopy.Plugin, &oldPluginCopy.Plugin, schema); err != nil {
+						return nil, fmt.Errorf("failed processing auto fields: %w", err)
+					}
 				}
 			}
 		}

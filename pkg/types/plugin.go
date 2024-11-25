@@ -186,6 +186,10 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed processing auto fields: %w", err)
 	}
 
+	if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
+		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+	}
+
 	if !currentPlugin.EqualWithOpts(pluginWithDefaults, false, true, false) {
 		return &crud.Event{
 			Op:     crud.Update,

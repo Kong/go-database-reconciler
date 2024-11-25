@@ -45,11 +45,16 @@ func (s *AuthService) Login(ctx context.Context, email,
 	return authResponse, nil
 }
 
+// getGlobalEndpoint returns the global endpoint for a given base Konnect URL.
+func getGlobalEndpoint(baseURL string) string {
+	parts := strings.Split(baseURL, "api.konghq")
+	return baseEndpointUS + parts[len(parts)-1]
+}
+
 // getGlobalAuthEndpoint returns the global auth endpoint
 // given a base Konnect URL.
 func getGlobalAuthEndpoint(baseURL string) string {
-	parts := strings.Split(baseURL, "api.konghq")
-	return baseEndpointUS + parts[len(parts)-1] + authEndpointV2
+	return getGlobalEndpoint(baseURL) + authEndpointV2
 }
 
 func createAuthRequest(baseURL, email, password string) (*http.Request, error) {
@@ -129,8 +134,7 @@ func (s *AuthService) LoginV2(ctx context.Context, email,
 func (s *AuthService) OrgUserInfo(ctx context.Context) (*OrgUserInfo, error) {
 	// replace geo-specific endpoint with global one for retrieving org info
 	client := *s.client
-	client.baseURL = strings.Replace(s.client.baseURL, "eu.", "global.", 1)
-	client.baseURL = strings.Replace(client.baseURL, "au.", "global.", 1)
+	client.baseURL = getGlobalEndpoint(client.baseURL)
 
 	req, err := client.NewRequest(http.MethodGet, "/v2/organizations/me", nil, nil)
 	if err != nil {

@@ -1,0 +1,68 @@
+_format_version: "3.0"
+services:
+  - name: svc1
+    id: 9ecf5708-f2f4-444e-a4c7-fcd3a57f9a6d
+    host: mockbin.org
+    tags:
+      - test
+plugins:
+- id: a1368a28-cb5c-4eee-86d8-03a6bdf94b5e
+  enabled: true
+  name: rate-limiting-advanced
+  config:
+    consumer_groups: null
+    dictionary_name: kong_rate_limiting_counters
+    disable_penalty: false
+    enforce_consumer_groups: false
+    error_code: 429
+    error_message: API rate limit exceeded
+    header_name: null
+    hide_client_headers: false
+    identifier: consumer
+    limit:
+    - 10
+    namespace: ZEz47TWgUrv01HenyQBQa8io06MWsp0L
+    path: null
+    redis:
+      host: 127.0.0.5
+      port: 6380
+      cluster_addresses:
+      - 127.0.1.0:6379
+      - 127.0.1.0:6380
+      - 127.0.1.0:6381
+      cluster_nodes:
+      - ip: 127.0.1.0
+        port: 6379
+      - ip: 127.0.1.0
+        port: 6380
+      - ip: 127.0.1.0
+        port: 6381
+      timeout: 2000
+      connect_timeout: 2000
+      read_timeout: 2000
+      send_timeout: 2000
+      sentinel_addresses:
+      - 127.0.2.0:6379
+      - 127.0.2.0:6380
+      - 127.0.2.0:6381
+      sentinel_master: mymaster
+      sentinel_nodes:
+      - host: 127.0.2.0
+        port: 6379
+      - host: 127.0.2.0
+        port: 6380
+      - host: 127.0.2.0
+        port: 6381
+      sentinel_role: master
+    strategy: redis
+    sync_rate: 10
+    window_size:
+    - 60
+    window_type: sliding
+- id: 777496e1-8b35-4512-ad30-51f9fe5d3147
+  name: openid-connect
+  enabled: true
+  config:
+    issuer: https://accounts.google.test/.well-known/openid-configuration
+    session_redis_cluster_max_redirections: null
+    session_redis_cluster_nodes: null
