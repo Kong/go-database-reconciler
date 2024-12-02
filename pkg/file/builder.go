@@ -132,6 +132,7 @@ func (b *stateBuilder) ingestConsumerGroupScopedPlugins(cg FConsumerGroupObject)
 				ConsumerGroup: &kong.ConsumerGroup{
 					ID: cg.ID,
 				},
+				Tags: plugin.Tags,
 			},
 			ConfigSource: plugin.ConfigSource,
 		})

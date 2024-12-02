@@ -842,6 +842,7 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 						ID:     plugin.ID,
 						Name:   plugin.Name,
 						Config: plugin.Config,
+						Tags:   plugin.Tags,
 					})
 				}
 			}
