@@ -168,7 +168,6 @@ func (b *stateBuilder) consumerGroups() {
 	}
 
 	for _, cg := range b.targetContent.ConsumerGroups {
-		cg := cg
 		current, err := b.currentState.ConsumerGroups.Get(*cg.Name)
 		if utils.Empty(cg.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -291,7 +290,6 @@ func (b *stateBuilder) certificates() {
 
 func (b *stateBuilder) ingestSNIs(snis []kong.SNI) error {
 	for _, sni := range snis {
-		sni := sni
 		currentSNI, err := b.currentState.SNIs.Get(*sni.Name)
 		if utils.Empty(sni.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -317,7 +315,6 @@ func (b *stateBuilder) caCertificates() {
 	}
 
 	for _, c := range b.targetContent.CACertificates {
-		c := c
 		cert, err := b.currentState.CACertificates.Get(*c.Cert)
 		if utils.Empty(c.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -413,7 +410,6 @@ func (b *stateBuilder) consumers() {
 	}
 
 	for _, c := range b.targetContent.Consumers {
-		c := c
 
 		var (
 			consumer *state.Consumer
@@ -603,7 +599,6 @@ func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
 
 func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
 	for _, cred := range creds {
-		cred := cred
 		existingCred, err := b.currentState.KeyAuths.Get(*cred.Key)
 		if utils.Empty(cred.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -627,7 +622,6 @@ func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
 
 func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuth) error {
 	for _, cred := range creds {
-		cred := cred
 		existingCred, err := b.currentState.BasicAuths.Get(*cred.Username)
 		if utils.Empty(cred.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -651,7 +645,6 @@ func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuth) error {
 
 func (b *stateBuilder) ingestHMACAuths(creds []kong.HMACAuth) error {
 	for _, cred := range creds {
-		cred := cred
 		existingCred, err := b.currentState.HMACAuths.Get(*cred.Username)
 		if utils.Empty(cred.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -675,7 +668,6 @@ func (b *stateBuilder) ingestHMACAuths(creds []kong.HMACAuth) error {
 
 func (b *stateBuilder) ingestJWTAuths(creds []kong.JWTAuth) error {
 	for _, cred := range creds {
-		cred := cred
 		existingCred, err := b.currentState.JWTAuths.Get(*cred.Key)
 		if utils.Empty(cred.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -699,7 +691,6 @@ func (b *stateBuilder) ingestJWTAuths(creds []kong.JWTAuth) error {
 
 func (b *stateBuilder) ingestOauth2Creds(creds []kong.Oauth2Credential) error {
 	for _, cred := range creds {
-		cred := cred
 		existingCred, err := b.currentState.Oauth2Creds.Get(*cred.ClientID)
 		if utils.Empty(cred.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -723,7 +714,6 @@ func (b *stateBuilder) ingestOauth2Creds(creds []kong.Oauth2Credential) error {
 
 func (b *stateBuilder) ingestACLGroups(creds []kong.ACLGroup) error {
 	for _, cred := range creds {
-		cred := cred
 		if utils.Empty(cred.ID) {
 			existingCred, err := b.currentState.ACLGroups.Get(
 				*cred.Consumer.ID,
@@ -747,7 +737,6 @@ func (b *stateBuilder) ingestACLGroups(creds []kong.ACLGroup) error {
 func (b *stateBuilder) ingestMTLSAuths(creds []kong.MTLSAuth) {
 	kong230Version := semver.MustParse("2.3.0")
 	for _, cred := range creds {
-		cred := cred
 		// normally, we'd want to look up existing resources in this case
 		// however, this is impossible here: mtls-auth simply has no unique fields other than ID,
 		// so we don't--schema validation requires the ID
@@ -877,7 +866,6 @@ func (b *stateBuilder) services() {
 	}
 
 	for _, s := range b.targetContent.Services {
-		s := s
 		err := b.ingestService(&s)
 		if err != nil {
 			b.err = err
@@ -951,7 +939,6 @@ func (b *stateBuilder) ingestService(s *FService) error {
 
 	// routes for the service
 	for _, r := range s.Routes {
-		r := r
 		r.Service = utils.GetServiceReference(s.Service)
 		if err := b.ingestRoute(*r); err != nil {
 			return err
@@ -966,7 +953,6 @@ func (b *stateBuilder) routes() {
 	}
 
 	for _, r := range b.targetContent.Routes {
-		r := r
 		if err := b.ingestRoute(r); err != nil {
 			b.err = err
 			return
@@ -1008,7 +994,6 @@ func (b *stateBuilder) vaults() {
 	}
 
 	for _, v := range b.targetContent.Vaults {
-		v := v
 		vault, err := b.currentState.Vaults.Get(*v.Prefix)
 		if utils.Empty(v.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -1035,7 +1020,6 @@ func (b *stateBuilder) licenses() {
 	}
 
 	for _, l := range b.targetContent.Licenses {
-		l := l
 		// Fill with a random ID if the ID is not given.
 		// If ID is not given in the file to sync from, a NEW license will be created.
 		if utils.Empty(l.ID) {
@@ -1052,7 +1036,6 @@ func (b *stateBuilder) rbacRoles() {
 	}
 
 	for _, r := range b.targetContent.RBACRoles {
-		r := r
 		role, err := b.currentState.RBACRoles.Get(*r.Name)
 		if utils.Empty(r.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -1070,7 +1053,6 @@ func (b *stateBuilder) rbacRoles() {
 		b.rawState.RBACRoles = append(b.rawState.RBACRoles, &r.RBACRole)
 		// rbac endpoint permissions for the role
 		for _, ep := range r.EndpointPermissions {
-			ep := ep
 			ep.Role = &kong.RBACRole{ID: kong.String(*r.ID)}
 			b.rawState.RBACEndpointPermissions = append(b.rawState.RBACEndpointPermissions, &ep.RBACEndpointPermission)
 		}
@@ -1147,7 +1129,6 @@ func (b *stateBuilder) upstreams() {
 	}
 
 	for _, u := range b.targetContent.Upstreams {
-		u := u
 		ups, err := b.currentState.Upstreams.Get(*u.Name)
 		if utils.Empty(u.ID) {
 			if errors.Is(err, state.ErrNotFound) {
@@ -1182,7 +1163,6 @@ func (b *stateBuilder) upstreams() {
 
 func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 	for _, t := range targets {
-		t := t
 
 		if t.Target != nil && hasIPv6Format(*t.Target) {
 			normalizedTarget, err := normalizeIPv6(*t.Target)
@@ -1216,7 +1196,6 @@ func (b *stateBuilder) plugins() {
 
 	var plugins []FPlugin
 	for _, p := range b.targetContent.Plugins {
-		p := p
 		if p.Consumer != nil && !utils.Empty(p.Consumer.ID) {
 			c, err := b.intermediate.Consumers.GetByIDOrUsername(*p.Consumer.ID)
 			if errors.Is(err, state.ErrNotFound) {
@@ -1288,7 +1267,6 @@ func (b *stateBuilder) filterChains() {
 
 	var filterChains []FFilterChain
 	for _, f := range b.targetContent.FilterChains {
-		f := f
 		if f.Service != nil && !utils.Empty(f.Service.ID) {
 			s, err := b.intermediate.Services.Get(*f.Service.ID)
 			if errors.Is(err, state.ErrNotFound) {
@@ -1477,7 +1455,6 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
-		p := p
 		cID, rID, sID, cgID := pluginRelations(&p.Plugin)
 		plugin, err := b.currentState.Plugins.GetByProp(*p.Name,
 			sID, rID, cID, cgID)
@@ -1544,7 +1521,6 @@ func pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
 
 func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
 	for _, f := range filterChains {
-		f := f
 		rID, sID := filterChainRelations(&f.FilterChain)
 		filterChain, err := b.currentState.FilterChains.GetByProp(sID, rID)
 		if utils.Empty(f.ID) {

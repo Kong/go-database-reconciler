@@ -356,7 +356,6 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 		return nil, err
 	}
 	for _, p := range plugins {
-		p := p
 		if p.Route != nil || p.Consumer != nil || p.ConsumerGroup != nil {
 			continue
 		}
@@ -370,7 +369,6 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 		return compareOrder(s.Plugins[i], s.Plugins[j])
 	})
 	for _, r := range routes {
-		r := r
 		r.Service = nil
 		route, err := getFRouteFromRoute(r, kongState, config)
 		if err != nil {
@@ -405,7 +403,6 @@ func populateServicelessRoutes(kongState *state.KongState, file *Content,
 		return err
 	}
 	for _, r := range routes {
-		r := r
 		if r.Service != nil {
 			continue
 		}
@@ -429,7 +426,6 @@ func populatePlugins(kongState *state.KongState, file *Content,
 		return err
 	}
 	for _, p := range plugins {
-		p := p
 		associations := 0
 		if p.Consumer != nil {
 			associations++
@@ -551,7 +547,6 @@ func populateUpstreams(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, t := range targets {
-			t := t
 			t.Upstream = nil
 			utils.ZeroOutID(t, t.Target.Target, config.WithID)
 			utils.ZeroOutTimestamps(t)
@@ -611,7 +606,6 @@ func populateCertificates(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, s := range snis {
-			s := s
 			s.Certificate = nil
 			utils.ZeroOutID(s, s.Name, config.WithID)
 			utils.ZeroOutTimestamps(s)
@@ -668,7 +662,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, p := range plugins {
-			p := p
 			if p.Service != nil || p.Route != nil || p.ConsumerGroup != nil {
 				continue
 			}
@@ -687,7 +680,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range keyAuths {
-			k := k
 			utils.ZeroOutID(k, k.Key, config.WithID)
 			utils.ZeroOutTimestamps(k)
 			utils.MustRemoveTags(k, config.SelectTags)
@@ -699,7 +691,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range hmacAuth {
-			k := k
 			k.Consumer = nil
 			utils.ZeroOutID(k, k.Username, config.WithID)
 			utils.ZeroOutTimestamps(k)
@@ -711,7 +702,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range jwtSecrets {
-			k := k
 			k.Consumer = nil
 			utils.ZeroOutID(k, k.Key, config.WithID)
 			utils.ZeroOutTimestamps(k)
@@ -723,7 +713,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range basicAuths {
-			k := k
 			k.Consumer = nil
 			utils.ZeroOutID(k, k.Username, config.WithID)
 			utils.ZeroOutTimestamps(k)
@@ -735,7 +724,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range oauth2Creds {
-			k := k
 			k.Consumer = nil
 			utils.ZeroOutID(k, k.ClientID, config.WithID)
 			utils.ZeroOutTimestamps(k)
@@ -747,7 +735,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range aclGroups {
-			k := k
 			k.Consumer = nil
 			utils.ZeroOutID(k, k.Group, config.WithID)
 			utils.ZeroOutTimestamps(k)
@@ -759,7 +746,6 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return err
 		}
 		for _, k := range mtlsAuths {
-			k := k
 			utils.ZeroOutTimestamps(k)
 			utils.MustRemoveTags(k, config.SelectTags)
 			k.Consumer = nil

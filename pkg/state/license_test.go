@@ -49,7 +49,6 @@ func TestLicenseCollection_Add(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
@@ -91,7 +90,6 @@ func TestLicenseCollection_Get(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
@@ -143,7 +141,6 @@ func TestLicenseCollection_Update(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
@@ -186,7 +183,6 @@ func TestLicenseCollection_Delete(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
