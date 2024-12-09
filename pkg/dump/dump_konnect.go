@@ -3,6 +3,7 @@ package dump
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/kong/go-database-reconciler/pkg/konnect"
@@ -177,7 +178,7 @@ func kongServiceIDs(cpID string,
 func excludeKonnectManagedPlugins(plugins []*kong.Plugin) []*kong.Plugin {
 	filtered := []*kong.Plugin{}
 	for _, p := range plugins {
-		if isManagedByKonnect(p) {
+		if isPluginManagedByKonnect(p) {
 			continue
 		}
 		filtered = append(filtered, p)
@@ -185,11 +186,50 @@ func excludeKonnectManagedPlugins(plugins []*kong.Plugin) []*kong.Plugin {
 	return filtered
 }
 
-func isManagedByKonnect(plugin *kong.Plugin) bool {
+func isPluginManagedByKonnect(plugin *kong.Plugin) bool {
 	for _, t := range plugin.Tags {
-		if *t == konnect.KonnectManagedPluginTag {
+		if *t == konnect.KonnectManagedPluginTag || *t == konnect.KonnectManagedTag {
 			return true
 		}
 	}
 	return false
+}
+
+func excludeKonnectManagedEntities[T any](kongEntities []T) ([]T, error) {
+	var filteredEntities []T
+	for _, e := range kongEntities {
+		isManagedByKonnect, err := isManagedByKonnect(e)
+		if err != nil {
+			return nil, err
+		}
+
+		if isManagedByKonnect {
+			continue
+		}
+		filteredEntities = append(filteredEntities, e)
+	}
+	return filteredEntities, nil
+}
+
+func isManagedByKonnect(entity interface{}) (bool, error) {
+	ptr := reflect.ValueOf(entity)
+	if ptr.Kind() != reflect.Ptr {
+		return false, fmt.Errorf("entity is not a pointer")
+	}
+
+	v := reflect.Indirect(ptr)
+	structTags := v.FieldByName("Tags")
+	var zero reflect.Value
+	if structTags == zero {
+		return false, nil
+	}
+
+	tags := structTags.Interface().([]*string)
+	for _, tag := range tags {
+		if *tag == konnect.KonnectManagedTag {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

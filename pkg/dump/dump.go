@@ -235,6 +235,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("services: %w", err)
 		}
+
+		services, err = excludeKonnectManagedEntities(services)
+		if err != nil {
+			return fmt.Errorf("services: %w", err)
+		}
+
 		if config.LookUpSelectorTagsServices != nil {
 			globalServices, err := GetAllServices(ctx, client, config.LookUpSelectorTagsServices)
 			if err != nil {
@@ -263,6 +269,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("routes: %w", err)
 		}
+
+		routes, err = excludeKonnectManagedEntities(routes)
+		if err != nil {
+			return fmt.Errorf("routes: %w", err)
+		}
+
 		if config.LookUpSelectorTagsRoutes != nil {
 			globalRoutes, err := GetAllRoutes(ctx, client, config.LookUpSelectorTagsRoutes)
 			if err != nil {
@@ -318,6 +330,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			}
 			return fmt.Errorf("filter chains: %w", err)
 		}
+
+		filterChains, err = excludeKonnectManagedEntities(filterChains)
+		if err != nil {
+			return fmt.Errorf("filter chains: %w", err)
+		}
+
 		state.FilterChains = filterChains
 		return nil
 	})
@@ -327,6 +345,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("certificates: %w", err)
 		}
+
+		certificates, err = excludeKonnectManagedEntities(certificates)
+		if err != nil {
+			return fmt.Errorf("certificates: %w", err)
+		}
+
 		state.Certificates = certificates
 		return nil
 	})
@@ -337,6 +361,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			if err != nil {
 				return fmt.Errorf("ca-certificates: %w", err)
 			}
+
+			caCerts, err = excludeKonnectManagedEntities(caCerts)
+			if err != nil {
+				return fmt.Errorf("ca-certificates: %w", err)
+			}
+
 			state.CACertificates = caCerts
 			return nil
 		})
@@ -347,6 +377,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("snis: %w", err)
 		}
+
+		snis, err = excludeKonnectManagedEntities(snis)
+		if err != nil {
+			return fmt.Errorf("snis: %w", err)
+		}
+
 		state.SNIs = snis
 		return nil
 	})
@@ -356,11 +392,23 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("upstreams: %w", err)
 		}
+
+		upstreams, err = excludeKonnectManagedEntities(upstreams)
+		if err != nil {
+			return fmt.Errorf("upstreams: %w", err)
+		}
+
 		state.Upstreams = upstreams
 		targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
 		if err != nil {
 			return fmt.Errorf("targets: %w", err)
 		}
+
+		targets, err = excludeKonnectManagedEntities(targets)
+		if err != nil {
+			return fmt.Errorf("targets: %w", err)
+		}
+
 		state.Targets = targets
 		return nil
 	})
@@ -370,6 +418,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("vaults: %w", err)
 		}
+
+		vaults, err = excludeKonnectManagedEntities(vaults)
+		if err != nil {
+			return fmt.Errorf("vaults: %w", err)
+		}
+
 		state.Vaults = vaults
 		return nil
 	})
@@ -380,6 +434,12 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			if err != nil {
 				return fmt.Errorf("licenses: %w", err)
 			}
+
+			licenses, err = excludeKonnectManagedEntities(licenses)
+			if err != nil {
+				return fmt.Errorf("licenses: %w", err)
+			}
+
 			state.Licenses = licenses
 			return nil
 		})
