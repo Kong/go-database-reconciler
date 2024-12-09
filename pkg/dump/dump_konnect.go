@@ -196,7 +196,11 @@ func isPluginManagedByKonnect(plugin *kong.Plugin) bool {
 }
 
 func excludeKonnectManagedEntities[T any](kongEntities []T) ([]T, error) {
-	var filteredEntities []T
+	if len(kongEntities) == 0 {
+		return []T{}, nil
+	}
+
+	filteredEntities := make([]T, 0)
 	for _, e := range kongEntities {
 		isManagedByKonnect, err := isManagedByKonnect(e)
 		if err != nil {
