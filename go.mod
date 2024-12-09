@@ -21,15 +21,15 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.34.0
-	github.com/kong/go-kong v0.60.0
+	github.com/kong/go-kong v0.61.0
 	github.com/samber/lo v1.47.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.0.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.24.0
-	k8s.io/code-generator v0.31.2
+	k8s.io/code-generator v0.31.3
 	sigs.k8s.io/yaml v1.4.0
 )
 
