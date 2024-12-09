@@ -9,7 +9,7 @@ consumer_groups:
     - tag1
     - tag2
     config:
-      http_method: "GET"
+      http_method: GET
       remove:
         headers:
         - test-header
