@@ -1269,47 +1269,14 @@ var (
 	}
 
 	consumerGroupScopedPluginWithTags = []*kong.Plugin{{
-		Name: kong.String("rate-limiting-advanced"),
+		Name: kong.String("request-transformer"),
 		Config: kong.Configuration{
-			"consumer_groups":         nil,
-			"dictionary_name":         string("kong_rate_limiting_counters"),
-			"disable_penalty":         bool(false),
-			"enforce_consumer_groups": bool(false),
-			"error_code":              float64(429),
-			"error_message":           string("API rate limit exceeded"),
-			"header_name":             nil,
-			"hide_client_headers":     bool(false),
-			"identifier":              string("consumer"),
-			"limit":                   []any{float64(10)},
-			"namespace":               string("gold"),
-			"path":                    nil,
-			"redis": map[string]any{
-				"cluster_addresses":   nil,
-				"connect_timeout":     nil,
-				"database":            float64(0),
-				"host":                nil,
-				"keepalive_backlog":   nil,
-				"keepalive_pool_size": float64(256),
-				"password":            nil,
-				"port":                nil,
-				"read_timeout":        nil,
-				"send_timeout":        nil,
-				"sentinel_addresses":  nil,
-				"sentinel_master":     nil,
-				"sentinel_password":   nil,
-				"sentinel_role":       nil,
-				"sentinel_username":   nil,
-				"server_name":         nil,
-				"ssl":                 false,
-				"ssl_verify":          false,
-				"timeout":             float64(2000),
-				"username":            nil,
-			},
-			"retry_after_jitter_max": float64(1),
-			"strategy":               string("local"),
-			"sync_rate":              float64(-1),
-			"window_size":            []any{float64(60)},
-			"window_type":            string("sliding"),
+			"add":         map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+			"append":      map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+			"http_method": string("GET"),
+			"remove":      map[string]any{"body": []any{}, "headers": []any{string("test-header")}, "querystring": []any{}},
+			"rename":      map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+			"replace":     map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}, "uri": nil},
 		},
 		ConsumerGroup: &kong.ConsumerGroup{
 			ID: kong.String("58076db2-28b6-423b-ba39-a79719301700"),
@@ -2853,7 +2820,7 @@ func Test_Sync_PluginsOnEntitiesFrom_3_0_0(t *testing.T) {
 
 // test scope:
 //   - 3.4.0+
-func Test_Sync_PluginsOnConsumerGroupsFrom_3_4_0(t *testing.T) {
+func Test_Sync_PluginsOnConsumerGroupsWithTagsFrom_3_4_0(t *testing.T) {
 	// setup stage
 	client, err := getTestClient()
 	if err != nil {
@@ -2883,7 +2850,7 @@ func Test_Sync_PluginsOnConsumerGroupsFrom_3_4_0(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhenKongOrKonnect(t, ">=3.4.0")
+			runWhenEnterpriseOrKonnect(t, ">=3.4.0")
 			setup(t)
 
 			sync(tc.kongFile)
