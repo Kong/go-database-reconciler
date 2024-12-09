@@ -3,10 +3,15 @@
 package integration
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	deckDiff "github.com/kong/go-database-reconciler/pkg/diff"
+	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
 )
 
 var (
@@ -1821,6 +1826,134 @@ func Test_Diff_PluginUpdate_OlderThan38x(t *testing.T) {
 			out, err := diff(tc.stateFile)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedDiff, out)
+		})
+	}
+}
+
+func Test_Diff_NoDeletes_OlderThan3x(t *testing.T) {
+	tests := []struct {
+		name                string
+		initialStateFile    string
+		stateFile           string
+		expectedState       utils.KongRawState
+		envVars             map[string]string
+		noDeletes           bool
+		expectedDeleteCount int32
+	}{
+		{
+			name:                "deleted plugins show in the diff by default",
+			initialStateFile:    "testdata/diff/006-no-deletes/01-plugin-removed-initial.yaml",
+			stateFile:           "testdata/diff/006-no-deletes/01-plugin-removed-current.yaml",
+			envVars:             diffEnvVars,
+			noDeletes:           false,
+			expectedDeleteCount: 1,
+		},
+		{
+			name:                "deleted plugins do not show in the diff",
+			initialStateFile:    "testdata/diff/006-no-deletes/01-plugin-removed-initial.yaml",
+			stateFile:           "testdata/diff/006-no-deletes/01-plugin-removed-current.yaml",
+			envVars:             diffEnvVars,
+			noDeletes:           true,
+			expectedDeleteCount: 0,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			for k, v := range tc.envVars {
+				t.Setenv(k, v)
+			}
+			runWhen(t, "kong", "==2.8.0")
+			setup(t)
+
+			// initialize state
+			assert.NoError(t, sync(tc.initialStateFile))
+
+			client, err := getTestClient()
+			ctx := context.Background()
+
+			currentState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+			require.NoError(t, err)
+
+			targetState := stateFromFile(ctx, t, tc.stateFile, client, deckDump.Config{
+				IncludeLicenses: true,
+			})
+
+			syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+				CurrentState: currentState,
+				TargetState:  targetState,
+
+				KongClient:      client,
+				IncludeLicenses: true,
+				NoDeletes:       tc.noDeletes,
+			})
+
+			stats, errs, _ := syncer.Solve(ctx, 1, false, true)
+			assert.Equal(t, 0, len(errs))
+			assert.Equal(t, tc.expectedDeleteCount, stats.DeleteOps.Count())
+		})
+	}
+}
+
+func Test_Diff_NoDeletes_3x(t *testing.T) {
+	tests := []struct {
+		name                string
+		initialStateFile    string
+		stateFile           string
+		expectedState       utils.KongRawState
+		envVars             map[string]string
+		noDeletes           bool
+		expectedDeleteCount int32
+	}{
+		{
+			name:                "deleted plugins show in the diff by default",
+			initialStateFile:    "testdata/diff/006-no-deletes/01-plugin-removed-initial.yaml",
+			stateFile:           "testdata/diff/006-no-deletes/01-plugin-removed-current.yaml",
+			envVars:             diffEnvVars,
+			noDeletes:           false,
+			expectedDeleteCount: 1,
+		},
+		{
+			name:                "deleted plugins do not show in the diff",
+			initialStateFile:    "testdata/diff/006-no-deletes/01-plugin-removed-initial.yaml",
+			stateFile:           "testdata/diff/006-no-deletes/01-plugin-removed-current.yaml",
+			envVars:             diffEnvVars,
+			noDeletes:           true,
+			expectedDeleteCount: 0,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			for k, v := range tc.envVars {
+				t.Setenv(k, v)
+			}
+			runWhen(t, "kong", ">=3.0.0")
+			setup(t)
+
+			// initialize state
+			assert.NoError(t, sync(tc.initialStateFile))
+
+			client, err := getTestClient()
+			ctx := context.Background()
+
+			currentState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
+			require.NoError(t, err)
+
+			targetState := stateFromFile(ctx, t, tc.stateFile, client, deckDump.Config{
+				IncludeLicenses: true,
+			})
+
+			syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+				CurrentState: currentState,
+				TargetState:  targetState,
+
+				KongClient:      client,
+				IncludeLicenses: true,
+				NoDeletes:       tc.noDeletes,
+			})
+
+			stats, errs, _ := syncer.Solve(ctx, 1, false, true)
+			assert.Equal(t, 0, len(errs))
+			assert.Equal(t, tc.expectedDeleteCount, stats.DeleteOps.Count())
 		})
 	}
 }
