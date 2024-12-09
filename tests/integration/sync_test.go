@@ -1267,6 +1267,24 @@ var (
 			Protocols: []*string{kong.String("http"), kong.String("https")},
 		},
 	}
+
+	consumerGroupScopedPluginWithTags = []*kong.Plugin{{
+		Name: kong.String("request-transformer"),
+		Config: kong.Configuration{
+			"add":         map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+			"append":      map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+			"http_method": string("GET"),
+			"remove":      map[string]any{"body": []any{}, "headers": []any{string("test-header")}, "querystring": []any{}},
+			"rename":      map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+			"replace":     map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}, "uri": nil},
+		},
+		ConsumerGroup: &kong.ConsumerGroup{
+			ID: kong.String("58076db2-28b6-423b-ba39-a79719301700"),
+		},
+		Tags:      kong.StringSlice("tag1", "tag2"),
+		Enabled:   kong.Bool(true),
+		Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+	}}
 )
 
 // test scope:
@@ -2792,6 +2810,47 @@ func Test_Sync_PluginsOnEntitiesFrom_3_0_0(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			runWhenKongOrKonnect(t, ">=3.0.0")
+			setup(t)
+
+			sync(tc.kongFile)
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+// test scope:
+//   - 3.4.0+
+func Test_Sync_PluginsOnConsumerGroupsWithTagsFrom_3_4_0(t *testing.T) {
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	tests := []struct {
+		name          string
+		kongFile      string
+		expectedState utils.KongRawState
+	}{
+		{
+			name:     "create plugins on consumer-groups",
+			kongFile: "testdata/sync/xxx-plugins-on-entities/kong-cg-plugin.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("foo"),
+						},
+					},
+				},
+				Plugins: consumerGroupScopedPluginWithTags,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhenEnterpriseOrKonnect(t, ">=3.4.0")
 			setup(t)
 
 			sync(tc.kongFile)
