@@ -371,3 +371,79 @@ func Test_excludeKonnectManagedPlugins(t *testing.T) {
 		})
 	}
 }
+
+func Test_excludeKonnectManagedEntities(t *testing.T) {
+	tests := []struct {
+		name     string
+		entities []any
+		want     []any
+	}{
+		{
+			name: "exclude konnect managed",
+			entities: []any{
+				&kong.SNI{
+					Name: kong.String("foo"),
+					Tags: []*string{
+						kong.String("konnect-managed"),
+					},
+				},
+				&kong.SNI{
+					Name: kong.String("bar"),
+					Tags: []*string{
+						kong.String("bar-tag1"),
+					},
+				},
+				&kong.SNI{
+					Name: kong.String("baz"),
+					Tags: []*string{
+						kong.String("konnect-managed"),
+					},
+				},
+			},
+			want: []any{
+				&kong.SNI{
+					Name: kong.String("bar"),
+					Tags: []*string{
+						kong.String("bar-tag1"),
+					},
+				},
+			},
+		},
+		{
+			name:     "empty input",
+			entities: []any{},
+			want:     []any{},
+		},
+		{
+			name: "all konnect managed",
+			entities: []any{
+				&kong.SNI{
+					Name: kong.String("sni1"),
+					Tags: []*string{
+						kong.String("konnect-managed"),
+					},
+				},
+				&kong.SNI{
+					Name: kong.String("sni2"),
+					Tags: []*string{
+						kong.String("konnect-managed"),
+					},
+				},
+			},
+			want: []any{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := excludeKonnectManagedEntities(tt.entities)
+			if err != nil {
+				t.Errorf("excludeKonnectManagedEntities() error = %v", err)
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("excludeKonnectManagedPlugins() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
