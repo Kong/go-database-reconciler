@@ -127,6 +127,8 @@ const (
 
 	// FilterChain identifies a FilterChain in Kong.
 	FilterChain EntityType = "filter-chain"
+
+	DegraphqlRoute EntityType = "degraphql_routes"
 )
 
 // AllTypes represents all types defined in the
@@ -151,6 +153,8 @@ var AllTypes = []EntityType{
 	Vault, License,
 
 	FilterChain,
+
+	DegraphqlRoute,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -571,6 +575,22 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				targetState:  opts.TargetState,
 			},
 		}, nil
+	case DegraphqlRoute:
+		return entityImpl{
+			typ: DegraphqlRoute,
+			crudActions: &degraphqlRouteCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &degraphqlRoutePostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &degraphqlRouteDiffer{
+				kind:         entityTypeToKind(DegraphqlRoute),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+
 	default:
 		return nil, fmt.Errorf("unknown type: %q", t)
 	}
