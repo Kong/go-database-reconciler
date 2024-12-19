@@ -37,6 +37,7 @@ type KongState struct {
 	ACLGroups               *ACLGroupsCollection
 	Oauth2Creds             *Oauth2CredsCollection
 	MTLSAuths               *MTLSAuthsCollection
+	DegraphqlRoutes         *DegraphqlRoutesCollection
 	RBACRoles               *RBACRolesCollection
 	RBACEndpointPermissions *RBACEndpointPermissionsCollection
 
@@ -55,6 +56,7 @@ func NewKongState() (*KongState, error) {
 	jwtAuthTemp := newJWTAuthsCollection(collection{})
 	oauth2CredsTemp := newOauth2CredsCollection(collection{})
 	mtlsAuthTemp := newMTLSAuthsCollection(collection{})
+	degraphqlRouteTemp := newDegraphqlRoutesCollection(collection{})
 
 	schema := &memdb.DBSchema{
 		Tables: map[string]*memdb.TableSchema{
@@ -75,6 +77,8 @@ func NewKongState() (*KongState, error) {
 			rbacEndpointPermissionTableName: rbacEndpointPermissionTableSchema,
 			vaultTableName:                  vaultTableSchema,
 			licenseTableName:                licenseTableSchema,
+
+			degraphqlRouteTemp.TableName(): degraphqlRouteTemp.Schema(),
 
 			keyAuthTemp.TableName():     keyAuthTemp.Schema(),
 			hmacAuthTemp.TableName():    hmacAuthTemp.Schema(),
@@ -118,6 +122,8 @@ func NewKongState() (*KongState, error) {
 	state.RBACEndpointPermissions = (*RBACEndpointPermissionsCollection)(&state.common)
 	state.Vaults = (*VaultsCollection)(&state.common)
 	state.Licenses = (*LicensesCollection)(&state.common)
+
+	state.DegraphqlRoutes = newDegraphqlRoutesCollection(state.common)
 
 	state.KeyAuths = newKeyAuthsCollection(state.common)
 	state.HMACAuths = newHMACAuthsCollection(state.common)

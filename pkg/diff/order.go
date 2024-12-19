@@ -24,6 +24,7 @@ L3      +---------------------------> Service <---+  +-> Route               |
         |                                 |          |     v                 |
 L4      +----------> Document   <---------+          +-> Plugins / <---------+
                                                          FilterChains
+														 PluginEntities - DegraphqlRoute
 */
 
 // dependencyOrder defines the order in which entities will be synced by decK.
@@ -64,6 +65,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.Plugin,
 		types.FilterChain,
 		types.Document,
+		types.DegraphqlRoute,
 	},
 }
 

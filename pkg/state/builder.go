@@ -360,6 +360,39 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			return fmt.Errorf("inserting license into state: %w", err)
 		}
 	}
+
+	for _, d := range raw.DegraphqlRoutes {
+		if d.Service != nil && !utils.Empty(d.Service.ID) {
+			ok, s, err := ensureService(kongState, *d.Service.ID)
+			if err != nil {
+				return err
+			}
+			if ok {
+				d.Service = s
+			}
+		}
+		err := kongState.DegraphqlRoutes.Add(DegraphqlRoute{DegraphqlRoute: *d})
+		if err != nil {
+			return fmt.Errorf("inserting degraphql route into state: %w", err)
+		}
+	}
+
+	for _, c := range raw.CustomEntities {
+		if c.Type() == "degraphql_routes" {
+			entity := c.Object()
+
+			degraphqlRoute, err := buildDegraphqlRouteFromCustomEntity(kongState, entity)
+			if err != nil {
+				return fmt.Errorf("building degraphql route from custom entity: %w", err)
+			}
+
+			err = kongState.DegraphqlRoutes.Add(degraphqlRoute)
+			if err != nil {
+				return fmt.Errorf("inserting degraphql route into state: %w", err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -415,4 +448,41 @@ func GetKonnectState(rawKong *utils.KongRawState,
 		return nil, err
 	}
 	return kongState, nil
+}
+
+func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string]interface{}) (DegraphqlRoute, error) {
+	var degraphqlRoute DegraphqlRoute
+
+	if entity["id"] != nil {
+		degraphqlRoute.ID = kong.String(entity["id"].(string))
+	}
+
+	if entity["service"] != nil {
+		serviceId := entity["service"].(map[string]interface{})["id"].(string)
+		ok, s, err := ensureService(kongState, serviceId)
+		if err != nil {
+			return DegraphqlRoute{}, err
+		}
+		if ok {
+			degraphqlRoute.Service = s
+		}
+	}
+
+	if entity["uri"] != nil {
+		degraphqlRoute.URI = kong.String(entity["uri"].(string))
+	}
+
+	if entity["query"] != nil {
+		degraphqlRoute.Query = kong.String(entity["query"].(string))
+	}
+
+	if entity["methods"] != nil {
+		methods := make([]string, len(entity["methods"].([]interface{})))
+		for i, v := range entity["methods"].([]interface{}) {
+			methods[i] = fmt.Sprint(v)
+		}
+		degraphqlRoute.Methods = kong.StringSlice(methods...)
+	}
+
+	return degraphqlRoute, nil
 }

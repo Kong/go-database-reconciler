@@ -115,6 +115,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.consumers()
 	b.plugins()
 	b.filterChains()
+	b.pluginEntities()
 	b.enterprise()
 
 	// konnect
@@ -1566,6 +1567,108 @@ func filterChainRelations(filterChain *kong.FilterChain) (rID, sID string) {
 		sID = *filterChain.Service.ID
 	}
 	return
+}
+
+func (b *stateBuilder) pluginEntities() {
+	if b.err != nil {
+		return
+	}
+
+	supportedPluginEntities := map[string]bool{
+		degraphqlRoutesType: true,
+	}
+
+	var pluginEntities []FPluginEntity
+	for _, e := range b.targetContent.PluginEntities {
+		if !supportedPluginEntities[*e.Type] {
+			b.err = fmt.Errorf("plugin entity %v is not supported", *e.Type)
+			return
+		}
+
+		pluginEntities = append(pluginEntities, e)
+	}
+
+	b.ingestPluginEntities(pluginEntities)
+}
+
+func (b *stateBuilder) ingestPluginEntities(pluginEntities []FPluginEntity) {
+	for _, e := range pluginEntities {
+		switch *e.Type {
+		case degraphqlRoutesType:
+			b.ingestDeGraphqlRoute(e)
+		}
+	}
+}
+
+func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FPluginEntity) {
+	degraphqlRoute, err := copyToDegraphqlRoute(degraphqlRouteEntity)
+	if err != nil {
+		b.err = err
+		return
+	}
+
+	if utils.Empty(degraphqlRoute.ID) {
+		d, err := b.currentState.DegraphqlRoutes.GetByUriQuery(*degraphqlRoute.URI, *degraphqlRoute.Query)
+		if errors.Is(err, state.ErrNotFound) {
+			degraphqlRoute.ID = uuid()
+		} else if err != nil {
+			b.err = err
+			return
+		} else {
+			degraphqlRoute.ID = kong.String(*d.ID)
+		}
+	} else {
+		degraphqlRoute.ID = kong.String(*degraphqlRoute.ID)
+	}
+
+	b.rawState.DegraphqlRoutes = append(b.rawState.DegraphqlRoutes, &degraphqlRoute.DegraphqlRoute)
+}
+
+func copyToDegraphqlRoute(fpEntity FPluginEntity) (DegraphqlRoute, error) {
+	degraphqlRoute := DegraphqlRoute{}
+	if fpEntity.ID != nil {
+		degraphqlRoute.ID = fpEntity.ID
+	}
+
+	if fpEntity.Fields == nil {
+		return DegraphqlRoute{}, fmt.Errorf("fields are required for degraphql_routes")
+	}
+
+	if fpEntity.Fields["service"] != nil {
+		if service, ok := fpEntity.Fields["service"].(*string); ok {
+			degraphqlRoute.Service = &kong.Service{
+				ID: service,
+			}
+		}
+	}
+
+	if fpEntity.Fields["uri"] != nil {
+		if uri, ok := fpEntity.Fields["uri"].(*string); ok {
+			degraphqlRoute.URI = uri
+		}
+	}
+
+	if fpEntity.Fields["query"] != nil {
+		if query, ok := fpEntity.Fields["query"].(*string); ok {
+			degraphqlRoute.Query = query
+		}
+	}
+
+	if fpEntity.Fields["methods"] != nil {
+		if methods, ok := fpEntity.Fields["methods"].([]*string); ok {
+			methodsString := make([]string, len(methods))
+			for i, method := range methods {
+				methodsString[i] = *method
+			}
+			degraphqlRoute.Methods = kong.StringSlice(methodsString...)
+		}
+	}
+
+	if degraphqlRoute.Methods == nil {
+		degraphqlRoute.Methods = kong.StringSlice("GET")
+	}
+
+	return degraphqlRoute, nil
 }
 
 func defaulter(
