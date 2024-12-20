@@ -7,7 +7,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/state/indexers"
 )
 
-// DegraphqlRoutesCollection stores and indexes jwt-auth credentials.
+// DegraphqlRoutesCollection stores and indexes degraphql_routes.
 type DegraphqlRoutesCollection struct {
 	pluginEntitiesCollection
 }
@@ -63,7 +63,7 @@ func (k *DegraphqlRoutesCollection) GetByURIQuery(uri,
 	return getDegraphqlRouteByURIQuery(txn, uri, query)
 }
 
-// Add adds a degraphql route credential to DegraphqlRoutesCollection
+// Add adds a degraphql route to DegraphqlRoutesCollection
 func (k *DegraphqlRoutesCollection) Add(degraphqlRoute DegraphqlRoute) error {
 	e := (pluginEntity)(&degraphqlRoute)
 	return k.pluginEntitiesCollection.Add(e)
