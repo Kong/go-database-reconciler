@@ -966,7 +966,6 @@ func (f *FPluginEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	default:
 		return fmt.Errorf("unknown entity type: %s", *f.Type)
 	}
-
 }
 
 // sortKey is used for sorting.

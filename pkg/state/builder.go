@@ -458,8 +458,8 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 	}
 
 	if entity["service"] != nil {
-		serviceId := entity["service"].(map[string]interface{})["id"].(string)
-		ok, s, err := ensureService(kongState, serviceId)
+		serviceID := entity["service"].(map[string]interface{})["id"].(string)
+		ok, s, err := ensureService(kongState, serviceID)
 		if err != nil {
 			return DegraphqlRoute{}, err
 		}
