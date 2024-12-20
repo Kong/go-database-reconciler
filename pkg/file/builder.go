@@ -1608,7 +1608,7 @@ func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FPluginEntity) 
 	}
 
 	if utils.Empty(degraphqlRoute.ID) {
-		d, err := b.currentState.DegraphqlRoutes.GetByUriQuery(*degraphqlRoute.URI, *degraphqlRoute.Query)
+		d, err := b.currentState.DegraphqlRoutes.GetByURIQuery(*degraphqlRoute.URI, *degraphqlRoute.Query)
 		if errors.Is(err, state.ErrNotFound) {
 			degraphqlRoute.ID = uuid()
 		} else if err != nil {

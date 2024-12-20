@@ -40,7 +40,7 @@ func (k *pluginEntitiesCollection) Schema() *memdb.TableSchema {
 	}
 }
 
-func (k *pluginEntitiesCollection) getByPluginEntityId(txn *memdb.Txn, id string) (pluginEntity, error) {
+func (k *pluginEntitiesCollection) getByPluginEntityID(txn *memdb.Txn, id string) (pluginEntity, error) {
 	if id == "" {
 		return nil, errIDRequired
 	}
@@ -68,7 +68,7 @@ func (k *pluginEntitiesCollection) Add(e pluginEntity) error {
 	txn := k.db.Txn(true)
 	defer txn.Abort()
 
-	_, err := k.getByPluginEntityId(txn, e.GetPluginEntityID())
+	_, err := k.getByPluginEntityID(txn, e.GetPluginEntityID())
 	if err == nil {
 		return fmt.Errorf("inserting plugin-entity %v - %v : %w", k.PluginEntityType, e.GetPluginEntityID(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {
@@ -91,7 +91,7 @@ func (k *pluginEntitiesCollection) Get(id string) (pluginEntity, error) {
 
 	txn := k.db.Txn(false)
 	defer txn.Abort()
-	return k.getByPluginEntityId(txn, id)
+	return k.getByPluginEntityID(txn, id)
 }
 
 // Update updates an existing pluginEntity
@@ -117,7 +117,7 @@ func (k *pluginEntitiesCollection) Update(e pluginEntity) error {
 }
 
 func (k *pluginEntitiesCollection) deleteCred(txn *memdb.Txn, nameOrID string) error {
-	e, err := k.getByPluginEntityId(txn, nameOrID)
+	e, err := k.getByPluginEntityID(txn, nameOrID)
 	if err != nil {
 		return err
 	}

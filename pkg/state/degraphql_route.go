@@ -32,7 +32,7 @@ func newDegraphqlRoutesCollection(common collection) *DegraphqlRoutesCollection 
 	}
 }
 
-func getDegraphqlRouteByUriQuery(txn *memdb.Txn, uri, query string) (*DegraphqlRoute, error) {
+func getDegraphqlRouteByURIQuery(txn *memdb.Txn, uri, query string) (*DegraphqlRoute, error) {
 	res, err := txn.First(pluginEntityType, "uriQuery", uri, query)
 	if err != nil {
 		return nil, err
@@ -48,9 +48,9 @@ func getDegraphqlRouteByUriQuery(txn *memdb.Txn, uri, query string) (*DegraphqlR
 	return &DegraphqlRoute{DegraphqlRoute: *d.DeepCopy()}, nil
 }
 
-// GetByUriQuery gets a degraphql route with
+// GetByURIQuery gets a degraphql route with
 // the same uri and query from the collection.
-func (k *DegraphqlRoutesCollection) GetByUriQuery(uri,
+func (k *DegraphqlRoutesCollection) GetByURIQuery(uri,
 	query string,
 ) (*DegraphqlRoute, error) {
 	if uri == "" || query == "" {
@@ -60,7 +60,7 @@ func (k *DegraphqlRoutesCollection) GetByUriQuery(uri,
 	txn := k.db.Txn(false)
 	defer txn.Abort()
 
-	return getDegraphqlRouteByUriQuery(txn, uri, query)
+	return getDegraphqlRouteByURIQuery(txn, uri, query)
 }
 
 // Add adds a degraphql route credential to DegraphqlRoutesCollection
