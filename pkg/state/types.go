@@ -1804,12 +1804,12 @@ type DegraphqlRoute struct {
 	Meta
 }
 
-// Identifier returns the ID of the DegraphqlRoute.
+// GetPluginEntityID returns the ID of the DegraphqlRoute.
 func (d *DegraphqlRoute) GetPluginEntityID() string {
 	return *d.ID
 }
 
-// Identifier returns the ID of the DegraphqlRoute.
+// GetPluginEntityType returns the DegraphqlRoute Type.
 func (d *DegraphqlRoute) GetPluginEntityType() string {
 	return "degraphql_routes"
 }

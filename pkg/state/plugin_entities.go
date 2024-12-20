@@ -7,7 +7,7 @@ import (
 	memdb "github.com/hashicorp/go-memdb"
 )
 
-// pluginEntitiesCollection stores and indexes key-auth credentials.
+// pluginEntitiesCollection stores and indexes plugin entities.
 type pluginEntitiesCollection struct {
 	collection
 	PluginEntityType string
@@ -103,7 +103,7 @@ func (k *pluginEntitiesCollection) Update(e pluginEntity) error {
 	txn := k.db.Txn(true)
 	defer txn.Abort()
 
-	err := k.deleteCred(txn, e.GetPluginEntityID())
+	err := k.deleteEntity(txn, e.GetPluginEntityID())
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (k *pluginEntitiesCollection) Update(e pluginEntity) error {
 	return nil
 }
 
-func (k *pluginEntitiesCollection) deleteCred(txn *memdb.Txn, nameOrID string) error {
+func (k *pluginEntitiesCollection) deleteEntity(txn *memdb.Txn, nameOrID string) error {
 	e, err := k.getByPluginEntityID(txn, nameOrID)
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func (k *pluginEntitiesCollection) Delete(id string) error {
 	txn := k.db.Txn(true)
 	defer txn.Abort()
 
-	err := k.deleteCred(txn, id)
+	err := k.deleteEntity(txn, id)
 	if err != nil {
 		return err
 	}
