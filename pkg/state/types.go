@@ -1806,6 +1806,9 @@ type DegraphqlRoute struct {
 
 // Identifier returns the ID of the DegraphqlRoute.
 func (d *DegraphqlRoute) GetPluginEntityID() string {
+	if d.ID == nil {
+		return ""
+	}
 	return *d.ID
 }
 
