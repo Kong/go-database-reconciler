@@ -389,6 +389,23 @@ func existingFilterChainState() *state.KongState {
 	return s
 }
 
+func existingDegraphqlRouteState() *state.KongState {
+	s, _ := state.NewKongState()
+	s.DegraphqlRoutes.Add(
+		state.DegraphqlRoute{
+			DegraphqlRoute: kong.DegraphqlRoute{
+				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Service: &kong.Service{
+					ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+				},
+				Methods: kong.StringSlice("GET"),
+				URI:     kong.String("/example"),
+				Query:   kong.String("query{ example { foo } }"),
+			},
+		})
+	return s
+}
+
 var deterministicUUID = func() *string {
 	version := byte(4)
 	uuid := make([]byte, 16)
@@ -3850,6 +3867,154 @@ func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 			assert.Equal(tt.want, b.rawState)
 			assert.Nil(b.rawState.Routes[0].RegexPriority, "RegexPriority should be nil")
 			assert.Nil(b.rawState.Routes[0].PathHandling, "PathHandling should be nil")
+		})
+	}
+}
+
+func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
+	rand.Seed(42)
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "generates a new degraphql route from valid config passed",
+			fields: fields{
+				targetContent: &Content{
+					PluginEntities: []FPluginEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: PluginEntityConfiguration{
+								"uri":     kong.String("/foo"),
+								"query":   kong.String("query { foo { bar }}"),
+								"service": kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID:    kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						URI:   kong.String("/foo"),
+						Query: kong.String("query { foo { bar }}"),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+						Methods: kong.StringSlice("GET"),
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing degraphql route",
+			fields: fields{
+				targetContent: &Content{
+					PluginEntities: []FPluginEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: PluginEntityConfiguration{
+								"uri":     kong.String("/example"),
+								"query":   kong.String("query{ example { foo } }"),
+								"service": kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+							},
+						},
+					},
+				},
+				currentState: existingDegraphqlRouteState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Service: &kong.Service{
+							ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+						},
+						Methods: kong.StringSlice("GET"),
+						URI:     kong.String("/example"),
+						Query:   kong.String("query{ example { foo } }"),
+					},
+				},
+			},
+		},
+		{
+			name: "accepts multi line query input and service name",
+			fields: fields{
+				targetContent: &Content{
+					Services: []FService{
+						{
+							Service: kong.Service{
+								Name: kong.String("foo"),
+							},
+						},
+					},
+					PluginEntities: []FPluginEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: PluginEntityConfiguration{
+								"uri": kong.String("/foo"),
+								"query": kong.String(`query SearchPosts($filters: PostsFilters) {
+		      								posts(filter: $filters) {
+		        								id
+		        								title
+		        								author
+		      								}
+										}`),
+								"service": kong.String("foo"),
+								"methods": kong.StringSlice("GET", "POST"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID: kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Service: &kong.Service{
+							ID: kong.String("foo"),
+						},
+						Methods: kong.StringSlice("GET", "POST"),
+						URI:     kong.String("/foo"),
+						Query: kong.String(`query SearchPosts($filters: PostsFilters) {
+		      								posts(filter: $filters) {
+		        								id
+		        								title
+		        								author
+		      								}
+										}`),
+					},
+				},
+				Services: []*kong.Service{
+					{
+						ID:             kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:           kong.String("foo"),
+						Protocol:       kong.String("http"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			b.build()
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
