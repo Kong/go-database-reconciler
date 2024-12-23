@@ -367,9 +367,10 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			if err != nil {
 				return err
 			}
-			if ok {
-				d.Service = s
+			if !ok {
+				return fmt.Errorf("service %q not found", *d.Service.ID)
 			}
+			d.Service = s
 		}
 		err := kongState.DegraphqlRoutes.Add(DegraphqlRoute{DegraphqlRoute: *d})
 		if err != nil {
@@ -454,32 +455,63 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 	var degraphqlRoute DegraphqlRoute
 
 	if entity["id"] != nil {
-		degraphqlRoute.ID = kong.String(entity["id"].(string))
+		id, ok := entity["id"].(string)
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("id must be of type string")
+		}
+		degraphqlRoute.ID = kong.String(id)
 	}
 
 	if entity["service"] != nil {
-		serviceID := entity["service"].(map[string]interface{})["id"].(string)
+		service, ok := entity["service"].(map[string]interface{})
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("service must be of type object")
+		}
+
+		serviceID, ok := service["id"].(string)
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("service must be of type object with a valid string id or name")
+		}
+
 		ok, s, err := ensureService(kongState, serviceID)
 		if err != nil {
 			return DegraphqlRoute{}, err
 		}
-		if ok {
-			degraphqlRoute.Service = s
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("service must be of type object with a valid string id or name")
 		}
+		degraphqlRoute.Service = s
 	}
 
 	if entity["uri"] != nil {
-		degraphqlRoute.URI = kong.String(entity["uri"].(string))
+		uri, ok := entity["uri"].(string)
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("uri must be of type string")
+		}
+		degraphqlRoute.URI = kong.String(uri)
 	}
 
 	if entity["query"] != nil {
-		degraphqlRoute.Query = kong.String(entity["query"].(string))
+		query, ok := entity["query"].(string)
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("query must be of type string")
+		}
+		degraphqlRoute.Query = kong.String(query)
 	}
 
 	if entity["methods"] != nil {
-		methods := make([]string, len(entity["methods"].([]interface{})))
-		for i, v := range entity["methods"].([]interface{}) {
-			methods[i] = fmt.Sprint(v)
+		methodSlice, ok := entity["methods"].([]interface{})
+		if !ok {
+			return DegraphqlRoute{}, fmt.Errorf("methods must be an array of strings")
+		}
+
+		methods := make([]string, len(methodSlice))
+		for i, v := range methodSlice {
+			method, ok := v.(string)
+			if !ok {
+				return DegraphqlRoute{}, fmt.Errorf("methods must be an array of strings")
+			}
+			methods[i] = method
 		}
 		degraphqlRoute.Methods = kong.StringSlice(methods...)
 	}
