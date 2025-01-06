@@ -6115,8 +6115,8 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	}
 }
 
-func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.0.0")
+func Test_Sync_Scoped_Plugins(t *testing.T) {
+	runWhen(t, "kong", "<3.0.0")
 	setup(t)
 
 	tests := []struct {
@@ -6137,6 +6137,40 @@ func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
 		{
 			name:          "syncing consumer-scoped plugin with service and route field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/consumer-plugins.yaml",
+			errorExpected: "building state: nesting route (example-route) under consumer-scoped plugin (request-transformer) is not allowed\nnesting service (example-service) under consumer-scoped plugin (request-transformer) is not allowed",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := sync(tc.file)
+			require.Equal(t, tc.errorExpected, err.Error())
+		})
+	}
+}
+
+func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
+	runWhen(t, "kong", ">=3.0.0")
+	setup(t)
+
+	tests := []struct {
+		name          string
+		file          string
+		errorExpected string
+	}{
+		{
+			name:          "syncing route-scoped plugin with service field set",
+			file:          "testdata/sync/036-scoped-plugins-validation/3x/route-plugins.yaml",
+			errorExpected: "building state: nesting service (example-service) under route-scoped plugin (request-transformer) is not allowed",
+		},
+		{
+			name:          "syncing service-scoped plugin with route and consumer field set",
+			file:          "testdata/sync/036-scoped-plugins-validation/3x/service-plugins.yaml",
+			errorExpected: "building state: nesting consumer (foo) under service-scoped plugin plugin (request-transformer) is not allowed\nnesting route (example-route) under service-scoped plugin (request-transformer) is not allowed",
+		},
+		{
+			name:          "syncing consumer-scoped plugin with service and route field set",
+			file:          "testdata/sync/036-scoped-plugins-validation/3x/consumer-plugins.yaml",
 			errorExpected: "building state: nesting route (example-route) under consumer-scoped plugin (request-transformer) is not allowed\nnesting service (example-service) under consumer-scoped plugin (request-transformer) is not allowed",
 		},
 	}

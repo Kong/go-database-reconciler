@@ -1,4 +1,4 @@
-_format_version: "1.0"
+_format_version: "3.0"
 services:
 - name: example-service
   port: 3200
