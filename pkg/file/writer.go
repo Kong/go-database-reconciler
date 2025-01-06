@@ -614,7 +614,7 @@ func populateCertificates(kongState *state.KongState, file *Content,
 }
 
 func populateCACertificates(kongState *state.KongState, file *Content,
-	config WriteConfig,
+	_ WriteConfig,
 ) error {
 	caCertificates, err := kongState.CACertificates.GetAll()
 	if err != nil {
