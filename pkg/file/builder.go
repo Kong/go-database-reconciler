@@ -1600,5 +1600,9 @@ func checkForNestedForeignKeys(plugin kong.Plugin, primary string) error {
 		errs = append(errs, fmt.Errorf("nesting service (%v) under %v-scoped plugin (%v) is not allowed",
 			*plugin.Service.ID, primary, *plugin.Name))
 	}
+	if primary != "consumer-group" && plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
+		errs = append(errs, fmt.Errorf("nesting consumer-group (%v) under %v-scoped plugin (%v) is not allowed",
+			*plugin.ConsumerGroup.ID, primary, *plugin.Name))
+	}
 	return errors.Join(errs...)
 }
