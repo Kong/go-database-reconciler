@@ -488,6 +488,10 @@ func (b *stateBuilder) consumers() {
 		// plugins for the Consumer
 		var plugins []FPlugin
 		for _, p := range c.Plugins {
+			if err := checkForNestedForeignKeys(p.Plugin, "consumer"); err != nil {
+				b.err = err
+				return
+			}
 			p.Consumer = utils.GetConsumerReference(c.Consumer)
 			plugins = append(plugins, *p)
 		}
@@ -920,6 +924,9 @@ func (b *stateBuilder) ingestService(s *FService) error {
 	// plugins for the service
 	var plugins []FPlugin
 	for _, p := range s.Plugins {
+		if err := checkForNestedForeignKeys(p.Plugin, "service"); err != nil {
+			return err
+		}
 		p.Service = utils.GetServiceReference(s.Service)
 		plugins = append(plugins, *p)
 	}
@@ -1436,6 +1443,9 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// plugins for the route
 	var plugins []FPlugin
 	for _, p := range r.Plugins {
+		if err := checkForNestedForeignKeys(p.Plugin, "route"); err != nil {
+			return err
+		}
 		if p.Service != nil && !utils.Empty(p.Service.ID) {
 			return fmt.Errorf("nesting service (%v) under route-scoped plugin (%v) is not allowed", *p.Service.ID, *p.Name)
 		}
@@ -1573,4 +1583,22 @@ func defaulter(
 		return nil, fmt.Errorf("creating defaulter: %w", err)
 	}
 	return defaulter, nil
+}
+
+func checkForNestedForeignKeys(plugin kong.Plugin, primary string) error {
+	var errs []error
+
+	if primary != "consumer" && plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
+		errs = append(errs, fmt.Errorf("nesting consumer (%v) under %v-scoped plugin plugin (%v) is not allowed",
+			*plugin.Consumer.ID, primary, *plugin.Name))
+	}
+	if primary != "route" && plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
+		errs = append(errs, fmt.Errorf("nesting route (%v) under %v-scoped plugin (%v) is not allowed",
+			*plugin.Route.ID, primary, *plugin.Name))
+	}
+	if primary != "service" && plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
+		errs = append(errs, fmt.Errorf("nesting service (%v) under %v-scoped plugin (%v) is not allowed",
+			*plugin.Service.ID, primary, *plugin.Name))
+	}
+	return errors.Join(errs...)
 }
