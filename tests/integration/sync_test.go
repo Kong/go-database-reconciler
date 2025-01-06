@@ -6119,9 +6119,6 @@ func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.0.0")
 	setup(t)
 
-	//client, err := getTestClient()
-	// require.NoError(t, err)
-
 	tests := []struct {
 		name          string
 		file          string
