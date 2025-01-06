@@ -1436,6 +1436,10 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// plugins for the route
 	var plugins []FPlugin
 	for _, p := range r.Plugins {
+		if p.Service != nil && !utils.Empty(p.Service.ID) {
+			return fmt.Errorf("nesting service (%v) under route-scoped plugin (%v) is not allowed", *p.Service.ID, *p.Name)
+		}
+
 		p.Route = utils.GetRouteReference(r.Route)
 		plugins = append(plugins, *p)
 	}
