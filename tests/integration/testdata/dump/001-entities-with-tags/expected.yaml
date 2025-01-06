@@ -101,7 +101,6 @@ consumers:
   username: harry
 plugins:
 - config:
-    ai_metrics: false
     bandwidth_metrics: false
     latency_metrics: false
     per_consumer: false
