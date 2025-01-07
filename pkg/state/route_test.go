@@ -104,6 +104,19 @@ func TestRoutesCollection_Add(t *testing.T) {
 	}
 }
 
+func TestRouteInsertIgnoreDuplicate(t *testing.T) {
+	assert := assert.New(t)
+	collection := routesCollection()
+
+	var r Route
+	r.ID = kong.String("my-id")
+	r.Name = kong.String("first")
+	err := collection.Add(r)
+	assert.Nil(err)
+	err = collection.AddIgnoringDuplicates(r)
+	assert.Nil(err)
+}
+
 func TestRoutesCollection_Get(t *testing.T) {
 	type args struct {
 		nameOrID string

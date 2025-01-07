@@ -60,6 +60,8 @@ type stateBuilder struct {
 
 	removePathHandlingFromExpressionRoute bool
 
+	isPartialApply bool
+
 	err error
 }
 
@@ -175,6 +177,53 @@ func (b *stateBuilder) consumerGroups() {
 		return
 	}
 
+	// Load all existing consumer groups in to the intermediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		consumerGroups, err := b.currentState.ConsumerGroups.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+		for _, cg := range consumerGroups {
+			// Add to intermediate state for lookups
+			err = b.intermediate.ConsumerGroups.Add(*cg)
+			if err != nil {
+				b.err = err
+				return
+			}
+
+			// Also add to rawState to perform a lookup later
+			rawCg := &kong.ConsumerGroupObject{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:        cg.ID,
+					Name:      cg.Name,
+					CreatedAt: cg.CreatedAt,
+					Tags:      cg.Tags,
+				},
+			}
+
+			// Fetch consumers for this CG
+			consumerGroupConsumers, err := b.currentState.ConsumerGroupConsumers.GetAll()
+			if err != nil {
+				b.err = err
+				return
+			}
+
+			var consumers []*kong.Consumer
+			for _, cgc := range consumerGroupConsumers {
+				if cgc.ConsumerGroup.ID == cg.ID {
+					consumers = append(consumers, cgc.Consumer)
+				}
+			}
+
+			rawCg.Consumers = consumers
+
+			b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, rawCg)
+
+		}
+	}
+
 	for _, cg := range b.targetContent.ConsumerGroups {
 		current, err := b.currentState.ConsumerGroups.Get(*cg.Name)
 		if utils.Empty(cg.ID) {
@@ -207,7 +256,7 @@ func (b *stateBuilder) consumerGroups() {
 			ConsumerGroup: &cg.ConsumerGroup,
 		}
 
-		err = b.intermediate.ConsumerGroups.Add(state.ConsumerGroup{ConsumerGroup: cg.ConsumerGroup})
+		err = b.intermediate.ConsumerGroups.AddIgnoringDuplicates(state.ConsumerGroup{ConsumerGroup: cg.ConsumerGroup})
 		if err != nil {
 			b.err = err
 			return
@@ -247,13 +296,42 @@ func (b *stateBuilder) consumerGroups() {
 				cgo.Consumers = append(cgo.Consumers, c)
 			}
 		}
-		b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, &cgo)
+
+		// Replace the consumergroup in the raw state if it exists
+		foundCg := false
+		for i, existingCG := range b.rawState.ConsumerGroups {
+			if existingCG.ConsumerGroup.ID == cg.ID {
+				b.rawState.ConsumerGroups[i] = &cgo
+				foundCg = true
+				break
+			}
+		}
+		if !foundCg {
+			b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, &cgo)
+		}
 	}
 }
 
 func (b *stateBuilder) certificates() {
 	if b.err != nil {
 		return
+	}
+
+	// Load all existing certificates in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		certs, err := b.currentState.Certificates.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+		for _, c := range certs {
+			err = b.intermediate.Certificates.Add(*c)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
 	}
 
 	for i := range b.targetContent.Certificates {
@@ -320,6 +398,23 @@ func (b *stateBuilder) ingestSNIs(snis []kong.SNI) error {
 func (b *stateBuilder) caCertificates() {
 	if b.err != nil {
 		return
+	}
+
+	// Load all existing CA certificates in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		certs, err := b.currentState.CACertificates.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+		for _, c := range certs {
+			err = b.intermediate.CACertificates.Add(*c)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
 	}
 
 	for _, c := range b.targetContent.CACertificates {
@@ -396,11 +491,11 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 	}
 
 	b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
-	err = b.intermediate.Consumers.Add(state.Consumer{Consumer: c.Consumer})
+	err = b.intermediate.Consumers.AddIgnoringDuplicates(state.Consumer{Consumer: c.Consumer})
 	if err != nil {
 		return nil, err
 	}
-	err = b.intermediate.ConsumerGroupConsumers.Add(state.ConsumerGroupConsumer{
+	err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
 		ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
 			ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
 			Consumer:      &c.Consumer,
@@ -415,6 +510,24 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 func (b *stateBuilder) consumers() {
 	if b.err != nil {
 		return
+	}
+
+	// Load all existing consumers in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		consumers, err := b.currentState.Consumers.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+
+		for _, c := range consumers {
+			err = b.intermediate.Consumers.Add(*c)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
 	}
 
 	for _, c := range b.targetContent.Consumers {
@@ -481,7 +594,7 @@ func (b *stateBuilder) consumers() {
 		}
 		if !consumerAlreadyAdded {
 			b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
-			err = b.intermediate.Consumers.Add(state.Consumer{Consumer: c.Consumer})
+			err = b.intermediate.Consumers.AddIgnoringDuplicates(state.Consumer{Consumer: c.Consumer})
 			if err != nil {
 				b.err = err
 				return
@@ -877,6 +990,23 @@ func (b *stateBuilder) services() {
 		return
 	}
 
+	// Load all existing services in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		services, err := b.currentState.Services.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+		for _, s := range services {
+			err = b.intermediate.Services.Add(*s)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
+	}
+
 	for _, s := range b.targetContent.Services {
 		err := b.ingestService(&s)
 		if err != nil {
@@ -924,7 +1054,7 @@ func (b *stateBuilder) ingestService(s *FService) error {
 		s.Service.CreatedAt = svc.CreatedAt
 	}
 	b.rawState.Services = append(b.rawState.Services, &s.Service)
-	err = b.intermediate.Services.Add(state.Service{Service: s.Service})
+	err = b.intermediate.Services.AddIgnoringDuplicates(state.Service{Service: s.Service})
 	if err != nil {
 		return err
 	}
@@ -965,6 +1095,24 @@ func (b *stateBuilder) ingestService(s *FService) error {
 func (b *stateBuilder) routes() {
 	if b.err != nil {
 		return
+	}
+
+	// Load all existing routes in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		routes, err := b.currentState.Routes.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+
+		for _, r := range routes {
+			err = b.intermediate.Routes.Add(*r)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
 	}
 
 	for _, r := range b.targetContent.Routes {
@@ -1433,7 +1581,7 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	}
 
 	b.rawState.Routes = append(b.rawState.Routes, &r.Route)
-	err = b.intermediate.Routes.Add(state.Route{Route: r.Route})
+	err = b.intermediate.Routes.AddIgnoringDuplicates(state.Route{Route: r.Route})
 	if err != nil {
 		return err
 	}

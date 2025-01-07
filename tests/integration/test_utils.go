@@ -406,7 +406,7 @@ func mustResetKongState(ctx context.Context, t *testing.T, client *kong.Client, 
 	})
 	require.NoError(t, err, "failed to create syncer")
 
-	_, errs, _ := sc.Solve(ctx, 1, false, false)
+	_, errs, _ := sc.Solve(ctx, 1, false, false, false)
 	require.Empty(t, errs, 0, "failed to apply diffs to Kong: %d errors occurred", len(errs))
 }
 
