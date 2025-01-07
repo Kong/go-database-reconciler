@@ -49,6 +49,8 @@ type Config struct {
 
 	// IsConsumerGroupScopedPluginSupported
 	IsConsumerGroupScopedPluginSupported bool
+
+	IsPartialApply bool
 }
 
 func deduplicate(stringSlice []string) []string {

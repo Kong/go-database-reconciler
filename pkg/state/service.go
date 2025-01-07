@@ -33,6 +33,30 @@ var serviceTableSchema = &memdb.TableSchema{
 // ServicesCollection stores and indexes Kong Services.
 type ServicesCollection collection
 
+func (k *ServicesCollection) AddIgnoringDuplicates(service Service) error {
+	// Detect duplicates
+	if !utils.Empty(service.ID) {
+		s, err := k.Get(*service.ID)
+		if s != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(service.Name) {
+		s, err := k.Get(*service.Name)
+		if s != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+	return k.Add(service)
+}
+
 // Add adds a service to the collection.
 // service.ID should not be nil else an error is thrown.
 func (k *ServicesCollection) Add(service Service) error {

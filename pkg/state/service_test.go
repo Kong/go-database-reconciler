@@ -104,6 +104,19 @@ func TestServicesCollection_Add(t *testing.T) {
 	}
 }
 
+func TestServiceInsertIgnoreDuplicate(t *testing.T) {
+	assert := assert.New(t)
+	collection := servicesCollection()
+
+	var s Service
+	s.ID = kong.String("my-id")
+	s.Name = kong.String("first")
+	err := collection.Add(s)
+	assert.Nil(err)
+	err = collection.AddIgnoringDuplicates(s)
+	assert.Nil(err)
+}
+
 func TestServicesCollection_Get(t *testing.T) {
 	type args struct {
 		nameOrID string
