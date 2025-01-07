@@ -81,6 +81,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.skipCACerts = dumpConfig.SkipCACerts
 	builder.isKonnect = dumpConfig.KonnectControlPlane != ""
 	builder.includeLicenses = dumpConfig.IncludeLicenses
+	builder.isPartialApply = dumpConfig.IsPartialApply
 
 	if len(dumpConfig.SelectorTags) > 0 {
 		builder.selectTags = dumpConfig.SelectorTags

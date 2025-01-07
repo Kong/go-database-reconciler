@@ -27,6 +27,32 @@ func TestConsumerInsert(t *testing.T) {
 	assert.NotNil(collection.Add(consumer))
 }
 
+func TestConsumerInsertIgnoreDuplicateUsername(t *testing.T) {
+	assert := assert.New(t)
+	collection := consumersCollection()
+
+	var consumer Consumer
+	consumer.ID = kong.String("first")
+	consumer.Username = kong.String("my-name")
+	err := collection.Add(consumer)
+	assert.Nil(err)
+	err = collection.AddIgnoringDuplicates(consumer)
+	assert.Nil(err)
+}
+
+func TestConsumerInsertIgnoreDuplicateCustomId(t *testing.T) {
+	assert := assert.New(t)
+	collection := consumersCollection()
+
+	var consumer Consumer
+	consumer.ID = kong.String("first")
+	consumer.CustomID = kong.String("my-name")
+	err := collection.Add(consumer)
+	assert.Nil(err)
+	err = collection.AddIgnoringDuplicates(consumer)
+	assert.Nil(err)
+}
+
 func TestConsumerGetUpdate(t *testing.T) {
 	assert := assert.New(t)
 	collection := consumersCollection()
