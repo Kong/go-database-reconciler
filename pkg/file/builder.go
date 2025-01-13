@@ -19,6 +19,13 @@ import (
 
 const ratelimitingAdvancedPluginName = "rate-limiting-advanced"
 
+const (
+	primaryRelationConsumer      = "consumer"
+	primaryRelationConsumerGroup = "consumer-group"
+	primaryRelationRoute         = "route"
+	primaryRelationService       = "service"
+)
+
 type stateBuilder struct {
 	targetContent   *Content
 	rawState        *utils.KongRawState
@@ -488,6 +495,10 @@ func (b *stateBuilder) consumers() {
 		// plugins for the Consumer
 		var plugins []FPlugin
 		for _, p := range c.Plugins {
+			if err := checkForNestedForeignKeys(p.Plugin, primaryRelationConsumer); err != nil {
+				b.err = err
+				return
+			}
 			p.Consumer = utils.GetConsumerReference(c.Consumer)
 			plugins = append(plugins, *p)
 		}
@@ -920,6 +931,9 @@ func (b *stateBuilder) ingestService(s *FService) error {
 	// plugins for the service
 	var plugins []FPlugin
 	for _, p := range s.Plugins {
+		if err := checkForNestedForeignKeys(p.Plugin, primaryRelationService); err != nil {
+			return err
+		}
 		p.Service = utils.GetServiceReference(s.Service)
 		plugins = append(plugins, *p)
 	}
@@ -1436,6 +1450,9 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// plugins for the route
 	var plugins []FPlugin
 	for _, p := range r.Plugins {
+		if err := checkForNestedForeignKeys(p.Plugin, primaryRelationRoute); err != nil {
+			return err
+		}
 		p.Route = utils.GetRouteReference(r.Route)
 		plugins = append(plugins, *p)
 	}
@@ -1569,4 +1586,26 @@ func defaulter(
 		return nil, fmt.Errorf("creating defaulter: %w", err)
 	}
 	return defaulter, nil
+}
+
+func checkForNestedForeignKeys(plugin kong.Plugin, primary string) error {
+	var errs []error
+
+	if primary != primaryRelationConsumer && plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
+		errs = append(errs, fmt.Errorf("nesting consumer (%v) under %v-scoped plugin plugin (%v) is not allowed",
+			*plugin.Consumer.ID, primary, *plugin.Name))
+	}
+	if primary != primaryRelationRoute && plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
+		errs = append(errs, fmt.Errorf("nesting route (%v) under %v-scoped plugin (%v) is not allowed",
+			*plugin.Route.ID, primary, *plugin.Name))
+	}
+	if primary != primaryRelationService && plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
+		errs = append(errs, fmt.Errorf("nesting service (%v) under %v-scoped plugin (%v) is not allowed",
+			*plugin.Service.ID, primary, *plugin.Name))
+	}
+	if primary != primaryRelationConsumerGroup && plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
+		errs = append(errs, fmt.Errorf("nesting consumer-group (%v) under %v-scoped plugin (%v) is not allowed",
+			*plugin.ConsumerGroup.ID, primary, *plugin.Name))
+	}
+	return errors.Join(errs...)
 }
