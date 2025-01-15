@@ -20,11 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
       - name: Run tests with Coverage
         run: make coverage
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           name: codecov
           token: ${{ secrets.CODECOV_TOKEN }}

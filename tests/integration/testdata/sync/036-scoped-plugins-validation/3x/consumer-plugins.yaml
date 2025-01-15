@@ -1,0 +1,19 @@
+_format_version: "3.0"
+services:
+- name: example-service
+  port: 3200
+  protocol: http
+  routes:
+  - name: example-route
+    paths:
+    - ~/r1
+consumers:
+- username: foo
+  plugins:
+  - name: request-transformer
+    route: example-route
+    service: example-service
+    config:
+        add:
+          querystring:
+          - test
