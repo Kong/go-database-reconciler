@@ -60,7 +60,40 @@ func Test_Dump_SelectTags_3x(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhen(t, "kong", ">=3.1.0")
+			runWhen(t, "kong", ">=3.1.0 <3.8.0")
+			setup(t)
+
+			assert.NoError(t, sync(tc.stateFile))
+
+			output, err := dump(
+				"--select-tag", "managed-by-deck",
+				"--select-tag", "org-unit-42",
+				"-o", "-",
+			)
+			assert.NoError(t, err)
+
+			expected, err := readFile(tc.expectedFile)
+			assert.NoError(t, err)
+			assert.Equal(t, output, expected)
+		})
+	}
+}
+
+func Test_Dump_SelectTags_38x(t *testing.T) {
+	tests := []struct {
+		name         string
+		stateFile    string
+		expectedFile string
+	}{
+		{
+			name:         "dump with select-tags",
+			stateFile:    "testdata/dump/001-entities-with-tags/kong.yaml",
+			expectedFile: "testdata/dump/001-entities-with-tags/expected38.yaml",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhen(t, "kong", ">=3.1.0 <3.8.0")
 			setup(t)
 
 			assert.NoError(t, sync(tc.stateFile))
@@ -127,7 +160,21 @@ func Test_Dump_SkipConsumers(t *testing.T) {
 			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
 			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-35.yaml",
 			skipConsumers: false,
-			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.5.0") },
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.5.0 <3.8.0") },
+		},
+		{
+			name:          "3.8.1 dump with no skip-consumers",
+			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
+			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-38.yaml",
+			skipConsumers: false,
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.8.0 <3.9.0") },
+		},
+		{
+			name:          "3.9.0 dump with no skip-consumers",
+			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
+			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-39.yaml",
+			skipConsumers: false,
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.9.0") },
 		},
 	}
 	for _, tc := range tests {
