@@ -93,7 +93,7 @@ func Test_Dump_SelectTags_38x(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhen(t, "kong", ">=3.1.0 <3.8.0")
+			runWhen(t, "kong", ">=3.8.0")
 			setup(t)
 
 			assert.NoError(t, sync(tc.stateFile))
