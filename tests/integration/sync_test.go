@@ -5910,7 +5910,7 @@ func Test_Sync_PluginDeprecatedFields36x(t *testing.T) {
 }
 
 func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
-	runWhen(t, "kong", ">=3.8.0")
+	runWhen(t, "enterprise", ">=3.8.0")
 
 	// Setup RateLimitingAdvanced ==============================
 	rateLimitingAdvancedConfigurationInitial := DefaultConfigFactory.RateLimitingAdvancedConfiguration()
