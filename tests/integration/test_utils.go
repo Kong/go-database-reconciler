@@ -245,7 +245,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 
 func reset(t *testing.T, opts ...string) {
 	deckCmd := cmd.NewRootCmd()
-	args := []string{"reset", "--force"}
+	args := []string{"gateway", "reset", "--force"}
 	if len(opts) > 0 {
 		args = append(args, opts...)
 	}
@@ -278,7 +278,7 @@ func setup(t *testing.T) {
 
 func sync(kongFile string, opts ...string) error {
 	deckCmd := cmd.NewRootCmd()
-	args := []string{"sync", "-s", kongFile}
+	args := []string{"gateway", "sync", kongFile}
 	if len(opts) > 0 {
 		args = append(args, opts...)
 	}
@@ -288,7 +288,7 @@ func sync(kongFile string, opts ...string) error {
 
 func diff(kongFile string, opts ...string) (string, error) {
 	deckCmd := cmd.NewRootCmd()
-	args := []string{"diff", "-s", kongFile}
+	args := []string{"gateway", "diff", kongFile}
 	if len(opts) > 0 {
 		args = append(args, opts...)
 	}
@@ -310,7 +310,7 @@ func diff(kongFile string, opts ...string) (string, error) {
 
 func dump(opts ...string) (string, error) {
 	deckCmd := cmd.NewRootCmd()
-	args := []string{"dump"}
+	args := []string{"gateway", "dump"}
 	if len(opts) > 0 {
 		args = append(args, opts...)
 	}

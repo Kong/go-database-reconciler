@@ -149,6 +149,9 @@ type Syncer struct {
 	// enableEntityActions enables entity actions and disables direct output prints. If set to true, clients must
 	// consume the Syncer.resultChan channel or Syncer.Solve() will block.
 	enableEntityActions bool
+
+	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
+	noDeletes bool
 }
 
 type SyncerOpts struct {
@@ -173,6 +176,9 @@ type SyncerOpts struct {
 	// EnableEntityActions instructs the Syncer to send EntityActions to its resultChan. If enabled, clients must
 	// consume the Syncer.resultChan channel or Syncer.Solve() will block.
 	EnableEntityActions bool
+
+	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
+	NoDeletes bool
 }
 
 // NewSyncer constructs a Syncer.
@@ -196,6 +202,7 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 		isKonnect:       opts.IsKonnect,
 
 		enableEntityActions: opts.EnableEntityActions,
+		noDeletes:           opts.NoDeletes,
 	}
 
 	if opts.IsKonnect {
@@ -278,11 +285,20 @@ func (sc *Syncer) init() error {
 }
 
 func (sc *Syncer) diff() error {
-	for _, operation := range []func() error{
-		sc.deleteDuplicates,
-		sc.createUpdate,
-		sc.delete,
-	} {
+	var operations []func() error
+
+	// If the syncer is configured to skip deletes, then don't add those functions at all to the list of diff operations.
+	if !sc.noDeletes {
+		operations = append(operations, sc.deleteDuplicates)
+	}
+
+	operations = append(operations, sc.createUpdate)
+
+	if !sc.noDeletes {
+		operations = append(operations, sc.delete)
+	}
+
+	for _, operation := range operations {
 		err := operation()
 		if err != nil {
 			return err
