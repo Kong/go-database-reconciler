@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	baseEndpointUS = "https://global.api.konghq"
-	authEndpoint   = "/api/auth"
-	authEndpointV2 = "/kauth/api/v1/authenticate"
+	baseEndpointUS          = "https://global.api.konghq"
+	baseEndpointPrivateLink = "https://global.svc.konghq"
+	authEndpoint            = "/api/auth"
+	authEndpointV2          = "/kauth/api/v1/authenticate"
 )
 
 type ParentInfoer interface {
