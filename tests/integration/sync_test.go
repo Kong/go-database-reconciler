@@ -5145,9 +5145,9 @@ func Test_Sync_ConsumerGroupsScopedPlugins_After350(t *testing.T) {
 			},
 		},
 		{
-			name:     "creates consumer groups scoped plugins",
-			runWhen:  ">=3.8.0 <3.9.0",
-			kongFile: "testdata/sync/025-consumer-groups-scoped-plugins/kong3x.yaml",
+			name:         "creates consumer groups scoped plugins",
+			skipFuncCond: ">=3.8.0 <3.9.0",
+			kongFile:     "testdata/sync/025-consumer-groups-scoped-plugins/kong3x.yaml",
 			expectedState: utils.KongRawState{
 				Consumers: consumerGroupsConsumers,
 				ConsumerGroups: []*kong.ConsumerGroupObject{
@@ -5198,9 +5198,9 @@ func Test_Sync_ConsumerGroupsScopedPlugins_After350(t *testing.T) {
 			},
 		},
 		{
-			name:     "creates consumer groups scoped plugins",
-			runWhen:  ">=3.9.0",
-			kongFile: "testdata/sync/025-consumer-groups-scoped-plugins/kong3x.yaml",
+			name:         "creates consumer groups scoped plugins",
+			skipFuncCond: ">=3.9.0",
+			kongFile:     "testdata/sync/025-consumer-groups-scoped-plugins/kong3x.yaml",
 			expectedState: utils.KongRawState{
 				Consumers: consumerGroupsConsumers,
 				ConsumerGroups: []*kong.ConsumerGroupObject{
