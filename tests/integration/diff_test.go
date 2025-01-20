@@ -2628,7 +2628,7 @@ func Test_Diff_Unmasked_NewerThan3x(t *testing.T) {
 	}
 }
 
-func Test_Diff_PluginUpdate_NewerThan38x(t *testing.T) {
+func Test_Diff_PluginUpdate_38x(t *testing.T) {
 	runWhenEnterpriseOrKonnect(t, ">=3.8.0 <3.9.0")
 	setup(t)
 
