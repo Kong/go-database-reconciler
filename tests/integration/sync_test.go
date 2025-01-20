@@ -5835,11 +5835,11 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 }
 
 // test scope:
-//   - >=3.8.0
+//   - >=3.8.0 <3.9.0
 //   - konnect
 func Test_Sync_PluginScopedToConsumerGroupAndRoute38x(t *testing.T) {
 	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
-	runWhenEnterpriseOrKonnect(t, ">=3.8.0")
+	runWhenEnterpriseOrKonnect(t, ">=3.8.0 <3.9.0")
 	setup(t)
 
 	client, err := getTestClient()
@@ -5938,6 +5938,156 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute38x(t *testing.T) {
 						"password":                 nil,
 						"port":                     nil,
 						"read_timeout":             float64(2000),
+						"send_timeout":             float64(2000),
+						"sentinel_addresses":       nil,
+						"sentinel_master":          nil,
+						"sentinel_nodes":           nil,
+						"sentinel_password":        nil,
+						"sentinel_role":            nil,
+						"sentinel_username":        nil,
+						"server_name":              nil,
+						"ssl":                      false,
+						"ssl_verify":               false,
+						"timeout":                  float64(2000),
+						"username":                 nil,
+					},
+					"retry_after_jitter_max": float64(0),
+					"strategy":               string("local"),
+					"sync_rate":              float64(-1),
+					"window_size":            []any{float64(60)},
+					"window_type":            string("sliding"),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/029-plugin-scoped-to-cg-route/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+
+	// create a temporary file to dump the state.
+	cwd, err := os.Getwd()
+	require.NoError(t, err)
+	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	assert.NoError(t, err)
+
+	// dump the state.
+	_, err = dump("-o", file.Name(), "--yes")
+	assert.NoError(t, err)
+
+	// verify that the dumped state can be sync'd back and that
+	// the end result is the same.
+	require.NoError(t, sync(file.Name()))
+	testKongState(t, client, false, expectedState, nil)
+}
+
+// test scope:
+//   - >=3.9.0
+//   - konnect
+func Test_Sync_PluginScopedToConsumerGroupAndRoute39x(t *testing.T) {
+	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
+	runWhenEnterpriseOrKonnect(t, ">=3.9.0")
+	setup(t)
+
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:   kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+					Name: kong.String("cg1"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						ID:       kong.String("bcb296c3-22bb-46f6-99c8-4828af750b77"),
+						Username: kong.String("foo"),
+					},
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				ID:       kong.String("bcb296c3-22bb-46f6-99c8-4828af750b77"),
+				Username: kong.String("foo"),
+			},
+		},
+		Services: []*kong.Service{
+			{
+				ID:             kong.String("1b9d6d8e-9f0f-4a1a-8d5c-9d2a6b2b7f3c"),
+				Host:           kong.String("example.com"),
+				Name:           kong.String("s1"),
+				ConnectTimeout: kong.Int(60000),
+				Port:           kong.Int(80),
+				Path:           nil,
+				Protocol:       kong.String("http"),
+				ReadTimeout:    kong.Int(60000),
+				Retries:        kong.Int(5),
+				WriteTimeout:   kong.Int(60000),
+				Tags:           nil,
+				Enabled:        kong.Bool(true),
+			},
+		},
+		Routes: []*kong.Route{
+			{
+				Name:                    kong.String("r1"),
+				ID:                      kong.String("a9730e9e-df7e-4042-8bc7-e8b99af70171"),
+				Hosts:                   kong.StringSlice("10.*"),
+				PathHandling:            kong.String("v0"),
+				PreserveHost:            kong.Bool(false),
+				Protocols:               []*string{kong.String("http"), kong.String("https")},
+				RegexPriority:           kong.Int(0),
+				StripPath:               kong.Bool(true),
+				HTTPSRedirectStatusCode: kong.Int(426),
+				RequestBuffering:        kong.Bool(true),
+				ResponseBuffering:       kong.Bool(true),
+				Service: &kong.Service{
+					ID: kong.String("1b9d6d8e-9f0f-4a1a-8d5c-9d2a6b2b7f3c"),
+				},
+			},
+		},
+		Plugins: []*kong.Plugin{
+			{
+				ID:   kong.String("a0b4c8d9-0f1e-4e1f-9e3a-5c8e1c8b9f1a"),
+				Name: kong.String("rate-limiting-advanced"),
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID: kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+				},
+				Route: &kong.Route{
+					ID: kong.String("a9730e9e-df7e-4042-8bc7-e8b99af70171"),
+				},
+				Config: kong.Configuration{
+					"compound_identifier":     nil,
+					"consumer_groups":         nil,
+					"dictionary_name":         string("kong_rate_limiting_counters"),
+					"disable_penalty":         bool(false),
+					"enforce_consumer_groups": bool(false),
+					"error_code":              float64(429),
+					"error_message":           string("API rate limit exceeded"),
+					"header_name":             nil,
+					"hide_client_headers":     bool(false),
+					"identifier":              string("consumer"),
+					"limit":                   []any{float64(1)},
+					"lock_dictionary_name":    string("kong_locks"),
+					"namespace":               string("dmHiQjaGTIYimSXQmRoUDA1XkJXZqxZf"),
+					"path":                    nil,
+					"redis": map[string]any{
+						"cluster_addresses":        nil,
+						"cluster_max_redirections": float64(5),
+						"cluster_nodes":            nil,
+						"connect_timeout":          float64(2000),
+						"connection_is_proxied":    bool(false),
+						"database":                 float64(0),
+						"host":                     nil,
+						"keepalive_backlog":        nil,
+						"keepalive_pool_size":      float64(256),
+						"password":                 nil,
+						"port":                     nil,
+						"read_timeout":             float64(2000),
+						"redis_proxy_type":         nil,
 						"send_timeout":             float64(2000),
 						"sentinel_addresses":       nil,
 						"sentinel_master":          nil,
@@ -6129,11 +6279,11 @@ func Test_Sync_DeDupPluginsScopedToConsumerGroups(t *testing.T) {
 }
 
 // test scope:
-//   - >=3.8.0
+//   - >=3.8.0 <3.9.0
 //   - konnect
 func Test_Sync_DeDupPluginsScopedToConsumerGroups38x(t *testing.T) {
 	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
-	runWhenEnterpriseOrKonnect(t, ">=3.8.0")
+	runWhenEnterpriseOrKonnect(t, ">=3.8.0 <3.9.0")
 	setup(t)
 
 	client, err := getTestClient()
@@ -6255,6 +6405,167 @@ func Test_Sync_DeDupPluginsScopedToConsumerGroups38x(t *testing.T) {
 						"password":                 nil,
 						"port":                     float64(6379),
 						"read_timeout":             float64(2000),
+						"send_timeout":             float64(2000),
+						"sentinel_addresses":       nil,
+						"sentinel_master":          nil,
+						"sentinel_nodes":           nil,
+						"sentinel_password":        nil,
+						"sentinel_role":            nil,
+						"sentinel_username":        nil,
+						"server_name":              nil,
+						"ssl":                      false,
+						"ssl_verify":               false,
+						"timeout":                  float64(2000),
+						"username":                 nil,
+					},
+					"retry_after_jitter_max": float64(0),
+					"strategy":               string("local"),
+					"sync_rate":              float64(-1),
+					"window_size":            []any{float64(60)},
+					"window_type":            string("sliding"),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			},
+		},
+	}
+	require.NoError(t, sync("testdata/sync/030-plugin-dedup-consumer-groups/kong.yaml"))
+	testKongState(t, client, false, expectedState, nil)
+}
+
+// test scope:
+//   - >=3.9.0
+//   - konnect
+func Test_Sync_DeDupPluginsScopedToConsumerGroups39x(t *testing.T) {
+	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
+	runWhenEnterpriseOrKonnect(t, ">=3.9.0")
+	setup(t)
+
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	expectedState := utils.KongRawState{
+		ConsumerGroups: []*kong.ConsumerGroupObject{
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:   kong.String("19275493-84d3-4c64-92e6-612e908a3a4f"),
+					Name: kong.String("gold"),
+				},
+				Consumers: []*kong.Consumer{
+					{
+						ID:       kong.String("7b2c743c-2cec-4998-b9df-e7f8a9a20487"),
+						Username: kong.String("jeff"),
+					},
+				},
+			},
+			{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:   kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+					Name: kong.String("silver"),
+				},
+			},
+		},
+		Consumers: []*kong.Consumer{
+			{
+				ID:       kong.String("7b2c743c-2cec-4998-b9df-e7f8a9a20487"),
+				Username: kong.String("jeff"),
+			},
+		},
+		Plugins: []*kong.Plugin{
+			{
+				ID:   kong.String("1c93dd1f-f188-473d-bec8-053bd526a693"),
+				Name: kong.String("rate-limiting-advanced"),
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID: kong.String("19275493-84d3-4c64-92e6-612e908a3a4f"),
+				},
+				Config: kong.Configuration{
+					"compound_identifier":     nil,
+					"consumer_groups":         nil,
+					"dictionary_name":         string("kong_rate_limiting_counters"),
+					"disable_penalty":         bool(false),
+					"enforce_consumer_groups": bool(false),
+					"error_code":              float64(429),
+					"error_message":           string("API rate limit exceeded"),
+					"header_name":             nil,
+					"hide_client_headers":     bool(false),
+					"identifier":              string("consumer"),
+					"limit":                   []any{float64(1000)},
+					"lock_dictionary_name":    string("kong_locks"),
+					"namespace":               string("OsFDaDQxdb1MFGHBdZENho51f3zqMLy"),
+					"path":                    nil,
+					"redis": map[string]any{
+						"cluster_addresses":        nil,
+						"cluster_max_redirections": float64(5),
+						"cluster_nodes":            nil,
+						"connect_timeout":          float64(2000),
+						"connection_is_proxied":    bool(false),
+						"database":                 float64(0),
+						"host":                     string("127.0.0.1"),
+						"keepalive_backlog":        nil,
+						"keepalive_pool_size":      float64(256),
+						"password":                 nil,
+						"port":                     float64(6379),
+						"read_timeout":             float64(2000),
+						"redis_proxy_type":         nil,
+						"send_timeout":             float64(2000),
+						"sentinel_addresses":       nil,
+						"sentinel_master":          nil,
+						"sentinel_nodes":           nil,
+						"sentinel_password":        nil,
+						"sentinel_role":            nil,
+						"sentinel_username":        nil,
+						"server_name":              nil,
+						"ssl":                      false,
+						"ssl_verify":               false,
+						"timeout":                  float64(2000),
+						"username":                 nil,
+					},
+					"retry_after_jitter_max": float64(0),
+					"strategy":               string("local"),
+					"sync_rate":              float64(-1),
+					"window_size":            []any{float64(60)},
+					"window_type":            string("sliding"),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			},
+			{
+				ID:   kong.String("bcb296c3-22bb-46f6-99c8-4828af750b77"),
+				Name: kong.String("rate-limiting-advanced"),
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID: kong.String("48df7cd3-1cd0-4e53-af73-8f57f257be18"),
+				},
+				Config: kong.Configuration{
+					"compound_identifier":     nil,
+					"consumer_groups":         nil,
+					"dictionary_name":         string("kong_rate_limiting_counters"),
+					"disable_penalty":         bool(false),
+					"enforce_consumer_groups": bool(false),
+					"error_code":              float64(429),
+					"error_message":           string("API rate limit exceeded"),
+					"header_name":             nil,
+					"hide_client_headers":     bool(false),
+					"identifier":              string("consumer"),
+					"limit":                   []any{float64(100)},
+					"lock_dictionary_name":    string("kong_locks"),
+					"namespace":               string("OsFDaDQxdb1MFGHBdZENho51f3zqMLy"),
+					"path":                    nil,
+					"redis": map[string]any{
+						"cluster_addresses":        nil,
+						"cluster_max_redirections": float64(5),
+						"cluster_nodes":            nil,
+						"connect_timeout":          float64(2000),
+						"connection_is_proxied":    bool(false),
+						"database":                 float64(0),
+						"host":                     string("127.0.0.1"),
+						"keepalive_backlog":        nil,
+						"keepalive_pool_size":      float64(256),
+						"password":                 nil,
+						"port":                     float64(6379),
+						"read_timeout":             float64(2000),
+						"redis_proxy_type":         nil,
 						"send_timeout":             float64(2000),
 						"sentinel_addresses":       nil,
 						"sentinel_master":          nil,
@@ -6987,7 +7298,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.9.0")
 
 	// Setup RateLimitingAdvanced ==============================
-	rateLimitingAdvancedConfigurationInitial := DefaultConfigFactory.RateLimitingAdvancedConfiguration()
+	rateLimitingAdvancedConfigurationInitial := DefaultConfigFactory39x.RateLimitingAdvancedConfiguration()
 	rateLimitingAdvancedConfigurationInitial["sync_rate"] = float64(10)
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] =
 		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
@@ -7009,7 +7320,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	}
 
 	// Setup OpenIdConnect ==============================
-	openidConnectConfigurationInitial := DefaultConfigFactory.OpenIDConnectConfiguration()
+	openidConnectConfigurationInitial := DefaultConfigFactory39x.OpenIDConnectConfiguration()
 	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_max_redirections"] = nil
 	openidConnectConfigurationInitial["session_redis_cluster_max_redirections"] = nil
 	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] = nil
