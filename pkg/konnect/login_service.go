@@ -47,14 +47,19 @@ func (s *AuthService) Login(ctx context.Context, email,
 
 // getGlobalEndpoint returns the global endpoint for a given base Konnect URL.
 func getGlobalEndpoint(baseURL string) string {
+	const (
+		privateLinkRegionSeparator = "svc.konghq"
+		regionSeparator            = "api.konghq"
+	)
+
 	// If svc.konghq is present in string, continue with global endpoint private link
-	if strings.Contains(baseURL, "svc.konghq") {
-		parts := strings.Split(baseURL, "svc.konghq")
+	if strings.Contains(baseURL, privateLinkRegionSeparator) {
+		parts := strings.Split(baseURL, privateLinkRegionSeparator)
 
 		return baseEndpointPrivateLink + parts[len(parts)-1]
 	}
 
-	parts := strings.Split(baseURL, "api.konghq")
+	parts := strings.Split(baseURL, regionSeparator)
 	return baseEndpointUS + parts[len(parts)-1]
 }
 
