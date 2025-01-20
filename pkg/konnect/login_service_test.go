@@ -56,6 +56,41 @@ func TestGetGlobalAuthEndpoint(t *testing.T) {
 	}
 }
 
+func TestGetGlobalEndpoint(t *testing.T) {
+	tests := []struct {
+		baseURL  string
+		expected string
+	}{
+		{
+			baseURL:  "https://us.api.konghq.com",
+			expected: "https://global.api.konghq.com",
+		},
+		{
+			baseURL:  "https://global.api.konghq.com",
+			expected: "https://global.api.konghq.com",
+		},
+		{
+			baseURL:  "https://api.konghq.com",
+			expected: "https://global.api.konghq.com",
+		},
+		{
+			baseURL:  "https://us.svc.konghq.com/api",
+			expected: "https://global.svc.konghq.com/api",
+		},
+		{
+			baseURL:  "https://global.svc.konghq.com/api",
+			expected: "https://global.svc.konghq.com/api",
+		},
+		{
+			baseURL:  "https:/svc.konghq.com/api",
+			expected: "https://global.svc.konghq.com/api",
+		},
+	}
+	for _, tt := range tests {
+		assert.Equal(t, tt.expected, getGlobalEndpoint(tt.baseURL))
+	}
+}
+
 func TestAuthService_OrgUserInfo(t *testing.T) {
 	expectedResp := OrgUserInfo{Name: "test-org", OrgID: "1234"}
 
