@@ -2731,25 +2731,25 @@ func Test_Diff_PluginUpdate_NewerThan39x(t *testing.T) {
 			name:             "initial vs updating by sending only old fields with new values - plugin openid-connect",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-openid.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-new-fields-openid.yaml",
-			expectedDiff:     expectedOutputPluginUpdateChangedNewFieldsOpenIdConnect,
+			expectedDiff:     expectedOutputPluginUpdateChangedNewFieldsOpenIdConnect39x,
 		},
 		{
 			name:             "initial vs updating by sending only old fields with new values - plugin rate-limiting-advanced",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-rla.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-new-fields-rla.yaml",
-			expectedDiff:     expectedOutputPluginUpdateChangedNewFieldsRLA,
+			expectedDiff:     expectedOutputPluginUpdateChangedNewFieldsRLA39x,
 		},
 		{
 			name:             "initial vs updating by sending only new fields with new values - plugin openid-connect",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-openid.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-old-fields-openid.yaml",
-			expectedDiff:     expectedOutputPluginUpdateChangedOldFieldsOpenIdConnect,
+			expectedDiff:     expectedOutputPluginUpdateChangedOldFieldsOpenIdConnect39x,
 		},
 		{
 			name:             "initial vs updating by sending only new fields with new values - plugin rate-limiting-advanced",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-rla.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-old-fields-rla.yaml",
-			expectedDiff:     expectedOutputPluginUpdateChangedOldFieldsRLA,
+			expectedDiff:     expectedOutputPluginUpdateChangedOldFieldsRLA39x,
 		},
 	}
 	for _, tc := range tests {
