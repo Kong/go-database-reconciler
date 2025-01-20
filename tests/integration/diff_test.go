@@ -466,7 +466,7 @@ Summary:
   Deleted: 0
 `
 
-	expectedOutputPluginUpdateChangedNewFields = `updating plugin openid-connect (global)  {
+	expectedOutputPluginUpdateChangedNewFieldsOpenIdConnect = `updating plugin openid-connect (global)  {
    "config": {
      "anonymous": null,
      "audience": null,
@@ -816,7 +816,13 @@ Summary:
    ]
  }
 
-updating plugin rate-limiting-advanced (global)  {
+Summary:
+  Created: 0
+  Updated: 1
+  Deleted: 0
+`
+
+	expectedOutputPluginUpdateChangedNewFieldsRLA = `updating plugin rate-limiting-advanced (global)  {
    "config": {
      "consumer_groups": null,
      "dictionary_name": "kong_rate_limiting_counters",
@@ -911,10 +917,10 @@ updating plugin rate-limiting-advanced (global)  {
 
 Summary:
   Created: 0
-  Updated: 2
+  Updated: 1
   Deleted: 0
 `
-	expectedOutputPluginUpdateChangedOldFields = `updating plugin openid-connect (global)  {
+	expectedOutputPluginUpdateChangedOldFieldsOpenIdConnect = `updating plugin openid-connect (global)  {
    "config": {
      "anonymous": null,
      "audience": null,
@@ -1264,7 +1270,12 @@ Summary:
    ]
  }
 
-updating plugin rate-limiting-advanced (global)  {
+Summary:
+  Created: 0
+  Updated: 1
+  Deleted: 0
+`
+	expectedOutputPluginUpdateChangedOldFieldsRLA = `updating plugin rate-limiting-advanced (global)  {
    "config": {
      "consumer_groups": null,
      "dictionary_name": "kong_rate_limiting_counters",
@@ -1338,7 +1349,7 @@ updating plugin rate-limiting-advanced (global)  {
 
 Summary:
   Created: 0
-  Updated: 2
+  Updated: 1
   Deleted: 0
 `
 
@@ -1752,17 +1763,32 @@ func Test_Diff_PluginUpdate_NewerThan38x(t *testing.T) {
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-no-change-new-fields.yaml",
 			expectedDiff:     expectedOutputPluginUpdateNoChange,
 		},
+		// Determining order in which the plugins would be updated is not fixed.
+		// Hence, the diff string checking can fail.
+		// Thus, we are doing one plugin check at a time to avoid failures due to ordering.
 		{
-			name:             "initial vs updating by sending only old fields with new values",
-			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
-			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-new-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateChangedNewFields,
+			name:             "initial vs updating by sending only old fields with new values - plugin openid-connect",
+			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-openid.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-new-fields-openid.yaml",
+			expectedDiff:     expectedOutputPluginUpdateChangedNewFieldsOpenIdConnect,
 		},
 		{
-			name:             "initial vs updating by sending only new fields with new values",
-			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
-			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-old-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateChangedOldFields,
+			name:             "initial vs updating by sending only old fields with new values - plugin rate-limiting-advanced",
+			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-rla.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-new-fields-rla.yaml",
+			expectedDiff:     expectedOutputPluginUpdateChangedNewFieldsRLA,
+		},
+		{
+			name:             "initial vs updating by sending only new fields with new values - plugin openid-connect",
+			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-openid.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-old-fields-openid.yaml",
+			expectedDiff:     expectedOutputPluginUpdateChangedOldFieldsOpenIdConnect,
+		},
+		{
+			name:             "initial vs updating by sending only new fields with new values - plugin rate-limiting-advanced",
+			initialStateFile: "testdata/diff/004-plugin-update/initial-ee-rla.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/kong-ee-changed-old-fields-rla.yaml",
+			expectedDiff:     expectedOutputPluginUpdateChangedOldFieldsRLA,
 		},
 	}
 	for _, tc := range tests {
