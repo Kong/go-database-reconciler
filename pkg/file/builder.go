@@ -1668,6 +1668,14 @@ func copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRoute, error) {
 		degraphqlRoute.Methods = kong.StringSlice("GET")
 	}
 
+	if degraphqlRoute.Service == nil {
+		return DegraphqlRoute{}, fmt.Errorf("service is required for degraphql_routes")
+	}
+
+	if degraphqlRoute.URI == nil || degraphqlRoute.Query == nil {
+		return DegraphqlRoute{}, fmt.Errorf("uri and query are required for degraphql_routes")
+	}
+
 	return degraphqlRoute, nil
 }
 

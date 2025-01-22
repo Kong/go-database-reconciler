@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func degraphqlRoutesCollection() *DegraphqlRoutesCollection {
@@ -85,7 +86,7 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "returns an error if no empty degraphql route is provided",
+			name: "returns an error if an empty degraphql route is provided",
 			degraphqlRoute: DegraphqlRoute{
 				DegraphqlRoute: kong.DegraphqlRoute{},
 			},
@@ -95,8 +96,6 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			if err := collection.Add(tt.degraphqlRoute); (err != nil) != tt.wantErr {
 				t.Errorf("DegraphqlRoutesCollection.Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -118,11 +117,11 @@ func TestDegraphqlRouteGet(t *testing.T) {
 	degraphqlRoute.Methods = kong.StringSlice("GET")
 
 	err := collection.Add(degraphqlRoute)
-	assert.Nil(err)
+	require.Nil(t, err, "error adding degraphql route")
 
 	// Fetch the currently added entity
 	res, err := collection.Get("example")
-	assert.Nil(err)
+	require.Nil(t, err, "error getting degraphql route")
 	assert.NotNil(res)
 	assert.Equal("example", *res.ID)
 	assert.Equal("some-service", *res.Service.ID)
@@ -147,22 +146,22 @@ func TestDegraphqlRouteUpdate(t *testing.T) {
 	degraphqlRoute.Methods = kong.StringSlice("GET")
 
 	err := collection.Add(degraphqlRoute)
-	assert.Nil(err)
+	require.Nil(t, err, "error adding degraphql route")
 
 	// Fetch the currently added entity
 	res, err := collection.Get("example")
-	assert.Nil(err)
+	require.Nil(t, err, "error getting degraphql route")
 	assert.NotNil(res)
 	assert.Equal("query { hello }", *res.Query)
 
 	// Update query field
 	res.Query = kong.String("query { hello world }")
 	err = collection.Update(*res)
-	assert.Nil(err)
+	require.Nil(t, err, "error updating degraphql route")
 
 	// Fetch again
 	res, err = collection.Get("example")
-	assert.Nil(err)
+	require.Nil(t, err, "error getting degraphql route")
 	assert.NotNil(res)
 	assert.Equal("query { hello world }", *res.Query)
 }
@@ -181,16 +180,16 @@ func TestDegraphqlRouteDelete(t *testing.T) {
 	degraphqlRoute.Methods = kong.StringSlice("GET")
 
 	err := collection.Add(degraphqlRoute)
-	assert.Nil(err)
+	require.Nil(t, err, "error adding degraphql route")
 
 	// Fetch the currently added entity
 	res, err := collection.Get("example")
-	assert.Nil(err)
+	require.Nil(t, err, "error getting degraphql route")
 	assert.NotNil(res)
 
 	// Delete entity
 	err = collection.Delete(*res.ID)
-	assert.Nil(err)
+	require.Nil(t, err, "error deleting degraphql route")
 
 	// Fetch again
 	res, err = collection.Get("example")
@@ -202,15 +201,15 @@ func TestDegraphqlRouteGetAll(t *testing.T) {
 	assert := assert.New(t)
 	collection := degraphqlRoutesCollection()
 
-	populateDegraphqlRoutes(assert, collection)
+	populateDegraphqlRoutes(t, collection)
 
 	degraphqlRoutes, err := collection.GetAll()
-	assert.Nil(err)
+	require.Nil(t, err, "error getting all degraphql routes")
 	assert.Equal(5, len(degraphqlRoutes))
 	assert.IsType([]*DegraphqlRoute{}, degraphqlRoutes)
 }
 
-func populateDegraphqlRoutes(assert *assert.Assertions,
+func populateDegraphqlRoutes(t *testing.T,
 	collection *DegraphqlRoutesCollection,
 ) {
 	degraphqlRoutes := []DegraphqlRoute{
@@ -273,6 +272,6 @@ func populateDegraphqlRoutes(assert *assert.Assertions,
 
 	for _, d := range degraphqlRoutes {
 		err := collection.Add(d)
-		assert.Nil(err)
+		require.Nil(t, err, "error adding degraphql route")
 	}
 }

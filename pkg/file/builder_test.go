@@ -14,6 +14,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -406,10 +407,12 @@ func existingDegraphqlRouteState() *state.KongState {
 	return s
 }
 
+var testRand *rand.Rand
+
 var deterministicUUID = func() *string {
 	version := byte(4)
 	uuid := make([]byte, 16)
-	rand.Read(uuid)
+	testRand.Read(uuid)
 
 	// Set version
 	uuid[6] = (uuid[6] & 0x0f) | (version << 4)
@@ -438,7 +441,7 @@ func TestMain(m *testing.M) {
 }
 
 func Test_stateBuilder_services(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -525,7 +528,7 @@ func Test_stateBuilder_services(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestRoute(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -638,7 +641,7 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestTargets(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -887,7 +890,7 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestPlugins(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -1077,7 +1080,7 @@ func Test_pluginRelations(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestFilterChains(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -1179,7 +1182,7 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 }
 
 func Test_stateBuilder_consumers(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
@@ -1658,7 +1661,7 @@ func Test_stateBuilder_consumers(t *testing.T) {
 }
 
 func Test_stateBuilder_certificates(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
@@ -1825,7 +1828,7 @@ func Test_stateBuilder_certificates(t *testing.T) {
 }
 
 func Test_stateBuilder_caCertificates(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
@@ -1898,7 +1901,7 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 }
 
 func Test_stateBuilder_upstream(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -2250,7 +2253,7 @@ func Test_stateBuilder_upstream(t *testing.T) {
 }
 
 func Test_stateBuilder_documents(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -2891,7 +2894,7 @@ func Test_stateBuilder_kong370(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			rand.Seed(42)
+			testRand = rand.New(rand.NewSource(42))
 			b := &stateBuilder{
 				targetContent: tt.fields.targetContent,
 				currentState:  tt.fields.currentState,
@@ -3436,7 +3439,7 @@ func Test_stateBuilder_kong360(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			rand.Seed(42)
+			testRand = rand.New(rand.NewSource(42))
 			b := &stateBuilder{
 				targetContent: tt.fields.targetContent,
 				currentState:  tt.fields.currentState,
@@ -3601,7 +3604,7 @@ func Test_getStripPathBasedOnProtocols(t *testing.T) {
 
 func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -3670,7 +3673,7 @@ func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 
 func Test_stateBuilder_expressionRoutes_kong360(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -3739,7 +3742,7 @@ func Test_stateBuilder_expressionRoutes_kong360(t *testing.T) {
 
 func Test_stateBuilder_expressionRoutes_kong370(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -3806,7 +3809,7 @@ func Test_stateBuilder_expressionRoutes_kong370(t *testing.T) {
 
 func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -3872,15 +3875,16 @@ func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   *utils.KongRawState
+		name    string
+		fields  fields
+		want    *utils.KongRawState
+		wantErr bool
 	}{
 		{
 			name: "generates a new degraphql route from valid config passed",
@@ -4005,6 +4009,87 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "handles empty plugin entities",
+			fields: fields{
+				targetContent: &Content{
+					PluginEntities: []FPluginEntity{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+		},
+		{
+			name: "handles multiple degraphql routes",
+			fields: fields{
+				targetContent: &Content{
+					PluginEntities: []FPluginEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: PluginEntityConfiguration{
+								"uri":     kong.String("/foo"),
+								"query":   kong.String("query { foo }"),
+								"service": kong.String("service1"),
+							},
+						},
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: PluginEntityConfiguration{
+								"uri":     kong.String("/bar"),
+								"query":   kong.String("query { bar }"),
+								"service": kong.String("service2"),
+								"methods": kong.StringSlice("POST", "PUT"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID:    kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						URI:   kong.String("/foo"),
+						Query: kong.String("query { foo }"),
+						Service: &kong.Service{
+							ID: kong.String("service1"),
+						},
+						Methods: kong.StringSlice("GET"),
+					},
+					{
+						ID:    kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						URI:   kong.String("/bar"),
+						Query: kong.String("query { bar }"),
+						Service: &kong.Service{
+							ID: kong.String("service2"),
+						},
+						Methods: kong.StringSlice("POST", "PUT"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles missing required fields",
+			fields: fields{
+				targetContent: &Content{
+					PluginEntities: []FPluginEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: PluginEntityConfiguration{
+								"uri": kong.String("/foo"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -4013,7 +4098,14 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 				targetContent: tt.fields.targetContent,
 				currentState:  tt.fields.currentState,
 			}
-			b.build()
+			_, _, err := b.build()
+			if tt.wantErr {
+				require.NotNil(t, err, "build error is nil")
+				assert.Equal(t, tt.want, b.rawState)
+				return
+			}
+
+			require.Nil(t, err, "build error is not nil")
 			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
