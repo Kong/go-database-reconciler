@@ -26,13 +26,13 @@ jobs:
       status: ${{ steps.up-to-date.outputs.status }}
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Check if PR is up to date, if it is skip workflows for this ref
         id: 'up-to-date'
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')
-        uses: Kong/public-shared-actions/pr-previews/up-to-date@v1.13.0
+        uses: Kong/public-shared-actions/pr-previews/up-to-date@c03e30a36e8a2dde5cbd463229a96aaad7ccad24 # v1.13.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,8 +60,8 @@ jobs:
     - up-to-date
     if: needs.up-to-date.outputs.status != 'true'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
       - run: make update-codegen verify-codegen
 
   enterprise-integration-tests:
