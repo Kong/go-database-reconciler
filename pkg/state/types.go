@@ -1809,6 +1809,7 @@ func (d *DegraphqlRoute) GetCustomEntityID() string {
 	if d.ID == nil {
 		return ""
 	}
+
 	return *d.ID
 }
 
