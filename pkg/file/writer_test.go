@@ -221,11 +221,11 @@ func Test_compareOrder(t *testing.T) {
 			expected: true,
 		},
 		{
-			sortable1: FPluginEntity{
+			sortable1: FCustomEntity{
 				ID:   kong.String("degraphql-route-1"),
 				Type: kong.String("degraphql_routes"),
 			},
-			sortable2: FPluginEntity{
+			sortable2: FCustomEntity{
 				ID:   kong.String("degraphql-route-2"),
 				Type: kong.String("degraphql_routes"),
 			},

@@ -3874,7 +3874,7 @@ func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 	}
 }
 
-func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
+func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
@@ -3890,10 +3890,10 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 			name: "generates a new degraphql route from valid config passed",
 			fields: fields{
 				targetContent: &Content{
-					PluginEntities: []FPluginEntity{
+					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
-							Fields: PluginEntityConfiguration{
+							Fields: CustomEntityConfiguration{
 								"uri":     kong.String("/foo"),
 								"query":   kong.String("query { foo { bar }}"),
 								"service": kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
@@ -3921,10 +3921,10 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 			name: "matches ID for an existing degraphql route",
 			fields: fields{
 				targetContent: &Content{
-					PluginEntities: []FPluginEntity{
+					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
-							Fields: PluginEntityConfiguration{
+							Fields: CustomEntityConfiguration{
 								"uri":     kong.String("/example"),
 								"query":   kong.String("query{ example { foo } }"),
 								"service": kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
@@ -3959,10 +3959,10 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 							},
 						},
 					},
-					PluginEntities: []FPluginEntity{
+					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
-							Fields: PluginEntityConfiguration{
+							Fields: CustomEntityConfiguration{
 								"uri": kong.String("/foo"),
 								"query": kong.String(`query SearchPosts($filters: PostsFilters) {
 		      								posts(filter: $filters) {
@@ -4013,7 +4013,7 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 			name: "handles empty plugin entities",
 			fields: fields{
 				targetContent: &Content{
-					PluginEntities: []FPluginEntity{},
+					CustomEntities: []FCustomEntity{},
 				},
 				currentState: emptyState(),
 			},
@@ -4025,10 +4025,10 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 			name: "handles multiple degraphql routes",
 			fields: fields{
 				targetContent: &Content{
-					PluginEntities: []FPluginEntity{
+					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
-							Fields: PluginEntityConfiguration{
+							Fields: CustomEntityConfiguration{
 								"uri":     kong.String("/foo"),
 								"query":   kong.String("query { foo }"),
 								"service": kong.String("service1"),
@@ -4036,7 +4036,7 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 						},
 						{
 							Type: kong.String("degraphql_routes"),
-							Fields: PluginEntityConfiguration{
+							Fields: CustomEntityConfiguration{
 								"uri":     kong.String("/bar"),
 								"query":   kong.String("query { bar }"),
 								"service": kong.String("service2"),
@@ -4074,10 +4074,10 @@ func Test_stateBuilder_ingestPluginEntities(t *testing.T) {
 			name: "handles missing required fields",
 			fields: fields{
 				targetContent: &Content{
-					PluginEntities: []FPluginEntity{
+					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
-							Fields: PluginEntityConfiguration{
+							Fields: CustomEntityConfiguration{
 								"uri": kong.String("/foo"),
 							},
 						},

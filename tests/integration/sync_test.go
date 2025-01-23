@@ -7589,6 +7589,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.0.0")
 
 	t.Run("create degraphql route", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
 		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
 		require.NoError(t, err)
 
@@ -7617,13 +7618,10 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 
 		expectedMethods := kong.StringSlice("GET")
 		assert.Equal(t, expectedMethods, degraphqlRoutes[0].Methods)
-
-		t.Cleanup(func() {
-			mustResetKongState(ctx, t, client, dumpConfig)
-		})
 	})
 
 	t.Run("create degraphql route - complex query", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
 		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
 		require.NoError(t, err)
 
@@ -7654,9 +7652,5 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 
 		expectedMethods := kong.StringSlice("POST")
 		assert.Equal(t, expectedMethods, degraphqlRoutes[0].Methods)
-
-		t.Cleanup(func() {
-			mustResetKongState(ctx, t, client, dumpConfig)
-		})
 	})
 }
