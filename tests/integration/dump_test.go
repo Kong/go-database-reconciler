@@ -380,3 +380,54 @@ func Test_Dump_CustomEntities(t *testing.T) {
 	require.Truef(t, ok, "'query' field should have type 'string' but actual '%T'", obj["query"])
 	require.Equal(t, "query{ name }", query)
 }
+
+func Test_Dump_KeysAndKeySets(t *testing.T) {
+	tests := []struct {
+		name         string
+		stateFile    string
+		expectedFile string
+	}{
+		{
+			name:         "dump keys and key-sets",
+			stateFile:    "testdata/dump/004-keys-and-key_sets/kong.yaml",
+			expectedFile: "testdata/dump/004-keys-and-key_sets/kong.yaml",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhen(t, "kong", ">=3.1.0")
+			setup(t)
+			assert.NoError(t, sync(tc.stateFile))
+			output, err := dump("-o", "-", "--with-id")
+			assert.NoError(t, err)
+			expected, err := readFile(tc.expectedFile)
+			assert.NoError(t, err)
+			assert.Equal(t, expected, output)
+		})
+	}
+}
+func Test_Dump_KeysAndKeySets_Konnect(t *testing.T) {
+	tests := []struct {
+		name         string
+		stateFile    string
+		expectedFile string
+	}{
+		{
+			name:         "dump keys and key-sets - konnect",
+			stateFile:    "testdata/dump/004-keys-and-key_sets/kong.yaml",
+			expectedFile: "testdata/dump/004-keys-and-key_sets/konnect.yaml",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhenKonnect(t)
+			setup(t)
+			assert.NoError(t, sync(tc.stateFile))
+			output, err := dump("-o", "-", "--with-id")
+			assert.NoError(t, err)
+			expected, err := readFile(tc.expectedFile)
+			assert.NoError(t, err)
+			assert.Equal(t, expected, output)
+		})
+	}
+}
