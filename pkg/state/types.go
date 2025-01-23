@@ -1792,11 +1792,11 @@ func (l *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
 	return reflect.DeepEqual(l1Copy, l2Copy)
 }
 
-type pluginEntity interface {
+type customEntity interface {
 	// ID of the plugin entity.
-	GetPluginEntityID() string
+	GetCustomEntityID() string
 	// Type of the plugin entity
-	GetPluginEntityType() string
+	GetCustomEntityType() string
 }
 
 type DegraphqlRoute struct {
@@ -1804,13 +1804,13 @@ type DegraphqlRoute struct {
 	Meta
 }
 
-// GetPluginEntityID returns the ID of the DegraphqlRoute.
-func (d *DegraphqlRoute) GetPluginEntityID() string {
+// GetCustomEntityID returns the ID of the DegraphqlRoute.
+func (d *DegraphqlRoute) GetCustomEntityID() string {
 	return *d.ID
 }
 
-// GetPluginEntityType returns the DegraphqlRoute Type.
-func (d *DegraphqlRoute) GetPluginEntityType() string {
+// GetCustomEntityType returns the DegraphqlRoute Type.
+func (d *DegraphqlRoute) GetCustomEntityType() string {
 	return "degraphql_routes"
 }
 

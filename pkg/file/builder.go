@@ -115,7 +115,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.consumers()
 	b.plugins()
 	b.filterChains()
-	b.pluginEntities()
+	b.customEntities()
 	b.enterprise()
 
 	// konnect
@@ -1569,30 +1569,30 @@ func filterChainRelations(filterChain *kong.FilterChain) (rID, sID string) {
 	return
 }
 
-func (b *stateBuilder) pluginEntities() {
+func (b *stateBuilder) customEntities() {
 	if b.err != nil {
 		return
 	}
 
-	supportedPluginEntities := map[string]bool{
+	supportedCustomEntities := map[string]bool{
 		degraphqlRoutesType: true,
 	}
 
-	var pluginEntities []FPluginEntity
-	for _, e := range b.targetContent.PluginEntities {
-		if !supportedPluginEntities[*e.Type] {
-			b.err = fmt.Errorf("plugin entity %v is not supported", *e.Type)
+	var customEntities []FCustomEntity
+	for _, e := range b.targetContent.CustomEntities {
+		if !supportedCustomEntities[*e.Type] {
+			b.err = fmt.Errorf("custom entity %v is not supported", *e.Type)
 			return
 		}
 
-		pluginEntities = append(pluginEntities, e)
+		customEntities = append(customEntities, e)
 	}
 
-	b.ingestPluginEntities(pluginEntities)
+	b.ingestCustomEntities(customEntities)
 }
 
-func (b *stateBuilder) ingestPluginEntities(pluginEntities []FPluginEntity) {
-	for _, e := range pluginEntities {
+func (b *stateBuilder) ingestCustomEntities(customEntities []FCustomEntity) {
+	for _, e := range customEntities {
 		switch *e.Type {
 		case degraphqlRoutesType:
 			b.ingestDeGraphqlRoute(e)
@@ -1600,7 +1600,7 @@ func (b *stateBuilder) ingestPluginEntities(pluginEntities []FPluginEntity) {
 	}
 }
 
-func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FPluginEntity) {
+func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FCustomEntity) {
 	degraphqlRoute, err := copyToDegraphqlRoute(degraphqlRouteEntity)
 	if err != nil {
 		b.err = err
@@ -1624,38 +1624,38 @@ func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FPluginEntity) 
 	b.rawState.DegraphqlRoutes = append(b.rawState.DegraphqlRoutes, &degraphqlRoute.DegraphqlRoute)
 }
 
-func copyToDegraphqlRoute(fpEntity FPluginEntity) (DegraphqlRoute, error) {
+func copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRoute, error) {
 	degraphqlRoute := DegraphqlRoute{}
-	if fpEntity.ID != nil {
-		degraphqlRoute.ID = fpEntity.ID
+	if fcEntity.ID != nil {
+		degraphqlRoute.ID = fcEntity.ID
 	}
 
-	if fpEntity.Fields == nil {
+	if fcEntity.Fields == nil {
 		return DegraphqlRoute{}, fmt.Errorf("fields are required for degraphql_routes")
 	}
 
-	if fpEntity.Fields["service"] != nil {
-		if service, ok := fpEntity.Fields["service"].(*string); ok {
+	if fcEntity.Fields["service"] != nil {
+		if service, ok := fcEntity.Fields["service"].(*string); ok {
 			degraphqlRoute.Service = &kong.Service{
 				ID: service,
 			}
 		}
 	}
 
-	if fpEntity.Fields["uri"] != nil {
-		if uri, ok := fpEntity.Fields["uri"].(*string); ok {
+	if fcEntity.Fields["uri"] != nil {
+		if uri, ok := fcEntity.Fields["uri"].(*string); ok {
 			degraphqlRoute.URI = uri
 		}
 	}
 
-	if fpEntity.Fields["query"] != nil {
-		if query, ok := fpEntity.Fields["query"].(*string); ok {
+	if fcEntity.Fields["query"] != nil {
+		if query, ok := fcEntity.Fields["query"].(*string); ok {
 			degraphqlRoute.Query = query
 		}
 	}
 
-	if fpEntity.Fields["methods"] != nil {
-		if methods, ok := fpEntity.Fields["methods"].([]*string); ok {
+	if fcEntity.Fields["methods"] != nil {
+		if methods, ok := fcEntity.Fields["methods"].([]*string); ok {
 			methodsString := make([]string, len(methods))
 			for i, method := range methods {
 				methodsString[i] = *method

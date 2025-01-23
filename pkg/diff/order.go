@@ -24,7 +24,7 @@ L3      +---------------------------> Service <---+  +-> Route               |
         |                                 |          |     v                 |
 L4      +----------> Document   <---------+          +-> Plugins / <---------+
                                                          FilterChains
-														 PluginEntities - DegraphqlRoute
+														 CustomEntities - DegraphqlRoute
 */
 
 // dependencyOrder defines the order in which entities will be synced by decK.

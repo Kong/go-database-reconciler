@@ -68,10 +68,10 @@
       },
       "type": "array"
     },
-    "plugin_entities": {
+    "custom_entities": {
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "$ref": "#/definitions/FPluginEntity"
+        "$ref": "#/definitions/FCustomEntity"
       },
       "type": "array"
     },
@@ -752,7 +752,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "FPluginEntity": {
+    "FCustomEntity": {
       "required": [
         "type"
       ],

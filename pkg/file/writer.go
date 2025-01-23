@@ -866,7 +866,7 @@ func populateDegraphqlRoutes(kongState *state.KongState, file *Content) error {
 	}
 
 	for _, d := range degraphqlRoutes {
-		f := FPluginEntity{}
+		f := FCustomEntity{}
 
 		err := copyFromDegraphqlRoute(DegraphqlRoute{
 			DegraphqlRoute: d.DegraphqlRoute,
@@ -876,10 +876,10 @@ func populateDegraphqlRoutes(kongState *state.KongState, file *Content) error {
 		}
 		utils.ZeroOutTimestamps(&f)
 
-		file.PluginEntities = append(file.PluginEntities, f)
+		file.CustomEntities = append(file.CustomEntities, f)
 	}
-	sort.SliceStable(file.PluginEntities, func(i, j int) bool {
-		return compareOrder(file.PluginEntities[i], file.PluginEntities[j])
+	sort.SliceStable(file.CustomEntities, func(i, j int) bool {
+		return compareOrder(file.CustomEntities[i], file.CustomEntities[j])
 	})
 
 	return nil

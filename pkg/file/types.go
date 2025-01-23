@@ -902,17 +902,17 @@ func (c FLicense) sortKey() string {
 // Based on "Type", the entity can be serialized into its
 // apt struct.
 // +k8s:deepcopy-gen=true
-type FPluginEntity struct {
+type FCustomEntity struct {
 	ID     *string                   `json:"id,omitempty" yaml:"id,omitempty"`
 	Type   *string                   `json:"type,omitempty" yaml:"type,omitempty"`
-	Fields PluginEntityConfiguration `json:"fields,omitempty" yaml:"fields,omitempty"`
+	Fields CustomEntityConfiguration `json:"fields,omitempty" yaml:"fields,omitempty"`
 }
 
 // Configuration represents a config of a plugin-entity in Kong.
-type PluginEntityConfiguration map[string]interface{}
+type CustomEntityConfiguration map[string]interface{}
 
 // DeepCopyInto copies the receiver, writing into out. in must be non-nil.
-func (in PluginEntityConfiguration) DeepCopyInto(out *PluginEntityConfiguration) {
+func (in CustomEntityConfiguration) DeepCopyInto(out *CustomEntityConfiguration) {
 	// Resorting to JSON since interface{} cannot be DeepCopied easily.
 	// This could be replaced using reflection-fu.
 	// XXX Ignoring errors
@@ -921,16 +921,16 @@ func (in PluginEntityConfiguration) DeepCopyInto(out *PluginEntityConfiguration)
 }
 
 // DeepCopy copies the receiver, creating a new Configuration.
-func (in PluginEntityConfiguration) DeepCopy() PluginEntityConfiguration {
+func (in CustomEntityConfiguration) DeepCopy() CustomEntityConfiguration {
 	if in == nil {
 		return nil
 	}
-	out := new(PluginEntityConfiguration)
+	out := new(CustomEntityConfiguration)
 	in.DeepCopyInto(out)
 	return *out
 }
 
-func (f *FPluginEntity) UnmarshalJSON(b []byte) error {
+func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
 	var temp map[string]interface{}
 	if err := json.Unmarshal(b, &temp); err != nil {
 		return err
@@ -947,7 +947,7 @@ func (f *FPluginEntity) UnmarshalJSON(b []byte) error {
 		if err != nil {
 			return err
 		}
-		return copyToFPluginEntity(entity, f)
+		return copyToFCustomEntity(entity, f)
 	default:
 		return fmt.Errorf("unknown entity type: %s", *f.Type)
 	}
@@ -955,7 +955,7 @@ func (f *FPluginEntity) UnmarshalJSON(b []byte) error {
 
 // UnmarshalYAML is a custom marshal method to handle
 // foreign references.
-func (f *FPluginEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (f *FCustomEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	switch *f.Type {
 	case degraphqlRoutesType:
 		var entity DegraphqlRoute
@@ -969,7 +969,7 @@ func (f *FPluginEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // sortKey is used for sorting.
-func (f FPluginEntity) sortKey() string {
+func (f FCustomEntity) sortKey() string {
 	if f.ID != nil {
 		return *f.ID
 	}
@@ -981,25 +981,25 @@ type DegraphqlRoute struct {
 	kong.DegraphqlRoute
 }
 
-func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fpEntity *FPluginEntity) error {
-	fpEntity.Type = kong.String(degraphqlRoutesType)
+func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) error {
+	fcEntity.Type = kong.String(degraphqlRoutesType)
 
 	if dRoute.ID != nil {
-		fpEntity.ID = dRoute.ID
+		fcEntity.ID = dRoute.ID
 	}
 
-	fpEntity.Fields = make(map[string]interface{})
+	fcEntity.Fields = make(map[string]interface{})
 
 	if dRoute.Service != nil && dRoute.Service.ID != nil {
-		fpEntity.Fields["service"] = *dRoute.Service.ID
+		fcEntity.Fields["service"] = *dRoute.Service.ID
 	}
 
 	if dRoute.URI != nil {
-		fpEntity.Fields["uri"] = *dRoute.URI
+		fcEntity.Fields["uri"] = *dRoute.URI
 	}
 
 	if dRoute.Query != nil {
-		fpEntity.Fields["query"] = *dRoute.Query
+		fcEntity.Fields["query"] = *dRoute.Query
 	}
 
 	if dRoute.Methods != nil {
@@ -1007,32 +1007,32 @@ func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fpEntity *FPluginEntity) erro
 		for i, method := range dRoute.Methods {
 			methods[i] = method
 		}
-		fpEntity.Fields["methods"] = methods
+		fcEntity.Fields["methods"] = methods
 	}
 
 	return nil
 }
 
-func copyToFPluginEntity(dRoute map[string]interface{}, fpEntity *FPluginEntity) error {
-	fpEntity.Type = kong.String(degraphqlRoutesType)
+func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity) error {
+	fcEntity.Type = kong.String(degraphqlRoutesType)
 
 	if dRoute["id"] != nil {
-		fpEntity.ID = kong.String(dRoute["id"].(string))
+		fcEntity.ID = kong.String(dRoute["id"].(string))
 	}
 
-	fpEntity.Fields = make(map[string]interface{})
+	fcEntity.Fields = make(map[string]interface{})
 	dRouteFields := dRoute["fields"].(map[string]interface{})
 
 	if dRouteFields["service"] != nil {
-		fpEntity.Fields["service"] = kong.String(dRouteFields["service"].(string))
+		fcEntity.Fields["service"] = kong.String(dRouteFields["service"].(string))
 	}
 
 	if dRouteFields["uri"] != nil {
-		fpEntity.Fields["uri"] = kong.String(dRouteFields["uri"].(string))
+		fcEntity.Fields["uri"] = kong.String(dRouteFields["uri"].(string))
 	}
 
 	if dRouteFields["query"] != nil {
-		fpEntity.Fields["query"] = kong.String(dRouteFields["query"].(string))
+		fcEntity.Fields["query"] = kong.String(dRouteFields["query"].(string))
 	}
 
 	if dRouteFields["methods"] != nil {
@@ -1040,7 +1040,7 @@ func copyToFPluginEntity(dRoute map[string]interface{}, fpEntity *FPluginEntity)
 		for i, method := range dRouteFields["methods"].([]interface{}) {
 			methods[i] = method.(string)
 		}
-		fpEntity.Fields["methods"] = kong.StringSlice(methods...)
+		fcEntity.Fields["methods"] = kong.StringSlice(methods...)
 	}
 
 	return nil
@@ -1085,5 +1085,5 @@ type Content struct {
 
 	Licenses []FLicense `json:"licenses,omitempty" yaml:"licenses,omitempty"`
 
-	PluginEntities []FPluginEntity `json:"plugin_entities,omitempty" yaml:"plugin_entities,omitempty"`
+	CustomEntities []FCustomEntity `json:"custom_entities,omitempty" yaml:"custom_entities,omitempty"`
 }

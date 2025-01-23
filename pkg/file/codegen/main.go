@@ -129,8 +129,8 @@ func main() {
 	}
 	schema.Definitions["MTLSAuth"].Required = []string{"id", "subject_name"}
 
-	// plugin entities
-	schema.Definitions["FPluginEntity"].Required = []string{"type", "plugin"}
+	// custom entities
+	schema.Definitions["FCustomEntity"].Required = []string{"type", "plugin"}
 
 	// RBAC resources
 	schema.Definitions["FRBACRole"].Required = []string{"name"}
