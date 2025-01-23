@@ -1676,7 +1676,6 @@ func copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRoute, error) {
 		return DegraphqlRoute{}, fmt.Errorf("uri and query are required for degraphql_routes")
 	}
 
-
 	return degraphqlRoute, nil
 }
 
