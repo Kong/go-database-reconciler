@@ -390,8 +390,11 @@ func existingFilterChainState() *state.KongState {
 	return s
 }
 
-func existingDegraphqlRouteState() *state.KongState {
-	s, _ := state.NewKongState()
+func existingDegraphqlRouteState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
 	s.DegraphqlRoutes.Add(
 		state.DegraphqlRoute{
 			DegraphqlRoute: kong.DegraphqlRoute{
@@ -3932,7 +3935,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 						},
 					},
 				},
-				currentState: existingDegraphqlRouteState(),
+				currentState: existingDegraphqlRouteState(t),
 			},
 			want: &utils.KongRawState{
 				DegraphqlRoutes: []*kong.DegraphqlRoute{
@@ -4100,12 +4103,12 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			}
 			_, _, err := b.build()
 			if tt.wantErr {
-				require.NotNil(t, err, "build error is nil")
+				require.Error(t, err, "build error was expected")
 				assert.Equal(t, tt.want, b.rawState)
 				return
 			}
 
-			require.Nil(t, err, "build error is not nil")
+			require.NoError(t, err, "build error is not nil")
 			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
