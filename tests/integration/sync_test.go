@@ -1710,6 +1710,15 @@ var (
 	}}
 )
 
+const complexQueryForDegraphqlRoute = `query SearchPosts($filters: PostsFilters) {
+  posts(filter: $filters) {
+    id
+    title
+    author
+  }
+}
+`
+
 // test scope:
 //   - 1.4.3
 func Test_Sync_ServicesRoutes_Till_1_4_3(t *testing.T) {
@@ -7566,4 +7575,88 @@ func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
 			require.Equal(t, tc.errorExpected, err.Error())
 		})
 	}
+}
+
+func Test_Sync_DegraphqlRoutes(t *testing.T) {
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	ctx := context.Background()
+	dumpConfig := deckDump.Config{CustomEntityTypes: []string{"degraphql_routes"}}
+
+	runWhen(t, "enterprise", ">=3.0.0")
+
+	t.Run("create degraphql route", func(t *testing.T) {
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t, "testdata/sync/036-degraphql-routes/kong.yaml", client, dumpConfig)
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		degraphqlRoutes, err := newState.DegraphqlRoutes.GetAll()
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, len(degraphqlRoutes))
+		assert.Equal(t, "/foo", *degraphqlRoutes[0].URI)
+		assert.Equal(t, "query{ foo { bar } }", *degraphqlRoutes[0].Query)
+
+		expectedMethods := kong.StringSlice("GET")
+		assert.Equal(t, expectedMethods, degraphqlRoutes[0].Methods)
+
+		t.Cleanup(func() {
+			mustResetKongState(ctx, t, client, dumpConfig)
+		})
+	})
+
+	t.Run("create degraphql route - complex query", func(t *testing.T) {
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t, "testdata/sync/036-degraphql-routes/kong-complex-query.yaml", client, dumpConfig)
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		degraphqlRoutes, err := newState.DegraphqlRoutes.GetAll()
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, len(degraphqlRoutes))
+		assert.Equal(t, "/search/posts", *degraphqlRoutes[0].URI)
+
+		expectedQuery := kong.String(complexQueryForDegraphqlRoute)
+		assert.Equal(t, expectedQuery, degraphqlRoutes[0].Query)
+
+		expectedMethods := kong.StringSlice("POST")
+		assert.Equal(t, expectedMethods, degraphqlRoutes[0].Methods)
+
+		t.Cleanup(func() {
+			mustResetKongState(ctx, t, client, dumpConfig)
+		})
+	})
 }
