@@ -1791,3 +1791,50 @@ func (l *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
 	}
 	return reflect.DeepEqual(l1Copy, l2Copy)
 }
+
+type customEntity interface {
+	// ID of the plugin entity.
+	GetCustomEntityID() string
+	// Type of the plugin entity
+	GetCustomEntityType() string
+}
+
+type DegraphqlRoute struct {
+	kong.DegraphqlRoute `yaml:",inline"`
+	Meta
+}
+
+// GetCustomEntityID returns the ID of the DegraphqlRoute.
+func (d *DegraphqlRoute) GetCustomEntityID() string {
+	return *d.ID
+}
+
+// GetCustomEntityType returns the DegraphqlRoute Type.
+func (d *DegraphqlRoute) GetCustomEntityType() string {
+	return "degraphql_routes"
+}
+
+// Console returns the string to identify the DegraphqlRoute.
+// Since DegraphqlRoute do not have an alternative field to identify them, it also returns the ID.
+func (d *DegraphqlRoute) Console() string {
+	return *d.ID
+}
+
+// Equal returns true if degraphql route d and d2 are equal.
+func (d *DegraphqlRoute) Equal(d2 *DegraphqlRoute) bool {
+	return d.EqualWithOpts(d2, false)
+}
+
+// EqualWithOpts returns true if degraphql route d and d2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+func (d *DegraphqlRoute) EqualWithOpts(d2 *DegraphqlRoute, ignoreID bool) bool {
+	d1Copy := d.DegraphqlRoute.DeepCopy()
+	d2Copy := d2.DegraphqlRoute.DeepCopy()
+
+	if ignoreID {
+		d1Copy.ID = nil
+		d2Copy.ID = nil
+	}
+
+	return reflect.DeepEqual(d1Copy, d2Copy)
+}

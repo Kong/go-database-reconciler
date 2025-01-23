@@ -30,6 +30,10 @@ const (
 	httpsPort = 443
 )
 
+const (
+	degraphqlRoutesType = "degraphql_routes"
+)
+
 // FFilterChain represents a Kong FilterChain.
 // +k8s:deepcopy-gen=true
 type FFilterChain struct {
@@ -894,6 +898,162 @@ func (c FLicense) sortKey() string {
 	return ""
 }
 
+// This struct could be used for any custom entity for plugins
+// Based on "Type", the entity can be serialized into its
+// apt struct.
+// +k8s:deepcopy-gen=true
+type FCustomEntity struct {
+	ID     *string                   `json:"id,omitempty" yaml:"id,omitempty"`
+	Type   *string                   `json:"type,omitempty" yaml:"type,omitempty"`
+	Fields CustomEntityConfiguration `json:"fields,omitempty" yaml:"fields,omitempty"`
+}
+
+// Configuration represents a config of a custom-entity in Kong.
+type CustomEntityConfiguration map[string]interface{}
+
+// DeepCopyInto copies the receiver, writing into out. in must be non-nil.
+func (in CustomEntityConfiguration) DeepCopyInto(out *CustomEntityConfiguration) {
+	// Resorting to JSON since interface{} cannot be DeepCopied easily.
+	// This could be replaced using reflection-fu.
+	// XXX Ignoring errors
+	b, _ := json.Marshal(&in)
+	_ = json.Unmarshal(b, out)
+}
+
+// DeepCopy copies the receiver, creating a new Configuration.
+func (in CustomEntityConfiguration) DeepCopy() CustomEntityConfiguration {
+	if in == nil {
+		return nil
+	}
+	out := new(CustomEntityConfiguration)
+	in.DeepCopyInto(out)
+	return *out
+}
+
+func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
+	var temp map[string]interface{}
+	if err := json.Unmarshal(b, &temp); err != nil {
+		return err
+	}
+
+	if temp["type"] == nil {
+		return fmt.Errorf("type field is required")
+	}
+
+	switch temp["type"] {
+	case degraphqlRoutesType:
+		var entity map[string]interface{}
+		err := json.Unmarshal(b, &entity)
+		if err != nil {
+			return err
+		}
+		return copyToFCustomEntity(entity, f)
+	default:
+		return fmt.Errorf("unknown entity type: %s", *f.Type)
+	}
+}
+
+// UnmarshalYAML is a custom marshal method to handle
+// foreign references.
+func (f *FCustomEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	switch *f.Type {
+	case degraphqlRoutesType:
+		var entity DegraphqlRoute
+		if err := unmarshal(&entity); err != nil {
+			return err
+		}
+		return copyFromDegraphqlRoute(entity, f)
+	default:
+		return fmt.Errorf("unknown entity type: %s", *f.Type)
+	}
+}
+
+// sortKey is used for sorting.
+func (f FCustomEntity) sortKey() string {
+	if f.ID != nil {
+		return *f.ID
+	}
+	return ""
+}
+
+// +k8s:deepcopy-gen=true
+type DegraphqlRoute struct {
+	kong.DegraphqlRoute
+}
+
+func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) error {
+	fcEntity.Type = kong.String(degraphqlRoutesType)
+
+	if dRoute.ID != nil {
+		fcEntity.ID = dRoute.ID
+	}
+
+	fcEntity.Fields = make(map[string]interface{})
+
+	if dRoute.Service != nil && dRoute.Service.ID != nil {
+		fcEntity.Fields["service"] = *dRoute.Service.ID
+	}
+
+	if dRoute.URI != nil {
+		fcEntity.Fields["uri"] = *dRoute.URI
+	}
+
+	if dRoute.Query != nil {
+		fcEntity.Fields["query"] = *dRoute.Query
+	}
+
+	if dRoute.Methods != nil {
+		methods := make([]interface{}, len(dRoute.Methods))
+		for i, method := range dRoute.Methods {
+			methods[i] = method
+		}
+		fcEntity.Fields["methods"] = methods
+	}
+
+	return nil
+}
+
+func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity) error {
+	fcEntity.Type = kong.String(degraphqlRoutesType)
+
+	if dRoute["id"] != nil {
+		fcEntity.ID = kong.String(dRoute["id"].(string))
+	}
+
+	fcEntity.Fields = make(map[string]interface{})
+	dRouteFields := dRoute["fields"].(map[string]interface{})
+
+	if dRouteFields["service"] != nil {
+		fcEntity.Fields["service"] = kong.String(dRouteFields["service"].(string))
+	}
+
+	if dRouteFields["uri"] != nil {
+		fcEntity.Fields["uri"] = kong.String(dRouteFields["uri"].(string))
+	}
+
+	if dRouteFields["query"] != nil {
+		fcEntity.Fields["query"] = kong.String(dRouteFields["query"].(string))
+	}
+
+	if dRouteFields["methods"] != nil {
+		methods := make([]string, len(dRouteFields["methods"].([]interface{})))
+		for i, method := range dRouteFields["methods"].([]interface{}) {
+			methods[i] = method.(string)
+		}
+		fcEntity.Fields["methods"] = kong.StringSlice(methods...)
+	}
+
+	return nil
+}
+
+// sortKey is used for sorting.
+func (d DegraphqlRoute) sortKey() string {
+	if d.ID != nil {
+		return *d.ID
+	}
+	return ""
+}
+
 //go:generate go run ./codegen/main.go
 
 // Content represents a serialized Kong state.
@@ -924,4 +1084,6 @@ type Content struct {
 	Vaults []FVault `json:"vaults,omitempty" yaml:"vaults,omitempty"`
 
 	Licenses []FLicense `json:"licenses,omitempty" yaml:"licenses,omitempty"`
+
+	CustomEntities []FCustomEntity `json:"custom_entities,omitempty" yaml:"custom_entities,omitempty"`
 }

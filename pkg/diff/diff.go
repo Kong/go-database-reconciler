@@ -265,6 +265,8 @@ func (sc *Syncer) init() error {
 		types.ServicePackage, types.ServiceVersion, types.Document,
 
 		types.FilterChain,
+
+		types.DegraphqlRoute,
 	}
 
 	sc.entityDiffers = map[types.EntityType]types.Differ{}

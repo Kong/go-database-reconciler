@@ -54,6 +54,8 @@ type KongRawState struct {
 	Oauth2Creds []*kong.Oauth2Credential
 	MTLSAuths   []*kong.MTLSAuth
 
+	DegraphqlRoutes []*kong.DegraphqlRoute
+
 	RBACRoles               []*kong.RBACRole
 	RBACEndpointPermissions []*kong.RBACEndpointPermission
 }

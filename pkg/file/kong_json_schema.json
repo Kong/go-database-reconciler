@@ -68,6 +68,13 @@
       },
       "type": "array"
     },
+    "custom_entities": {
+      "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FCustomEntity"
+      },
+      "type": "array"
+    },
     "plugins": {
       "items": {
         "$ref": "#/definitions/FPlugin"
@@ -740,6 +747,29 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FCustomEntity": {
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "fields": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -1472,6 +1502,12 @@
     },
     "LookUpSelectorTags": {
       "properties": {
+        "consumer_groups": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "consumers": {
           "items": {
             "type": "string"
@@ -1485,12 +1521,6 @@
           "type": "array"
         },
         "services": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "consumer_groups": {
           "items": {
             "type": "string"
           },

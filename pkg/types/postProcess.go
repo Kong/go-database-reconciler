@@ -512,3 +512,19 @@ func (crud *filterChainPostAction) Delete(_ context.Context, args ...crud.Arg) (
 func (crud *filterChainPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.FilterChains.Update(*args[0].(*state.FilterChain))
 }
+
+type degraphqlRoutePostAction struct {
+	currentState *state.KongState
+}
+
+func (crud *degraphqlRoutePostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.DegraphqlRoutes.Add(*args[0].(*state.DegraphqlRoute))
+}
+
+func (crud *degraphqlRoutePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.DegraphqlRoutes.Delete(*((args[0].(*state.DegraphqlRoute)).ID))
+}
+
+func (crud *degraphqlRoutePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.DegraphqlRoutes.Update(*args[0].(*state.DegraphqlRoute))
+}

@@ -123,6 +123,11 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, err
 	}
 
+	err = populateDegraphqlRoutes(kongState, file)
+	if err != nil {
+		return nil, err
+	}
+
 	return file, nil
 }
 
@@ -851,6 +856,32 @@ func populateLicenses(kongState *state.KongState, file *Content,
 	sort.SliceStable(file.Licenses, func(i, j int) bool {
 		return compareOrder(file.Licenses[i], file.Licenses[j])
 	})
+	return nil
+}
+
+func populateDegraphqlRoutes(kongState *state.KongState, file *Content) error {
+	degraphqlRoutes, err := kongState.DegraphqlRoutes.GetAll()
+	if err != nil {
+		return err
+	}
+
+	for _, d := range degraphqlRoutes {
+		f := FCustomEntity{}
+
+		err := copyFromDegraphqlRoute(DegraphqlRoute{
+			DegraphqlRoute: d.DegraphqlRoute,
+		}, &f)
+		if err != nil {
+			return err
+		}
+		utils.ZeroOutTimestamps(&f)
+
+		file.CustomEntities = append(file.CustomEntities, f)
+	}
+	sort.SliceStable(file.CustomEntities, func(i, j int) bool {
+		return compareOrder(file.CustomEntities[i], file.CustomEntities[j])
+	})
+
 	return nil
 }
 
