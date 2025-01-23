@@ -70,7 +70,7 @@ func (k *customEntitiesCollection) Add(e customEntity) error {
 
 	_, err := k.getByCustomEntityID(txn, e.GetCustomEntityID())
 	if err == nil {
-		return fmt.Errorf("inserting plugin-entity %v - %v : %w", k.CustomEntityType, e.GetCustomEntityID(), ErrAlreadyExists)
+		return fmt.Errorf("inserting custom-entity %v - %v : %w", k.CustomEntityType, e.GetCustomEntityID(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {
 		return err
 	}

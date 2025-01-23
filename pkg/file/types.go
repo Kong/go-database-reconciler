@@ -908,7 +908,7 @@ type FCustomEntity struct {
 	Fields CustomEntityConfiguration `json:"fields,omitempty" yaml:"fields,omitempty"`
 }
 
-// Configuration represents a config of a plugin-entity in Kong.
+// Configuration represents a config of a custom-entity in Kong.
 type CustomEntityConfiguration map[string]interface{}
 
 // DeepCopyInto copies the receiver, writing into out. in must be non-nil.
