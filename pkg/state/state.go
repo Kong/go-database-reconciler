@@ -41,6 +41,9 @@ type KongState struct {
 	RBACRoles               *RBACRolesCollection
 	RBACEndpointPermissions *RBACEndpointPermissionsCollection
 
+	Keys    *KeysCollection
+	KeySets *KeySetsCollection
+
 	// konnect-specific entities
 	ServicePackages *ServicePackagesCollection
 	ServiceVersions *ServiceVersionsCollection
@@ -77,6 +80,8 @@ func NewKongState() (*KongState, error) {
 			rbacEndpointPermissionTableName: rbacEndpointPermissionTableSchema,
 			vaultTableName:                  vaultTableSchema,
 			licenseTableName:                licenseTableSchema,
+			keyTableName:                    keyTableSchema,
+			keySetTableName:                 keySetTableSchema,
 
 			degraphqlRouteTemp.TableName(): degraphqlRouteTemp.Schema(),
 
@@ -122,6 +127,8 @@ func NewKongState() (*KongState, error) {
 	state.RBACEndpointPermissions = (*RBACEndpointPermissionsCollection)(&state.common)
 	state.Vaults = (*VaultsCollection)(&state.common)
 	state.Licenses = (*LicensesCollection)(&state.common)
+	state.Keys = (*KeysCollection)(&state.common)
+	state.KeySets = (*KeySetsCollection)(&state.common)
 
 	state.DegraphqlRoutes = newDegraphqlRoutesCollection(state.common)
 

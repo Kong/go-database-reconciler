@@ -129,6 +129,11 @@ const (
 	FilterChain EntityType = "filter-chain"
 
 	DegraphqlRoute EntityType = "degraphql_routes"
+
+	// Key identifies a Key in Kong.
+	Key EntityType = "key"
+	// KeySet identifies a KeySet in Kong.
+	KeySet EntityType = "key-set"
 )
 
 // AllTypes represents all types defined in the
@@ -155,6 +160,8 @@ var AllTypes = []EntityType{
 	FilterChain,
 
 	DegraphqlRoute,
+
+	Key, KeySet,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -586,6 +593,36 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &degraphqlRouteDiffer{
 				kind:         entityTypeToKind(DegraphqlRoute),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case Key:
+		return entityImpl{
+			typ: Key,
+			crudActions: &keyCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &keyPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &keyDiffer{
+				kind:         entityTypeToKind(Key),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case KeySet:
+		return entityImpl{
+			typ: KeySet,
+			crudActions: &keySetCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &keySetPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &keySetDiffer{
+				kind:         entityTypeToKind(KeySet),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

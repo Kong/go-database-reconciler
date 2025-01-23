@@ -132,6 +132,10 @@ func main() {
 	// custom entities
 	schema.Definitions["FCustomEntity"].Required = []string{"type"}
 
+	// keys and key-sets
+	schema.Definitions["FKey"].AnyOf = anyOfNameOrID
+	schema.Definitions["FKeySet"].AnyOf = anyOfNameOrID
+
 	// RBAC resources
 	schema.Definitions["FRBACRole"].Required = []string{"name"}
 	schema.Definitions["FRBACEndpointPermission"].Required = []string{"workspace", "endpoint"}
