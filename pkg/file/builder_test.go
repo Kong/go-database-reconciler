@@ -14,6 +14,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -389,10 +390,32 @@ func existingFilterChainState() *state.KongState {
 	return s
 }
 
+func existingDegraphqlRouteState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.DegraphqlRoutes.Add(
+		state.DegraphqlRoute{
+			DegraphqlRoute: kong.DegraphqlRoute{
+				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Service: &kong.Service{
+					ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+				},
+				Methods: kong.StringSlice("GET"),
+				URI:     kong.String("/example"),
+				Query:   kong.String("query{ example { foo } }"),
+			},
+		})
+	return s
+}
+
+var testRand *rand.Rand
+
 var deterministicUUID = func() *string {
 	version := byte(4)
 	uuid := make([]byte, 16)
-	rand.Read(uuid)
+	testRand.Read(uuid)
 
 	// Set version
 	uuid[6] = (uuid[6] & 0x0f) | (version << 4)
@@ -421,7 +444,7 @@ func TestMain(m *testing.M) {
 }
 
 func Test_stateBuilder_services(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -508,7 +531,7 @@ func Test_stateBuilder_services(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestRoute(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -621,7 +644,7 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestTargets(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -870,7 +893,7 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestPlugins(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -1060,7 +1083,7 @@ func Test_pluginRelations(t *testing.T) {
 }
 
 func Test_stateBuilder_ingestFilterChains(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -1162,7 +1185,7 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 }
 
 func Test_stateBuilder_consumers(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
@@ -1641,7 +1664,7 @@ func Test_stateBuilder_consumers(t *testing.T) {
 }
 
 func Test_stateBuilder_certificates(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
@@ -1808,7 +1831,7 @@ func Test_stateBuilder_certificates(t *testing.T) {
 }
 
 func Test_stateBuilder_caCertificates(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
@@ -1881,7 +1904,7 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 }
 
 func Test_stateBuilder_upstream(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -2233,7 +2256,7 @@ func Test_stateBuilder_upstream(t *testing.T) {
 }
 
 func Test_stateBuilder_documents(t *testing.T) {
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -2874,7 +2897,7 @@ func Test_stateBuilder_kong370(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			rand.Seed(42)
+			testRand = rand.New(rand.NewSource(42))
 			b := &stateBuilder{
 				targetContent: tt.fields.targetContent,
 				currentState:  tt.fields.currentState,
@@ -3419,7 +3442,7 @@ func Test_stateBuilder_kong360(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			rand.Seed(42)
+			testRand = rand.New(rand.NewSource(42))
 			b := &stateBuilder{
 				targetContent: tt.fields.targetContent,
 				currentState:  tt.fields.currentState,
@@ -3584,7 +3607,7 @@ func Test_getStripPathBasedOnProtocols(t *testing.T) {
 
 func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState *state.KongState
 	}
@@ -3653,7 +3676,7 @@ func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 
 func Test_stateBuilder_expressionRoutes_kong360(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -3722,7 +3745,7 @@ func Test_stateBuilder_expressionRoutes_kong360(t *testing.T) {
 
 func Test_stateBuilder_expressionRoutes_kong370(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -3789,7 +3812,7 @@ func Test_stateBuilder_expressionRoutes_kong370(t *testing.T) {
 
 func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 	assert := assert.New(t)
-	rand.Seed(42)
+	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		targetContent *Content
 		currentState  *state.KongState
@@ -3850,6 +3873,243 @@ func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 			assert.Equal(tt.want, b.rawState)
 			assert.Nil(b.rawState.Routes[0].RegexPriority, "RegexPriority should be nil")
 			assert.Nil(b.rawState.Routes[0].PathHandling, "PathHandling should be nil")
+		})
+	}
+}
+
+func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    *utils.KongRawState
+		wantErr bool
+	}{
+		{
+			name: "generates a new degraphql route from valid config passed",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri":     kong.String("/foo"),
+								"query":   kong.String("query { foo { bar }}"),
+								"service": kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID:    kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						URI:   kong.String("/foo"),
+						Query: kong.String("query { foo { bar }}"),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+						Methods: kong.StringSlice("GET"),
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing degraphql route",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri":     kong.String("/example"),
+								"query":   kong.String("query{ example { foo } }"),
+								"service": kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+							},
+						},
+					},
+				},
+				currentState: existingDegraphqlRouteState(t),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Service: &kong.Service{
+							ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+						},
+						Methods: kong.StringSlice("GET"),
+						URI:     kong.String("/example"),
+						Query:   kong.String("query{ example { foo } }"),
+					},
+				},
+			},
+		},
+		{
+			name: "accepts multi line query input and service name",
+			fields: fields{
+				targetContent: &Content{
+					Services: []FService{
+						{
+							Service: kong.Service{
+								Name: kong.String("foo"),
+							},
+						},
+					},
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri": kong.String("/foo"),
+								"query": kong.String(`query SearchPosts($filters: PostsFilters) {
+		      								posts(filter: $filters) {
+		        								id
+		        								title
+		        								author
+		      								}
+										}`),
+								"service": kong.String("foo"),
+								"methods": kong.StringSlice("GET", "POST"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID: kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Service: &kong.Service{
+							ID: kong.String("foo"),
+						},
+						Methods: kong.StringSlice("GET", "POST"),
+						URI:     kong.String("/foo"),
+						Query: kong.String(`query SearchPosts($filters: PostsFilters) {
+		      								posts(filter: $filters) {
+		        								id
+		        								title
+		        								author
+		      								}
+										}`),
+					},
+				},
+				Services: []*kong.Service{
+					{
+						ID:             kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:           kong.String("foo"),
+						Protocol:       kong.String("http"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty plugin entities",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+		},
+		{
+			name: "handles multiple degraphql routes",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri":     kong.String("/foo"),
+								"query":   kong.String("query { foo }"),
+								"service": kong.String("service1"),
+							},
+						},
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri":     kong.String("/bar"),
+								"query":   kong.String("query { bar }"),
+								"service": kong.String("service2"),
+								"methods": kong.StringSlice("POST", "PUT"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: []*kong.DegraphqlRoute{
+					{
+						ID:    kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						URI:   kong.String("/foo"),
+						Query: kong.String("query { foo }"),
+						Service: &kong.Service{
+							ID: kong.String("service1"),
+						},
+						Methods: kong.StringSlice("GET"),
+					},
+					{
+						ID:    kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						URI:   kong.String("/bar"),
+						Query: kong.String("query { bar }"),
+						Service: &kong.Service{
+							ID: kong.String("service2"),
+						},
+						Methods: kong.StringSlice("POST", "PUT"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles missing required fields",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri": kong.String("/foo"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			_, _, err := b.build()
+			if tt.wantErr {
+				require.Error(t, err, "build error was expected")
+				assert.Equal(t, tt.want, b.rawState)
+				return
+			}
+
+			require.NoError(t, err, "build error is not nil")
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }

@@ -220,6 +220,17 @@ func Test_compareOrder(t *testing.T) {
 			},
 			expected: true,
 		},
+		{
+			sortable1: FCustomEntity{
+				ID:   kong.String("degraphql-route-1"),
+				Type: kong.String("degraphql_routes"),
+			},
+			sortable2: FCustomEntity{
+				ID:   kong.String("degraphql-route-2"),
+				Type: kong.String("degraphql_routes"),
+			},
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

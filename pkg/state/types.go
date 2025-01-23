@@ -1806,6 +1806,10 @@ type DegraphqlRoute struct {
 
 // GetCustomEntityID returns the ID of the DegraphqlRoute.
 func (d *DegraphqlRoute) GetCustomEntityID() string {
+	if d.ID == nil {
+		return ""
+	}
+
 	return *d.ID
 }
 
