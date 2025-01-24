@@ -7593,7 +7593,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
 		require.NoError(t, err)
 
-		targetState := stateFromFile(ctx, t, "testdata/sync/036-degraphql-routes/kong.yaml", client, dumpConfig)
+		targetState := stateFromFile(ctx, t, "testdata/sync/037-degraphql-routes/kong.yaml", client, dumpConfig)
 		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
 			CurrentState: currentState,
 			TargetState:  targetState,
@@ -7625,7 +7625,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
 		require.NoError(t, err)
 
-		targetState := stateFromFile(ctx, t, "testdata/sync/036-degraphql-routes/kong-complex-query.yaml", client, dumpConfig)
+		targetState := stateFromFile(ctx, t, "testdata/sync/037-degraphql-routes/kong-complex-query.yaml", client, dumpConfig)
 		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
 			CurrentState: currentState,
 			TargetState:  targetState,
@@ -7653,4 +7653,12 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		expectedMethods := kong.StringSlice("POST")
 		assert.Equal(t, expectedMethods, degraphqlRoutes[0].Methods)
 	})
+}
+
+func Test_Sync_CustomEntities_Fake(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.0.0")
+	setup(t)
+	err := sync("testdata/sync/037-degraphql-routes/kong-fake-entity.yaml")
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "unknown entity type: fake-entity")
 }

@@ -949,7 +949,7 @@ func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
 		}
 		return copyToFCustomEntity(entity, f)
 	default:
-		return fmt.Errorf("unknown entity type: %s", *f.Type)
+		return fmt.Errorf("unknown entity type: %s", temp["type"])
 	}
 }
 
