@@ -55,6 +55,13 @@
       },
       "type": "array"
     },
+    "custom_entities": {
+      "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FCustomEntity"
+      },
+      "type": "array"
+    },
     "filter_chains": {
       "items": {
         "$ref": "#/definitions/FFilterChain"
@@ -79,13 +86,6 @@
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "$ref": "#/definitions/FLicense"
-      },
-      "type": "array"
-    },
-    "custom_entities": {
-      "items": {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "$ref": "#/definitions/FCustomEntity"
       },
       "type": "array"
     },
@@ -589,6 +589,29 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "FCustomEntity": {
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "fields": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "FDocument": {
       "properties": {
         "id": {
@@ -847,29 +870,6 @@
             "type": "string"
           },
           "type": "array"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "FCustomEntity": {
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "fields": {
-          "patternProperties": {
-            ".*": {
-              "additionalProperties": true
-            }
-          },
-          "type": "object"
-        },
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -1560,6 +1560,30 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "KeySet": {
+      "properties": {
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "updated_at": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "Kong": {
       "properties": {
         "service": {
@@ -1712,6 +1736,18 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "PEM": {
+      "properties": {
+        "private_key": {
+          "type": "string"
+        },
+        "public_key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "PassiveHealthcheck": {
       "properties": {
         "healthy": {
@@ -1722,18 +1758,6 @@
         },
         "unhealthy": {
           "$ref": "#/definitions/Unhealthy"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "PEM": {
-      "properties": {
-        "private_key": {
-          "type": "string"
-        },
-        "public_key": {
-          "type": "string"
         }
       },
       "additionalProperties": false,
