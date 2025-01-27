@@ -177,7 +177,7 @@ func (b *stateBuilder) consumerGroups() {
 		return
 	}
 
-	// Load all existing consumer groups in to the immediate state for
+	// Load all existing consumer groups in to the intermediate state for
 	// foreign key lookups if we're doing a partial apply
 	if b.isPartialApply {
 		consumerGroups, err := b.currentState.ConsumerGroups.GetAll()
@@ -186,6 +186,7 @@ func (b *stateBuilder) consumerGroups() {
 			return
 		}
 		for _, cg := range consumerGroups {
+			// Add to intermediate state for lookups
 			err = b.intermediate.ConsumerGroups.Add(*cg)
 			if err != nil {
 				b.err = err
@@ -295,7 +296,19 @@ func (b *stateBuilder) consumerGroups() {
 				cgo.Consumers = append(cgo.Consumers, c)
 			}
 		}
-		b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, &cgo)
+
+		// Replace the consumergroup in the raw state if it exists
+		foundCg := false
+		for i, existingCG := range b.rawState.ConsumerGroups {
+			if existingCG.ConsumerGroup.ID == cg.ID {
+				b.rawState.ConsumerGroups[i] = &cgo
+				foundCg = true
+				break
+			}
+		}
+		if !foundCg {
+			b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, &cgo)
+		}
 	}
 }
 
