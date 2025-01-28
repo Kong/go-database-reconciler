@@ -53,6 +53,9 @@ type Config struct {
 	// IsConsumerGroupScopedPluginSupported
 	IsConsumerGroupScopedPluginSupported bool
 
+	// If IsPartialApply is true, we load _all_ existing entities in to
+	// the intermediate state so that foreign key lookups will work.
+	// Partial applies to configure a partial state.
 	IsPartialApply bool
 }
 
