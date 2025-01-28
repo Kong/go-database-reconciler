@@ -48,7 +48,7 @@ jobs:
       - name: Check if secrets are available
         id: check
         run: |
-          if [ "${{ secrets.PULP_PASSWORD }}" == "" ]; then
+          if [ "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" == "" ]; then
             echo "result=false" >> $GITHUB_OUTPUT
           else
             echo "result=true" >> $GITHUB_OUTPUT
