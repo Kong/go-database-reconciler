@@ -6,6 +6,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func servicesCollection() *ServicesCollection {
@@ -105,16 +106,15 @@ func TestServicesCollection_Add(t *testing.T) {
 }
 
 func TestServiceInsertIgnoreDuplicate(t *testing.T) {
-	assert := assert.New(t)
 	collection := servicesCollection()
 
 	var s Service
 	s.ID = kong.String("my-id")
 	s.Name = kong.String("first")
 	err := collection.Add(s)
-	assert.Nil(err)
+	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(s)
-	assert.Nil(err)
+	require.NoError(t, err)
 }
 
 func TestServicesCollection_Get(t *testing.T) {

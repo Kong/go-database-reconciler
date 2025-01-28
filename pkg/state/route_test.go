@@ -6,6 +6,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func routesCollection() *RoutesCollection {
@@ -105,16 +106,15 @@ func TestRoutesCollection_Add(t *testing.T) {
 }
 
 func TestRouteInsertIgnoreDuplicate(t *testing.T) {
-	assert := assert.New(t)
 	collection := routesCollection()
 
 	var r Route
 	r.ID = kong.String("my-id")
 	r.Name = kong.String("first")
 	err := collection.Add(r)
-	assert.Nil(err)
+	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(r)
-	assert.Nil(err)
+	require.NoError(t, err)
 }
 
 func TestRoutesCollection_Get(t *testing.T) {

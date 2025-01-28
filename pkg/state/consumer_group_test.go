@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func consumerGroupsCollection() *ConsumerGroupsCollection {
@@ -12,19 +13,18 @@ func consumerGroupsCollection() *ConsumerGroupsCollection {
 }
 
 func TestConsumerGroupInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := consumerGroupsCollection()
 
 	var cg ConsumerGroup
 
-	assert.NotNil(collection.Add(cg))
+	require.NotNil(t, collection.Add(cg))
 
 	cg.ID = kong.String("my-id")
 	cg.Name = kong.String("first")
-	assert.Nil(collection.Add(cg))
+	require.NoError(t, collection.Add(cg))
 
 	// re-insert
-	assert.NotNil(collection.Add(cg))
+	require.NotNil(t, collection.Add(cg))
 }
 
 func TestConsumerGroupInsertIgnoreDuplicate(t *testing.T) {
