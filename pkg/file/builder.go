@@ -193,16 +193,6 @@ func (b *stateBuilder) consumerGroups() {
 				return
 			}
 
-			// Also add to rawState to perform a lookup later
-			rawCg := &kong.ConsumerGroupObject{
-				ConsumerGroup: &kong.ConsumerGroup{
-					ID:        cg.ID,
-					Name:      cg.Name,
-					CreatedAt: cg.CreatedAt,
-					Tags:      cg.Tags,
-				},
-			}
-
 			// Fetch consumers for this CG
 			consumerGroupConsumers, err := b.currentState.ConsumerGroupConsumers.GetAll()
 			if err != nil {
@@ -215,6 +205,16 @@ func (b *stateBuilder) consumerGroups() {
 				if cgc.ConsumerGroup.ID == cg.ID {
 					consumers = append(consumers, cgc.Consumer)
 				}
+			}
+
+			// Also add to rawState to perform a lookup later
+			rawCg := &kong.ConsumerGroupObject{
+				ConsumerGroup: &kong.ConsumerGroup{
+					ID:        cg.ID,
+					Name:      cg.Name,
+					CreatedAt: cg.CreatedAt,
+					Tags:      cg.Tags,
+				},
 			}
 
 			rawCg.Consumers = consumers
