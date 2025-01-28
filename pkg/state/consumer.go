@@ -39,6 +39,49 @@ var consumerTableSchema = &memdb.TableSchema{
 // ConsumersCollection stores and indexes Kong Consumers.
 type ConsumersCollection collection
 
+// AddIgnoringDuplicates adds a Consumer to the ConsumersCollection, ignoring duplicates.
+// It checks for duplicates based on the Consumer's ID, Username, and CustomID.
+// If a duplicate is found, the function returns nil without adding the Consumer.
+// If an error occurs during the duplicate check (other than ErrNotFound, as this means the
+// consumer can be added), it returns the error.
+func (k *ConsumersCollection) AddIgnoringDuplicates(consumer Consumer) error {
+	// Detect duplicates
+	if !utils.Empty(consumer.ID) {
+		c, err := k.GetByIDOrUsername(*consumer.ID)
+		if c != nil {
+			return nil
+		}
+
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(consumer.Username) {
+		c, err := k.GetByIDOrUsername(*consumer.Username)
+		if c != nil {
+			return nil
+		}
+
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	// Check for custom ID
+	if !utils.Empty(consumer.CustomID) {
+		c, err := k.GetByCustomID(*consumer.CustomID)
+		if c != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	return k.Add(consumer)
+}
+
 // Add adds a consumer to the collection
 // An error is thrown if consumer.ID is empty.
 func (k *ConsumersCollection) Add(consumer Consumer) error {

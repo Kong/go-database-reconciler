@@ -48,6 +48,37 @@ var routeTableSchema = &memdb.TableSchema{
 // RoutesCollection stores and indexes Kong Routes.
 type RoutesCollection collection
 
+// AddIgnoringDuplicates adds a Route to the RoutesCollection if it does not already exist.
+// It checks for duplicates based on the Route's ID and Name. If a duplicate is found,
+// the function returns nil without adding the Route. If an error occurs during the
+// duplicate check, it returns the error.
+func (k *RoutesCollection) AddIgnoringDuplicates(route Route) error {
+	// Detect duplicates
+	if !utils.Empty(route.ID) {
+		r, err := k.Get(*route.ID)
+		if r != nil {
+			return nil
+		}
+
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(route.Name) {
+		r, err := k.Get(*route.Name)
+		if r != nil {
+			return nil
+		}
+
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	return k.Add(route)
+}
+
 // Add adds a route into RoutesCollection
 // route.ID should not be nil else an error is thrown.
 func (k *RoutesCollection) Add(route Route) error {

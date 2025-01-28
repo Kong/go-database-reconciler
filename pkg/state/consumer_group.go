@@ -32,6 +32,36 @@ var consumerGroupTableSchema = &memdb.TableSchema{
 // consumerGroupsCollection stores and indexes Kong consumerGroups.
 type ConsumerGroupsCollection collection
 
+// AddIgnoringDuplicates adds a ConsumerGroup to the collection, ignoring duplicates.
+// If a ConsumerGroup with the same ID or Name already exists in the collection,
+// the method returns nil without adding the new ConsumerGroup.
+// If an error occurs during the duplicate check, it is returned unless the error is ErrNotFound
+// as this is expected when the ConsumerGroup does not exist.
+func (k *ConsumerGroupsCollection) AddIgnoringDuplicates(consumerGroup ConsumerGroup) error {
+	// Detect duplicates
+	if !utils.Empty(consumerGroup.ID) {
+		cg, err := k.Get(*consumerGroup.ID)
+		if cg != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(consumerGroup.Name) {
+		cg, err := k.Get(*consumerGroup.Name)
+		if cg != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	return k.Add(consumerGroup)
+}
+
 // Add adds an consumerGroup to the collection.
 // consumerGroup.ID should not be nil else an error is thrown.
 func (k *ConsumerGroupsCollection) Add(consumerGroup ConsumerGroup) error {

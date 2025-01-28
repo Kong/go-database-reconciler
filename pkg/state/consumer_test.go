@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func consumersCollection() *ConsumersCollection {
@@ -25,6 +26,30 @@ func TestConsumerInsert(t *testing.T) {
 	// re-insert
 	consumer.Username = kong.String("my-name")
 	assert.NotNil(collection.Add(consumer))
+}
+
+func TestConsumerInsertIgnoreDuplicateUsername(t *testing.T) {
+	collection := consumersCollection()
+
+	var consumer Consumer
+	consumer.ID = kong.String("first")
+	consumer.Username = kong.String("my-name")
+	err := collection.Add(consumer)
+	require.NoError(t, err)
+	err = collection.AddIgnoringDuplicates(consumer)
+	require.NoError(t, err)
+}
+
+func TestConsumerInsertIgnoreDuplicateCustomId(t *testing.T) {
+	collection := consumersCollection()
+
+	var consumer Consumer
+	consumer.ID = kong.String("first")
+	consumer.CustomID = kong.String("my-name")
+	err := collection.Add(consumer)
+	require.NoError(t, err)
+	err = collection.AddIgnoringDuplicates(consumer)
+	require.NoError(t, err)
 }
 
 func TestConsumerGetUpdate(t *testing.T) {

@@ -110,6 +110,37 @@ func validateConsumerGroup(consumer *ConsumerGroupConsumer) error {
 // ConsumerGroupConsumersCollection stores and indexes Kong consumerGroupConsumers.
 type ConsumerGroupConsumersCollection collection
 
+// AddIgnoringDuplicates adds a ConsumerGroupConsumer to the collection, ignoring duplicates.
+// It first checks for duplicates by Consumer ID and then by Consumer Username.
+// If a duplicate is found, it returns nil without adding the consumer.
+// If an error occurs during the duplicate check, it returns the error unless the error is ErrNotFound
+// as this is expected when the consumer does not exist.
+// If no duplicates are found, it adds the consumer to the collection.
+func (k *ConsumerGroupConsumersCollection) AddIgnoringDuplicates(consumer ConsumerGroupConsumer) error {
+	// Detect duplicates
+	if !utils.Empty(consumer.Consumer.ID) {
+		cgc, err := k.Get(*consumer.Consumer.ID, *consumer.ConsumerGroup.ID)
+		if cgc != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(consumer.Consumer.Username) {
+		cgc, err := k.Get(*consumer.Consumer.Username, *consumer.ConsumerGroup.ID)
+		if cgc != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	return k.Add(consumer)
+}
+
 // Add adds a consumerGroupConsumer to the collection.
 func (k *ConsumerGroupConsumersCollection) Add(consumer ConsumerGroupConsumer) error {
 	if utils.Empty(consumer.Consumer.ID) {
