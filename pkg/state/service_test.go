@@ -117,6 +117,15 @@ func TestServiceInsertIgnoreDuplicate(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestServiceInsertIgnoreDuplicateDoesNotPanic(t *testing.T) {
+	collection := servicesCollection()
+
+	var s Service
+	err := collection.AddIgnoringDuplicates(s)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "ID is required")
+}
+
 func TestServicesCollection_Get(t *testing.T) {
 	type args struct {
 		nameOrID string
