@@ -215,9 +215,8 @@ func (b *stateBuilder) consumerGroups() {
 					CreatedAt: cg.CreatedAt,
 					Tags:      cg.Tags,
 				},
+				Consumers: consumers,
 			}
-
-			rawCg.Consumers = consumers
 
 			b.rawState.ConsumerGroups = append(b.rawState.ConsumerGroups, rawCg)
 
