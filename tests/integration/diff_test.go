@@ -2874,7 +2874,7 @@ func Test_Diff_NoDeletes_OlderThan3x(t *testing.T) {
 				NoDeletes:       tc.noDeletes,
 			})
 
-			stats, errs, _ := syncer.Solve(ctx, 1, false, true, false)
+			stats, errs, _ := syncer.Solve(ctx, 1, false, true)
 			assert.Equal(t, 0, len(errs))
 			assert.Equal(t, tc.expectedDeleteCount, stats.DeleteOps.Count())
 		})
@@ -2938,7 +2938,7 @@ func Test_Diff_NoDeletes_3x(t *testing.T) {
 				NoDeletes:       tc.noDeletes,
 			})
 
-			stats, errs, _ := syncer.Solve(ctx, 1, false, true, false)
+			stats, errs, _ := syncer.Solve(ctx, 1, false, true)
 			assert.Equal(t, 0, len(errs))
 			assert.Equal(t, tc.expectedDeleteCount, stats.DeleteOps.Count())
 		})

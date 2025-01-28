@@ -6694,7 +6694,7 @@ func TestSync_License(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NoError(t, err, "Should get test client")
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true, false)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
 		require.Len(t, errs, 0, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
@@ -6736,7 +6736,7 @@ func TestSync_License(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true, false)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
 		require.Len(t, errs, 0, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
@@ -6764,7 +6764,7 @@ func TestSync_License(t *testing.T) {
 			IncludeLicenses: true,
 		})
 		require.NoError(t, err)
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true, false)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
 		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
@@ -6808,7 +6808,7 @@ func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
 
 			KongClient: c,
 		})
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true, false)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
 		require.Empty(t, errs, "Should have no errors in syncing")
 		require.NoError(t, err)
 
@@ -6906,7 +6906,7 @@ func Test_Sync_PluginAutoFields(t *testing.T) {
 
 			KongClient: c,
 		})
-		_, errs, _ := syncer.Solve(ctx, 1, false, true, false)
+		_, errs, _ := syncer.Solve(ctx, 1, false, true)
 
 		require.NotNil(t, errs)
 		require.Len(t, errs, 1)
@@ -7602,7 +7602,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true, false)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
 		require.Len(t, errs, 0, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
@@ -7634,7 +7634,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		stats, errs, changes := syncer.Solve(ctx, 1, false, true, false)
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
 		require.Len(t, errs, 0, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 

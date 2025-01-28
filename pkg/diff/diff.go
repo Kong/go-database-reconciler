@@ -582,10 +582,10 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 }
 
 // Solve generates a diff and walks the graph.
-func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool, noDeletes bool) (Stats,
+func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
 	[]error, EntityChanges,
 ) {
-	// TODO https://github.com/Kong/go-database-reconciler/issues/22
+	// TODO https://github.com/Kong/go-database-reconciler/issues/22/
 	// this can probably be extracted to clients (only deck uses it) by having clients count events through the result
 	// channel, rather than returning them from Solve.
 	stats := Stats{
@@ -600,7 +600,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		case crud.Update:
 			stats.UpdateOps.Increment(1)
 		case crud.Delete:
-			if !noDeletes {
+			if !sc.noDeletes {
 				stats.DeleteOps.Increment(1)
 			}
 		}
@@ -729,7 +729,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				}
 			}
 		case crud.Delete:
-			if !noDeletes {
+			if !sc.noDeletes {
 				// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
 				// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
 				// prints and JSON blob building will be moved to the deck client.
