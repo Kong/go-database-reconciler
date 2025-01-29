@@ -991,7 +991,10 @@ func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) erro
 	fcEntity.Fields = make(map[string]interface{})
 
 	if dRoute.Service != nil && dRoute.Service.ID != nil {
-		fcEntity.Fields["service"] = *dRoute.Service.ID
+		serviceMap := make(map[string]interface{})
+		serviceMap["id"] = *dRoute.Service.ID
+		serviceMap["name"] = *dRoute.Service.Name
+		fcEntity.Fields["service"] = serviceMap
 	}
 
 	if dRoute.URI != nil {
@@ -1024,7 +1027,7 @@ func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity)
 	dRouteFields := dRoute["fields"].(map[string]interface{})
 
 	if dRouteFields["service"] != nil {
-		fcEntity.Fields["service"] = kong.String(dRouteFields["service"].(string))
+		fcEntity.Fields["service"] = dRouteFields["service"].(map[string]interface{})
 	}
 
 	if dRouteFields["uri"] != nil {
