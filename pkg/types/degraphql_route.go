@@ -15,12 +15,20 @@ type degraphqlRouteCRUD struct {
 	client *kong.Client
 }
 
+// kong and konnect APIs only require IDs for referenced entities.
+// konnect apis, for degraphql_routes, break if name is passed.
+func stripDegraphqlRouteReferencesName(degraphqlRoute *state.DegraphqlRoute) {
+	if degraphqlRoute.DegraphqlRoute.Service != nil && degraphqlRoute.DegraphqlRoute.Service.Name != nil {
+		degraphqlRoute.DegraphqlRoute.Service.Name = nil
+	}
+}
+
 func degraphqlRouteFromStruct(arg crud.Event) *state.DegraphqlRoute {
 	degraphqlRoute, ok := arg.Obj.(*state.DegraphqlRoute)
 	if !ok {
 		panic("unexpected type, expected *state.DegraphqlRoute")
 	}
-
+	stripDegraphqlRouteReferencesName(degraphqlRoute)
 	return degraphqlRoute
 }
 
