@@ -7653,6 +7653,18 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		expectedMethods := kong.StringSlice("POST")
 		assert.Equal(t, expectedMethods, degraphqlRoutes[0].Methods)
 	})
+
+	t.Run("create degraphql route - fails if service reference is not an object", func(t *testing.T) {
+		err := sync("testdata/sync/037-degraphql-routes/kong-wrong-svc-config.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "service field should be a map")
+	})
+
+	t.Run("create degraphql route - fails if service reference is not an object", func(t *testing.T) {
+		err := sync("testdata/sync/037-degraphql-routes/kong-wrong-svc-config.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "service field should be a map")
+	})
 }
 
 func Test_Sync_CustomEntities_Fake(t *testing.T) {

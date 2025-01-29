@@ -1024,23 +1024,45 @@ func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity)
 	}
 
 	fcEntity.Fields = make(map[string]interface{})
-	dRouteFields := dRoute["fields"].(map[string]interface{})
+
+	f, ok := dRoute["fields"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("fields field should be a map")
+	}
+	dRouteFields := f
 
 	if dRouteFields["service"] != nil {
-		fcEntity.Fields["service"] = dRouteFields["service"].(map[string]interface{})
+		service, ok := dRouteFields["service"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("service field should be a map")
+		}
+		fcEntity.Fields["service"] = service
 	}
 
 	if dRouteFields["uri"] != nil {
-		fcEntity.Fields["uri"] = kong.String(dRouteFields["uri"].(string))
+		uri, ok := dRouteFields["uri"].(string)
+		if !ok {
+			return fmt.Errorf("uri field should be a string")
+		}
+		fcEntity.Fields["uri"] = kong.String(uri)
 	}
 
 	if dRouteFields["query"] != nil {
-		fcEntity.Fields["query"] = kong.String(dRouteFields["query"].(string))
+		query, ok := dRouteFields["query"].(string)
+		if !ok {
+			return fmt.Errorf("query field should be a string")
+		}
+		fcEntity.Fields["query"] = kong.String(query)
 	}
 
 	if dRouteFields["methods"] != nil {
-		methods := make([]string, len(dRouteFields["methods"].([]interface{})))
-		for i, method := range dRouteFields["methods"].([]interface{}) {
+		methodsArray, ok := dRouteFields["methods"].([]interface{})
+		if !ok {
+			return fmt.Errorf("methods field should be an array")
+		}
+		methods := make([]string, len(methodsArray))
+
+		for i, method := range methodsArray {
 			methods[i] = method.(string)
 		}
 		fcEntity.Fields["methods"] = kong.StringSlice(methods...)

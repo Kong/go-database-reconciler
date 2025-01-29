@@ -3884,10 +3884,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 		targetContent *Content
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		want    *utils.KongRawState
-		wantErr bool
+		name      string
+		fields    fields
+		want      *utils.KongRawState
+		wantErr   bool
+		errString string
 	}{
 		{
 			name: "generates a new degraphql route from valid config passed",
@@ -4114,14 +4115,15 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			},
 		},
 		{
-			name: "handles missing required fields",
+			name: "handles missing required fields - service",
 			fields: fields{
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri": kong.String("/foo"),
+								"uri":   kong.String("/foo"),
+								"query": kong.String("query{ example { foo } }"),
 							},
 						},
 					},
@@ -4131,7 +4133,56 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: nil,
 			},
-			wantErr: true,
+			wantErr:   true,
+			errString: "service is required for degraphql_routes",
+		},
+		{
+			name: "handles missing required fields - uri",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"query": kong.String("query{ example { foo } }"),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+			wantErr:   true,
+			errString: "uri and query are required for degraphql_routes",
+		},
+		{
+			name: "handles missing required fields - uri",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri": kong.String("/foo"),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+			wantErr:   true,
+			errString: "uri and query are required for degraphql_routes",
 		},
 	}
 
@@ -4144,6 +4195,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			_, _, err := b.build()
 			if tt.wantErr {
 				require.Error(t, err, "build error was expected")
+				assert.ErrorContains(t, err, tt.errString)
 				assert.Equal(t, tt.want, b.rawState)
 				return
 			}
