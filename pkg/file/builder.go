@@ -1748,7 +1748,7 @@ func (b *stateBuilder) ingestCustomEntities(customEntities []FCustomEntity) {
 }
 
 func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FCustomEntity) {
-	degraphqlRoute, err := copyToDegraphqlRoute(degraphqlRouteEntity)
+	degraphqlRoute, err := b.copyToDegraphqlRoute(degraphqlRouteEntity)
 	if err != nil {
 		b.err = err
 		return
@@ -1771,7 +1771,7 @@ func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FCustomEntity) 
 	b.rawState.DegraphqlRoutes = append(b.rawState.DegraphqlRoutes, &degraphqlRoute.DegraphqlRoute)
 }
 
-func copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRoute, error) {
+func (b *stateBuilder) copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRoute, error) {
 	degraphqlRoute := DegraphqlRoute{}
 	if fcEntity.ID != nil {
 		degraphqlRoute.ID = fcEntity.ID
@@ -1782,9 +1782,28 @@ func copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRoute, error) {
 	}
 
 	if fcEntity.Fields["service"] != nil {
-		if service, ok := fcEntity.Fields["service"].(*string); ok {
+		if service, ok := fcEntity.Fields["service"].(map[string]interface{}); ok {
+			var serviceID string
+			var serviceName string
+			s, ok := service["id"].(string)
+			if ok {
+				serviceID = s
+			}
+			s, ok = service["name"].(string)
+			if ok {
+				serviceName = s
+			}
+
+			if serviceID == "" && serviceName != "" {
+				s, err := b.intermediate.Services.Get(serviceName)
+				if err != nil {
+					return DegraphqlRoute{}, fmt.Errorf("service %v not found", serviceName)
+				}
+				serviceID = *s.ID
+			}
+
 			degraphqlRoute.Service = &kong.Service{
-				ID: service,
+				ID: kong.String(serviceID),
 			}
 		}
 	}

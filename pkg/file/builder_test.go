@@ -400,7 +400,7 @@ func existingDegraphqlRouteState(t *testing.T) *state.KongState {
 			DegraphqlRoute: kong.DegraphqlRoute{
 				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 				Service: &kong.Service{
-					ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+					ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
 				},
 				Methods: kong.StringSlice("GET"),
 				URI:     kong.String("/example"),
@@ -3884,10 +3884,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 		targetContent *Content
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		want    *utils.KongRawState
-		wantErr bool
+		name      string
+		fields    fields
+		want      *utils.KongRawState
+		wantErr   bool
+		errString string
 	}{
 		{
 			name: "generates a new degraphql route from valid config passed",
@@ -3897,9 +3898,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 						{
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":     kong.String("/foo"),
-								"query":   kong.String("query { foo { bar }}"),
-								"service": kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+								"uri":   kong.String("/foo"),
+								"query": kong.String("query { foo { bar }}"),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
 							},
 						},
 					},
@@ -3928,9 +3931,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 						{
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":     kong.String("/example"),
-								"query":   kong.String("query{ example { foo } }"),
-								"service": kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+								"uri":   kong.String("/example"),
+								"query": kong.String("query{ example { foo } }"),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
 							},
 						},
 					},
@@ -3942,7 +3947,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 					{
 						ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						Service: &kong.Service{
-							ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
 						},
 						Methods: kong.StringSlice("GET"),
 						URI:     kong.String("/example"),
@@ -3974,7 +3979,9 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 		        								author
 		      								}
 										}`),
-								"service": kong.String("foo"),
+								"service": map[string]interface{}{
+									"name": "foo",
+								},
 								"methods": kong.StringSlice("GET", "POST"),
 							},
 						},
@@ -3987,7 +3994,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 					{
 						ID: kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
 						Service: &kong.Service{
-							ID: kong.String("foo"),
+							ID: kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
 						},
 						Methods: kong.StringSlice("GET", "POST"),
 						URI:     kong.String("/foo"),
@@ -4028,21 +4035,37 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			name: "handles multiple degraphql routes",
 			fields: fields{
 				targetContent: &Content{
+					Services: []FService{
+						{
+							Service: kong.Service{
+								Name: kong.String("service1"),
+							},
+						},
+						{
+							Service: kong.Service{
+								Name: kong.String("service2"),
+							},
+						},
+					},
 					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":     kong.String("/foo"),
-								"query":   kong.String("query { foo }"),
-								"service": kong.String("service1"),
+								"uri":   kong.String("/foo"),
+								"query": kong.String("query { foo }"),
+								"service": map[string]interface{}{
+									"name": "service1",
+								},
 							},
 						},
 						{
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":     kong.String("/bar"),
-								"query":   kong.String("query { bar }"),
-								"service": kong.String("service2"),
+								"uri":   kong.String("/bar"),
+								"query": kong.String("query { bar }"),
+								"service": map[string]interface{}{
+									"name": "service2",
+								},
 								"methods": kong.StringSlice("POST", "PUT"),
 							},
 						},
@@ -4053,35 +4076,54 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: []*kong.DegraphqlRoute{
 					{
-						ID:    kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						ID:    kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
 						URI:   kong.String("/foo"),
 						Query: kong.String("query { foo }"),
 						Service: &kong.Service{
-							ID: kong.String("service1"),
+							ID: kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
 						},
 						Methods: kong.StringSlice("GET"),
 					},
 					{
-						ID:    kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						ID:    kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
 						URI:   kong.String("/bar"),
 						Query: kong.String("query { bar }"),
 						Service: &kong.Service{
-							ID: kong.String("service2"),
+							ID: kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
 						},
 						Methods: kong.StringSlice("POST", "PUT"),
+					},
+				},
+				Services: []*kong.Service{
+					{
+						ID:             kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:           kong.String("service1"),
+						Protocol:       kong.String("http"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
+					},
+					{
+						ID:             kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Name:           kong.String("service2"),
+						Protocol:       kong.String("http"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
 					},
 				},
 			},
 		},
 		{
-			name: "handles missing required fields",
+			name: "handles missing required fields - service",
 			fields: fields{
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri": kong.String("/foo"),
+								"uri":   kong.String("/foo"),
+								"query": kong.String("query{ example { foo } }"),
 							},
 						},
 					},
@@ -4091,7 +4133,56 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: nil,
 			},
-			wantErr: true,
+			wantErr:   true,
+			errString: "service is required for degraphql_routes",
+		},
+		{
+			name: "handles missing required fields - uri",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"query": kong.String("query{ example { foo } }"),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+			wantErr:   true,
+			errString: "uri and query are required for degraphql_routes",
+		},
+		{
+			name: "handles missing required fields - uri",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("degraphql_routes"),
+							Fields: CustomEntityConfiguration{
+								"uri": kong.String("/foo"),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				DegraphqlRoutes: nil,
+			},
+			wantErr:   true,
+			errString: "uri and query are required for degraphql_routes",
 		},
 	}
 
@@ -4104,6 +4195,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			_, _, err := b.build()
 			if tt.wantErr {
 				require.Error(t, err, "build error was expected")
+				assert.ErrorContains(t, err, tt.errString)
 				assert.Equal(t, tt.want, b.rawState)
 				return
 			}

@@ -1,0 +1,7 @@
+_format_version: "3.0"
+custom_entities:
+  - type: degraphql_routes
+    fields:
+      uri: "/foo"
+      query: "query{ foo { bar } }"
+      service: svc1

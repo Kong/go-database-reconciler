@@ -23,4 +23,5 @@ custom_entities:
     fields:
       uri: "/foo"
       query: "query{ foo { bar } }"
-      service: svc1
+      service:
+        name: svc1

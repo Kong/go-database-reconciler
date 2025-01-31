@@ -32,4 +32,5 @@ custom_entities:
             author
           }
         }
-      service: svc1
+      service:
+        name: svc1
