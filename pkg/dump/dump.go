@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/kong/go-kong/kong/custom"
@@ -98,6 +99,25 @@ func validateConfig(config Config) error {
 	return nil
 }
 
+func isKongVersion34Plus(ctx context.Context, client *kong.Client) (bool, error) {
+	info, err := client.Info.Get(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	var cleanKongVersion semver.Version
+	cleanKongVersion, err = utils.ParseKongVersion(info.Version)
+	if err != nil {
+		return false, err
+	}
+
+	if utils.Kong340Version.LTE(cleanKongVersion) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 	client *kong.Client, config Config, state *utils.KongRawState,
 ) {
@@ -105,10 +125,15 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 		var consumerGroups []*kong.ConsumerGroupObject
 		var err error
 
+		isKongVersion34Plus, err := isKongVersion34Plus(ctx, client)
+		if err != nil {
+			return fmt.Errorf("error retrieving Kong version: %w", err)
+		}
+
 		// Define the function to be used based on
 		// whether we wish to see policy overrides or not
 		getConsumerGroupsFunc := GetAllConsumerGroups
-		if !config.IsConsumerGroupPolicyOverrideSet {
+		if !config.IsConsumerGroupPolicyOverrideSet && isKongVersion34Plus {
 			// This won't dump policy-based overrides for consumer-groups
 			getConsumerGroupsFunc = GetAllConsumerGroupsDefault
 		}
