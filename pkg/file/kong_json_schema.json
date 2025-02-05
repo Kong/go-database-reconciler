@@ -1384,6 +1384,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "consumer_group_policy_overrides": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
