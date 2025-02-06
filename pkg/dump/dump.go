@@ -132,17 +132,20 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 
 		// Define the function to be used based on
 		// whether we wish to see policy overrides or not
+		// GetAllConsumerGroups lists consumers as well as policy-based overrides for consumer-groups
 		getConsumerGroupsFunc := GetAllConsumerGroups
 		if !config.IsConsumerGroupPolicyOverrideSet && isKongVersion34Plus {
 			// This won't dump policy-based overrides for consumer-groups
 			getConsumerGroupsFunc = GetAllConsumerGroupsDefault
+
+			if config.SkipConsumersWithConsumerGroups {
+				getConsumerGroupsFunc = GetAllConsumerGroupsWithoutConsumersDefault
+			}
+		} else if config.SkipConsumersWithConsumerGroups {
+			getConsumerGroupsFunc = GetAllConsumerGroupsWithoutConsumers
 		}
 
-		if config.SkipConsumersWithConsumerGroups {
-			consumerGroups, err = GetAllConsumerGroupsWithoutConsumers(ctx, client, config.SelectorTags)
-		} else {
-			consumerGroups, err = getConsumerGroupsFunc(ctx, client, config.SelectorTags)
-		}
+		consumerGroups, err = getConsumerGroupsFunc(ctx, client, config.SelectorTags)
 		if err != nil {
 			if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
 				return nil
@@ -913,6 +916,46 @@ func GetAllConsumerGroupsDefault(ctx context.Context,
 				consumers = append(consumers, c)
 			}
 			group.Consumers = consumers
+			consumerGroupObjects = append(consumerGroupObjects, group)
+		}
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return consumerGroupObjects, nil
+}
+
+// GetAllConsumerGroupsWithoutConsumers queries Kong for all the ConsumerGroups,
+// skipping consumers, using client.
+// This does not include "consumer-group-plugins" or policy overrides associated
+// with a consumer-group
+func GetAllConsumerGroupsWithoutConsumersDefault(ctx context.Context,
+	client *kong.Client, tags []string,
+) ([]*kong.ConsumerGroupObject, error) {
+	var consumerGroupObjects []*kong.ConsumerGroupObject
+	opt := newOpt(tags)
+
+	for {
+		cgs, nextopt, err := client.ConsumerGroups.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		for _, cg := range cgs {
+			r, err := client.ConsumerGroups.GetWithNoConsumers(ctx, cg.Name)
+			if err != nil {
+				return nil, err
+			}
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			group := &kong.ConsumerGroupObject{
+				ConsumerGroup: r.ConsumerGroup,
+			}
 			consumerGroupObjects = append(consumerGroupObjects, group)
 		}
 		if nextopt == nil {
