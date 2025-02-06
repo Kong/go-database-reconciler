@@ -59,7 +59,6 @@ type Config struct {
 	// Partial applies to configure a partial state.
 	IsPartialApply bool
 
-	// This value is set via a flag in deck
 	// If IsConsumerGroupPolicyOverrideSet is true, we let users create
 	// policy-based overrides for RLA plugin
 	IsConsumerGroupPolicyOverrideSet bool
@@ -99,7 +98,11 @@ func validateConfig(config Config) error {
 	return nil
 }
 
-func isKongVersion34Plus(ctx context.Context, client *kong.Client) (bool, error) {
+func isKongVersion34Plus(ctx context.Context, client *kong.Client, config Config) (bool, error) {
+	if config.KonnectControlPlane != "" {
+		return false, nil
+	}
+
 	info, err := client.Info.Get(ctx)
 	if err != nil {
 		return false, err
@@ -125,7 +128,7 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 		var consumerGroups []*kong.ConsumerGroupObject
 		var err error
 
-		isKongVersion34Plus, err := isKongVersion34Plus(ctx, client)
+		isKongVersion34Plus, err := isKongVersion34Plus(ctx, client, config)
 		if err != nil {
 			return fmt.Errorf("error retrieving Kong version: %w", err)
 		}
