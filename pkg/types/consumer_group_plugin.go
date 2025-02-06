@@ -128,8 +128,7 @@ func (d *consumerGroupPluginDiffer) warnConsumerGroupPlugin() {
 		consumerGroupPluginWarning = "Warning: consumer-group policy overrides" +
 			"are deprecated. Please use Consumer Groups scoped\n" +
 			"Plugins when running against Kong Enterprise 3.4.0 and above.\n\n" +
-			"Mixing of both Consumer Groups scoped plugins and policy-overrides\n" +
-			"can be problematic.\n\n" +
+			"Mixing of both Consumer Groups scoped plugins and policy-overrides can be problematic.\n\n" +
 			"Check https://docs.konghq.com/gateway/latest/kong-enterprise/consumer-groups/ for more information."
 	)
 	d.once.Do(func() {
@@ -142,7 +141,6 @@ func (d *consumerGroupPluginDiffer) Deletes(_ func(crud.Event) error) error {
 }
 
 func (d *consumerGroupPluginDiffer) CreateAndUpdates(handler func(crud.Event) error) error {
-	d.warnConsumerGroupPlugin()
 	targetPlugins, err := d.targetState.ConsumerGroupPlugins.GetAll()
 	if err != nil {
 		return fmt.Errorf("error fetching consumerGroupPlugins from state: %w", err)
@@ -166,6 +164,7 @@ func (d *consumerGroupPluginDiffer) CreateAndUpdates(handler func(crud.Event) er
 func (d *consumerGroupPluginDiffer) createUpdateConsumerGroupPlugin(
 	plugin *state.ConsumerGroupPlugin,
 ) (*crud.Event, error) {
+	d.warnConsumerGroupPlugin()
 	pluginCopy := &state.ConsumerGroupPlugin{ConsumerGroupPlugin: *plugin.DeepCopy()}
 	currentPlugin, err := d.currentState.ConsumerGroupPlugins.Get(
 		*plugin.Name, *plugin.ConsumerGroup.ID,
