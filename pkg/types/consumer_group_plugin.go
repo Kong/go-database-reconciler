@@ -125,7 +125,7 @@ type consumerGroupPluginDiffer struct {
 
 func (d *consumerGroupPluginDiffer) warnConsumerGroupPlugin() {
 	const (
-		consumerGroupPluginWarning = "Warning: consumer-group policy overrides" +
+		consumerGroupPluginWarning = "Warning: consumer-group policy overrides " +
 			"are deprecated. Please use Consumer Groups scoped\n" +
 			"Plugins when running against Kong Enterprise 3.4.0 and above.\n\n" +
 			"Mixing of both Consumer Groups scoped plugins and policy-overrides can be problematic.\n\n" +
