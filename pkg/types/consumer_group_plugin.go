@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
+	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/state"
@@ -116,8 +118,23 @@ func (s *consumerGroupPluginCRUD) Delete(ctx context.Context, arg ...crud.Arg) (
 
 type consumerGroupPluginDiffer struct {
 	kind crud.Kind
+	once sync.Once
 
 	currentState, targetState *state.KongState
+}
+
+func (d *consumerGroupPluginDiffer) warnConsumerGroupPlugin() {
+	const (
+		consumerGroupPluginWarning = "Warning: consumer-group policy overrides" +
+			"are deprecated. Please use Consumer Groups scoped\n" +
+			"Plugins when running against Kong Enterprise 3.4.0 and above.\n\n" +
+			"Mixing of both Consumer Groups scoped plugins and policy-overrides\n" +
+			"can be problematic.\n\n" +
+			"Check https://docs.konghq.com/gateway/latest/kong-enterprise/consumer-groups/ for more information."
+	)
+	d.once.Do(func() {
+		cprint.UpdatePrintln(consumerGroupPluginWarning)
+	})
 }
 
 func (d *consumerGroupPluginDiffer) Deletes(_ func(crud.Event) error) error {
@@ -125,6 +142,7 @@ func (d *consumerGroupPluginDiffer) Deletes(_ func(crud.Event) error) error {
 }
 
 func (d *consumerGroupPluginDiffer) CreateAndUpdates(handler func(crud.Event) error) error {
+	d.warnConsumerGroupPlugin()
 	targetPlugins, err := d.targetState.ConsumerGroupPlugins.GetAll()
 	if err != nil {
 		return fmt.Errorf("error fetching consumerGroupPlugins from state: %w", err)
