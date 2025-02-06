@@ -62,6 +62,8 @@ type stateBuilder struct {
 
 	isPartialApply bool
 
+	isConsumerGroupPolicyOverrideSet bool
+
 	err error
 }
 
@@ -98,6 +100,15 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 
 	if utils.Kong340Version.LTE(b.kongVersion) || b.isKonnect {
 		b.isConsumerGroupScopedPluginSupported = true
+	}
+
+	// If isConsumerGroupPolicyOverrideSet is true,
+	// that means user wishes to create policy-based overrides
+	// for consumer-groups. Thus, we toggle isConsumerGroupScopedPluginSupported
+	// to false, so that consumerGroupPlugins can be added to the
+	// consumer-group objects.
+	if b.isConsumerGroupPolicyOverrideSet {
+		b.isConsumerGroupScopedPluginSupported = false
 	}
 
 	if utils.Kong370Version.GT(b.kongVersion) || b.isKonnect {

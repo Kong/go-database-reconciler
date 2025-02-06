@@ -18,13 +18,14 @@ import (
 
 // WriteConfig holds settings to use to write the state file.
 type WriteConfig struct {
-	Workspace        string
-	SelectTags       []string
-	Filename         string
-	FileFormat       Format
-	WithID           bool
-	ControlPlaneName string
-	KongVersion      string
+	Workspace                        string
+	SelectTags                       []string
+	Filename                         string
+	FileFormat                       Format
+	WithID                           bool
+	ControlPlaneName                 string
+	KongVersion                      string
+	IsConsumerGroupPolicyOverrideSet bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
@@ -65,6 +66,12 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	if len(selectTags) > 0 {
 		file.Info = &Info{
 			SelectorTags: selectTags,
+		}
+	}
+
+	if config.IsConsumerGroupPolicyOverrideSet {
+		file.Info = &Info{
+			ConsumerGroupPolicyOverrides: true,
 		}
 	}
 

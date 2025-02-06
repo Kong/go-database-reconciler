@@ -82,6 +82,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.isKonnect = dumpConfig.KonnectControlPlane != ""
 	builder.includeLicenses = dumpConfig.IncludeLicenses
 	builder.isPartialApply = dumpConfig.IsPartialApply
+	builder.isConsumerGroupPolicyOverrideSet = dumpConfig.IsConsumerGroupPolicyOverrideSet
 
 	if len(dumpConfig.SelectorTags) > 0 {
 		builder.selectTags = dumpConfig.SelectorTags

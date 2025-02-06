@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/kong/go-kong/kong/custom"
@@ -57,6 +58,11 @@ type Config struct {
 	// the intermediate state so that foreign key lookups will work.
 	// Partial applies to configure a partial state.
 	IsPartialApply bool
+
+	// This value is set via a flag in deck
+	// If IsConsumerGroupPolicyOverrideSet is true, we let users create
+	// policy-based overrides for RLA plugin
+	IsConsumerGroupPolicyOverrideSet bool
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -93,17 +99,53 @@ func validateConfig(config Config) error {
 	return nil
 }
 
+func isKongVersion34Plus(ctx context.Context, client *kong.Client) (bool, error) {
+	info, err := client.Info.Get(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	var cleanKongVersion semver.Version
+	cleanKongVersion, err = utils.ParseKongVersion(info.Version)
+	if err != nil {
+		return false, err
+	}
+
+	if utils.Kong340Version.LTE(cleanKongVersion) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 	client *kong.Client, config Config, state *utils.KongRawState,
 ) {
 	group.Go(func() error {
 		var consumerGroups []*kong.ConsumerGroupObject
 		var err error
-		if config.SkipConsumersWithConsumerGroups {
-			consumerGroups, err = GetAllConsumerGroupsWithoutConsumers(ctx, client, config.SelectorTags)
-		} else {
-			consumerGroups, err = GetAllConsumerGroups(ctx, client, config.SelectorTags)
+
+		isKongVersion34Plus, err := isKongVersion34Plus(ctx, client)
+		if err != nil {
+			return fmt.Errorf("error retrieving Kong version: %w", err)
 		}
+
+		// Define the function to be used based on
+		// whether we wish to see policy overrides or not
+		// GetAllConsumerGroups lists consumers as well as policy-based overrides for consumer-groups
+		getConsumerGroupsFunc := GetAllConsumerGroups
+		if !config.IsConsumerGroupPolicyOverrideSet && isKongVersion34Plus {
+			// This won't dump policy-based overrides for consumer-groups
+			getConsumerGroupsFunc = GetAllConsumerGroupsDefault
+
+			if config.SkipConsumersWithConsumerGroups {
+				getConsumerGroupsFunc = GetAllConsumerGroupsWithoutConsumersDefault
+			}
+		} else if config.SkipConsumersWithConsumerGroups {
+			getConsumerGroupsFunc = GetAllConsumerGroupsWithoutConsumers
+		}
+
+		consumerGroups, err = getConsumerGroupsFunc(ctx, client, config.SelectorTags)
 		if err != nil {
 			if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
 				return nil
@@ -111,7 +153,7 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("consumer_groups: %w", err)
 		}
 		if config.LookUpSelectorTagsConsumerGroups != nil {
-			globalConsumerGroups, err := GetAllConsumerGroups(ctx, client, config.LookUpSelectorTagsConsumerGroups)
+			globalConsumerGroups, err := getConsumerGroupsFunc(ctx, client, config.LookUpSelectorTagsConsumerGroups)
 			if err != nil {
 				return fmt.Errorf("error retrieving global consumer groups: %w", err)
 			}
@@ -826,6 +868,94 @@ func GetAllConsumerGroups(ctx context.Context,
 				consumers = append(consumers, c)
 			}
 			group.Consumers = consumers
+			consumerGroupObjects = append(consumerGroupObjects, group)
+		}
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return consumerGroupObjects, nil
+}
+
+// GetAllConsumerGroupsDefault queries Kong for all the ConsumerGroups using client.
+// This does not include "consumer-group-plugins" or policy overrides associated
+// with a consumer-group
+func GetAllConsumerGroupsDefault(ctx context.Context,
+	client *kong.Client, tags []string,
+) ([]*kong.ConsumerGroupObject, error) {
+	var consumerGroupObjects []*kong.ConsumerGroupObject
+	opt := newOpt(tags)
+
+	for {
+		cgs, nextopt, err := client.ConsumerGroups.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		for _, cg := range cgs {
+			r, err := client.ConsumerGroups.Get(ctx, cg.Name)
+			if err != nil {
+				return nil, err
+			}
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			group := &kong.ConsumerGroupObject{
+				ConsumerGroup: r.ConsumerGroup,
+			}
+			consumers := []*kong.Consumer{}
+			for _, c := range r.Consumers {
+				// if tags are set and if the consumer is not tagged, skip it
+				if len(tags) > 0 && !utils.HasTags(c, tags) {
+					continue
+				}
+				consumers = append(consumers, c)
+			}
+			group.Consumers = consumers
+			consumerGroupObjects = append(consumerGroupObjects, group)
+		}
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return consumerGroupObjects, nil
+}
+
+// GetAllConsumerGroupsWithoutConsumersDefault queries Kong for all the ConsumerGroups,
+// skipping consumers, using client.
+// This does not include "consumer-group-plugins" or policy overrides associated
+// with a consumer-group
+func GetAllConsumerGroupsWithoutConsumersDefault(ctx context.Context,
+	client *kong.Client, tags []string,
+) ([]*kong.ConsumerGroupObject, error) {
+	var consumerGroupObjects []*kong.ConsumerGroupObject
+	opt := newOpt(tags)
+
+	for {
+		cgs, nextopt, err := client.ConsumerGroups.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		for _, cg := range cgs {
+			r, err := client.ConsumerGroups.GetWithNoConsumers(ctx, cg.Name)
+			if err != nil {
+				return nil, err
+			}
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			group := &kong.ConsumerGroupObject{
+				ConsumerGroup: r.ConsumerGroup,
+			}
 			consumerGroupObjects = append(consumerGroupObjects, group)
 		}
 		if nextopt == nil {

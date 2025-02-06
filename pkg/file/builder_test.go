@@ -26,6 +26,7 @@ const (
 
 var (
 	kong130Version = semver.MustParse("1.3.0")
+	kong340Version = semver.MustParse("3.4.0")
 	kong360Version = semver.MustParse("3.6.0")
 	kong370Version = semver.MustParse("3.7.0")
 )
@@ -4202,6 +4203,286 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 
 			require.NoError(t, err, "build error is not nil")
 			assert.Equal(t, tt.want, b.rawState)
+		})
+	}
+}
+
+func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
+	assert := assert.New(t)
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name                           string
+		isConsumerGroupPolicyOverrides bool
+		fields                         fields
+		want                           *utils.KongRawState
+		wantErr                        bool
+	}{
+		{
+			name:                           "consumer-group policy overrides set as true",
+			isConsumerGroupPolicyOverrides: true,
+			fields: fields{
+				targetContent: &Content{
+					Info: &Info{
+						Defaults:                     kongDefaults,
+						ConsumerGroupPolicyOverrides: true,
+					},
+					ConsumerGroups: []FConsumerGroupObject{
+						{
+							ConsumerGroup: kong.ConsumerGroup{
+								Name: kong.String("foo-group"),
+							},
+							Consumers: nil,
+							Plugins: []*kong.ConsumerGroupPlugin{
+								{
+									Name: kong.String("rate-limiting-advanced"),
+									Config: kong.Configuration{
+										"limit":       []any{float64(100)},
+										"window_size": []any{float64(60)},
+										"window_type": string("fixed"),
+									},
+								},
+							},
+						},
+					},
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("rate-limiting-advanced"),
+								Config: kong.Configuration{
+									"consumer_groups":         []any{string("foo-group")},
+									"dictionary_name":         string("kong_rate_limiting_counters"),
+									"disable_penalty":         bool(false),
+									"enforce_consumer_groups": bool(true),
+									"error_code":              float64(429),
+									"error_message":           "API rate limit exceeded",
+									"header_name":             nil,
+									"hide_client_headers":     false,
+									"identifier":              string("consumer"),
+									"limit":                   []any{float64(10)},
+									"namespace":               string("ZEz47TWgUrv01HenyQBQa8io06MWsp0L"),
+									"path":                    nil,
+									"redis": map[string]any{
+										"cluster_addresses":        nil,
+										"cluster_max_redirections": float64(5),
+										"cluster_nodes":            nil,
+										"connect_timeout":          float64(2000),
+										"connection_is_proxied":    bool(false),
+										"database":                 float64(0),
+										"host":                     string("127.0.0.5"),
+										"keepalive_backlog":        nil,
+										"keepalive_pool_size":      float64(256),
+										"password":                 nil,
+										"port":                     float64(6380),
+										"read_timeout":             float64(2000),
+										"send_timeout":             float64(2000),
+										"sentinel_addresses":       nil,
+										"sentinel_master":          string("mymaster"),
+										"sentinel_nodes":           nil,
+										"sentinel_password":        nil,
+										"sentinel_role":            string("master"),
+										"sentinel_username":        nil,
+										"server_name":              nil,
+										"ssl":                      bool(false),
+										"ssl_verify":               bool(false),
+										"timeout":                  float64(2000),
+										"username":                 nil,
+									},
+									"retry_after_jitter_max": float64(0),
+									"strategy":               string("redis"),
+									"sync_rate":              float64(10),
+									"window_size":            []any{float64(60)},
+									"window_type":            string("fixed"),
+								},
+							},
+						},
+					},
+				},
+				currentState: existingServiceState(),
+			},
+			want: &utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: kong.String("foo-group"),
+						},
+						Consumers: nil,
+						Plugins: []*kong.ConsumerGroupPlugin{
+							{
+								ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+								Name: kong.String("rate-limiting-advanced"),
+								Config: kong.Configuration{
+									"limit":       []any{float64(100)},
+									"window_size": []any{float64(60)},
+									"window_type": string("fixed"),
+								},
+							},
+						},
+					},
+				},
+				Plugins: []*kong.Plugin{
+					{
+						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: kong.String("rate-limiting-advanced"),
+						Config: kong.Configuration{
+							"consumer_groups":         []any{string("foo-group")},
+							"dictionary_name":         string("kong_rate_limiting_counters"),
+							"disable_penalty":         bool(false),
+							"enforce_consumer_groups": bool(true),
+							"error_code":              float64(429),
+							"error_message":           "API rate limit exceeded",
+							"header_name":             nil,
+							"hide_client_headers":     false,
+							"identifier":              string("consumer"),
+							"limit":                   []any{float64(10)},
+							"namespace":               string("ZEz47TWgUrv01HenyQBQa8io06MWsp0L"),
+							"path":                    nil,
+							"redis": map[string]any{
+								"cluster_addresses":        nil,
+								"cluster_max_redirections": float64(5),
+								"cluster_nodes":            nil,
+								"connect_timeout":          float64(2000),
+								"connection_is_proxied":    bool(false),
+								"database":                 float64(0),
+								"host":                     string("127.0.0.5"),
+								"keepalive_backlog":        nil,
+								"keepalive_pool_size":      float64(256),
+								"password":                 nil,
+								"port":                     float64(6380),
+								"read_timeout":             float64(2000),
+								"send_timeout":             float64(2000),
+								"sentinel_addresses":       nil,
+								"sentinel_master":          string("mymaster"),
+								"sentinel_nodes":           nil,
+								"sentinel_password":        nil,
+								"sentinel_role":            string("master"),
+								"sentinel_username":        nil,
+								"server_name":              nil,
+								"ssl":                      bool(false),
+								"ssl_verify":               bool(false),
+								"timeout":                  float64(2000),
+								"username":                 nil,
+							},
+							"retry_after_jitter_max": float64(0),
+							"strategy":               string("redis"),
+							"sync_rate":              float64(10),
+							"window_size":            []any{float64(60)},
+							"window_type":            string("fixed"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:                           "consumer-group policy overrides set as false",
+			isConsumerGroupPolicyOverrides: false,
+			fields: fields{
+				targetContent: &Content{
+					Info: &Info{
+						Defaults: kongDefaults,
+					},
+					ConsumerGroups: []FConsumerGroupObject{
+						{
+							ConsumerGroup: kong.ConsumerGroup{
+								Name: kong.String("foo-group"),
+							},
+							Consumers: nil,
+							Plugins: []*kong.ConsumerGroupPlugin{
+								{
+									Name: kong.String("rate-limiting-advanced"),
+									Config: kong.Configuration{
+										"limit":       []any{float64(100)},
+										"window_size": []any{float64(60)},
+										"window_type": string("fixed"),
+									},
+								},
+							},
+						},
+					},
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("rate-limiting-advanced"),
+								Config: kong.Configuration{
+									"consumer_groups":         []any{string("foo-group")},
+									"dictionary_name":         string("kong_rate_limiting_counters"),
+									"disable_penalty":         bool(false),
+									"enforce_consumer_groups": bool(true),
+									"error_code":              float64(429),
+									"error_message":           "API rate limit exceeded",
+									"header_name":             nil,
+									"hide_client_headers":     false,
+									"identifier":              string("consumer"),
+									"limit":                   []any{float64(10)},
+									"namespace":               string("ZEz47TWgUrv01HenyQBQa8io06MWsp0L"),
+									"path":                    nil,
+									"redis": map[string]any{
+										"cluster_addresses":        nil,
+										"cluster_max_redirections": float64(5),
+										"cluster_nodes":            nil,
+										"connect_timeout":          float64(2000),
+										"connection_is_proxied":    bool(false),
+										"database":                 float64(0),
+										"host":                     string("127.0.0.5"),
+										"keepalive_backlog":        nil,
+										"keepalive_pool_size":      float64(256),
+										"password":                 nil,
+										"port":                     float64(6380),
+										"read_timeout":             float64(2000),
+										"send_timeout":             float64(2000),
+										"sentinel_addresses":       nil,
+										"sentinel_master":          string("mymaster"),
+										"sentinel_nodes":           nil,
+										"sentinel_password":        nil,
+										"sentinel_role":            string("master"),
+										"sentinel_username":        nil,
+										"server_name":              nil,
+										"ssl":                      bool(false),
+										"ssl_verify":               bool(false),
+										"timeout":                  float64(2000),
+										"username":                 nil,
+									},
+									"retry_after_jitter_max": float64(0),
+									"strategy":               string("redis"),
+									"sync_rate":              float64(10),
+									"window_size":            []any{float64(60)},
+									"window_type":            string("fixed"),
+								},
+							},
+						},
+					},
+				},
+				currentState: existingServiceState(),
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(_ *testing.T) {
+			ctx := context.Background()
+			b := &stateBuilder{
+				targetContent:                    tt.fields.targetContent,
+				currentState:                     tt.fields.currentState,
+				kongVersion:                      kong340Version,
+				isConsumerGroupPolicyOverrideSet: tt.isConsumerGroupPolicyOverrides,
+			}
+			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+			b.defaulter = d
+			_, _, err := b.build()
+
+			if tt.wantErr {
+				require.Error(t, err, "build error was expected")
+				assert.ErrorContains(err, utils.ErrorConsumerGroupUpgrade.Error())
+				return
+			}
+
+			assert.Equal(tt.want, b.rawState)
 		})
 	}
 }
