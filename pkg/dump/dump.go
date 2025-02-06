@@ -878,7 +878,7 @@ func GetAllConsumerGroups(ctx context.Context,
 	return consumerGroupObjects, nil
 }
 
-// GetAllConsumerGroups queries Kong for all the ConsumerGroups using client.
+// GetAllConsumerGroupsDefault queries Kong for all the ConsumerGroups using client.
 // This does not include "consumer-group-plugins" or policy overrides associated
 // with a consumer-group
 func GetAllConsumerGroupsDefault(ctx context.Context,
@@ -926,7 +926,7 @@ func GetAllConsumerGroupsDefault(ctx context.Context,
 	return consumerGroupObjects, nil
 }
 
-// GetAllConsumerGroupsWithoutConsumers queries Kong for all the ConsumerGroups,
+// GetAllConsumerGroupsWithoutConsumersDefault queries Kong for all the ConsumerGroups,
 // skipping consumers, using client.
 // This does not include "consumer-group-plugins" or policy overrides associated
 // with a consumer-group
