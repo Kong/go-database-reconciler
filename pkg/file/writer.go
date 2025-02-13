@@ -70,8 +70,12 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	}
 
 	if config.IsConsumerGroupPolicyOverrideSet {
-		file.Info = &Info{
-			ConsumerGroupPolicyOverrides: true,
+		if file.Info == nil {
+			file.Info = &Info{
+				ConsumerGroupPolicyOverrides: true,
+			}
+		} else {
+			file.Info.ConsumerGroupPolicyOverrides = true
 		}
 	}
 

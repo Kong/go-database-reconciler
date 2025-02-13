@@ -1346,7 +1346,7 @@ func GetAllCustomEntitiesWithType(
 	e := custom.NewEntityObject(custom.Type(entityType))
 	for {
 		s, nextOpt, err := client.CustomEntities.List(ctx, opt, e)
-		if kong.IsNotFoundErr(err) {
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
 			return entities, nil
 		}
 		if err != nil {
