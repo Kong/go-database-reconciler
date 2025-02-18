@@ -1141,7 +1141,7 @@ func (b *stateBuilder) routes() {
 		}
 		for _, r := range allRoutes {
 			if utils.HasPathsWithRegex300AndAbove(r.Route) {
-				unsupportedRoutes = append(unsupportedRoutes, *r.Route.ID)
+				unsupportedRoutes = append(unsupportedRoutes, *r.Route.ID+" paths:"+*r.Route.Paths[0])
 			}
 		}
 		if len(unsupportedRoutes) > 0 {
