@@ -1,8 +1,8 @@
 module github.com/kong/go-database-reconciler
 
-go 1.23.2
+go 1.23.5
 
-toolchain go1.23.4
+toolchain go1.24.0
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
@@ -13,14 +13,14 @@ require (
 	github.com/alecthomas/jsonschema v0.0.0-20191017121752-4bb6e3fae4f2
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/fatih/color v1.17.0
+	github.com/fatih/color v1.18.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.43.1-0.20250128141633-787a0a819968
+	github.com/kong/deck v1.44.2
 	github.com/kong/go-kong v0.63.0
 	github.com/samber/lo v1.49.1
 	github.com/shirou/gopsutil/v3 v3.24.5
@@ -38,7 +38,7 @@ require (
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	atomicgo.dev/schedule v0.1.0 // indirect
 	github.com/Kong/go-diff v1.2.2 // indirect
-	github.com/Kong/sdk-konnect-go v0.1.11 // indirect
+	github.com/Kong/sdk-konnect-go v0.1.24 // indirect
 	github.com/adrg/strutil v0.3.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
@@ -67,7 +67,7 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/gookit/color v1.5.4 // indirect
-	github.com/gosimple/slug v1.14.0 // indirect
+	github.com/gosimple/slug v1.15.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kong/go-apiops v0.1.41 // indirect
 	github.com/kong/go-slugify v1.0.0 // indirect
-	github.com/kong/kubernetes-configuration v1.0.0 // indirect
+	github.com/kong/kubernetes-configuration v1.1.0 // indirect
 	github.com/kong/semver/v4 v4.0.1 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/lufia/plan9stats v0.0.0-20230326075908-cb1d2100619a // indirect
@@ -109,7 +109,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
@@ -128,23 +128,23 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	golang.org/x/tools v0.28.0 // indirect
+	golang.org/x/tools v0.29.0 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.32.0 // indirect
-	k8s.io/apiextensions-apiserver v0.32.0 // indirect
+	k8s.io/api v0.32.1 // indirect
+	k8s.io/apiextensions-apiserver v0.32.1 // indirect
 	k8s.io/apimachinery v0.32.1 // indirect
 	k8s.io/gengo/v2 v2.0.0-20240911193312-2b36238f13e9 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
-	sigs.k8s.io/controller-runtime v0.19.3 // indirect
+	sigs.k8s.io/controller-runtime v0.20.0 // indirect
 	sigs.k8s.io/gateway-api v1.2.1 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
