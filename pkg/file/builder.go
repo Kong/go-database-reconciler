@@ -128,7 +128,6 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.consumers()
 	b.plugins()
 	b.filterChains()
-	b.customEntities()
 	b.enterprise()
 
 	// konnect
@@ -1154,6 +1153,7 @@ func (b *stateBuilder) routes() {
 func (b *stateBuilder) enterprise() {
 	b.rbacRoles()
 	b.vaults()
+	b.customEntities()
 	// In Konnect, licenses are managed by Konnect cloud,
 	// so licenses should not be included running against Konnect when building Kong state from files.
 	if b.includeLicenses && !b.isKonnect {
