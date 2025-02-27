@@ -143,7 +143,7 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	if err != nil {
 		return nil, err
 	}
-	err = populateKeySets(kongState, file, config)
+	err = populateKeySets(kongState, file)
 	if err != nil {
 		return nil, err
 	}
@@ -916,7 +916,6 @@ func populateKeys(kongState *state.KongState, file *Content,
 		k := FKey{Key: k.Key}
 		utils.ZeroOutID(&k, k.Name, config.WithID)
 		utils.ZeroOutTimestamps(&k)
-		utils.MustRemoveTags(&k.Key, config.SelectTags)
 		file.Keys = append(file.Keys, k)
 	}
 	sort.SliceStable(file.Keys, func(i, j int) bool {
@@ -924,18 +923,14 @@ func populateKeys(kongState *state.KongState, file *Content,
 	})
 	return nil
 }
-func populateKeySets(kongState *state.KongState, file *Content,
-	config WriteConfig,
-) error {
+func populateKeySets(kongState *state.KongState, file *Content) error {
 	sets, err := kongState.KeySets.GetAll()
 	if err != nil {
 		return err
 	}
 	for _, s := range sets {
 		s := FKeySet{KeySet: s.KeySet}
-		utils.ZeroOutID(&s, s.Name, config.WithID)
 		utils.ZeroOutTimestamps(&s)
-		utils.MustRemoveTags(&s.KeySet, config.SelectTags)
 		file.KeySets = append(file.KeySets, s)
 	}
 	sort.SliceStable(file.KeySets, func(i, j int) bool {
