@@ -45,9 +45,9 @@ func (k *KeySetsCollection) Add(set KeySet) error {
 	if !utils.Empty(set.Name) {
 		searchBy = append(searchBy, *set.Name)
 	}
-	_, err := getKey(txn, searchBy...)
+	_, err := getSet(txn, searchBy...)
 	if err == nil {
-		return fmt.Errorf("inserting key %v: %w", set.Console(), ErrAlreadyExists)
+		return fmt.Errorf("inserting key-set %v: %w", set.Console(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {
 		return err
 	}
@@ -102,7 +102,7 @@ func (k *KeySetsCollection) Update(set KeySet) error {
 	}
 	txn := k.db.Txn(true)
 	defer txn.Abort()
-	err := deleteKey(txn, *set.ID)
+	err := deleteSet(txn, *set.ID)
 	if err != nil {
 		return err
 	}
