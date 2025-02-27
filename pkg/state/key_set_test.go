@@ -70,7 +70,7 @@ func TestKeySetCollectionGet(t *testing.T) {
 	keySetName := "keyset-name"
 	err := collection.Add(createTestKeySet(keySetID, keySetName))
 	require.NoError(err, "error adding key set")
-	t.Run("get key-set by ID", func(t *testing.T) {
+	t.Run("get key-set by ID", func(_ *testing.T) {
 		res, err := collection.Get(keySetID)
 		require.NoError(err, "error getting key-set by ID")
 		require.NotNil(res)
@@ -78,7 +78,7 @@ func TestKeySetCollectionGet(t *testing.T) {
 		assert.Equal(keySetName, *res.Name)
 	})
 
-	t.Run("get key-set by name", func(t *testing.T) {
+	t.Run("get key-set by name", func(_ *testing.T) {
 		res, err := collection.Get(keySetName)
 		require.NoError(err, "error getting key-set by Name")
 		require.NotNil(res)
@@ -86,14 +86,14 @@ func TestKeySetCollectionGet(t *testing.T) {
 		assert.Equal(keySetName, *res.Name)
 	})
 
-	t.Run("get non-existent key-set", func(t *testing.T) {
+	t.Run("get non-existent key-set", func(_ *testing.T) {
 		res, err := collection.Get("non-existent-key-set")
 		require.Error(err)
 		require.Nil(res)
 		assert.True(errors.Is(err, ErrNotFound))
 	})
 
-	t.Run("get with empty ID", func(t *testing.T) {
+	t.Run("get with empty ID", func(_ *testing.T) {
 		res, err := collection.Get("")
 		require.Error(err)
 		require.Nil(res)
@@ -105,7 +105,7 @@ func TestKeySetCollectionUpdate(t *testing.T) {
 	collection := keySetsCollection()
 	assert := assert.New(t)
 	require := require.New(t)
-	t.Run("update existing key-set", func(t *testing.T) {
+	t.Run("update existing key-set", func(_ *testing.T) {
 		keySetID := "keyset-id"
 		err := collection.Add(createTestKeySet(keySetID, "keyset-name"))
 		require.NoError(err, "error adding key-set")
@@ -124,7 +124,7 @@ func TestKeySetCollectionUpdate(t *testing.T) {
 		assert.Equal(newName, *res.Name)
 	})
 
-	t.Run("update non-existent key-set", func(t *testing.T) {
+	t.Run("update non-existent key-set", func(_ *testing.T) {
 		keySet := createTestKeySet("non-existent", "keyset-name")
 
 		err := collection.Update(keySet)
@@ -132,7 +132,7 @@ func TestKeySetCollectionUpdate(t *testing.T) {
 		assert.True(errors.Is(err, ErrNotFound))
 	})
 
-	t.Run("update with empty ID", func(t *testing.T) {
+	t.Run("update with empty ID", func(_ *testing.T) {
 		err := collection.Update(KeySet{})
 		require.Error(err)
 		assert.Equal(errIDRequired, err)
@@ -144,7 +144,7 @@ func TestKeySetCollectionDelete(t *testing.T) {
 	require := require.New(t)
 	assert := assert.New(t)
 
-	t.Run("delete key-set by ID", func(t *testing.T) {
+	t.Run("delete key-set by ID", func(_ *testing.T) {
 		// Add a key-set
 		keysetID := "keyset-id"
 		keySetName := "keyset-name"
@@ -167,7 +167,7 @@ func TestKeySetCollectionDelete(t *testing.T) {
 		assert.True(errors.Is(err, ErrNotFound))
 	})
 
-	t.Run("delete key-set by name", func(t *testing.T) {
+	t.Run("delete key-set by name", func(_ *testing.T) {
 		// Add a key-set
 		keysetID := "keyset-id"
 		keySetName := "keyset-name"
@@ -190,13 +190,13 @@ func TestKeySetCollectionDelete(t *testing.T) {
 		assert.True(errors.Is(err, ErrNotFound))
 	})
 
-	t.Run("delete non-existent key-set", func(t *testing.T) {
+	t.Run("delete non-existent key-set", func(_ *testing.T) {
 		err := collection.Delete("non-existent")
 		require.Error(err)
 		assert.True(errors.Is(err, ErrNotFound))
 	})
 
-	t.Run("delete with empty ID", func(t *testing.T) {
+	t.Run("delete with empty ID", func(_ *testing.T) {
 		err := collection.Delete("")
 		require.Error(err)
 		assert.Equal(errIDRequired, err)
@@ -207,13 +207,13 @@ func TestKeySetCollectionGetAll(t *testing.T) {
 	collection := keySetsCollection()
 	assert := assert.New(t)
 	require := require.New(t)
-	t.Run("get all key-sets from empty collection", func(t *testing.T) {
+	t.Run("get all key-sets from empty collection", func(_ *testing.T) {
 		res, err := collection.GetAll()
 		require.NoError(err)
 		assert.Empty(res)
 	})
 
-	t.Run("get all key-sets from non-empty collection", func(t *testing.T) {
+	t.Run("get all key-sets from non-empty collection", func(_ *testing.T) {
 		// Add multiple key-sets
 		keySets := []KeySet{
 			createTestKeySet("keyset-id-1", "keyset-name-1"),
