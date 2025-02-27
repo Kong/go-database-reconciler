@@ -147,7 +147,6 @@ func (b *stateBuilder) keys() {
 		return
 	}
 	for _, k := range b.targetContent.Keys {
-		k := k
 		if utils.Empty(k.ID) {
 			key, err := b.currentState.Keys.Get(*k.Name)
 			if errors.Is(err, state.ErrNotFound) {
@@ -163,12 +162,12 @@ func (b *stateBuilder) keys() {
 		b.rawState.Keys = append(b.rawState.Keys, &k.Key)
 	}
 }
+
 func (b *stateBuilder) keySets() {
 	if b.err != nil {
 		return
 	}
 	for _, k := range b.targetContent.KeySets {
-		k := k
 		if utils.Empty(k.ID) {
 			set, err := b.currentState.KeySets.Get(*k.Name)
 			if errors.Is(err, state.ErrNotFound) {

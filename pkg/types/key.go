@@ -91,6 +91,7 @@ func (d *keyDiffer) Deletes(handler func(crud.Event) error) error {
 	}
 	return nil
 }
+
 func (d *keyDiffer) deleteKey(key *state.Key) (*crud.Event, error) {
 	_, err := d.targetState.Keys.Get(*key.ID)
 	if errors.Is(err, state.ErrNotFound) {
@@ -127,6 +128,7 @@ func (d *keyDiffer) CreateAndUpdates(handler func(crud.Event) error) error {
 	}
 	return nil
 }
+
 func (d *keyDiffer) createUpdateKey(key *state.Key) (*crud.Event,
 	error,
 ) {

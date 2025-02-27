@@ -58,6 +58,7 @@ func (k *KeysCollection) Add(key Key) error {
 	txn.Commit()
 	return nil
 }
+
 func getKey(txn *memdb.Txn, IDs ...string) (*Key, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, keyTableName,
@@ -112,6 +113,7 @@ func (k *KeysCollection) Update(key Key) error {
 	txn.Commit()
 	return nil
 }
+
 func deleteKey(txn *memdb.Txn, nameOrID string) error {
 	key, err := getKey(txn, nameOrID)
 	if err != nil {

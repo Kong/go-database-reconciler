@@ -91,6 +91,7 @@ func (d *keySetDiffer) Deletes(handler func(crud.Event) error) error {
 	}
 	return nil
 }
+
 func (d *keySetDiffer) deleteKeySet(set *state.KeySet) (*crud.Event, error) {
 	_, err := d.targetState.KeySets.Get(*set.ID)
 	if errors.Is(err, state.ErrNotFound) {
@@ -127,6 +128,7 @@ func (d *keySetDiffer) CreateAndUpdates(handler func(crud.Event) error) error {
 	}
 	return nil
 }
+
 func (d *keySetDiffer) createUpdateKeySet(set *state.KeySet) (*crud.Event,
 	error,
 ) {

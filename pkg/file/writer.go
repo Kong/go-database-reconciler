@@ -923,6 +923,7 @@ func populateKeys(kongState *state.KongState, file *Content,
 	})
 	return nil
 }
+
 func populateKeySets(kongState *state.KongState, file *Content) error {
 	sets, err := kongState.KeySets.GetAll()
 	if err != nil {

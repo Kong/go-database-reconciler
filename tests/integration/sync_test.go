@@ -6777,7 +6777,6 @@ func TestSync_License(t *testing.T) {
 }
 
 func Test_Sync_PluginDoNotFillDefaults(t *testing.T) {
-
 	client, err := getTestClient()
 
 	require.NoError(t, err)
@@ -7103,8 +7102,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	// Setup RateLimitingAdvanced ==============================
 	rateLimitingAdvancedConfigurationInitial := DefaultConfigFactory.RateLimitingAdvancedConfiguration()
 	rateLimitingAdvancedConfigurationInitial["sync_rate"] = float64(10)
-	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
@@ -7114,8 +7112,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["connect_timeout"] = float64(2000)
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["read_timeout"] = float64(2000)
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["send_timeout"] = float64(2000)
-	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_addresses"] =
-		[]any{string("127.0.2.0:6379"), string("127.0.2.0:6380"), string("127.0.2.0:6381")}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_addresses"] = []any{string("127.0.2.0:6379"), string("127.0.2.0:6380"), string("127.0.2.0:6381")}
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
 		map[string]any{"host": string("127.0.2.0"), "port": float64(6379)},
 		map[string]any{"host": string("127.0.2.0"), "port": float64(6380)},
@@ -7146,8 +7143,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	}
 
 	rateLimitingConfigurationUpdatedOldFields := rateLimitingAdvancedConfigurationInitial.DeepCopy()
-	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
@@ -7157,8 +7153,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["connect_timeout"] = float64(2007)
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["read_timeout"] = float64(2007)
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["send_timeout"] = float64(2007)
-	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_addresses"] =
-		[]any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_addresses"] = []any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8379)},
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8380)},
@@ -7168,8 +7163,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 
 	openidConnectConfigurationUpdatedOldFields := openidConnectConfigurationInitial.DeepCopy()
 	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_max_redirections"] = float64(7)
-	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
+	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
 	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
@@ -7197,8 +7191,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	}
 
 	rateLimitingConfigurationUpdatedNewFields := rateLimitingAdvancedConfigurationInitial.DeepCopy()
-	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
@@ -7208,8 +7201,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["connect_timeout"] = float64(2005)
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["read_timeout"] = float64(2006)
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["send_timeout"] = float64(2007)
-	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_addresses"] =
-		[]any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_addresses"] = []any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8379)},
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8380)},
@@ -7220,8 +7212,7 @@ func Test_Sync_PluginDeprecatedFields38x(t *testing.T) {
 	openidConnectConfigurationUpdatedNewFields := openidConnectConfigurationInitial.DeepCopy()
 	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_max_redirections"] = float64(11)
 	openidConnectConfigurationUpdatedNewFields["session_redis_cluster_max_redirections"] = float64(11)
-	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
 	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
@@ -7309,8 +7300,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	// Setup RateLimitingAdvanced ==============================
 	rateLimitingAdvancedConfigurationInitial := DefaultConfigFactory39x.RateLimitingAdvancedConfiguration()
 	rateLimitingAdvancedConfigurationInitial["sync_rate"] = float64(10)
-	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
@@ -7320,8 +7310,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["connect_timeout"] = float64(2000)
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["read_timeout"] = float64(2000)
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["send_timeout"] = float64(2000)
-	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_addresses"] =
-		[]any{string("127.0.2.0:6379"), string("127.0.2.0:6380"), string("127.0.2.0:6381")}
+	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_addresses"] = []any{string("127.0.2.0:6379"), string("127.0.2.0:6380"), string("127.0.2.0:6381")}
 	rateLimitingAdvancedConfigurationInitial["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
 		map[string]any{"host": string("127.0.2.0"), "port": float64(6379)},
 		map[string]any{"host": string("127.0.2.0"), "port": float64(6380)},
@@ -7352,8 +7341,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	}
 
 	rateLimitingConfigurationUpdatedOldFields := rateLimitingAdvancedConfigurationInitial.DeepCopy()
-	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
@@ -7363,8 +7351,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["connect_timeout"] = float64(2007)
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["read_timeout"] = float64(2007)
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["send_timeout"] = float64(2007)
-	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_addresses"] =
-		[]any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
+	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_addresses"] = []any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
 	rateLimitingConfigurationUpdatedOldFields["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8379)},
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8380)},
@@ -7374,8 +7361,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 
 	openidConnectConfigurationUpdatedOldFields := openidConnectConfigurationInitial.DeepCopy()
 	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_max_redirections"] = float64(7)
-	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
+	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:6379"), string("127.0.1.0:6380"), string("127.0.1.0:6381")}
 	openidConnectConfigurationUpdatedOldFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(6380)},
@@ -7403,8 +7389,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	}
 
 	rateLimitingConfigurationUpdatedNewFields := rateLimitingAdvancedConfigurationInitial.DeepCopy()
-	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},
@@ -7414,8 +7399,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["connect_timeout"] = float64(2005)
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["read_timeout"] = float64(2006)
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["send_timeout"] = float64(2007)
-	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_addresses"] =
-		[]any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
+	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_addresses"] = []any{string("127.0.2.0:8379"), string("127.0.2.0:8380"), string("127.0.2.0:8381")}
 	rateLimitingConfigurationUpdatedNewFields["redis"].(map[string]interface{})["sentinel_nodes"] = []any{
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8379)},
 		map[string]any{"host": string("127.0.2.0"), "port": float64(8380)},
@@ -7426,8 +7410,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	openidConnectConfigurationUpdatedNewFields := openidConnectConfigurationInitial.DeepCopy()
 	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_max_redirections"] = float64(11)
 	openidConnectConfigurationUpdatedNewFields["session_redis_cluster_max_redirections"] = float64(11)
-	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] =
-		[]any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
+	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_addresses"] = []any{string("127.0.1.0:7379"), string("127.0.1.0:7380"), string("127.0.1.0:7381")}
 	openidConnectConfigurationUpdatedNewFields["redis"].(map[string]interface{})["cluster_nodes"] = []any{
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7379)},
 		map[string]any{"ip": string("127.0.1.0"), "port": float64(7380)},

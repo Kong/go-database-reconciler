@@ -58,6 +58,7 @@ func (k *KeySetsCollection) Add(set KeySet) error {
 	txn.Commit()
 	return nil
 }
+
 func getSet(txn *memdb.Txn, IDs ...string) (*KeySet, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, keySetTableName,
@@ -112,6 +113,7 @@ func (k *KeySetsCollection) Update(set KeySet) error {
 	txn.Commit()
 	return nil
 }
+
 func deleteSet(txn *memdb.Txn, nameOrID string) error {
 	set, err := getSet(txn, nameOrID)
 	if err != nil {
