@@ -4547,8 +4547,8 @@ func Test_stateBuilder_keys(t *testing.T) {
 								Name: kong.String("my-pem-key"),
 								KID:  kong.String("my-pem-key"),
 								PEM: &kong.PEM{
-									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"),
-									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),
+									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 								},
 							},
 						},
@@ -4569,8 +4569,8 @@ func Test_stateBuilder_keys(t *testing.T) {
 						Name: kong.String("my-pem-key"),
 						KID:  kong.String("my-pem-key"),
 						PEM: &kong.PEM{
-							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"),
-							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),
+							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 						},
 					},
 				},
@@ -4669,8 +4669,8 @@ func Test_stateBuilder_keySets(t *testing.T) {
 								Name: kong.String("my-pem-key"),
 								KID:  kong.String("my-pem-key"),
 								PEM: &kong.PEM{
-									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"),
-									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),
+									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 								},
 								Set: &kong.KeySet{
 									Name: kong.String("set-1"),
@@ -4703,8 +4703,8 @@ func Test_stateBuilder_keySets(t *testing.T) {
 						Name: kong.String("my-pem-key"),
 						KID:  kong.String("my-pem-key"),
 						PEM: &kong.PEM{
-							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"),
-							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),
+							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 						},
 						Set: &kong.KeySet{
 							Name: kong.String("set-1"),
