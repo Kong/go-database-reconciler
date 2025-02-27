@@ -6,8 +6,6 @@ toolchain go1.24.0
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
-replace github.com/kong/go-kong v0.54.0 => /Users/ggerbino/go/github.com/Kong/go-kong
-
 require (
 	dario.cat/mergo v1.0.1
 	github.com/Kong/gojsondiff v1.3.2
@@ -16,14 +14,14 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/fatih/color v1.18.0
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.44.2
-	github.com/kong/go-kong v0.63.0
+	github.com/kong/go-kong v0.63.1-0.20250227094832-88eb71072076
 	github.com/samber/lo v1.49.1
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.0.1
@@ -31,7 +29,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.28.0
-	k8s.io/code-generator v0.32.1
+	k8s.io/code-generator v0.32.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -141,7 +139,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.32.1 // indirect
 	k8s.io/apiextensions-apiserver v0.32.1 // indirect
-	k8s.io/apimachinery v0.32.1 // indirect
+	k8s.io/apimachinery v0.32.2 // indirect
 	k8s.io/gengo/v2 v2.0.0-20240911193312-2b36238f13e9 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect

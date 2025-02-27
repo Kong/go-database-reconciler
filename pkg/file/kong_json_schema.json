@@ -55,6 +55,13 @@
       },
       "type": "array"
     },
+    "custom_entities": {
+      "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FCustomEntity"
+      },
+      "type": "array"
+    },
     "filter_chains": {
       "items": {
         "$ref": "#/definitions/FFilterChain"
@@ -65,13 +72,6 @@
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "$ref": "#/definitions/FLicense"
-      },
-      "type": "array"
-    },
-    "custom_entities": {
-      "items": {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "$ref": "#/definitions/FCustomEntity"
       },
       "type": "array"
     },
@@ -578,6 +578,30 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "FCustomEntity": {
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "fields": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true,
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "FDocument": {
       "properties": {
         "id": {
@@ -750,29 +774,6 @@
             "type": "string"
           },
           "type": "array"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "FCustomEntity": {
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "fields": {
-          "patternProperties": {
-            ".*": {
-              "additionalProperties": true
-            }
-          },
-          "type": "object"
-        },
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -1374,6 +1375,9 @@
     },
     "Info": {
       "properties": {
+        "consumer_group_policy_overrides": {
+          "type": "boolean"
+        },
         "default_lookup_tags": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/LookUpSelectorTags"
@@ -1387,9 +1391,6 @@
             "type": "string"
           },
           "type": "array"
-        },
-        "consumer_group_policy_overrides": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false,
