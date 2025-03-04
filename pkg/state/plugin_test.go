@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func pluginsCollection() *PluginsCollection {
@@ -313,10 +314,10 @@ func TestPluginGet(t *testing.T) {
 	assert.NotNil(plugin.Service)
 	err := collection.Add(plugin)
 	assert.NotNil(plugin.Service)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.Equal("my-plugin", *re.Name)
 	re.Service = &kong.Service{
@@ -393,39 +394,39 @@ func TestGetPluginByProp(t *testing.T) {
 	collection := pluginsCollection()
 
 	for _, p := range plugins {
-		assert.Nil(collection.Add(p))
+		require.NoError(t, collection.Add(p))
 	}
 
 	plugin, err := collection.GetByProp("", "", "", "", "")
 	assert.Nil(plugin)
-	assert.Error(err)
+	require.Error(t, err)
 
 	plugin, err = collection.GetByProp("foo", "", "", "", "")
 	assert.Nil(plugin)
 	assert.Equal(ErrNotFound, err)
 
 	plugin, err = collection.GetByProp("key-auth", "", "", "", "")
-	assert.NoError(err)
+	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value1", plugin.Config["key1"])
 
 	plugin, err = collection.GetByProp("key-auth", "svc1", "", "", "")
-	assert.NoError(err)
+	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value2", plugin.Config["key2"])
 
 	plugin, err = collection.GetByProp("key-auth", "", "route1", "", "")
-	assert.NoError(err)
+	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value3", plugin.Config["key3"])
 
 	plugin, err = collection.GetByProp("key-auth", "", "", "consumer1", "")
-	assert.NoError(err)
+	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value4", plugin.Config["key4"])
 
 	plugin, err = collection.GetByProp("key-auth", "", "", "", "cg1")
-	assert.NoError(err)
+	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value5", plugin.Config["key5"])
 }
@@ -466,20 +467,20 @@ func TestPluginDelete(t *testing.T) {
 		Name: kong.String("service1-name"),
 	}
 	err := collection.Add(plugin)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	p, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(p)
 	assert.Equal("bar", p.Config["foo"])
 
 	err = collection.Delete(*p.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete(*p.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 
-	assert.NotNil(collection.Delete(""))
+	require.Error(t, collection.Delete(""))
 }
 
 func TestPluginGetAll(t *testing.T) {
@@ -534,39 +535,39 @@ func TestPluginGetAll(t *testing.T) {
 	}
 
 	for _, p := range plugins {
-		assert.Nil(collection.Add(*p))
+		require.NoError(t, collection.Add(*p))
 	}
 
 	allPlugins, err := collection.GetAll()
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(len(plugins), len(allPlugins))
 
 	allPlugins, err = collection.GetAllByName("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(allPlugins)
 	allPlugins, err = collection.GetAllByConsumerID("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(allPlugins)
 	allPlugins, err = collection.GetAllByRouteID("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(allPlugins)
 	allPlugins, err = collection.GetAllByServiceID("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(allPlugins)
 
 	allPlugins, err = collection.GetAllByName("key-auth")
-	assert.Nil(err)
-	assert.Equal(2, len(allPlugins))
+	require.NoError(t, err)
+	assert.Len(allPlugins, 2)
 
 	allPlugins, err = collection.GetAllByRouteID("route1-id")
-	assert.Nil(err)
-	assert.Equal(2, len(allPlugins))
+	require.NoError(t, err)
+	assert.Len(allPlugins, 2)
 
 	allPlugins, err = collection.GetAllByServiceID("service1-id")
-	assert.Nil(err)
-	assert.Equal(2, len(allPlugins))
+	require.NoError(t, err)
+	assert.Len(allPlugins, 2)
 
 	allPlugins, err = collection.GetAllByServiceID("service-nope")
-	assert.Nil(err)
-	assert.Equal(0, len(allPlugins))
+	require.NoError(t, err)
+	assert.Empty(allPlugins)
 }

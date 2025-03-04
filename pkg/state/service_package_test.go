@@ -7,6 +7,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func servicePackagesCollection() *ServicePackagesCollection {
@@ -261,21 +262,21 @@ func TestServicePackageUpdate(t *testing.T) {
 			Name: kong.String("foo-name"),
 		},
 	}
-	assert.Nil(k.Add(svc1))
+	require.NoError(t, k.Add(svc1))
 
 	svc1.Name = kong.String("bar-name")
-	assert.Nil(k.Update(svc1))
+	require.NoError(t, k.Update(svc1))
 
 	r, err := k.Get("foo-id")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(r)
 
 	r, err = k.Get("bar-name")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(r)
 
 	r, err = k.Get("foo-name")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(r)
 }
 
@@ -299,25 +300,24 @@ func TestServicePackagesInvalidType(t *testing.T) {
 }
 
 func TestServicePackageDelete(t *testing.T) {
-	assert := assert.New(t)
 	collection := servicePackagesCollection()
 
 	var servicePackage ServicePackage
 	servicePackage.ID = kong.String("first-id")
 	servicePackage.Name = kong.String("first-name")
 	err := collection.Add(servicePackage)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	err = collection.Delete("first-id")
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("first-name")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("")
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestServicePackageGetAll(t *testing.T) {
@@ -339,12 +339,12 @@ func TestServicePackageGetAll(t *testing.T) {
 		},
 	}
 	for _, s := range services {
-		assert.Nil(collection.Add(s))
+		require.NoError(t, collection.Add(s))
 	}
 
 	allServices, err := collection.GetAll()
 
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(len(services), len(allServices))
 }
 
@@ -372,18 +372,18 @@ func TestServicePackagesGetAllMemoryReference(t *testing.T) {
 		},
 	}
 	for _, s := range services {
-		assert.Nil(collection.Add(s))
+		require.NoError(t, collection.Add(s))
 	}
 
 	allServices, err := collection.GetAll()
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(len(services), len(allServices))
 
 	allServices[0].Description = kong.String("new-service1-desc")
 	allServices[1].Description = kong.String("new-service2-desc")
 
 	servicePackage, err := collection.Get("my-service1")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(servicePackage)
 	assert.Equal("service1-desc", *servicePackage.Description)
 }

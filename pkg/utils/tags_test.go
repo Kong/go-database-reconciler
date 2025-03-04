@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMergeTags(t *testing.T) {
@@ -21,7 +22,7 @@ func TestMergeTags(t *testing.T) {
 
 	var f Foo
 	err := MergeTags(f, []string{"tag1"})
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	assert.Panics(func() {
 		MustMergeTags(f, []string{"tag1"})
@@ -29,18 +30,18 @@ func TestMergeTags(t *testing.T) {
 
 	var bar Bar
 	err = MergeTags(&bar, []string{"tag1"})
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	f = Foo{Tags: []*string{&a, &b}}
-	assert.Nil(MergeTags(&f, []string{"tag1", "tag2", "tag3"}))
+	require.NoError(t, MergeTags(&f, []string{"tag1", "tag2", "tag3"}))
 	assert.True(equalArray([]*string{&a, &b, &c}, f.Tags))
 
 	f = Foo{Tags: []*string{}}
-	assert.Nil(MergeTags(&f, []string{"tag1", "tag2", "tag3"}))
+	require.NoError(t, MergeTags(&f, []string{"tag1", "tag2", "tag3"}))
 	assert.True(equalArray([]*string{&a, &b, &c}, f.Tags))
 
 	f = Foo{Tags: []*string{&a, &b}}
-	assert.Nil(MergeTags(&f, nil))
+	require.NoError(t, MergeTags(&f, nil))
 	assert.True(equalArray([]*string{&a, &b}, f.Tags))
 }
 
@@ -69,7 +70,7 @@ func TestRemoveTags(t *testing.T) {
 
 	var f Foo
 	err := RemoveTags(f, []string{"tag1"})
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	assert.Panics(func() {
 		MustRemoveTags(f, []string{"tag1"})
@@ -77,7 +78,7 @@ func TestRemoveTags(t *testing.T) {
 
 	var bar Bar
 	err = RemoveTags(&bar, []string{"tag1"})
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	f = Foo{Tags: []*string{&a, &b}}
 	RemoveTags(&f, []string{"tag2", "tag3"})

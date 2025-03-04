@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func keyAuthsCollection() *KeyAuthsCollection {
@@ -12,14 +13,13 @@ func keyAuthsCollection() *KeyAuthsCollection {
 }
 
 func TestKeyAuthInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := keyAuthsCollection()
 
 	var keyAuth KeyAuth
 	keyAuth.Key = kong.String("my-secret-apikey")
 	keyAuth.ID = kong.String("first")
 	err := collection.Add(keyAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	var keyAuth2 KeyAuth
 	keyAuth2.Key = kong.String("my-secret-apikey")
@@ -28,7 +28,7 @@ func TestKeyAuthInsert(t *testing.T) {
 		ID: kong.String("consumer-id"),
 	}
 	err = collection.Add(keyAuth2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	// same API key
 	keyAuth2.Key = kong.String("my-secret-apikey")
@@ -37,11 +37,11 @@ func TestKeyAuthInsert(t *testing.T) {
 		ID: kong.String("consumer-id"),
 	}
 	err = collection.Add(keyAuth2)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	// re-insert
 	err = collection.Add(keyAuth2)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestKeyAuthGet(t *testing.T) {
@@ -56,25 +56,25 @@ func TestKeyAuthGet(t *testing.T) {
 	}
 
 	err := collection.Add(keyAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("my-apikey", *res.Key)
 
 	res, err = collection.Get("my-apikey")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("first", *res.ID)
 	assert.Equal("consumer1-id", *res.Consumer.ID)
 
 	res, err = collection.Get("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = collection.Get("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -84,7 +84,7 @@ func TestKeyAuthUpdate(t *testing.T) {
 
 	var keyAuth KeyAuth
 
-	assert.NotNil(collection.Add(keyAuth))
+	require.Error(t, collection.Add(keyAuth))
 
 	keyAuth.Key = kong.String("my-apikey")
 	keyAuth.ID = kong.String("first")
@@ -93,23 +93,23 @@ func TestKeyAuthUpdate(t *testing.T) {
 	}
 
 	err := collection.Add(keyAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("my-apikey", *res.Key)
 
 	res.Key = kong.String("my-apikey2")
 	err = collection.Update(*res)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("my-apikey2", *res.Key)
 
 	res, err = collection.Get("my-apikey")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -124,56 +124,55 @@ func TestKeyAuthDelete(t *testing.T) {
 		ID: kong.String("consumer1-id"),
 	}
 	err := collection.Add(keyAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("my-apikey1")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 
 	err = collection.Delete(*res.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("my-apikey1")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	// delete a non-existing one
 	err = collection.Delete("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("my-apikey1")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("")
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestKeyAuthGetAll(t *testing.T) {
-	assert := assert.New(t)
 	collection := keyAuthsCollection()
 
-	populateWithKeyAuthFixtures(assert, collection)
+	populateWithKeyAuthFixtures(t, collection)
 
 	keyAuths, err := collection.GetAll()
-	assert.Nil(err)
-	assert.Equal(5, len(keyAuths))
+	require.NoError(t, err)
+	require.Len(t, keyAuths, 5)
 }
 
 func TestKeyAuthGetByConsumer(t *testing.T) {
-	assert := assert.New(t)
 	collection := keyAuthsCollection()
 
-	populateWithKeyAuthFixtures(assert, collection)
+	populateWithKeyAuthFixtures(t, collection)
 
 	keyAuths, err := collection.GetAllByConsumerID("consumer1-id")
-	assert.Nil(err)
-	assert.Equal(3, len(keyAuths))
+	require.NoError(t, err)
+	require.Len(t, keyAuths, 3)
 }
 
-func populateWithKeyAuthFixtures(assert *assert.Assertions,
+func populateWithKeyAuthFixtures(
+	t *testing.T,
 	collection *KeyAuthsCollection,
 ) {
 	keyAuths := []KeyAuth{
@@ -226,7 +225,7 @@ func populateWithKeyAuthFixtures(assert *assert.Assertions,
 
 	for _, k := range keyAuths {
 		err := collection.Add(k)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 }
 
@@ -241,7 +240,7 @@ func TestKeyAuthInvalidType(t *testing.T) {
 		ID: kong.String("consumer-id"),
 	}
 	txn := collection.db.Txn(true)
-	assert.Nil(txn.Insert("key-auth", &hmacAuth))
+	require.NoError(t, txn.Insert("key-auth", &hmacAuth))
 	txn.Commit()
 
 	assert.Panics(func() {

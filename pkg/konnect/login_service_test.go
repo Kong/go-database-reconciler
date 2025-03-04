@@ -102,10 +102,14 @@ func TestAuthService_OrgUserInfo(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 
 			resp, err := json.Marshal(expectedResp)
-			require.NoError(t, err)
+			if !assert.NoError(t, err) {
+				return
+			}
 
 			_, err = w.Write(resp)
-			require.NoError(t, err)
+			if !assert.NoError(t, err) {
+				return
+			}
 
 			return
 		}

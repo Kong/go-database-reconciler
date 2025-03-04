@@ -6,6 +6,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func rbacEndpointPermissionsCollection() *RBACEndpointPermissionsCollection {
@@ -237,17 +238,17 @@ func TestRBACEndpointPermissionDelete(t *testing.T) {
 	}}
 
 	err := collection.Add(rbacEndpointPermission)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get(rbacEndpointPermission.FriendlyName())
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 
 	err = collection.Delete(re.FriendlyName())
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete(re.FriendlyName())
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestRBACEndpointPermissionGetAll(t *testing.T) {
@@ -262,7 +263,7 @@ func TestRBACEndpointPermissionGetAll(t *testing.T) {
 	}}
 
 	err := collection.Add(rbacEndpointPermission)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	rbacEndpointPermission2 := RBACEndpointPermission{RBACEndpointPermission: kong.RBACEndpointPermission{
 		Workspace: kong.String("*"),
@@ -272,12 +273,12 @@ func TestRBACEndpointPermissionGetAll(t *testing.T) {
 	}}
 
 	err = collection.Add(rbacEndpointPermission2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	rbacEndpointPermissions, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(rbacEndpointPermissions))
+	require.NoError(t, err)
+	assert.Len(rbacEndpointPermissions, 2)
 }
 
 func TestRBACEndpointPermissionGetAllByServiceID(t *testing.T) {
@@ -319,14 +320,14 @@ func TestRBACEndpointPermissionGetAllByServiceID(t *testing.T) {
 
 	for _, rbacEndpointPermission := range rbacEndpointPermissions {
 		err := collection.Add(*rbacEndpointPermission)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 
 	rbacEndpointPermissions, err := collection.GetAllByRoleID("1234")
-	assert.Nil(err)
-	assert.Equal(3, len(rbacEndpointPermissions))
+	require.NoError(t, err)
+	assert.Len(rbacEndpointPermissions, 3)
 
 	rbacEndpointPermissions, err = collection.GetAllByRoleID("4321")
-	assert.Nil(err)
-	assert.Equal(2, len(rbacEndpointPermissions))
+	require.NoError(t, err)
+	assert.Len(rbacEndpointPermissions, 2)
 }

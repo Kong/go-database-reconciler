@@ -363,7 +363,7 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 		require.NoError(t, k.Update(post))
 
 		updated, err := k.Get("update-id-1")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, "new-name", *updated.Name)
 	})
@@ -437,7 +437,7 @@ func TestFilterChainsCollection_Get(t *testing.T) {
 	require.NoError(t, collection.Add(filterChain))
 
 	re, err := collection.Get("get-test")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.NotNil(re.FilterChain)
 	assert.NotNil(re.FilterChain.ID)
@@ -471,7 +471,7 @@ func TestFilterChainsCollection_GetByProp(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(collection.Add(serviceChain))
+	require.NoError(t, collection.Add(serviceChain))
 
 	routeChain := FilterChain{
 		FilterChain: kong.FilterChain{
@@ -487,17 +487,17 @@ func TestFilterChainsCollection_GetByProp(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(collection.Add(routeChain))
+	require.NoError(t, collection.Add(routeChain))
 
 	re, err := collection.GetByProp("get-prop-service-id", "")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.NotNil(re.FilterChain)
 	assert.NotNil(re.FilterChain.ID)
 	assert.Equal("get-prop-service", *re.FilterChain.ID)
 
 	re, err = collection.GetByProp("", "get-prop-route-id")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.NotNil(re.FilterChain)
 	assert.NotNil(re.FilterChain.ID)
@@ -505,7 +505,7 @@ func TestFilterChainsCollection_GetByProp(t *testing.T) {
 
 	re, err = collection.GetByProp("", "")
 	assert.Nil(re)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Equal(errIDRequired, err)
 }
 
@@ -528,19 +528,19 @@ func TestFilterChainsCollection_GetAllByServiceID(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(collection.Add(serviceChain))
+	require.NoError(t, collection.Add(serviceChain))
 
 	re, err := collection.GetAllByServiceID("get-all-service-id")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal([]*FilterChain{&serviceChain}, re)
 
 	re, err = collection.GetAllByServiceID("no-chain-with-this-service-id")
-	assert.Nil(err)
-	assert.Equal(0, len(re))
+	require.NoError(t, err)
+	assert.Empty(re)
 
 	re, err = collection.GetAllByServiceID("")
 	assert.Nil(re)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Equal(errIDRequired, err)
 }
 
@@ -561,19 +561,19 @@ func TestFilterChainsCollection_GetAllByRouteID(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(collection.Add(routeChain))
+	require.NoError(t, collection.Add(routeChain))
 
 	re, err := collection.GetAllByRouteID("get-all-route-id")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal([]*FilterChain{&routeChain}, re)
 
 	re, err = collection.GetAllByRouteID("no-chain-with-this-route-id")
-	assert.Nil(err)
-	assert.Equal(0, len(re))
+	require.NoError(t, err)
+	assert.Empty(re)
 
 	re, err = collection.GetAllByRouteID("")
 	assert.Nil(re)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Equal(errIDRequired, err)
 }
 
@@ -596,14 +596,14 @@ func TestFilterChainsCollection_Delete(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(collection.Add(filterChain))
+	require.NoError(t, collection.Add(filterChain))
 
 	res, err := collection.Get("delete-test")
 	assert.NotNil(res)
-	assert.NoError(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("delete-test")
-	assert.NoError(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("delete-test")
 	assert.Equal(ErrNotFound, err)
@@ -634,10 +634,10 @@ func TestFilterChainsCollection_GetAll(t *testing.T) {
 			},
 		}
 
-		assert.NoError(collection.Add(filterChain))
+		require.NoError(t, collection.Add(filterChain))
 	}
 
 	allFilterChains, err := collection.GetAll()
-	assert.Nil(err)
-	assert.Equal(3, len(allFilterChains))
+	require.NoError(t, err)
+	assert.Len(allFilterChains, 3)
 }

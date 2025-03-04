@@ -380,7 +380,7 @@ func getKongVersion(ctx context.Context, t *testing.T, client *kong.Client) semv
 	require.NoError(t, err, "Should get no error in getting root endpoint of Kong")
 	versionStr := kong.VersionFromInfo(root)
 	kv, err := kong.ParseSemanticVersion(versionStr)
-	require.NoErrorf(t, err, "failed to parse semantic version from version string", versionStr)
+	require.NoErrorf(t, err, "failed to parse semantic version from version string %s", versionStr)
 	return semver.Version{
 		Major: kv.Major(),
 		Minor: kv.Minor(),

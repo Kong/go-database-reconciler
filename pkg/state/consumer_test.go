@@ -13,19 +13,18 @@ func consumersCollection() *ConsumersCollection {
 }
 
 func TestConsumerInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := consumersCollection()
 
 	var consumer Consumer
 
-	assert.NotNil(collection.Add(consumer))
+	require.Error(t, collection.Add(consumer))
 
 	consumer.ID = kong.String("first")
-	assert.Nil(collection.Add(consumer))
+	require.NoError(t, collection.Add(consumer))
 
 	// re-insert
 	consumer.Username = kong.String("my-name")
-	assert.NotNil(collection.Add(consumer))
+	require.Error(t, collection.Add(consumer))
 }
 
 func TestConsumerInsertIgnoreDuplicateUsername(t *testing.T) {
@@ -60,33 +59,33 @@ func TestConsumerGetUpdate(t *testing.T) {
 	consumer.ID = kong.String("first")
 	consumer.Username = kong.String("my-name")
 	err := collection.Add(consumer)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	c, err := collection.GetByIDOrUsername("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(c)
 
 	c, err = collection.GetByIDOrUsername("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(c)
 
 	c.ID = nil
 	c.Username = kong.String("my-updated-name")
 	err = collection.Update(*c)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	c.ID = kong.String("does-not-exist")
-	assert.NotNil(collection.Update(*c))
+	require.Error(t, collection.Update(*c))
 
 	c.ID = kong.String("first")
-	assert.Nil(collection.Update(*c))
+	require.NoError(t, collection.Update(*c))
 
 	c, err = collection.GetByIDOrUsername("my-name")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(c)
 
 	c, err = collection.GetByIDOrUsername("my-updated-name")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(c)
 }
 
@@ -100,15 +99,15 @@ func TestConsumerGetMemoryReference(t *testing.T) {
 	consumer.ID = kong.String("first")
 	consumer.Username = kong.String("my-name")
 	err := collection.Add(consumer)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	c, err := collection.GetByIDOrUsername("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(c)
 	c.Username = kong.String("update-should-not-reflect")
 
 	c, err = collection.GetByIDOrUsername("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("my-name", *c.Username)
 }
 
@@ -121,7 +120,7 @@ func TestConsumersInvalidType(t *testing.T) {
 	c.Username = kong.String("my-name")
 	c.ID = kong.String("first")
 	txn := collection.db.Txn(true)
-	assert.Nil(txn.Insert(consumerTableName, &c))
+	require.NoError(t, txn.Insert(consumerTableName, &c))
 	txn.Commit()
 
 	assert.Panics(func() {
@@ -140,21 +139,21 @@ func TestConsumerDelete(t *testing.T) {
 	consumer.ID = kong.String("first")
 	consumer.Username = kong.String("my-consumer")
 	err := collection.Add(consumer)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	c, err := collection.GetByIDOrUsername("my-consumer")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(c)
 	assert.Equal("first", *c.ID)
 
 	err = collection.Delete("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete(*c.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestConsumerGetAll(t *testing.T) {
@@ -176,11 +175,11 @@ func TestConsumerGetAll(t *testing.T) {
 		},
 	}
 	for _, s := range consumers {
-		assert.Nil(collection.Add(s))
+		require.NoError(t, collection.Add(s))
 	}
 
 	allConsumers, err := collection.GetAll()
 
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(len(consumers), len(allConsumers))
 }

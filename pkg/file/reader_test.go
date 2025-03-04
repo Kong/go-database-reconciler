@@ -70,7 +70,7 @@ func TestReadKongStateFromStdinFailsToParseText(t *testing.T) {
 	os.Stdin = tmpfile
 
 	c, err := GetContentFromFiles(filenames, false)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(c)
 }
 
@@ -142,7 +142,7 @@ func TestReadKongStateFromStdin(t *testing.T) {
 
 	c, err := GetContentFromFiles(filenames, false)
 	assert.NotNil(c)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	assert.Equal(kong.Service{
 		Name: kong.String("test service"),
@@ -157,7 +157,7 @@ func TestReadKongStateFromFile(t *testing.T) {
 
 	c, err := GetContentFromFiles(filenames, false)
 	require.NotNil(t, c)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Run("enabled field for service is read", func(t *testing.T) {
 		assert.Equal(t, kong.Service{

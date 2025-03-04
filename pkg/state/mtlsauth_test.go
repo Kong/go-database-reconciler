@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func mtlsAuthsCollection() *MTLSAuthsCollection {
@@ -12,17 +13,16 @@ func mtlsAuthsCollection() *MTLSAuthsCollection {
 }
 
 func TestMTLSAuthInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := mtlsAuthsCollection()
 
 	var mtlsAuth MTLSAuth
 	mtlsAuth.ID = kong.String("first")
 	err := collection.Add(mtlsAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	mtlsAuth.SubjectName = kong.String("test@example.com")
 	err = collection.Add(mtlsAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	var mtlsAuth2 MTLSAuth
 	mtlsAuth2.SubjectName = kong.String("test@example.com")
@@ -32,7 +32,7 @@ func TestMTLSAuthInsert(t *testing.T) {
 		Username: kong.String("my-username"),
 	}
 	err = collection.Add(mtlsAuth2)
-	assert.Nil(err)
+	require.NoError(t, err)
 }
 
 func TestMTLSAuthGet(t *testing.T) {
@@ -48,15 +48,15 @@ func TestMTLSAuthGet(t *testing.T) {
 	}
 
 	err := collection.Add(mtlsAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("test@example.com", *res.SubjectName)
 
 	res, err = collection.Get("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -73,19 +73,19 @@ func TestMTLSAuthUpdate(t *testing.T) {
 	}
 
 	err := collection.Add(mtlsAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("test@example.com", *res.SubjectName)
 
 	res.SubjectName = kong.String("test2@example.com")
 	err = collection.Update(*res)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("test2@example.com", *res.SubjectName)
 }
 
@@ -101,47 +101,46 @@ func TestMTLSAuthDelete(t *testing.T) {
 		Username: kong.String("consumer1-name"),
 	}
 	err := collection.Add(mtlsAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 
 	err = collection.Delete(*res.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	// delete a non-existing one
 	err = collection.Delete("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestMTLSAuthGetAll(t *testing.T) {
-	assert := assert.New(t)
 	collection := mtlsAuthsCollection()
 
-	populateWithMTLSAuthFixtures(assert, collection)
+	populateWithMTLSAuthFixtures(t, collection)
 
 	mtlsAuths, err := collection.GetAll()
-	assert.Nil(err)
-	assert.Equal(5, len(mtlsAuths))
+	require.NoError(t, err)
+	require.Len(t, mtlsAuths, 5)
 }
 
 func TestMTLSAuthGetByConsumer(t *testing.T) {
-	assert := assert.New(t)
 	collection := mtlsAuthsCollection()
 
-	populateWithMTLSAuthFixtures(assert, collection)
+	populateWithMTLSAuthFixtures(t, collection)
 
 	mtlsAuths, err := collection.GetAllByConsumerID("consumer1-id")
-	assert.Nil(err)
-	assert.Equal(3, len(mtlsAuths))
+	require.NoError(t, err)
+	require.Len(t, mtlsAuths, 3)
 }
 
-func populateWithMTLSAuthFixtures(assert *assert.Assertions,
+func populateWithMTLSAuthFixtures(
+	t *testing.T,
 	collection *MTLSAuthsCollection,
 ) {
 	mtlsAuths := []MTLSAuth{
@@ -199,6 +198,6 @@ func populateWithMTLSAuthFixtures(assert *assert.Assertions,
 
 	for _, k := range mtlsAuths {
 		err := collection.Add(k)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 }
