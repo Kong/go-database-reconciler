@@ -176,6 +176,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Service),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case Route:
@@ -191,6 +192,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Route),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case Upstream:
@@ -206,6 +208,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Upstream),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case Target:
@@ -252,6 +255,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Consumer),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case ConsumerGroup:
@@ -268,6 +272,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(ConsumerGroup),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case ConsumerGroupConsumer:
@@ -362,6 +367,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				isKonnect:    opts.IsKonnect,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case CACertificate:
@@ -377,6 +383,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(CACertificate),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case SNI:
@@ -392,6 +399,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(SNI),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case RBACEndpointPermission:
@@ -422,6 +430,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(RBACRole),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case ACLGroup:
@@ -452,6 +461,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(BasicAuth),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case KeyAuth:
@@ -542,6 +552,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Vault),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case License:
@@ -558,6 +569,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(License),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case FilterChain:

@@ -34,6 +34,7 @@ func (s *certificateCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg
 	if s.isKonnect {
 		certificate.SNIs = nil
 	}
+
 	createdCertificate, err := s.client.Certificates.Create(ctx, &certificate.Certificate)
 	if err != nil {
 		return nil, err
@@ -79,6 +80,8 @@ type certificateDiffer struct {
 	currentState, targetState *state.KongState
 
 	isKonnect bool
+
+	client *kong.Client
 }
 
 func (d *certificateDiffer) Deletes(handler func(crud.Event) error) error {
@@ -155,6 +158,14 @@ func (d *certificateDiffer) createUpdateCertificate(
 	}
 
 	if errors.Is(err, state.ErrNotFound) {
+		if certificate.ID != nil {
+			remoteCertificate, _ := d.client.Certificates.Get(context.TODO(), certificate.ID)
+
+			if remoteCertificate != nil {
+				return nil, fmt.Errorf("error: a certificate with ID %s already exists", *certificate.ID)
+			}
+		}
+
 		// certificate not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
