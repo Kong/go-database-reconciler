@@ -93,6 +93,8 @@ type licenseDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 var _ Differ = &licenseDiffer{}

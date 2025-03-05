@@ -71,6 +71,8 @@ type rbacRoleDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *rbacRoleDiffer) Deletes(handler func(crud.Event) error) error {
