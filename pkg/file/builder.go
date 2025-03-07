@@ -1143,10 +1143,9 @@ func (b *stateBuilder) routes() {
 			if utils.HasPathsWithRegex300AndAbove(r.Route) {
 				var unsupportedPaths []string
 				for _, p := range r.Route.Paths {
-					unsupportedPaths = append(unsupportedPaths,*p)
+					unsupportedPaths = append(unsupportedPaths, *p)
 				}
-				unsupportedRoutes = append(unsupportedRoutes, *r.Route.ID +"\n paths:"+strings.Join(unsupportedPaths,"\n       "))
-//				unsupportedRoutes = append(unsupportedRoutes, *r.Route.ID+"\n paths:"+strings.Join(*r.Route.Paths, "\n") *r.Route.Paths[0])
+				unsupportedRoutes = append(unsupportedRoutes, *r.Route.ID+"\n paths:"+strings.Join(unsupportedPaths, "\n       "))
 			}
 		}
 		if len(unsupportedRoutes) > 0 {
