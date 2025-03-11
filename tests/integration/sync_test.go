@@ -7863,3 +7863,74 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
+	setup(t)
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		targetStateFile  string
+		errorExpected    string
+	}{
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-final.yaml",
+			errorExpected:    "error: a certificate with ID 13c562a1-191c-4464-9b18-e5222b46035a already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/ca-certificate-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/ca-certificate-final.yaml",
+			errorExpected:    "error: a CA certificate with ID b824e7c0-d116-4c03-9e27-de05c5d30083 already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-final.yaml",
+			errorExpected:    "error: a consumer with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-group-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-group-final.yaml",
+			errorExpected:    "error: a consumer group with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/plugin-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/plugin-final.yaml",
+			errorExpected:    "error: a plugin with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/route-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/route-final.yaml",
+			errorExpected:    "error: a route with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/service-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/service-final.yaml",
+			errorExpected:    "error: a service with ID 58076db2-28b6-423b-ba39-a797193017f7 already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/sni-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/sni-final.yaml",
+			errorExpected:    "error: a SNI with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/upstream-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/upstream-final.yaml",
+			errorExpected:    "error: an upstream with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/vault-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/vault-final.yaml",
+			errorExpected:    "error: a vault with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = sync(tc.targetStateFile, "--select-tag", "after")
+			assert.ErrorContains(t, err, tc.errorExpected)
+		})
+	}
+}
