@@ -622,6 +622,9 @@ func GetAllPartials(ctx context.Context, client *kong.Client,
 
 	for {
 		s, nextopt, err := client.Partials.List(ctx, opt)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			return partials, nil
+		}
 		if err != nil {
 			return nil, err
 		}
