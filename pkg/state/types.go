@@ -1842,3 +1842,50 @@ func (d *DegraphqlRoute) EqualWithOpts(d2 *DegraphqlRoute, ignoreID bool) bool {
 
 	return reflect.DeepEqual(d1Copy, d2Copy)
 }
+
+// Partial represents a partial in Kong.
+// It adds some helper methods along with Meta to the original Partial object.
+type Partial struct {
+	kong.Partial `yaml:",inline"`
+	Meta
+}
+
+// Identifier returns the Partial name or ID.
+func (p *Partial) Identifier() string {
+	if p.Name != nil {
+		return *p.Name
+	}
+	return *p.ID
+}
+
+// Console returns an entity's identity in a human
+// readable string.
+func (p *Partial) Console() string {
+	return p.FriendlyName()
+}
+
+// Equal returns true if partials p and p2 are equal.
+func (p *Partial) Equal(p2 *Partial) bool {
+	return p.EqualWithOpts(p2, false, false)
+}
+
+// EqualWithOpts returns true if partials p and p2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+// If ignoreTS is set to true, timestamp fields will be ignored.
+func (p *Partial) EqualWithOpts(p2 *Partial, ignoreID, ignoreTS bool) bool {
+	p1Copy := p.Partial.DeepCopy()
+	p2Copy := p2.Partial.DeepCopy()
+
+	if ignoreID {
+		p1Copy.ID = nil
+		p2Copy.ID = nil
+	}
+	if ignoreTS {
+		p1Copy.CreatedAt = nil
+		p2Copy.CreatedAt = nil
+
+		p1Copy.UpdatedAt = nil
+		p2Copy.UpdatedAt = nil
+	}
+	return reflect.DeepEqual(p1Copy, p2Copy)
+}

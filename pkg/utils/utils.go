@@ -188,6 +188,16 @@ func GetRouteReference(r kong.Route) *kong.Route {
 	return route
 }
 
+// GetPartialReference returns a name+ID only copy of the input partial,
+// for use in references from other objects
+func GetPartialReference(p kong.Partial) *kong.Partial {
+	partial := &kong.Partial{ID: kong.String(*p.ID)}
+	if p.Name != nil {
+		partial.Name = kong.String(*p.Name)
+	}
+	return partial
+}
+
 // ParseKongVersion takes a version string from the Gateway and
 // turns it into a semver-compliant version to be used for
 // comparison across the code.
