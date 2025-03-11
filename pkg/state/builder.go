@@ -69,6 +69,18 @@ func ensureConsumerGroup(kongState *KongState, consumerGroupID string) (bool, *k
 	return true, utils.GetConsumerGroupReference(c.ConsumerGroup), nil
 }
 
+func ensurePartial(kongState *KongState, partialID string) (bool, *kong.Partial, error) {
+	p, err := kongState.Partials.Get(partialID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return false, nil, nil
+		}
+		return false, nil, fmt.Errorf("looking up partial %q: %w", partialID, err)
+
+	}
+	return true, utils.GetPartialReference(p.Partial), nil
+}
+
 func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 	for _, s := range raw.Services {
 		err := kongState.Services.Add(Service{Service: *s})
@@ -268,6 +280,13 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, p := range raw.Partials {
+		err := kongState.Partials.Add(Partial{Partial: *p})
+		if err != nil {
+			return fmt.Errorf("inserting partial into state: %w", err)
+		}
+	}
+
 	for _, p := range raw.Plugins {
 		if p.Service != nil && !utils.Empty(p.Service.ID) {
 			ok, s, err := ensureService(kongState, *p.Service.ID)
@@ -304,6 +323,24 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			if ok {
 				p.ConsumerGroup = cg
 			}
+		}
+		if p.Partials != nil {
+			var pluginPartials []*kong.PartialLink
+			for _, partial := range p.Partials {
+				if partial.Partial != nil && !utils.Empty(partial.Partial.ID) {
+					ok, pt, err := ensurePartial(kongState, *partial.Partial.ID)
+					if err != nil {
+						return err
+					}
+					if ok {
+						pluginPartials = append(pluginPartials, &kong.PartialLink{
+							Partial: pt,
+							Path:    partial.Path,
+						})
+					}
+				}
+			}
+			p.Partials = pluginPartials
 		}
 		err := kongState.Plugins.Add(Plugin{Plugin: *p})
 		if err != nil {

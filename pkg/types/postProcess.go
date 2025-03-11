@@ -528,3 +528,20 @@ func (crud *degraphqlRoutePostAction) Delete(_ context.Context, args ...crud.Arg
 func (crud *degraphqlRoutePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.DegraphqlRoutes.Update(*args[0].(*state.DegraphqlRoute))
 }
+
+type partialPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud partialPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.Partials.Add(*args[0].(*state.Partial))
+}
+
+func (crud partialPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	// TODO: add check for linked plugins prior to deletion
+	return nil, crud.currentState.Partials.Delete(*((args[0].(*state.Partial)).ID))
+}
+
+func (crud partialPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.Partials.Update(*args[0].(*state.Partial))
+}

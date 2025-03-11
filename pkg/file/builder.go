@@ -121,6 +121,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	if !b.skipCACerts {
 		b.caCertificates()
 	}
+	b.partials()
 	b.services()
 	b.routes()
 	b.upstreams()
@@ -180,6 +181,38 @@ func (b *stateBuilder) addConsumerGroupPlugins(
 		cgo.Plugins = append(cgo.Plugins, plugin)
 	}
 	return nil
+}
+
+func (b *stateBuilder) partials() {
+	if b.err != nil {
+		return
+	}
+
+	for _, p := range b.targetContent.Partials {
+		partial, err := b.currentState.Partials.Get(*p.Name)
+		if utils.Empty(p.ID) {
+			if errors.Is(err, state.ErrNotFound) {
+				p.ID = uuid()
+			} else if err != nil {
+				b.err = err
+				return
+			} else {
+				p.ID = kong.String(*partial.ID)
+			}
+		}
+		utils.MustMergeTags(&p.Partial, b.selectTags)
+		if partial != nil {
+			p.Partial.CreatedAt = partial.CreatedAt
+		}
+
+		err = b.intermediate.Partials.AddIgnoringDuplicates(state.Partial{Partial: p.Partial})
+		if err != nil {
+			b.err = err
+			return
+		}
+
+		b.rawState.Partials = append(b.rawState.Partials, &p.Partial)
+	}
 }
 
 func (b *stateBuilder) consumerGroups() {
@@ -1419,6 +1452,41 @@ func (b *stateBuilder) plugins() {
 				return
 			}
 			p.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
+		}
+
+		if p.Partials != nil {
+			var pluginPartials []*kong.PartialLink
+			for _, partial := range p.Partials {
+				if partial.Partial != nil {
+					var findID *string
+					if !utils.Empty(partial.Partial.ID) {
+						findID = partial.Partial.ID
+					} else if !utils.Empty(partial.Partial.Name) {
+						findID = partial.Partial.Name
+					}
+
+					if utils.Empty(findID) {
+						b.err = fmt.Errorf("partial %v for plugin %v: partial ID or name is required",
+							partial.Partial.FriendlyName(), *p.Name)
+						return
+					}
+
+					pt, err := b.intermediate.Partials.Get(*findID)
+					if errors.Is(err, state.ErrNotFound) {
+						b.err = fmt.Errorf("partial %v for plugin %v: %w",
+							partial.Partial.FriendlyName(), *p.Name, err)
+						return
+					} else if err != nil {
+						b.err = err
+						return
+					}
+					pluginPartials = append(pluginPartials, &kong.PartialLink{
+						Partial: utils.GetPartialReference(pt.Partial),
+						Path:    partial.Path,
+					})
+				}
+			}
+			p.Partials = pluginPartials
 		}
 
 		if err := b.validatePlugin(p); err != nil {
