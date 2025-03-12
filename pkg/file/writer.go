@@ -139,7 +139,7 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, err
 	}
 
-	err = populatePartials(kongState, file, config)
+	err = populatePartials(kongState, file)
 	if err != nil {
 		return nil, err
 	}
@@ -901,9 +901,7 @@ func populateDegraphqlRoutes(kongState *state.KongState, file *Content) error {
 	return nil
 }
 
-func populatePartials(kongState *state.KongState, file *Content,
-	config WriteConfig,
-) error {
+func populatePartials(kongState *state.KongState, file *Content) error {
 	partials, err := kongState.Partials.GetAll()
 	if err != nil {
 		return err
