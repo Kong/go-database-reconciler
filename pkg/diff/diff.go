@@ -632,9 +632,12 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if plugin.Partials != nil {
 				for _, p := range plugin.Partials {
 					if p.Partial != nil && p.Partial.ID != nil {
-						partial, err := sc.kongClient.Partials.Get(context.TODO(), p.Partial.ID)
+						partial, err := sc.kongClient.Partials.Get(ctx, p.Partial.ID)
+						if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+							continue
+						}
 						if err != nil {
-							return nil, fmt.Errorf("failed getting linked partial: %w", err)
+							return nil, fmt.Errorf("failed getting linked partial for diffing: %w", err)
 						}
 						linkedPartialConfig = append(linkedPartialConfig, partial)
 					}
