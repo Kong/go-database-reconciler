@@ -189,7 +189,13 @@ func (b *stateBuilder) partials() {
 	}
 
 	for _, p := range b.targetContent.Partials {
-		partial, err := b.currentState.Partials.Get(*p.Name)
+		var (
+			partial *state.Partial
+			err     error
+		)
+		if !utils.Empty(p.Name) {
+			partial, err = b.currentState.Partials.Get(*p.Name)
+		}
 		if utils.Empty(p.ID) {
 			if errors.Is(err, state.ErrNotFound) {
 				p.ID = uuid()
@@ -1466,8 +1472,7 @@ func (b *stateBuilder) plugins() {
 					}
 
 					if utils.Empty(findID) {
-						b.err = fmt.Errorf("partial %v for plugin %v: partial ID or name is required",
-							partial.Partial.FriendlyName(), *p.Name)
+						b.err = fmt.Errorf("partial for plugin %v: partial ID or name is required", *p.Name)
 						return
 					}
 
