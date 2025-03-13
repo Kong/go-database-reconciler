@@ -25,10 +25,11 @@ const (
 )
 
 var (
-	kong130Version = semver.MustParse("1.3.0")
-	kong340Version = semver.MustParse("3.4.0")
-	kong360Version = semver.MustParse("3.6.0")
-	kong370Version = semver.MustParse("3.7.0")
+	kong130Version  = semver.MustParse("1.3.0")
+	kong340Version  = semver.MustParse("3.4.0")
+	kong360Version  = semver.MustParse("3.6.0")
+	kong370Version  = semver.MustParse("3.7.0")
+	kong3100Version = semver.MustParse("3.10.0")
 )
 
 var kongDefaults = KongDefaults{
@@ -408,6 +409,62 @@ func existingDegraphqlRouteState(t *testing.T) *state.KongState {
 				Query:   kong.String("query{ example { foo } }"),
 			},
 		})
+	return s
+}
+
+func existingPartialState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.Partials.Add(
+		state.Partial{
+			Partial: kong.Partial{
+				ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Name: kong.String("existing-partial"),
+				Type: kong.String("foo"),
+				Config: kong.Configuration{
+					"key1": "value1",
+					"key2": []any{"a", "b", "c"},
+					"key3": map[string]interface{}{
+						"k1": "v1",
+						"k2": "v2",
+						"k3": []any{"a1", "b1"},
+					},
+				},
+			},
+		})
+
+	return s
+}
+
+func existingConsumerState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.Consumers.Add(state.Consumer{
+		Consumer: kong.Consumer{
+			ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Username: kong.String("foo"),
+		},
+	})
+
+	return s
+}
+
+func existingConsumerGroupState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.ConsumerGroups.Add(state.ConsumerGroup{
+		ConsumerGroup: kong.ConsumerGroup{
+			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: kong.String("foo"),
+		},
+	})
+
 	return s
 }
 
@@ -4483,6 +4540,506 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 			}
 
 			assert.Equal(tt.want, b.rawState)
+		})
+	}
+}
+
+func Test_stateBuilder_partials(t *testing.T) {
+	assert := assert.New(t)
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "creates new partial when not found in current state",
+			fields: fields{
+				targetContent: &Content{
+					Partials: []FPartial{
+						{
+							Partial: kong.Partial{
+								Name: kong.String("my-foo-partial"),
+								Type: kong.String("foo"),
+								Config: kong.Configuration{
+									"key1": "value1",
+									"key2": []any{"a", "b", "c"},
+									"key3": map[string]interface{}{
+										"k1": "v1",
+										"k2": "v2",
+										"k3": []any{"a1", "b1"},
+									},
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Partials: []*kong.Partial{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("my-foo-partial"),
+						Type: kong.String("foo"),
+						Config: kong.Configuration{
+							"key1": "value1",
+							"key2": []any{"a", "b", "c"},
+							"key3": map[string]interface{}{
+								"k1": "v1",
+								"k2": "v2",
+								"k3": []any{"a1", "b1"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "uses existing partial ID when found in current state",
+			fields: fields{
+				targetContent: &Content{
+					Partials: []FPartial{
+						{
+							Partial: kong.Partial{
+								Name: kong.String("existing-partial"),
+								Type: kong.String("foo"),
+								Config: kong.Configuration{
+									"key1": "value1",
+									"key2": []any{"a", "b", "c"},
+									"key3": map[string]interface{}{
+										"k1": "v1",
+										"k2": "v2",
+										"k3": []any{"a1", "b1"},
+									},
+								},
+							},
+						},
+					},
+				},
+				currentState: existingPartialState(t),
+			},
+			want: &utils.KongRawState{
+				Partials: []*kong.Partial{
+					{
+						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name: kong.String("existing-partial"),
+						Type: kong.String("foo"),
+						Config: kong.Configuration{
+							"key1": "value1",
+							"key2": []any{"a", "b", "c"},
+							"key3": map[string]interface{}{
+								"k1": "v1",
+								"k2": "v2",
+								"k3": []any{"a1", "b1"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "maintains provided ID if already set",
+			fields: fields{
+				targetContent: &Content{
+					Partials: []FPartial{
+						{
+							Partial: kong.Partial{
+								ID:   kong.String("provided-id"),
+								Name: kong.String("test-partial"),
+								Type: kong.String("foo"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Partials: []*kong.Partial{
+					{
+						ID:   kong.String("provided-id"),
+						Name: kong.String("test-partial"),
+						Type: kong.String("foo"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles multiple partials if provided",
+			fields: fields{
+				targetContent: &Content{
+					Partials: []FPartial{
+						{
+							Partial: kong.Partial{
+								Name: kong.String("foo-partial"),
+								Type: kong.String("foo"),
+							},
+						},
+						{
+							Partial: kong.Partial{
+								Name: kong.String("bar-partial"),
+								Type: kong.String("bar"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Partials: []*kong.Partial{
+					{
+						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: kong.String("foo-partial"),
+						Type: kong.String("foo"),
+					},
+					{
+						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: kong.String("bar-partial"),
+						Type: kong.String("bar"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty partial entities",
+			fields: fields{
+				targetContent: &Content{
+					Partials: []FPartial{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Partials: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(_ *testing.T) {
+			ctx := context.Background()
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+				kongVersion:   kong3100Version,
+			}
+			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+			b.defaulter = d
+			b.build()
+
+			assert.Equal(tt.want, b.rawState)
+		})
+	}
+}
+
+func Test_stateBuilder_plugins(t *testing.T) {
+	assert := assert.New(t)
+	testRand = rand.New(rand.NewSource(42))
+
+	type fields struct {
+		targetContent *Content
+		intermediate  *state.KongState
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    []FPlugin
+		wantErr string
+	}{
+		{
+			name: "processes plugin with consumer reference",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("key-auth"),
+								Consumer: &kong.Consumer{
+									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingConsumerState(t),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: kong.String("key-auth"),
+						Consumer: &kong.Consumer{
+							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "processes plugin with service reference",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("rate-limiting"),
+								Service: &kong.Service{
+									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingServiceState(),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: kong.String("rate-limiting"),
+						Service: &kong.Service{
+							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "processes plugin with route reference",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("cors"),
+								Route: &kong.Route{
+									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingRouteState(),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: kong.String("cors"),
+						Route: &kong.Route{
+							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "processes plugin with consumer group reference",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("rate-limiting"),
+								ConsumerGroup: &kong.ConsumerGroup{
+									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingConsumerGroupState(t),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: kong.String("rate-limiting"),
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "processes plugin with partials",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("custom-plugin"),
+								Partials: []*kong.PartialLink{
+									{
+										Partial: &kong.Partial{
+											ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+										},
+										Path: kong.String("config.custom_path"),
+									},
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingPartialState(t),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: kong.String("custom-plugin"),
+						Partials: []*kong.PartialLink{
+							{
+								Partial: &kong.Partial{
+									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								},
+								Path: kong.String("config.custom_path"),
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "error when consumer not found",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("key-auth"),
+								Consumer: &kong.Consumer{
+									ID: kong.String("non-existent"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "consumer non-existent for plugin key-auth: entity not found",
+		},
+		{
+			name: "error when service not found",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("key-auth"),
+								Service: &kong.Service{
+									ID: kong.String("non-existent"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "service non-existent for plugin key-auth: entity not found",
+		},
+		{
+			name: "error when route not found",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("key-auth"),
+								Route: &kong.Route{
+									ID: kong.String("non-existent"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "route non-existent for plugin key-auth: entity not found",
+		},
+		{
+			name: "error when consumer-group not found",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("key-auth"),
+								ConsumerGroup: &kong.ConsumerGroup{
+									ID: kong.String("non-existent"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "consumer-group non-existent for plugin key-auth: entity not found",
+		},
+		{
+			name: "error when linked partial is missing ID and name",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("custom-plugin"),
+								Partials: []*kong.PartialLink{
+									{
+										Partial: &kong.Partial{},
+									},
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "partial for plugin custom-plugin: partial ID or name is required",
+		},
+		{
+			name: "error when partial is not found",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: kong.String("custom-plugin"),
+								Partials: []*kong.PartialLink{
+									{
+										Partial: &kong.Partial{
+											ID: kong.String("non-existent"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "partial non-existent for plugin custom-plugin: entity not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(_ *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  emptyState(),
+				intermediate:  tt.fields.intermediate,
+				rawState:      &utils.KongRawState{},
+			}
+
+			b.plugins()
+
+			if tt.wantErr != "" {
+				assert.NotNil(b.err)
+				assert.Contains(b.err.Error(), tt.wantErr)
+				return
+			}
+
+			assert.Nil(b.err)
+			assert.Equal(tt.want, b.targetContent.Plugins)
 		})
 	}
 }
