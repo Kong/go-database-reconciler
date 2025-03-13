@@ -21,9 +21,10 @@ var partialTableSchema = &memdb.TableSchema{
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
 		"name": {
-			Name:    "name",
-			Unique:  true,
-			Indexer: &memdb.StringFieldIndex{Field: "Name"},
+			Name:         "name",
+			Unique:       true,
+			Indexer:      &memdb.StringFieldIndex{Field: "Name"},
+			AllowMissing: true,
 		},
 		all: allIndex,
 	},

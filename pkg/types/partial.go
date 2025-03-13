@@ -7,6 +7,7 @@ import (
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
 
@@ -140,7 +141,15 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 	error,
 ) {
 	partialCopy := &state.Partial{Partial: *partial.DeepCopy()}
-	currentPartial, err := d.currentState.Partials.Get(*partial.Name)
+
+	var searchIDOrName string
+	if utils.Empty(partial.Name) {
+		searchIDOrName = *partial.ID
+	} else {
+		searchIDOrName = *partial.Name
+	}
+
+	currentPartial, err := d.currentState.Partials.Get(searchIDOrName)
 
 	if errors.Is(err, state.ErrNotFound) {
 		// partial not present, create it
