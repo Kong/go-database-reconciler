@@ -511,6 +511,7 @@ type foo struct {
 	Ordering      *kong.PluginOrdering `json:"ordering,omitempty" yaml:"ordering,omitempty"`
 	Protocols     []*string            `json:"protocols,omitempty" yaml:"protocols,omitempty"`
 	Tags          []*string            `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Partials      []*kong.PartialLink  `json:"partials,omitempty" yaml:"partials,omitempty"`
 
 	ConfigSource *string `json:"_config,omitempty" yaml:"_config,omitempty"`
 }
@@ -558,6 +559,9 @@ func copyToFoo(p FPlugin) foo {
 	}
 	if p.Plugin.ConsumerGroup != nil {
 		f.ConsumerGroup = *p.Plugin.ConsumerGroup.ID
+	}
+	if p.Partials != nil {
+		f.Partials = p.Partials
 	}
 	return f
 }
@@ -612,6 +616,9 @@ func copyFromFoo(f foo, p *FPlugin) {
 		p.ConsumerGroup = &kong.ConsumerGroup{
 			ID: kong.String(f.ConsumerGroup),
 		}
+	}
+	if f.Partials != nil {
+		p.Partials = f.Partials
 	}
 }
 
@@ -1079,6 +1086,22 @@ func (d DegraphqlRoute) sortKey() string {
 	return ""
 }
 
+// +k8s:deepcopy-gen=true
+type FPartial struct {
+	kong.Partial `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (c FPartial) sortKey() string {
+	if c.Name != nil {
+		return *c.Name
+	}
+	if c.ID != nil {
+		return *c.ID
+	}
+	return ""
+}
+
 //go:generate go run ./codegen/main.go
 
 // Content represents a serialized Kong state.
@@ -1111,4 +1134,6 @@ type Content struct {
 	Licenses []FLicense `json:"licenses,omitempty" yaml:"licenses,omitempty"`
 
 	CustomEntities []FCustomEntity `json:"custom_entities,omitempty" yaml:"custom_entities,omitempty"`
+
+	Partials []FPartial `json:"partials,omitempty" yaml:"partials,omitempty"`
 }

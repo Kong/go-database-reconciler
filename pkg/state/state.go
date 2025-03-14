@@ -29,6 +29,7 @@ type KongState struct {
 	ConsumerGroups         *ConsumerGroupsCollection
 	ConsumerGroupConsumers *ConsumerGroupConsumersCollection
 	ConsumerGroupPlugins   *ConsumerGroupPluginsCollection
+	Partials               *PartialsCollection
 
 	KeyAuths                *KeyAuthsCollection
 	HMACAuths               *HMACAuthsCollection
@@ -77,6 +78,7 @@ func NewKongState() (*KongState, error) {
 			rbacEndpointPermissionTableName: rbacEndpointPermissionTableSchema,
 			vaultTableName:                  vaultTableSchema,
 			licenseTableName:                licenseTableSchema,
+			partialTableName:                partialTableSchema,
 
 			degraphqlRouteTemp.TableName(): degraphqlRouteTemp.Schema(),
 
@@ -122,6 +124,7 @@ func NewKongState() (*KongState, error) {
 	state.RBACEndpointPermissions = (*RBACEndpointPermissionsCollection)(&state.common)
 	state.Vaults = (*VaultsCollection)(&state.common)
 	state.Licenses = (*LicensesCollection)(&state.common)
+	state.Partials = (*PartialsCollection)(&state.common)
 
 	state.DegraphqlRoutes = newDegraphqlRoutesCollection(state.common)
 

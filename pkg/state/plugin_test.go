@@ -112,6 +112,26 @@ func TestPluginsCollection_Add(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "inserts with a partial linked",
+			args: args{
+				plugin: Plugin{
+					Plugin: kong.Plugin{
+						ID:   kong.String("id"),
+						Name: kong.String("rate-limiting"),
+						Partials: []*kong.PartialLink{
+							{
+								Partial: &kong.Partial{
+									ID: kong.String("partial-id"),
+								},
+								Path: kong.String("config_path"),
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	k := pluginsCollection()
 	plugin1 := Plugin{
@@ -242,6 +262,46 @@ func TestPluginsCollection_Update(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "updates linked partial",
+			args: args{
+				plugin: Plugin{
+					Plugin: kong.Plugin{
+						ID:   kong.String("id5"),
+						Name: kong.String("rate-limiting"),
+						Partials: []*kong.PartialLink{
+							{
+								Partial: &kong.Partial{
+									ID: kong.String("partial-id-2"),
+								},
+								Path: kong.String("config_path"),
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "updates linked partial path",
+			args: args{
+				plugin: Plugin{
+					Plugin: kong.Plugin{
+						ID:   kong.String("id5"),
+						Name: kong.String("rate-limiting"),
+						Partials: []*kong.PartialLink{
+							{
+								Partial: &kong.Partial{
+									ID: kong.String("partial-id-2"),
+								},
+								Path: kong.String("config_path_new"),
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	k := pluginsCollection()
 	plugin1 := Plugin{
@@ -286,10 +346,25 @@ func TestPluginsCollection_Update(t *testing.T) {
 			},
 		},
 	}
+	plugin5 := Plugin{
+		Plugin: kong.Plugin{
+			ID:   kong.String("id5"),
+			Name: kong.String("rate-limiting"),
+			Partials: []*kong.PartialLink{
+				{
+					Partial: &kong.Partial{
+						ID: kong.String("partial-id-1"),
+					},
+					Path: kong.String("config_path"),
+				},
+			},
+		},
+	}
 	k.Add(plugin1)
 	k.Add(plugin2)
 	k.Add(plugin3)
 	k.Add(plugin4)
+	k.Add(plugin5)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

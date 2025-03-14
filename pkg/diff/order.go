@@ -8,10 +8,10 @@ import (
 /*
                                        Root
                                          |
-         +----------+----------+---------+------------+---------------+
-         |          |          |         |            |               |
-         v          v          v         v            v               v
-L1    Service    RbacRole  Upstream  Certificate  CACertificate  Consumer ---+
+         +----------+----------+---------+------------+---------------+--------------+
+         |          |          |         |            |               |              |
+         v          v          v         v            v               v              v
+L1    Service    RbacRole  Upstream  Certificate  CACertificate  Consumer ---+--- Partial
       Package        |         |        |     |      |                |      |
         |            v         v        v     |      v                v      |
 L2      |        RBACRole   Target     SNI    +-> Service       Credentials  |
@@ -42,6 +42,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.Consumer,
 		types.Vault,
 		types.License,
+		types.Partial,
 	},
 	{
 		types.ConsumerGroup,

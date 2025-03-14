@@ -2945,3 +2945,35 @@ func Test_Diff_NoDeletes_3x(t *testing.T) {
 		})
 	}
 }
+
+func Test_Diff_Partials(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.10.0")
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	ctx := context.Background()
+	dumpConfig := deckDump.Config{}
+
+	mustResetKongState(ctx, t, client, dumpConfig)
+	currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+	require.NoError(t, err)
+
+	targetState := stateFromFile(ctx, t, "testdata/sync/038-partials/kong.yaml", client, dumpConfig)
+	syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+		CurrentState: currentState,
+		TargetState:  targetState,
+
+		KongClient: client,
+	})
+	require.NoError(t, err)
+
+	stats, errs, changes := syncer.Solve(ctx, 1, true, true)
+	require.Len(t, errs, 0, "Should have no errors in diffing")
+	logEntityChanges(t, stats, changes)
+
+	assert.Equal(t, int32(2), stats.CreateOps.Count())
+	assert.Equal(t, int32(0), stats.DeleteOps.Count())
+	assert.Equal(t, int32(0), stats.UpdateOps.Count())
+}
