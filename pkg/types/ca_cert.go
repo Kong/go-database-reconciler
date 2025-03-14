@@ -71,6 +71,8 @@ type caCertificateDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *caCertificateDiffer) Deletes(handler func(crud.Event) error) error {
@@ -140,6 +142,14 @@ func (d *caCertificateDiffer) createUpdateCACertificate(
 	currentCACert, err := d.currentState.CACertificates.Get(*caCert.ID)
 
 	if errors.Is(err, state.ErrNotFound) {
+		if caCert.ID != nil {
+			existingCertificate, _ := d.client.CACertificates.Get(context.TODO(), caCert.ID)
+
+			if existingCertificate != nil {
+				return nil, fmt.Errorf("error: a CA certificate with ID %s already exists", *caCert.ID)
+			}
+		}
+
 		// caCertificate not present, create it
 		return &crud.Event{
 			Op:   crud.Create,

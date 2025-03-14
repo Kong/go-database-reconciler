@@ -70,6 +70,8 @@ type upstreamDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *upstreamDiffer) Deletes(handler func(crud.Event) error) error {
@@ -138,6 +140,14 @@ func (d *upstreamDiffer) createUpdateUpstream(upstream *state.Upstream) (*crud.E
 	currentUpstream, err := d.currentState.Upstreams.Get(*upstream.Name)
 
 	if errors.Is(err, state.ErrNotFound) {
+		if upstream.ID != nil {
+			existingUpstream, _ := d.client.Upstreams.Get(context.TODO(), upstream.ID)
+
+			if existingUpstream != nil {
+				return nil, fmt.Errorf("error: an upstream with ID %s already exists", *upstream.ID)
+			}
+		}
+
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: "upstream",

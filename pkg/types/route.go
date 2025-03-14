@@ -38,6 +38,7 @@ func routeFromStruct(arg crud.Event) *state.Route {
 func (s *routeCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	route := routeFromStruct(event)
+
 	createdRoute, err := s.client.Routes.Create(ctx, &route.Route)
 	if err != nil {
 		return nil, err
@@ -78,6 +79,8 @@ type routeDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *routeDiffer) Deletes(handler func(crud.Event) error) error {
@@ -142,8 +145,15 @@ func (d *routeDiffer) createUpdateRoute(route *state.Route) (*crud.Event, error)
 	route = &state.Route{Route: *route.DeepCopy()}
 	currentRoute, err := d.currentState.Routes.Get(*route.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		// route not present, create it
+		if route.ID != nil {
+			existingRoute, _ := d.client.Routes.Get(context.TODO(), route.ID)
 
+			if existingRoute != nil {
+				return nil, fmt.Errorf("error: a route with ID %s already exists", *route.ID)
+			}
+		}
+
+		// route not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,
