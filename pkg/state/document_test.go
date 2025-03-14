@@ -7,6 +7,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func documentCollection() *DocumentsCollection {
@@ -329,17 +330,17 @@ func TestDocumentDeleteByParent(t *testing.T) {
 		ID: kong.String("package-id1"),
 	}
 	err := collection.Add(document)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.GetByParent(document.Parent, "my-document")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 
 	err = collection.DeleteByParent(document.Parent, *re.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.DeleteByParent(document.Parent, *re.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestDocumentGetAll(t *testing.T) {
@@ -353,7 +354,7 @@ func TestDocumentGetAll(t *testing.T) {
 		ID: kong.String("id1"),
 	}
 	err := collection.Add(d1)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var d2 Document
 	d2.Path = kong.String("my-d2")
@@ -362,12 +363,12 @@ func TestDocumentGetAll(t *testing.T) {
 		ID: kong.String("id1"),
 	}
 	err = collection.Add(d2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	documents, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(documents))
+	require.NoError(t, err)
+	assert.Len(documents, 2)
 }
 
 func TestDocumentGetAllByParent(t *testing.T) {
@@ -424,14 +425,14 @@ func TestDocumentGetAllByParent(t *testing.T) {
 
 	for _, document := range documents {
 		err := collection.Add(*document)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 
 	documents, err := collection.GetAllByParent(&konnect.ServicePackage{ID: kong.String("id1")})
-	assert.Nil(err)
-	assert.Equal(2, len(documents))
+	require.NoError(t, err)
+	assert.Len(documents, 2)
 
 	documents, err = collection.GetAllByParent(&konnect.ServicePackage{ID: kong.String("id2")})
-	assert.Nil(err)
-	assert.Equal(3, len(documents))
+	require.NoError(t, err)
+	assert.Len(documents, 3)
 }

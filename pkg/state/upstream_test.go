@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func upstreamsCollection() *UpstreamsCollection {
@@ -12,31 +13,30 @@ func upstreamsCollection() *UpstreamsCollection {
 }
 
 func TestUpstreamInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := upstreamsCollection()
 
 	// name is required
 	var upstream Upstream
 	upstream.ID = kong.String("first")
 	err := collection.Add(upstream)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	// happy path
 	upstream.Name = kong.String("my-upstream")
-	assert.Nil(collection.Add(upstream))
+	require.NoError(t, collection.Add(upstream))
 
 	// ID is required
 	var upstream2 Upstream
 	upstream2.Name = kong.String("my-upstream")
 	err = collection.Add(upstream2)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	// re-insert
 	upstream2.ID = kong.String("first")
-	assert.NotNil(collection.Add(upstream2))
+	require.Error(t, collection.Add(upstream2))
 
 	upstream2.ID = kong.String("same-name-but-different-id")
-	assert.NotNil(collection.Add(upstream2))
+	require.Error(t, collection.Add(upstream2))
 }
 
 func TestUpstreamGetUpdate(t *testing.T) {
@@ -44,34 +44,34 @@ func TestUpstreamGetUpdate(t *testing.T) {
 	collection := upstreamsCollection()
 
 	se, err := collection.Get("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(se)
 
 	se, err = collection.Get("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(se)
 
 	var upstream Upstream
 	upstream.Name = kong.String("my-upstream")
 	upstream.ID = kong.String("first")
 	err = collection.Add(upstream)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err = collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 
 	se.Name = kong.String("my-updated-upstream")
 	err = collection.Update(*se)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err = collection.Get("my-updated-upstream")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 
 	se.ID = nil
 	err = collection.Update(*se)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	se, err = collection.Get("my-upstream")
 	assert.Equal(ErrNotFound, err)
@@ -89,15 +89,15 @@ func TestUpstreamGetMemoryReference(t *testing.T) {
 	upstream.Name = kong.String("my-upstream")
 	upstream.ID = kong.String("first")
 	err := collection.Add(upstream)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	se.Slots = kong.Int(1)
 
 	se, err = collection.Get("my-upstream")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	assert.Nil(se.Slots)
 }
@@ -130,23 +130,23 @@ func TestUpstreamDelete(t *testing.T) {
 	upstream.Name = kong.String("my-upstream")
 	upstream.ID = kong.String("first")
 	err := collection.Add(upstream)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err := collection.Get("my-upstream")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 
 	err = collection.Delete(*se.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	_, err = collection.Get("my-upstream")
 	assert.Equal(ErrNotFound, err)
 
 	err = collection.Delete(*se.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestUpstreamGetAll(t *testing.T) {
@@ -157,16 +157,16 @@ func TestUpstreamGetAll(t *testing.T) {
 	upstream.Name = kong.String("my-upstream1")
 	upstream.ID = kong.String("first")
 	err := collection.Add(upstream)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var upstream2 Upstream
 	upstream2.Name = kong.String("my-upstream2")
 	upstream2.ID = kong.String("second")
 	err = collection.Add(upstream2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	upstreams, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(upstreams))
+	require.NoError(t, err)
+	assert.Len(upstreams, 2)
 }

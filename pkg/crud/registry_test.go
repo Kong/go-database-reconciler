@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type testActionFixture struct {
@@ -42,18 +43,17 @@ func (t testActionFixture) Update(_ context.Context, input ...Arg) (Arg, error) 
 }
 
 func TestRegistryRegister(t *testing.T) {
-	assert := assert.New(t)
 	var r Registry
 	var a Actions = newTestActionFixture("yolo")
 
 	err := r.Register("", nil)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = r.Register("foo", a)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = r.Register("foo", a)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestRegistryMustRegister(t *testing.T) {
@@ -80,18 +80,18 @@ func TestRegistryGet(t *testing.T) {
 	var a Actions = newTestActionFixture("foo")
 
 	err := r.Register("foo", a)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	a, err = r.Get("foo")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(a)
 
 	a, err = r.Get("bar")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(a)
 
 	a, err = r.Get("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(a)
 }
 
@@ -101,10 +101,10 @@ func TestRegistryCreate(t *testing.T) {
 	var a Actions = newTestActionFixture("foo")
 
 	err := r.Register("foo", a)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := r.Create(context.Background(), "foo", "yolo")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok := res.(string)
 	assert.True(ok)
@@ -112,18 +112,18 @@ func TestRegistryCreate(t *testing.T) {
 
 	// make sure it takes multiple arguments
 	res, err = r.Create(context.Background(), "foo", "yolo", "always")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok = res.(string)
 	assert.True(ok)
 	assert.Equal("foo create yolo always", result)
 
 	res, err = r.Create(context.Background(), "foo", 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = r.Create(context.Background(), "bar", 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -133,10 +133,10 @@ func TestRegistryUpdate(t *testing.T) {
 	var a Actions = newTestActionFixture("foo")
 
 	err := r.Register("foo", a)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := r.Update(context.Background(), "foo", "yolo")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok := res.(string)
 	assert.True(ok)
@@ -144,18 +144,18 @@ func TestRegistryUpdate(t *testing.T) {
 
 	// make sure it takes multiple arguments
 	res, err = r.Update(context.Background(), "foo", "yolo", "always")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok = res.(string)
 	assert.True(ok)
 	assert.Equal("foo update yolo always", result)
 
 	res, err = r.Update(context.Background(), "foo", 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = r.Update(context.Background(), "bar", 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -165,10 +165,10 @@ func TestRegistryDelete(t *testing.T) {
 	var a Actions = newTestActionFixture("foo")
 
 	err := r.Register("foo", a)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := r.Delete(context.Background(), "foo", "yolo")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok := res.(string)
 	assert.True(ok)
@@ -176,18 +176,18 @@ func TestRegistryDelete(t *testing.T) {
 
 	// make sure it takes multiple arguments
 	res, err = r.Delete(context.Background(), "foo", "yolo", "always")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok = res.(string)
 	assert.True(ok)
 	assert.Equal("foo delete yolo always", result)
 
 	res, err = r.Delete(context.Background(), "foo", 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = r.Delete(context.Background(), "bar", 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -197,10 +197,10 @@ func TestRegistryDo(t *testing.T) {
 	var a Actions = newTestActionFixture("foo")
 
 	err := r.Register("foo", a)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := r.Do(context.Background(), "foo", Create, "yolo")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok := res.(string)
 	assert.True(ok)
@@ -208,21 +208,21 @@ func TestRegistryDo(t *testing.T) {
 
 	// make sure it takes multiple arguments
 	res, err = r.Do(context.Background(), "foo", Update, "yolo", "always")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	result, ok = res.(string)
 	assert.True(ok)
 	assert.Equal("foo update yolo always", result)
 
 	res, err = r.Do(context.Background(), "foo", Delete, 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = r.Do(context.Background(), "foo", Op{"unknown-op"}, 42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = r.Do(context.Background(), "bar", Create, "yolo")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }

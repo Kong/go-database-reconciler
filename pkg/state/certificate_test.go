@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func certsCollection() *CertificatesCollection {
@@ -12,24 +13,23 @@ func certsCollection() *CertificatesCollection {
 }
 
 func TestCertificateInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := certsCollection()
 
 	var certificate Certificate
-	assert.NotNil(collection.Add(certificate))
+	require.Error(t, collection.Add(certificate))
 
 	certificate.ID = kong.String("first")
-	assert.NotNil(collection.Add(certificate))
+	require.Error(t, collection.Add(certificate))
 
 	certificate.Key = kong.String("firstKey")
-	assert.NotNil(collection.Add(certificate))
+	require.Error(t, collection.Add(certificate))
 
 	certificate.Cert = kong.String("firstCert")
 	err := collection.Add(certificate)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	// re-insert
-	assert.NotNil(collection.Add(certificate))
+	require.Error(t, collection.Add(certificate))
 }
 
 func TestCertificateGetUpdate(t *testing.T) {
@@ -41,35 +41,35 @@ func TestCertificateGetUpdate(t *testing.T) {
 	certificate.Key = kong.String("firstKey")
 	certificate.ID = kong.String("first")
 	err := collection.Add(certificate)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err := collection.GetByCertKey("firstCert", "firstKey")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	se.ID = nil
-	assert.NotNil(collection.Update(*se))
+	require.Error(t, collection.Update(*se))
 
 	se.ID = kong.String("first")
 	se.Key = nil
 	se.Cert = kong.String("firstCert-updated")
 	err = collection.Update(*se)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	se.Key = kong.String("firstKey-updated")
 	err = collection.Update(*se)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err = collection.Get("")
 	assert.Nil(se)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	se, err = collection.GetByCertKey("firstCert-updated", "firstKey-updated")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	assert.Equal("firstCert-updated", *se.Cert)
 
 	se, err = collection.GetByCertKey("", "")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(se)
 
 	se, err = collection.GetByCertKey("not-present", "firstsdfsdfKey")
@@ -89,15 +89,15 @@ func TestCertificateGetMemoryReference(t *testing.T) {
 	cert.Key = kong.String("my-key")
 	cert.ID = kong.String("first")
 	err := collection.Add(cert)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	c, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(c)
 	c.Cert = kong.String("my-new-cert")
 
 	c, err = collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(c)
 	assert.Equal("my-cert", *c.Cert)
 }
@@ -111,7 +111,7 @@ func TestCertificatesInvalidType(t *testing.T) {
 	upstream.ID = kong.String("first")
 	txn := collection.db.Txn(true)
 	err := txn.Insert(certificateTableName, &upstream)
-	assert.NotNil(err)
+	require.Error(t, err)
 	txn.Abort()
 
 	type badCertificate struct {
@@ -129,7 +129,7 @@ func TestCertificatesInvalidType(t *testing.T) {
 
 	txn = collection.db.Txn(true)
 	err = txn.Insert(certificateTableName, &certificate)
-	assert.Nil(err)
+	require.NoError(t, err)
 	txn.Commit()
 
 	assert.Panics(func() {
@@ -153,45 +153,45 @@ func TestCertificateDelete(t *testing.T) {
 	certificate.Cert = kong.String("firstCert")
 	certificate.Key = kong.String("firstKey")
 	err := collection.Add(certificate)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	assert.Equal("firstCert", *se.Cert)
 
 	err = collection.Delete(*se.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete(*se.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	certificate.ID = kong.String("first")
 	certificate.Cert = kong.String("firstCert")
 	certificate.Key = kong.String("firstKey")
 	err = collection.Add(certificate)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err = collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	assert.Equal("firstCert", *se.Cert)
 
-	assert.NotNil(collection.DeleteByCertKey("", ""))
+	require.Error(t, collection.DeleteByCertKey("", ""))
 
-	assert.NotNil(collection.DeleteByCertKey("foo", "bar"))
+	require.Error(t, collection.DeleteByCertKey("foo", "bar"))
 
 	err = collection.DeleteByCertKey(*se.Cert, *se.Key)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete(*se.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	se, err = collection.Get("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(se)
 }
 
@@ -204,17 +204,17 @@ func TestCertificateGetAll(t *testing.T) {
 	certificate.Cert = kong.String("firstCert")
 	certificate.Key = kong.String("firstKey")
 	err := collection.Add(certificate)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var certificate2 Certificate
 	certificate2.ID = kong.String("second")
 	certificate2.Cert = kong.String("secondCert")
 	certificate2.Key = kong.String("secondKey")
 	err = collection.Add(certificate2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	certificates, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(certificates))
+	require.NoError(t, err)
+	assert.Len(certificates, 2)
 }

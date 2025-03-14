@@ -7,6 +7,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func serviceVersionCollection() *ServiceVersionsCollection {
@@ -306,17 +307,17 @@ func TestServiceVersionDelete(t *testing.T) {
 		ID: kong.String("package-id1"),
 	}
 	err := collection.Add(serviceVersion)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("package-id1", "my-serviceVersion")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 
 	err = collection.Delete("package-id1", *re.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("package-id1", *re.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestServiceVersionGetAll(t *testing.T) {
@@ -330,7 +331,7 @@ func TestServiceVersionGetAll(t *testing.T) {
 		ID: kong.String("id1"),
 	}
 	err := collection.Add(serviceVersion)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var sv2 ServiceVersion
 	sv2.Version = kong.String("my-sv2")
@@ -339,12 +340,12 @@ func TestServiceVersionGetAll(t *testing.T) {
 		ID: kong.String("id1"),
 	}
 	err = collection.Add(sv2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	serviceVersions, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(serviceVersions))
+	require.NoError(t, err)
+	assert.Len(serviceVersions, 2)
 }
 
 func TestServiceVersionGetAllByServiceID(t *testing.T) {
@@ -401,14 +402,14 @@ func TestServiceVersionGetAllByServiceID(t *testing.T) {
 
 	for _, serviceVersion := range serviceVersions {
 		err := collection.Add(*serviceVersion)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 
 	serviceVersions, err := collection.GetAllByServicePackageID("id1")
-	assert.Nil(err)
-	assert.Equal(2, len(serviceVersions))
+	require.NoError(t, err)
+	assert.Len(serviceVersions, 2)
 
 	serviceVersions, err = collection.GetAllByServicePackageID("id2")
-	assert.Nil(err)
-	assert.Equal(3, len(serviceVersions))
+	require.NoError(t, err)
+	assert.Len(serviceVersions, 3)
 }

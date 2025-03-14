@@ -3668,7 +3668,7 @@ func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 				// Not checking ID equality, as it is unnecessary for testing functionality
 				b.rawState.Routes[0].ID = nil
 
-				assert.Equal(b.rawState, tt.wantState)
+				assert.Equal(tt.wantState, b.rawState)
 				assert.NotNil(b.rawState.Routes[0].RegexPriority, "RegexPriority should not be nil")
 			})
 		}
@@ -4196,7 +4196,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			_, _, err := b.build()
 			if tt.wantErr {
 				require.Error(t, err, "build error was expected")
-				assert.ErrorContains(t, err, tt.errString)
+				require.ErrorContains(t, err, tt.errString)
 				assert.Equal(t, tt.want, b.rawState)
 				return
 			}

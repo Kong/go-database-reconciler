@@ -217,7 +217,7 @@ func TestDegraphqlRouteGetAll(t *testing.T) {
 
 	degraphqlRoutes, err := collection.GetAll()
 	require.NoError(err, "error getting all degraphql routes")
-	assert.Equal(5, len(degraphqlRoutes))
+	assert.Len(degraphqlRoutes, 5)
 	assert.IsType([]*DegraphqlRoute{}, degraphqlRoutes)
 }
 

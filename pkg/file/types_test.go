@@ -7,6 +7,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 )
 
@@ -329,9 +330,8 @@ func Test_sortKey(t *testing.T) {
 
 func TestPluginUnmarshalYAML(t *testing.T) {
 	var p FPlugin
-	assert := assert.New(t)
-	assert.Nil(yaml.Unmarshal([]byte(yamlString), &p))
-	assert.Equal(kong.Plugin{
+	require.NoError(t, yaml.Unmarshal([]byte(yamlString), &p))
+	assert.Equal(t, kong.Plugin{
 		Name:      p.Name,
 		Config:    p.Config,
 		Enabled:   p.Enabled,
@@ -351,9 +351,8 @@ func TestPluginUnmarshalYAML(t *testing.T) {
 
 func TestPluginUnmarshalJSON(t *testing.T) {
 	var p FPlugin
-	assert := assert.New(t)
-	assert.Nil(json.Unmarshal([]byte(jsonString), &p))
-	assert.Equal(kong.Plugin{
+	require.NoError(t, json.Unmarshal([]byte(jsonString), &p))
+	assert.Equal(t, kong.Plugin{
 		Name:      p.Name,
 		Config:    p.Config,
 		Enabled:   p.Enabled,
@@ -391,7 +390,7 @@ func TestFilterChainUnmarshalJSON(t *testing.T) {
 }`
 
 	assert := assert.New(t)
-	assert.Nil(json.Unmarshal([]byte(fcJSON), &fc))
+	require.NoError(t, json.Unmarshal([]byte(fcJSON), &fc))
 	assert.Equal(kong.FilterChain{
 		Name:    kong.String("my-filter-chain"),
 		ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
@@ -426,7 +425,7 @@ filters:
 `
 
 	assert := assert.New(t)
-	assert.Nil(yaml.Unmarshal([]byte(fcYaml), &fc))
+	require.NoError(t, yaml.Unmarshal([]byte(fcYaml), &fc))
 	assert.Equal(kong.FilterChain{
 		Name:    kong.String("my-filter-chain"),
 		ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),

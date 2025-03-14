@@ -293,21 +293,21 @@ func TestServiceUpdate(t *testing.T) {
 			Host: kong.String("example.com"),
 		},
 	}
-	assert.Nil(k.Add(svc1))
+	require.NoError(t, k.Add(svc1))
 
 	svc1.Name = kong.String("bar-name")
-	assert.Nil(k.Update(svc1))
+	require.NoError(t, k.Update(svc1))
 
 	r, err := k.Get("foo-id")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(r)
 
 	r, err = k.Get("bar-name")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(r)
 
 	r, err = k.Get("foo-name")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(r)
 }
 
@@ -322,15 +322,15 @@ func TestServiceGetMemoryReference(t *testing.T) {
 	service.Name = kong.String("my-service")
 	service.ID = kong.String("first")
 	err := collection.Add(service)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	se, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	se.Host = kong.String("example.com")
 
 	se, err = collection.Get("my-service")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(se)
 	assert.Nil(se.Host)
 }
@@ -355,25 +355,24 @@ func TestServicesInvalidType(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
-	assert := assert.New(t)
 	collection := servicesCollection()
 
 	var service Service
 	service.ID = kong.String("first")
 	service.Host = kong.String("example.com")
 	err := collection.Add(service)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	err = collection.Delete("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("")
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestServiceGetAll(t *testing.T) {
@@ -397,12 +396,12 @@ func TestServiceGetAll(t *testing.T) {
 		},
 	}
 	for _, s := range services {
-		assert.Nil(collection.Add(s))
+		require.NoError(t, collection.Add(s))
 	}
 
 	allServices, err := collection.GetAll()
 
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(len(services), len(allServices))
 }
 
@@ -430,18 +429,18 @@ func TestServiceGetAllMemoryReference(t *testing.T) {
 		},
 	}
 	for _, s := range services {
-		assert.Nil(collection.Add(s))
+		require.NoError(t, collection.Add(s))
 	}
 
 	allServices, err := collection.GetAll()
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(len(services), len(allServices))
 
 	allServices[0].Host = kong.String("new.example.com")
 	allServices[1].Host = kong.String("new.example.com")
 
 	service, err := collection.Get("my-service1")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(service)
 	assert.Equal("example.com", *service.Host)
 }

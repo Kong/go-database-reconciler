@@ -6,6 +6,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func rbacRolesCollection() *RBACRolesCollection {
@@ -260,17 +261,17 @@ func TestRBACRoleDelete(t *testing.T) {
 	rbacRole.ID = kong.String("first")
 
 	err := collection.Add(rbacRole)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("my-rbacRole")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 
 	err = collection.Delete(*re.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete(*re.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestRBACRoleGetAll(t *testing.T) {
@@ -282,17 +283,17 @@ func TestRBACRoleGetAll(t *testing.T) {
 	rbacRole.ID = kong.String("first")
 
 	err := collection.Add(rbacRole)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var rbacRole2 RBACRole
 	rbacRole2.Name = kong.String("my-rbacRole2")
 	rbacRole2.ID = kong.String("second")
 
 	err = collection.Add(rbacRole2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	rbacRoles, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(rbacRoles))
+	require.NoError(t, err)
+	assert.Len(rbacRoles, 2)
 }

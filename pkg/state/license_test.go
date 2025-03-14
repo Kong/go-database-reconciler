@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var presetLicense = License{
@@ -53,13 +54,13 @@ func TestLicenseCollection_Add(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
 			err := c.Add(presetLicense)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			err = c.Add(*tc.license)
 			if tc.expectedError != nil {
-				assert.ErrorAs(t, err, &tc.expectedError)
+				assert.ErrorIs(t, err, tc.expectedError)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -94,15 +95,15 @@ func TestLicenseCollection_Get(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
 			err := c.Add(presetLicense)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			l, err := c.Get(tc.id)
 			if tc.expectedError == nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tc.id, *l.ID)
 				assert.Equal(t, tc.expectedPayload, *l.Payload)
 			} else {
-				assert.ErrorAs(t, err, &tc.expectedError)
+				assert.ErrorIs(t, err, tc.expectedError)
 			}
 		})
 	}
@@ -145,16 +146,16 @@ func TestLicenseCollection_Update(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
 			err := c.Add(presetLicense)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			err = c.Update(tc.license)
 			if tc.expectedError == nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				updatedLicense, err := c.Get(*tc.license.ID)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, *tc.license.Payload, *updatedLicense.Payload)
 			} else {
-				assert.ErrorAs(t, err, &tc.expectedError)
+				assert.ErrorIs(t, err, tc.expectedError)
 			}
 		})
 	}
@@ -187,13 +188,13 @@ func TestLicenseCollection_Delete(t *testing.T) {
 			initialState := state()
 			c := initialState.Licenses
 			err := c.Add(presetLicense)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			err = c.Delete(tc.id)
 			if tc.expectedError == nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			} else {
-				assert.ErrorAs(t, err, &tc.expectedError)
+				assert.ErrorIs(t, err, tc.expectedError)
 			}
 		})
 	}
@@ -203,13 +204,13 @@ func TestLicenseCollection_GetAll(t *testing.T) {
 	initialState := state()
 	c := initialState.Licenses
 	licenses, err := c.GetAll()
-	assert.NoError(t, err)
-	assert.Len(t, licenses, 0, "Should have no licenses")
+	require.NoError(t, err)
+	assert.Empty(t, licenses, "Should have no licenses")
 
 	err = c.Add(presetLicense)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	licenses, err = c.GetAll()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, licenses, 1, "Should have 1 license after adding")
 }

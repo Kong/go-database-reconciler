@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func basicAuthsCollection() *BasicAuthsCollection {
@@ -12,17 +13,16 @@ func basicAuthsCollection() *BasicAuthsCollection {
 }
 
 func TestBasicAuthInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := basicAuthsCollection()
 
 	var basicAuth BasicAuth
 	basicAuth.ID = kong.String("first")
 	err := collection.Add(basicAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	basicAuth.Username = kong.String("my-username")
 	err = collection.Add(basicAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	var basicAuth2 BasicAuth
 	basicAuth2.Username = kong.String("my-username")
@@ -32,7 +32,7 @@ func TestBasicAuthInsert(t *testing.T) {
 		Username: kong.String("my-username"),
 	}
 	err = collection.Add(basicAuth2)
-	assert.Nil(err)
+	require.NoError(t, err)
 }
 
 func TestBasicAuthGet(t *testing.T) {
@@ -48,21 +48,21 @@ func TestBasicAuthGet(t *testing.T) {
 	}
 
 	err := collection.Add(basicAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("my-username", *res.Username)
 
 	res, err = collection.Get("my-username")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("first", *res.ID)
 	assert.Equal("consumer1-id", *res.Consumer.ID)
 
 	res, err = collection.Get("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -79,24 +79,24 @@ func TestBasicAuthUpdate(t *testing.T) {
 	}
 
 	err := collection.Add(basicAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("my-username", *res.Username)
 
 	res.Username = kong.String("my-username2")
 	res.Password = kong.String("password")
 	err = collection.Update(*res)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("my-username")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = collection.Get("my-username2")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("first", *res.ID)
 	assert.Equal("password", *res.Password)
 }
@@ -113,50 +113,49 @@ func TestBasicAuthDelete(t *testing.T) {
 		Username: kong.String("consumer1-name"),
 	}
 	err := collection.Add(basicAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("my-username1")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 
 	err = collection.Delete(*res.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("my-username1")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	// delete a non-existing one
 	err = collection.Delete("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("my-username1")
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestBasicAuthGetAll(t *testing.T) {
-	assert := assert.New(t)
 	collection := basicAuthsCollection()
 
-	populateWithBasicAuthFixtures(assert, collection)
+	populateWithBasicAuthFixtures(t, collection)
 
 	basicAuths, err := collection.GetAll()
-	assert.Nil(err)
-	assert.Equal(5, len(basicAuths))
+	require.NoError(t, err)
+	require.Len(t, basicAuths, 5)
 }
 
 func TestBasicAuthGetByConsumer(t *testing.T) {
-	assert := assert.New(t)
 	collection := basicAuthsCollection()
 
-	populateWithBasicAuthFixtures(assert, collection)
+	populateWithBasicAuthFixtures(t, collection)
 
 	basicAuths, err := collection.GetAllByConsumerID("consumer1-id")
-	assert.Nil(err)
-	assert.Equal(3, len(basicAuths))
+	require.NoError(t, err)
+	require.Len(t, basicAuths, 3)
 }
 
-func populateWithBasicAuthFixtures(assert *assert.Assertions,
+func populateWithBasicAuthFixtures(
+	t *testing.T,
 	collection *BasicAuthsCollection,
 ) {
 	basicAuths := []BasicAuth{
@@ -214,6 +213,6 @@ func populateWithBasicAuthFixtures(assert *assert.Assertions,
 
 	for _, k := range basicAuths {
 		err := collection.Add(k)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 }
