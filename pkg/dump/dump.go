@@ -487,6 +487,23 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
+	group.Go(func() error {
+		keys, err := GetAllKeys(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("keys: %w", err)
+		}
+		state.Keys = keys
+		return nil
+	})
+	group.Go(func() error {
+		sets, err := GetAllKeySets(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("key-sets: %w", err)
+		}
+		state.KeySets = sets
+		return nil
+	})
+
 	if config.IncludeLicenses {
 		group.Go(func() error {
 			licenses, err := GetAllLicenses(ctx, client, config.SelectorTags)
@@ -596,6 +613,58 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 	}
 
 	return &state, nil
+}
+
+// GetAllKeys queries Kong for all the Keys using client.
+func GetAllKeys(
+	ctx context.Context, client *kong.Client, tags []string,
+) ([]*kong.Key, error) {
+	var keys []*kong.Key
+	opt := newOpt(tags)
+	for {
+		s, nextopt, err := client.Keys.List(ctx, opt)
+		if kong.IsNotFoundErr(err) {
+			return keys, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		keys = append(keys, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return keys, nil
+}
+
+// GetAllKeySets queries Kong for all the KeySets using client.
+func GetAllKeySets(
+	ctx context.Context, client *kong.Client, tags []string,
+) ([]*kong.KeySet, error) {
+	var sets []*kong.KeySet
+	opt := newOpt(tags)
+	for {
+		s, nextopt, err := client.KeySets.List(ctx, opt)
+		if kong.IsNotFoundErr(err) {
+			return sets, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		sets = append(sets, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return sets, nil
 }
 
 // GetAllServices queries Kong for all the services using client.
