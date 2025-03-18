@@ -235,7 +235,7 @@ func TestPartialGetAll(t *testing.T) {
 
 	partials, err := collection.GetAll()
 	require.NoError(err, "error getting all partials")
-	assert.Equal(5, len(partials))
+	assert.Len(partials, 5)
 	assert.IsType([]*Partial{}, partials)
 }
 

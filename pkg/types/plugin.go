@@ -7,6 +7,7 @@ import (
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
 
@@ -182,7 +183,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	}
 	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
 
-	linkedPartialConfig, err := d.getLinkedPartialConfig(plugin)
+	linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +193,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
 	}
 
-	linkedPartialConfigCurrentPlugin, err := d.getLinkedPartialConfig(currentPlugin)
+	linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
 	if err != nil {
 		return nil, err
 	}
@@ -215,24 +216,6 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		}, nil
 	}
 	return nil, nil
-}
-
-func (d *pluginDiffer) getLinkedPartialConfig(plugin *state.Plugin) ([]*kong.Partial, error) {
-	var linkedPartialConfig []*kong.Partial
-	if plugin.Partials != nil {
-		for _, p := range plugin.Partials {
-			if p.Partial != nil && p.Partial.ID != nil {
-				partial, err := d.kongClient.Partials.Get(context.TODO(), p.Partial.ID)
-				if err != nil || partial == nil {
-					return nil, fmt.Errorf("failed getting linked partial: %w", err)
-				}
-
-				linkedPartialConfig = append(linkedPartialConfig, partial)
-			}
-		}
-	}
-
-	return linkedPartialConfig, nil
 }
 
 func foreignNames(p *state.Plugin) (serviceID, routeID, consumerID, consumerGroupID string) {

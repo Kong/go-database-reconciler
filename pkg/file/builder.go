@@ -1463,33 +1463,36 @@ func (b *stateBuilder) plugins() {
 		if p.Partials != nil {
 			var pluginPartials []*kong.PartialLink
 			for _, partial := range p.Partials {
-				if partial.Partial != nil {
-					var findID *string
-					if !utils.Empty(partial.Partial.ID) {
-						findID = partial.Partial.ID
-					} else if !utils.Empty(partial.Partial.Name) {
-						findID = partial.Partial.Name
-					}
-
-					if utils.Empty(findID) {
-						b.err = fmt.Errorf("partial for plugin %v: partial ID or name is required", *p.Name)
-						return
-					}
-
-					pt, err := b.intermediate.Partials.Get(*findID)
-					if errors.Is(err, state.ErrNotFound) {
-						b.err = fmt.Errorf("partial %v for plugin %v: %w",
-							partial.Partial.FriendlyName(), *p.Name, err)
-						return
-					} else if err != nil {
-						b.err = err
-						return
-					}
-					pluginPartials = append(pluginPartials, &kong.PartialLink{
-						Partial: utils.GetPartialReference(pt.Partial),
-						Path:    partial.Path,
-					})
+				if partial.Partial == nil {
+					continue
 				}
+
+				var findID *string
+				if !utils.Empty(partial.Partial.ID) {
+					findID = partial.Partial.ID
+				} else if !utils.Empty(partial.Partial.Name) {
+					findID = partial.Partial.Name
+				}
+
+				if utils.Empty(findID) {
+					b.err = fmt.Errorf("partial for plugin %v: partial ID or name is required", *p.Name)
+					return
+				}
+
+				pt, err := b.intermediate.Partials.Get(*findID)
+				if errors.Is(err, state.ErrNotFound) {
+					b.err = fmt.Errorf("partial %v for plugin %v: %w",
+						partial.Partial.FriendlyName(), *p.Name, err)
+					return
+				} else if err != nil {
+					b.err = err
+					return
+				}
+				pluginPartials = append(pluginPartials, &kong.PartialLink{
+					Partial: utils.GetPartialReference(pt.Partial),
+					Path:    partial.Path,
+				})
+
 			}
 			p.Partials = pluginPartials
 		}

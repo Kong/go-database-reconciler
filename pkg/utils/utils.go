@@ -261,3 +261,27 @@ func PrintRouteRegexWarning(unsupportedRoutes []string) {
 		unsupportedRoutesLen, strings.Join(unsupportedRoutes, "\n"),
 	)
 }
+
+func FindLinkedPartials(ctx context.Context, kongClient *kong.Client, plugin *kong.Plugin) ([]*kong.Partial, error) {
+	if plugin.Partials == nil {
+		return nil, nil
+	}
+
+	var linkedPartialConfig []*kong.Partial
+	for _, p := range plugin.Partials {
+		if p.Partial == nil || p.Partial.ID == nil {
+			continue
+		}
+
+		partial, err := kongClient.Partials.Get(ctx, p.Partial.ID)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed getting linked partial: %w", err)
+		}
+		linkedPartialConfig = append(linkedPartialConfig, partial)
+	}
+
+	return linkedPartialConfig, nil
+}

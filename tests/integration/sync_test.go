@@ -7655,9 +7655,7 @@ func Test_Sync_CustomEntities_Fake(t *testing.T) {
 
 func Test_Sync_Partials_Plugins(t *testing.T) {
 	client, err := getTestClient()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+	require.NoError(t, err)
 
 	ctx := context.Background()
 
@@ -7703,7 +7701,7 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		require.NoError(t, err)
 
 		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Len(t, errs, 0, "Should have no errors in syncing")
+		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
 		newState, err := fetchCurrentState(ctx, client, dumpConfig)
@@ -7787,9 +7785,7 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 
 func Test_Sync_Partials(t *testing.T) {
 	client, err := getTestClient()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+	require.NoError(t, err)
 
 	ctx := context.Background()
 

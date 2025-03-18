@@ -538,7 +538,6 @@ func (crud partialPostAction) Create(_ context.Context, args ...crud.Arg) (crud.
 }
 
 func (crud partialPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	// TODO: add check for linked plugins prior to deletion
 	return nil, crud.currentState.Partials.Delete(*((args[0].(*state.Partial)).ID))
 }
 

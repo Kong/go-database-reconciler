@@ -627,26 +627,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// configuration that is sent to Kong.
 		eventForKong := e
 
-		findLinkedPartials := func(plugin *kong.Plugin) ([]*kong.Partial, error) {
-			var linkedPartialConfig []*kong.Partial
-			if plugin.Partials != nil {
-				for _, p := range plugin.Partials {
-					if p.Partial != nil && p.Partial.ID != nil {
-						partial, err := sc.kongClient.Partials.Get(ctx, p.Partial.ID)
-						if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
-							continue
-						}
-						if err != nil {
-							return nil, fmt.Errorf("failed getting linked partial for diffing: %w", err)
-						}
-						linkedPartialConfig = append(linkedPartialConfig, partial)
-					}
-				}
-			}
-
-			return linkedPartialConfig, nil
-		}
-
 		// If the event is for a plugin, inject defaults in the plugin's config
 		// that will be used for the diff. This is needed to avoid highlighting
 		// default values that were populated by Kong as differences.
@@ -661,7 +641,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 					return nil, err
 				}
 
-				linkedPartialConfig, err := findLinkedPartials(&pluginCopy.Plugin)
+				linkedPartialConfig, err := utils.FindLinkedPartials(ctx, sc.kongClient, &pluginCopy.Plugin)
 				if err != nil {
 					return nil, err
 				}
@@ -687,7 +667,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				if oldPlugin, ok := e.OldObj.(*state.Plugin); ok {
 					oldPluginCopy := &state.Plugin{Plugin: *oldPlugin.DeepCopy()}
 					e.OldObj = oldPluginCopy
-					linkedPartialConfig, err := findLinkedPartials(&oldPluginCopy.Plugin)
+					linkedPartialConfig, err := utils.FindLinkedPartials(ctx, sc.kongClient, &oldPluginCopy.Plugin)
 					if err != nil {
 						return nil, err
 					}

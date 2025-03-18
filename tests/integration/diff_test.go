@@ -2970,7 +2970,7 @@ func Test_Diff_Partials(t *testing.T) {
 	require.NoError(t, err)
 
 	stats, errs, changes := syncer.Solve(ctx, 1, true, true)
-	require.Len(t, errs, 0, "Should have no errors in diffing")
+	require.Empty(t, errs, "Should have no errors in diffing")
 	logEntityChanges(t, stats, changes)
 
 	assert.Equal(t, int32(2), stats.CreateOps.Count())
