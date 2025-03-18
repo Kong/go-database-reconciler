@@ -5,6 +5,9 @@ partials:
     send_timeout: 2004
   name: my-ee-partial
   type: redis-ee
+  tags:
+  - tag1
+  - tag2
 plugins:
 - config:
     limit:
