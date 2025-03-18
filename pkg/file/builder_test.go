@@ -5033,12 +5033,12 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			b.plugins()
 
 			if tt.wantErr != "" {
-				assert.NotNil(b.err)
+				require.Error(t, b.err)
 				assert.Contains(b.err.Error(), tt.wantErr)
 				return
 			}
 
-			assert.Nil(b.err)
+			require.NoError(t, b.err)
 			assert.Equal(tt.want, b.targetContent.Plugins)
 		})
 	}

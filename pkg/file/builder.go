@@ -197,7 +197,7 @@ func (b *stateBuilder) partials() {
 			partial, err = b.currentState.Partials.Get(*p.Name)
 		}
 		if utils.Empty(p.ID) {
-			if errors.Is(err, state.ErrNotFound) || partial == nil {
+			if errors.Is(err, state.ErrNotFound) || partial == nil || partial.ID == nil {
 				p.ID = uuid()
 			} else if err != nil {
 				b.err = err
