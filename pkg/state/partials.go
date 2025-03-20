@@ -46,7 +46,7 @@ func getPartial(txn *memdb.Txn, IDs ...string) (*Partial, error) {
 
 		partial, ok := res.(*Partial)
 		if !ok {
-			panic(unexpectedType)
+			return nil, fmt.Errorf("expected *Partial, got %T", res)
 		}
 		return &Partial{Partial: *partial.DeepCopy()}, nil
 	}
@@ -54,7 +54,7 @@ func getPartial(txn *memdb.Txn, IDs ...string) (*Partial, error) {
 }
 
 // Add adds a partial to the collection.
-// partial.ID should not be nil else an error is thrown.
+// partial.ID should not be nil or an error is thrown.
 func (k *PartialsCollection) Add(partial Partial) error {
 	if utils.Empty(partial.ID) {
 		return errIDRequired
@@ -198,7 +198,7 @@ func (k *PartialsCollection) GetAll() ([]*Partial, error) {
 	for el := iter.Next(); el != nil; el = iter.Next() {
 		p, ok := el.(*Partial)
 		if !ok {
-			panic(unexpectedType)
+			return nil, fmt.Errorf("expected *Partial, got %T", el)
 		}
 		res = append(res, &Partial{Partial: *p.DeepCopy()})
 	}
