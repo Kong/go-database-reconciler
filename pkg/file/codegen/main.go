@@ -136,6 +136,9 @@ func main() {
 	schema.Definitions["FRBACRole"].Required = []string{"name"}
 	schema.Definitions["FRBACEndpointPermission"].Required = []string{"workspace", "endpoint"}
 
+	// partials
+	schema.Definitions["FPartial"].Required = []string{"type"}
+
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
 	schema.Definitions["FPlugin"].Properties["consumer"] = stringType

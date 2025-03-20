@@ -7,6 +7,7 @@ import (
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
 
@@ -181,9 +182,25 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed getting schema: %w", err)
 	}
 	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
-	err = kong.FillPluginsDefaults(&pluginWithDefaults.Plugin, schema)
+
+	linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
 	if err != nil {
-		return nil, fmt.Errorf("failed processing auto fields: %w", err)
+		return nil, err
+	}
+
+	err = kong.FillPluginsDefaultsWithPartials(&pluginWithDefaults.Plugin, schema, linkedPartialConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
+	}
+
+	linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
+	if err != nil {
+		return nil, err
+	}
+
+	err = kong.FillPluginWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
+	if err != nil {
+		return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
 	}
 
 	if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {

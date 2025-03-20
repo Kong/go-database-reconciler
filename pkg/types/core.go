@@ -129,6 +129,9 @@ const (
 	FilterChain EntityType = "filter-chain"
 
 	DegraphqlRoute EntityType = "degraphql_routes"
+
+	// Partial identifies a Partial in Kong.
+	Partial EntityType = "partial"
 )
 
 // AllTypes represents all types defined in the
@@ -155,6 +158,8 @@ var AllTypes = []EntityType{
 	FilterChain,
 
 	DegraphqlRoute,
+
+	Partial,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -590,7 +595,22 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				targetState:  opts.TargetState,
 			},
 		}, nil
-
+	case Partial:
+		return entityImpl{
+			typ: Partial,
+			crudActions: &partialCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &partialPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &partialDiffer{
+				kind:         entityTypeToKind(Partial),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+				client:       opts.KongClient,
+			},
+		}, nil
 	default:
 		return nil, fmt.Errorf("unknown type: %q", t)
 	}

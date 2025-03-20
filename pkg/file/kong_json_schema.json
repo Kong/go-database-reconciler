@@ -75,6 +75,12 @@
       },
       "type": "array"
     },
+    "partials": {
+      "items": {
+        "$ref": "#/definitions/FPartial"
+      },
+      "type": "array"
+    },
     "plugins": {
       "items": {
         "$ref": "#/definitions/FPlugin"
@@ -690,6 +696,34 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "FPartial": {
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "config": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "FPlugin": {
       "required": [
         "name"
@@ -726,6 +760,12 @@
         "ordering": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/PluginOrdering"
+        },
+        "partials": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
         },
         "protocols": {
           "items": {
