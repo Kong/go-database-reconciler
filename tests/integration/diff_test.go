@@ -2949,9 +2949,7 @@ func Test_Diff_NoDeletes_3x(t *testing.T) {
 func Test_Diff_Partials(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.10.0")
 	client, err := getTestClient()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	dumpConfig := deckDump.Config{}

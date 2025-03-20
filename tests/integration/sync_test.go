@@ -7654,12 +7654,13 @@ func Test_Sync_CustomEntities_Fake(t *testing.T) {
 }
 
 func Test_Sync_Partials_Plugins(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.10.0")
+
 	client, err := getTestClient()
 	require.NoError(t, err)
 
 	ctx := context.Background()
 
-	runWhen(t, "enterprise", ">=3.10.0")
 	dumpConfig := deckDump.Config{}
 
 	partialConfig := kong.Configuration{
@@ -7712,7 +7713,7 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, partials)
 
-		assert.Len(t, partials, 1)
+		require.Len(t, partials, 1)
 		assert.Equal(t, "my-ee-partial", *partials[0].Name)
 		assert.Equal(t, "redis-ee", *partials[0].Type)
 		assert.IsType(t, kong.Configuration{}, partials[0].Config)
@@ -7722,10 +7723,10 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		plugins, err := newState.Plugins.GetAll()
 		require.NoError(t, err)
 		require.NotNil(t, plugins)
-		assert.Len(t, plugins, 1)
+		require.Len(t, plugins, 1)
 		assert.Equal(t, "rate-limiting-advanced", *plugins[0].Name)
 		assert.IsType(t, []*kong.PartialLink{}, plugins[0].Partials)
-		assert.Len(t, plugins[0].Partials, 1)
+		require.Len(t, plugins[0].Partials, 1)
 		assert.Equal(t, *partials[0].ID, *plugins[0].Partials[0].ID)
 		assert.Equal(t, "config.redis", *plugins[0].Partials[0].Path)
 	})
@@ -7756,7 +7757,7 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, partials)
 
-		assert.Len(t, partials, 1)
+		require.Len(t, partials, 1)
 		assert.Equal(t, "13dc230d-d65e-439a-9f05-9fd71abfee4d", *partials[0].ID)
 		assert.Equal(t, "my-ee-partial", *partials[0].Name)
 		assert.Equal(t, "redis-ee", *partials[0].Type)
@@ -7767,10 +7768,10 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		plugins, err := newState.Plugins.GetAll()
 		require.NoError(t, err)
 		require.NotNil(t, plugins)
-		assert.Len(t, plugins, 1)
+		require.Len(t, plugins, 1)
 		assert.Equal(t, "rate-limiting-advanced", *plugins[0].Name)
 		assert.IsType(t, []*kong.PartialLink{}, plugins[0].Partials)
-		assert.Len(t, plugins[0].Partials, 1)
+		require.Len(t, plugins[0].Partials, 1)
 		assert.Equal(t, "13dc230d-d65e-439a-9f05-9fd71abfee4d", *plugins[0].Partials[0].ID)
 		assert.Equal(t, "config.redis", *plugins[0].Partials[0].Path)
 	})
@@ -7784,12 +7785,12 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 }
 
 func Test_Sync_Partials(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.10.0")
 	client, err := getTestClient()
 	require.NoError(t, err)
 
 	ctx := context.Background()
 
-	runWhen(t, "enterprise", ">=3.10.0")
 	dumpConfig := deckDump.Config{}
 
 	t.Run("create partials", func(t *testing.T) {
