@@ -1,0 +1,44 @@
+_format_version: "3.0"
+consumers:
+- custom_id: consumer-1
+  id: 3a2fd429-9635-4b52-8e04-cdd7e38f1947
+  oauth2_credentials:
+  - client_id: myclientID
+    client_secret: myClientSecret
+    client_type: public
+    hash_secret: false
+    id: f3c51133-2e0c-4049-b45d-fd9309dcba9a
+    name: oauth1setting
+    tags:
+    - before
+  username: consumer1
+plugins:
+- config:
+    accept_http_if_already_terminated: false
+    anonymous: null
+    auth_header_name: authorization
+    enable_authorization_code: true
+    enable_client_credentials: false
+    enable_implicit_grant: false
+    enable_password_grant: false
+    global_credentials: false
+    hide_credentials: false
+    mandatory_scope: false
+    persistent_refresh_token: false
+    pkce: lax
+    provision_key: asdfgh
+    realm: null
+    refresh_token_ttl: 1209600
+    reuse_refresh_token: false
+    scopes: null
+    token_expiration: 7200
+  enabled: true
+  id: d6d3fe72-95ae-4a12-b3d8-29dd5b26c613
+  name: oauth2
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  - ws
+  - wss

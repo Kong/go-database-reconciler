@@ -1,0 +1,34 @@
+_format_version: "3.0"
+consumers:
+- custom_id: consumer-1
+  id: 96bd4668-ca36-4ad3-86de-fcde1a87a1e2
+  jwt_secrets:
+  - algorithm: HS256
+    id: 955382ce-98b0-4719-98ba-40ecd2db06de
+    key: asdfghjkl
+    secret: qwerty
+    tags:
+    - before
+  username: consumer1
+plugins:
+- config:
+    anonymous: null
+    claims_to_verify: null
+    cookie_names: []
+    header_names:
+    - authorization
+    key_claim_name: iss
+    maximum_expiration: 0
+    realm: null
+    run_on_preflight: true
+    secret_is_base64: false
+    uri_param_names:
+    - jwt
+  enabled: true
+  id: 7d10a7ba-e86d-481a-834c-2d9d7ae33a6c
+  name: jwt
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https

@@ -7866,12 +7866,48 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
 	setup(t)
 
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
 	tests := []struct {
 		name             string
 		initialStateFile string
 		targetStateFile  string
 		errorExpected    string
 	}{
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/acl-group-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/acl-group-final.yaml",
+			errorExpected:    "error: an ACL group with ID f2be545c-45c5-46e2-8acf-00ff2d899073 already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/basic-auth-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/basic-auth-final.yaml",
+			errorExpected:    "error: a basic-auth credential with ID 7dd67c9c-f591-4216-9718-b320174193bb already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/hmac-auth-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/hmac-auth-final.yaml",
+			errorExpected:    "error: a hmac-auth credential with ID 172e4a82-5446-4b91-ab9f-5173478ed241 already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/jwt-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/jwt-final.yaml",
+			errorExpected:    "error: a jwt credential with ID 955382ce-98b0-4719-98ba-40ecd2db06de already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/key-auth-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/key-auth-final.yaml",
+			errorExpected:    "error: a key-auth credential with ID 6307cfb6-a9d9-4968-95ce-3937fcdd2359 already exists",
+		},
+		{
+			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/oauth-initial.yaml",
+			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/oauth-final.yaml",
+			errorExpected:    "error: an oauth2 credential with ID f3c51133-2e0c-4049-b45d-fd9309dcba9a already exists",
+		},
 		{
 			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-initial.yaml",
 			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-final.yaml",
@@ -7926,6 +7962,7 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(context.TODO(), t, client, deckDump.Config{})
 			err := sync(tc.initialStateFile)
 			require.NoError(t, err)
 

@@ -1,0 +1,31 @@
+_format_version: "3.0"
+consumers:
+- custom_id: consumer-1
+  id: 65469fc9-bd54-4df7-b9ad-e011036e8b57
+  keyauth_credentials:
+  - id: 6307cfb6-a9d9-4968-95ce-3937fcdd2359
+    key: asdfghjkl
+    tags:
+    - before
+  username: consumer1
+plugins:
+- config:
+    anonymous: null
+    hide_credentials: false
+    key_in_body: false
+    key_in_header: true
+    key_in_query: true
+    key_names:
+    - apikey
+    realm: null
+    run_on_preflight: true
+  enabled: true
+  id: 90b9d295-f703-4340-9a2b-443fb1800e7d
+  name: key-auth
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  - ws
+  - wss
