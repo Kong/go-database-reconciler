@@ -95,6 +95,8 @@ type oauth2CredDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *oauth2CredDiffer) Deletes(handler func(crud.Event) error) error {
@@ -160,8 +162,15 @@ func (d *oauth2CredDiffer) createUpdateOauth2Cred(oauth2Cred *state.Oauth2Creden
 	oauth2Cred = &state.Oauth2Credential{Oauth2Credential: *oauth2Cred.DeepCopy()}
 	currentOauth2Cred, err := d.currentState.Oauth2Creds.Get(*oauth2Cred.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		// oauth2Cred not present, create it
+		if oauth2Cred.ID != nil {
+			existingOauth2Cred, _ := d.client.Oauth2Credentials.GetByID(context.TODO(), oauth2Cred.ID)
 
+			if existingOauth2Cred != nil {
+				return nil, fmt.Errorf("error: an oauth2 credential with ID %s already exists", *oauth2Cred.ID)
+			}
+		}
+
+		// oauth2Cred not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,

@@ -81,6 +81,8 @@ type keyAuthDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *keyAuthDiffer) Deletes(handler func(crud.Event) error) error {
@@ -144,8 +146,15 @@ func (d *keyAuthDiffer) createUpdateKeyAuth(keyAuth *state.KeyAuth) (*crud.Event
 	keyAuth = &state.KeyAuth{KeyAuth: *keyAuth.DeepCopy()}
 	currentKeyAuth, err := d.currentState.KeyAuths.Get(*keyAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		// keyAuth not present, create it
+		if keyAuth.ID != nil {
+			existingKeyAuth, _ := d.client.KeyAuths.GetByID(context.TODO(), keyAuth.ID)
 
+			if existingKeyAuth != nil {
+				return nil, fmt.Errorf("error: a key-auth credential with ID %s already exists", *keyAuth.ID)
+			}
+		}
+
+		// keyAuth not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,

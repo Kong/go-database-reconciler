@@ -94,6 +94,8 @@ type hmacAuthDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *hmacAuthDiffer) Deletes(handler func(crud.Event) error) error {
@@ -158,8 +160,15 @@ func (d *hmacAuthDiffer) createUpdateHMACAuth(hmacAuth *state.HMACAuth) (*crud.E
 	hmacAuth = &state.HMACAuth{HMACAuth: *hmacAuth.DeepCopy()}
 	currentHMACAuth, err := d.currentState.HMACAuths.Get(*hmacAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		// hmacAuth not present, create it
+		if hmacAuth.ID != nil {
+			existingHmacAuth, _ := d.client.HMACAuths.GetByID(context.TODO(), hmacAuth.ID)
 
+			if existingHmacAuth != nil {
+				return nil, fmt.Errorf("error: a hmac-auth credential with ID %s already exists", *hmacAuth.ID)
+			}
+		}
+
+		// hmacAuth not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,

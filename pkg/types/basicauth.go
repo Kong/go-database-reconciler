@@ -175,21 +175,11 @@ func (d *basicAuthDiffer) createUpdateBasicAuth(basicAuth *state.BasicAuth) (*cr
 	basicAuth = &state.BasicAuth{BasicAuth: *basicAuth.DeepCopy()}
 	currentBasicAuth, err := d.currentState.BasicAuths.Get(*basicAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
-
 		if basicAuth.ID != nil {
-			var cid *string
-
-			if !utils.Empty(basicAuth.Consumer.Username) {
-				cid = basicAuth.Consumer.Username
-			}
-			if !utils.Empty(basicAuth.Consumer.ID) {
-				cid = basicAuth.Consumer.ID
-			}
-
-			existingBasicAuth, _ := d.client.BasicAuths.Get(context.TODO(), cid, basicAuth.ID)
+			existingBasicAuth, _ := d.client.BasicAuths.GetByID(context.TODO(), basicAuth.ID)
 
 			if existingBasicAuth != nil {
-				return nil, fmt.Errorf("failed to create: a basic auth credential with ID %s already exists", *basicAuth.ID)
+				return nil, fmt.Errorf("error: a basic-auth credential with ID %s already exists", *basicAuth.ID)
 			}
 		}
 

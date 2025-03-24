@@ -94,6 +94,8 @@ type jwtAuthDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *jwtAuthDiffer) Deletes(handler func(crud.Event) error) error {
@@ -157,6 +159,14 @@ func (d *jwtAuthDiffer) createUpdateJWTAuth(jwtAuth *state.JWTAuth) (*crud.Event
 	jwtAuth = &state.JWTAuth{JWTAuth: *jwtAuth.DeepCopy()}
 	currentJWTAuth, err := d.currentState.JWTAuths.Get(*jwtAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
+		if jwtAuth.ID != nil {
+			existingJWTAuth, _ := d.client.JWTAuths.GetByID(context.TODO(), jwtAuth.ID)
+
+			if existingJWTAuth != nil {
+				return nil, fmt.Errorf("error: a jwt credential with ID %s already exists", *jwtAuth.ID)
+			}
+		}
+
 		// jwtAuth not present, create it
 
 		return &crud.Event{
