@@ -281,6 +281,7 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 	}
 
 	for _, p := range raw.Partials {
+		utils.ZeroOutTimestamps(p)
 		err := kongState.Partials.Add(Partial{Partial: *p})
 		if err != nil {
 			return fmt.Errorf("inserting partial into state: %w", err)

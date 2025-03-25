@@ -7811,4 +7811,13 @@ func Test_Sync_Partials(t *testing.T) {
 		err := sync("testdata/sync/038-partials/kong-partials-no-name.yaml")
 		require.NoError(t, err)
 	})
+
+	t.Run("partial updates work without errors", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+		err := sync("testdata/sync/038-partials/kong.yaml")
+		require.NoError(t, err)
+
+		err = sync("testdata/sync/038-partials/kong-update.yaml")
+		require.NoError(t, err)
+	})
 }
