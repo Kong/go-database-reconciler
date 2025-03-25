@@ -143,7 +143,11 @@ func (d *caCertificateDiffer) createUpdateCACertificate(
 
 	if errors.Is(err, state.ErrNotFound) {
 		if caCert.ID != nil {
-			existingCertificate, _ := d.client.CACertificates.Get(context.TODO(), caCert.ID)
+			existingCertificate, err := d.client.CACertificates.Get(context.TODO(), caCert.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingCertificate != nil {
 				return nil, fmt.Errorf("error: a CA certificate with ID %s already exists", *caCert.ID)

@@ -159,7 +159,11 @@ func (d *certificateDiffer) createUpdateCertificate(
 
 	if errors.Is(err, state.ErrNotFound) {
 		if certificate.ID != nil {
-			remoteCertificate, _ := d.client.Certificates.Get(context.TODO(), certificate.ID)
+			remoteCertificate, err := d.client.Certificates.Get(context.TODO(), certificate.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if remoteCertificate != nil {
 				return nil, fmt.Errorf("error: a certificate with ID %s already exists", *certificate.ID)

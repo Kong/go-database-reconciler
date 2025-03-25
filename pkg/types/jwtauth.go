@@ -160,7 +160,11 @@ func (d *jwtAuthDiffer) createUpdateJWTAuth(jwtAuth *state.JWTAuth) (*crud.Event
 	currentJWTAuth, err := d.currentState.JWTAuths.Get(*jwtAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		if jwtAuth.ID != nil {
-			existingJWTAuth, _ := d.client.JWTAuths.GetByID(context.TODO(), jwtAuth.ID)
+			existingJWTAuth, err := d.client.JWTAuths.GetByID(context.TODO(), jwtAuth.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingJWTAuth != nil {
 				return nil, fmt.Errorf("error: a jwt credential with ID %s already exists", *jwtAuth.ID)

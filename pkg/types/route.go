@@ -146,7 +146,11 @@ func (d *routeDiffer) createUpdateRoute(route *state.Route) (*crud.Event, error)
 	currentRoute, err := d.currentState.Routes.Get(*route.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		if route.ID != nil {
-			existingRoute, _ := d.client.Routes.Get(context.TODO(), route.ID)
+			existingRoute, err := d.client.Routes.Get(context.TODO(), route.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingRoute != nil {
 				return nil, fmt.Errorf("error: a route with ID %s already exists", *route.ID)

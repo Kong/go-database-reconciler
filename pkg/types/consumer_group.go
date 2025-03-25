@@ -162,7 +162,11 @@ func (d *consumerGroupDiffer) createUpdateConsumerGroup(consumerGroup *state.Con
 
 	if errors.Is(err, state.ErrNotFound) {
 		if consumerGroup.ID != nil {
-			existingConsumerGroup, _ := d.client.ConsumerGroups.Get(context.TODO(), consumerGroup.ID)
+			existingConsumerGroup, err := d.client.ConsumerGroups.Get(context.TODO(), consumerGroup.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingConsumerGroup != nil {
 				return nil, fmt.Errorf("error: a consumer group with ID %s already exists", *consumerGroup.ID)

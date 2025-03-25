@@ -176,7 +176,11 @@ func (d *basicAuthDiffer) createUpdateBasicAuth(basicAuth *state.BasicAuth) (*cr
 	currentBasicAuth, err := d.currentState.BasicAuths.Get(*basicAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		if basicAuth.ID != nil {
-			existingBasicAuth, _ := d.client.BasicAuths.GetByID(context.TODO(), basicAuth.ID)
+			existingBasicAuth, err := d.client.BasicAuths.GetByID(context.TODO(), basicAuth.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingBasicAuth != nil {
 				return nil, fmt.Errorf("error: a basic-auth credential with ID %s already exists", *basicAuth.ID)

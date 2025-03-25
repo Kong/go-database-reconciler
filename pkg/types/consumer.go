@@ -140,7 +140,11 @@ func (d *consumerDiffer) createUpdateConsumer(consumer *state.Consumer) (*crud.E
 
 	if errors.Is(err, state.ErrNotFound) {
 		if consumer.ID != nil {
-			existingConsumer, _ := d.client.Consumers.Get(context.TODO(), consumer.ID)
+			existingConsumer, err := d.client.Consumers.Get(context.TODO(), consumer.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingConsumer != nil {
 				return nil, fmt.Errorf("error: a consumer with ID %s already exists", *consumer.ID)

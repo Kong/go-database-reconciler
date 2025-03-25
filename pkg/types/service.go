@@ -140,7 +140,11 @@ func (d *serviceDiffer) createUpdateService(service *state.Service) (*crud.Event
 
 	if errors.Is(err, state.ErrNotFound) {
 		if service.ID != nil {
-			existingService, _ := d.client.Services.Get(context.TODO(), service.ID)
+			existingService, err := d.client.Services.Get(context.TODO(), service.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingService != nil {
 				return nil, fmt.Errorf("error: a service with ID %s already exists", *service.ID)

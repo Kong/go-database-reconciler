@@ -147,7 +147,11 @@ func (d *keyAuthDiffer) createUpdateKeyAuth(keyAuth *state.KeyAuth) (*crud.Event
 	currentKeyAuth, err := d.currentState.KeyAuths.Get(*keyAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		if keyAuth.ID != nil {
-			existingKeyAuth, _ := d.client.KeyAuths.GetByID(context.TODO(), keyAuth.ID)
+			existingKeyAuth, err := d.client.KeyAuths.GetByID(context.TODO(), keyAuth.ID)
+
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
 
 			if existingKeyAuth != nil {
 				return nil, fmt.Errorf("error: a key-auth credential with ID %s already exists", *keyAuth.ID)

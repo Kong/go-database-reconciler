@@ -162,7 +162,11 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		name, serviceID, routeID, consumerID, consumerGroupID,
 	)
 	if errors.Is(err, state.ErrNotFound) {
-		existingPlugin, _ := d.kongClient.Plugins.Get(context.TODO(), plugin.ID)
+		existingPlugin, err := d.kongClient.Plugins.Get(context.TODO(), plugin.ID)
+
+		if err != nil && !kong.IsNotFoundErr(err) {
+			return nil, err
+		}
 
 		if existingPlugin != nil {
 			return nil, fmt.Errorf("error: a plugin with ID %s already exists", *plugin.ID)
