@@ -24,10 +24,8 @@ plugins:
     global_credentials: false
     hide_credentials: false
     mandatory_scope: false
-    persistent_refresh_token: false
     pkce: lax
     provision_key: asdfgh
-    realm: null
     refresh_token_ttl: 1209600
     reuse_refresh_token: false
     scopes: null
@@ -40,5 +38,3 @@ plugins:
   - grpcs
   - http
   - https
-  - ws
-  - wss

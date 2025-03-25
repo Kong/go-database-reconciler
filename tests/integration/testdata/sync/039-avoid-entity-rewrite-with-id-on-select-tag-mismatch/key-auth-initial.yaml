@@ -17,7 +17,6 @@ plugins:
     key_in_query: true
     key_names:
     - apikey
-    realm: null
     run_on_preflight: true
   enabled: true
   id: 90b9d295-f703-4340-9a2b-443fb1800e7d
@@ -27,5 +26,3 @@ plugins:
   - grpcs
   - http
   - https
-  - ws
-  - wss

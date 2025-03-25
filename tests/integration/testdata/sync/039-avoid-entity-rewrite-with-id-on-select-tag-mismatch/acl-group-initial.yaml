@@ -14,10 +14,8 @@ plugins:
 - config:
     allow:
     - platform-engineering
-    always_use_authenticated_groups: false
     deny: []
     hide_groups_header: false
-    include_consumer_groups: false
   enabled: true
   id: 7a21e33b-8a9c-4c01-aa32-ab0cc235e10c
   name: acl

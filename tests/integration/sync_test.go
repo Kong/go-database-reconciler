@@ -7863,6 +7863,10 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// test scope:
+//
+//	>=2.8.0 - for kong, konnect
 func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
 	setup(t)
 
@@ -7879,95 +7883,178 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
 		errorExpected    string
 	}{
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/acl-group-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/acl-group-final.yaml",
+			name:             "ACL group",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/acl-group-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/acl-group-final.yaml",
 			errorExpected:    "error: an ACL group with ID f2be545c-45c5-46e2-8acf-00ff2d899073 already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/basic-auth-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/basic-auth-final.yaml",
+			name:             "basic-auth",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/basic-auth-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/basic-auth-final.yaml",
 			errorExpected:    "error: a basic-auth credential with ID 7dd67c9c-f591-4216-9718-b320174193bb already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/hmac-auth-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/hmac-auth-final.yaml",
+			name:             "hmac-auth",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/hmac-auth-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/hmac-auth-final.yaml",
 			errorExpected:    "error: a hmac-auth credential with ID 172e4a82-5446-4b91-ab9f-5173478ed241 already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/jwt-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/jwt-final.yaml",
+			name:             "jwt",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/jwt-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/jwt-final.yaml",
 			errorExpected:    "error: a jwt credential with ID 955382ce-98b0-4719-98ba-40ecd2db06de already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/key-auth-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/key-auth-final.yaml",
+			name:             "key-auth",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/key-auth-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/key-auth-final.yaml",
 			errorExpected:    "error: a key-auth credential with ID 6307cfb6-a9d9-4968-95ce-3937fcdd2359 already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/oauth-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/oauth-final.yaml",
+			name:             "oauth",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/oauth-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/oauth-final.yaml",
 			errorExpected:    "error: an oauth2 credential with ID f3c51133-2e0c-4049-b45d-fd9309dcba9a already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-final.yaml",
+			name:             "certificate",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-final.yaml",
 			errorExpected:    "error: a certificate with ID 13c562a1-191c-4464-9b18-e5222b46035a already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/ca-certificate-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/ca-certificate-final.yaml",
+			name:             "ca-certificate",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/ca-certificate-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/ca-certificate-final.yaml",
 			errorExpected:    "error: a CA certificate with ID b824e7c0-d116-4c03-9e27-de05c5d30083 already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-final.yaml",
+			name:             "consumer",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-final.yaml",
 			errorExpected:    "error: a consumer with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-group-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-group-final.yaml",
-			errorExpected:    "error: a consumer group with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
-		},
-		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/plugin-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/plugin-final.yaml",
+			name:             "plugin",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/plugin-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/plugin-final.yaml",
 			errorExpected:    "error: a plugin with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/route-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/route-final.yaml",
+			name:             "route",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/route-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/route-final.yaml",
 			errorExpected:    "error: a route with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/service-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/service-final.yaml",
+			name:             "service",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/service-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/service-final.yaml",
 			errorExpected:    "error: a service with ID 58076db2-28b6-423b-ba39-a797193017f7 already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/sni-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/sni-final.yaml",
+			name:             "sni",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/sni-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/sni-final.yaml",
 			errorExpected:    "error: a SNI with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
 		},
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/upstream-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/upstream-final.yaml",
+			name:             "upstream",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/upstream-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/upstream-final.yaml",
 			errorExpected:    "error: an upstream with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
 		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhenKongOrKonnect(t, ">=2.8.0")
+			mustResetKongState(context.TODO(), t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.ErrorContains(t, err, tc.errorExpected)
+		})
+	}
+}
+
+// test scope:
+//
+//	>=3.0.0 because vault was in beta till v3.0.0
+func Test_Sync_Avoid_Vault_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
+	setup(t)
+
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		targetStateFile  string
+		errorExpected    string
+	}{
 		{
-			initialStateFile: "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/vault-initial.yaml",
-			targetStateFile:  "testdata/sync/038-avoid-entity-rewrite-with-id-on-select-tag-mismatch/vault-final.yaml",
+			name:             "vault",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/vault-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/vault-final.yaml",
 			errorExpected:    "error: a vault with ID 87b6a97e-f3f7-4c47-857a-7464cb9e202b already exists",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			runWhenKongOrKonnect(t, ">=3.0.0")
 			mustResetKongState(context.TODO(), t, client, deckDump.Config{})
 			err := sync(tc.initialStateFile)
 			require.NoError(t, err)
 
 			err = sync(tc.targetStateFile, "--select-tag", "after")
-			assert.ErrorContains(t, err, tc.errorExpected)
+			require.ErrorContains(t, err, tc.errorExpected)
+		})
+	}
+}
+
+// test scope:
+//
+//	Enterprise gateway >=2.8.0 - because consumer groups are only supported on enterprise.
+func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID_Enterprise(t *testing.T) {
+	setup(t)
+
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		targetStateFile  string
+		errorExpected    string
+	}{
+		{
+			name:             "consumer-group",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-group-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/consumer-group-final.yaml",
+			errorExpected:    "error: a consumer group with ID 5a1e49a8-2536-41fa-a4e9-605bf218a4fa already exists",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhen(t, "enterprise", ">=2.8.0")
+			mustResetKongState(context.TODO(), t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.ErrorContains(t, err, tc.errorExpected)
 		})
 	}
 }

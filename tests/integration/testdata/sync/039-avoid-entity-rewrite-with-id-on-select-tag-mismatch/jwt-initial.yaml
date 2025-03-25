@@ -19,7 +19,6 @@ plugins:
     - authorization
     key_claim_name: iss
     maximum_expiration: 0
-    realm: null
     run_on_preflight: true
     secret_is_base64: false
     uri_param_names:

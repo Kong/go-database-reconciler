@@ -1,8 +1,0 @@
-_format_version: "3.0"
-consumers:
-- custom_id: consumer-2
-  id: d94257fb-73a5-4597-a278-211799f8f38d
-  username: consumer2
-  mtls_auth_credentials:
-  - id: bda09448-3b10-4da7-a83b-2a8ba6021f0c
-    subject_name: localhost

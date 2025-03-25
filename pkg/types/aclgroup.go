@@ -165,7 +165,6 @@ func (d *aclGroupDiffer) createUpdateACLGroup(aclGroup *state.ACLGroup) (*crud.E
 			remoteACLGroup, err := d.client.ACLs.GetByID(context.TODO(), aclGroup.ID)
 
 			if err != nil && !kong.IsNotFoundErr(err) {
-				fmt.Println(">>>>", err, kong.IsNotFoundErr(err))
 				return nil, err
 			}
 

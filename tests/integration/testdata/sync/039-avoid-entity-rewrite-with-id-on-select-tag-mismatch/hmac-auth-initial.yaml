@@ -20,7 +20,6 @@ plugins:
     clock_skew: 300
     enforce_headers: []
     hide_credentials: false
-    realm: null
     validate_request_body: false
   enabled: true
   id: cdf474f0-2830-4645-bfe5-b25078ee4876
@@ -30,5 +29,3 @@ plugins:
   - grpcs
   - http
   - https
-  - ws
-  - wss
