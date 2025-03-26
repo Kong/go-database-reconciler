@@ -8022,6 +8022,45 @@ func Test_Sync_Avoid_Vault_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T
 
 // test scope:
 //
+//	Enterprise gateway >=3.10.0
+func Test_Sync_Avoid_Overwrite_for_Partial_On_Select_Tag_Mismatch_With_ID_Enterprise(t *testing.T) {
+	setup(t)
+
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		targetStateFile  string
+		errorExpected    string
+	}{
+		{
+			name:             "partial",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/partial-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/partial-final.yaml",
+			errorExpected:    "error: a partial with ID 13dc230d-d65e-439a-9f05-9fd71abfee4d already exists",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhen(t, "enterprise", ">=3.10.0")
+			mustResetKongState(context.TODO(), t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.ErrorContains(t, err, tc.errorExpected)
+		})
+	}
+}
+
+// test scope:
+//
 //	Enterprise gateway >=2.8.0 - because consumer groups are only supported on enterprise.
 func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID_Enterprise(t *testing.T) {
 	setup(t)
