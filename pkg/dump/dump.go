@@ -163,7 +163,8 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("consumer_groups: %w", err)
 		}
 		if config.LookUpSelectorTagsConsumerGroups != nil {
-			globalConsumerGroups, err := getConsumerGroupsFunc(ctx, client, config.LookUpSelectorTagsConsumerGroups, DefaultLookupTag)
+			globalConsumerGroups, err := getConsumerGroupsFunc(ctx, client, config.LookUpSelectorTagsConsumerGroups,
+				DefaultLookupTag)
 			if err != nil {
 				return fmt.Errorf("error retrieving global consumer groups: %w", err)
 			}
