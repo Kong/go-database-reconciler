@@ -155,6 +155,9 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			getConsumerGroupsFunc = GetAllConsumerGroupsWithoutConsumers
 		}
 
+		// Passing config.SelectorTags here fetches only those consumer-groups (and inclusive consumers,
+		// where applicable) which are tagged with the same tag as provided in the config.SelectorTags.
+		// If config.SelectorTags is empty, all consumer-groups are fetched.
 		consumerGroups, err = getConsumerGroupsFunc(ctx, client, config.SelectorTags, SelectTag)
 		if err != nil {
 			if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
@@ -163,6 +166,13 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("consumer_groups: %w", err)
 		}
 		if config.LookUpSelectorTagsConsumerGroups != nil {
+			// Passing config.LookUpSelectorTagsConsumerGroups here fetches only those consumer-groups
+			// which are tagged with the same tag as provided in the config.LookUpSelectorTagsConsumerGroups.
+			// This doesn't apply to the consumers within the consumer-group; they will be fetched (wherever
+			// applicable) regardless of their tags.
+			// LookUpSelectorTagsConsumerGroups are useful when the config is distributed. If the config
+			// under process refers to a consumer-group which exists on the gateway but is not defined in the
+			// same config file, the presence of lookup tags will be able to fetch that consumer-group.
 			globalConsumerGroups, err := getConsumerGroupsFunc(ctx, client, config.LookUpSelectorTagsConsumerGroups,
 				DefaultLookupTag)
 			if err != nil {

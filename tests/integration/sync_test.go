@@ -7828,7 +7828,7 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 	client, err := getTestClient()
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	dumpConfig := deckDump.Config{}
 
 	t.Run("no errors occur in case of subsequent syncs with distributed config and defaultLookupTags for consumer-group", func(t *testing.T) {
