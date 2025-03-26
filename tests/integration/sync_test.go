@@ -7821,3 +7821,29 @@ func Test_Sync_Partials(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.0.0")
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	dumpConfig := deckDump.Config{}
+
+	t.Run("no errors occur in case of subsequent syncs with defaultLookupTags for consumer-group", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+
+		// sync consumer-group file first
+		err := sync("testdata/sync/015-consumer-groups/kong-cg.yaml")
+		require.NoError(t, err)
+
+		// sync consumers file
+		err = sync("testdata/sync/015-consumer-groups/kong-consumers.yaml")
+		require.NoError(t, err)
+
+		// sync again
+		err = sync("testdata/sync/015-consumer-groups/kong-consumers.yaml")
+		require.NoError(t, err)
+	})
+}
