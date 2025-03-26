@@ -139,6 +139,11 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, err
 	}
 
+	err = populatePartials(kongState, file)
+	if err != nil {
+		return nil, err
+	}
+
 	return file, nil
 }
 
@@ -893,6 +898,22 @@ func populateDegraphqlRoutes(kongState *state.KongState, file *Content) error {
 		return compareOrder(file.CustomEntities[i], file.CustomEntities[j])
 	})
 
+	return nil
+}
+
+func populatePartials(kongState *state.KongState, file *Content) error {
+	partials, err := kongState.Partials.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, p := range partials {
+		p := FPartial{Partial: p.Partial}
+		utils.ZeroOutTimestamps(&p)
+		file.Partials = append(file.Partials, p)
+	}
+	sort.SliceStable(file.Partials, func(i, j int) bool {
+		return compareOrder(file.Partials[i], file.Partials[j])
+	})
 	return nil
 }
 

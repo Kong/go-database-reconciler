@@ -5,6 +5,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func hmacAuthsCollection() *HMACAuthsCollection {
@@ -12,17 +13,16 @@ func hmacAuthsCollection() *HMACAuthsCollection {
 }
 
 func TestHMACAuthInsert(t *testing.T) {
-	assert := assert.New(t)
 	collection := hmacAuthsCollection()
 
 	var hmacAuth HMACAuth
 	hmacAuth.ID = kong.String("first")
 	err := collection.Add(hmacAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	hmacAuth.Username = kong.String("my-username")
 	err = collection.Add(hmacAuth)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	var hmacAuth2 HMACAuth
 	hmacAuth2.Username = kong.String("my-username")
@@ -32,7 +32,7 @@ func TestHMACAuthInsert(t *testing.T) {
 		Username: kong.String("my-username"),
 	}
 	err = collection.Add(hmacAuth2)
-	assert.Nil(err)
+	require.NoError(t, err)
 }
 
 func TestHMACAuthGet(t *testing.T) {
@@ -48,21 +48,21 @@ func TestHMACAuthGet(t *testing.T) {
 	}
 
 	err := collection.Add(hmacAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("my-username", *res.Username)
 
 	res, err = collection.Get("my-username")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("first", *res.ID)
 	assert.Equal("consumer1-id", *res.Consumer.ID)
 
 	res, err = collection.Get("does-not-exist")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 }
 
@@ -78,24 +78,24 @@ func TestHMACAuthUpdate(t *testing.T) {
 	}
 
 	err := collection.Add(hmacAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 	assert.Equal("my-username", *res.Username)
 
 	res.Username = kong.String("my-username2")
 	res.Secret = kong.String("secret")
 	err = collection.Update(*res)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("my-username")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	res, err = collection.Get("my-username2")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("first", *res.ID)
 	assert.Equal("secret", *res.Secret)
 }
@@ -112,50 +112,49 @@ func TestHMACAuthDelete(t *testing.T) {
 		Username: kong.String("consumer1-name"),
 	}
 	err := collection.Add(hmacAuth)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err := collection.Get("my-username1")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(res)
 
 	err = collection.Delete(*res.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	res, err = collection.Get("my-username1")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(res)
 
 	// delete a non-existing one
 	err = collection.Delete("first")
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	err = collection.Delete("my-username1")
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestHMACAuthGetAll(t *testing.T) {
-	assert := assert.New(t)
 	collection := hmacAuthsCollection()
 
-	populateWithHMACAuthFixtures(assert, collection)
+	populateWithHMACAuthFixtures(t, collection)
 
 	hmacAuths, err := collection.GetAll()
-	assert.Nil(err)
-	assert.Equal(5, len(hmacAuths))
+	require.NoError(t, err)
+	require.Len(t, hmacAuths, 5)
 }
 
 func TestHMACAuthGetByConsumer(t *testing.T) {
-	assert := assert.New(t)
 	collection := hmacAuthsCollection()
 
-	populateWithHMACAuthFixtures(assert, collection)
+	populateWithHMACAuthFixtures(t, collection)
 
 	hmacAuths, err := collection.GetAllByConsumerID("consumer1-id")
-	assert.Nil(err)
-	assert.Equal(3, len(hmacAuths))
+	require.NoError(t, err)
+	require.Len(t, hmacAuths, 3)
 }
 
-func populateWithHMACAuthFixtures(assert *assert.Assertions,
+func populateWithHMACAuthFixtures(
+	t *testing.T,
 	collection *HMACAuthsCollection,
 ) {
 	hmacAuths := []HMACAuth{
@@ -213,6 +212,6 @@ func populateWithHMACAuthFixtures(assert *assert.Assertions,
 
 	for _, k := range hmacAuths {
 		err := collection.Add(k)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 }

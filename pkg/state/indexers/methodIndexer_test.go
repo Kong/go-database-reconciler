@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type Foo struct {
@@ -34,30 +35,30 @@ func TestMethodIndexer(t *testing.T) {
 
 	ok, val, err := in.FromObject(b)
 	assert.True(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal([]byte("id1"), val)
 
 	ok, val, err = in.FromObject(Foo{})
 	assert.False(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Empty(val)
 
 	idInterface := (ID)(b)
 	ok, val, err = in.FromObject(idInterface)
 	assert.True(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal([]byte("id1"), val)
 
 	val, err = in.FromArgs("id1")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal([]byte("id1"), val)
 
 	val, err = in.FromArgs("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(val)
 
 	val, err = in.FromArgs(42)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(val)
 
 	in = &MethodIndexer{
@@ -66,6 +67,6 @@ func TestMethodIndexer(t *testing.T) {
 
 	ok, val, err = in.FromObject(Foo{id: "id1"})
 	assert.False(ok)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Empty(val)
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMD5FieldsIndexer(t *testing.T) {
@@ -27,17 +28,17 @@ func TestMD5FieldsIndexer(t *testing.T) {
 
 	ok, val, err := in.FromObject(b)
 	assert.True(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	sum := md5.Sum([]byte(s1 + s2))
 	assert.Equal(sum[:], val)
 
 	val, err = in.FromArgs(s1, s2)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal(sum[:], val)
 
 	ok, val, err = in.FromObject(Foo{})
 	assert.False(ok)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Empty(val)
 
 	s1 = ""
@@ -47,14 +48,14 @@ func TestMD5FieldsIndexer(t *testing.T) {
 		Baz: &s2,
 	})
 	assert.False(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Empty(val)
 
 	val, err = in.FromArgs("")
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(val)
 
 	val, err = in.FromArgs(2)
-	assert.NotNil(err)
+	require.Error(t, err)
 	assert.Nil(val)
 }

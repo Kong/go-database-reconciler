@@ -34,8 +34,8 @@ func TestDefaulter(t *testing.T) {
 
 	var d Defaulter
 
-	assert.NotNil(d.Register(nil))
-	assert.NotNil(d.Set(nil))
+	require.Error(t, d.Register(nil))
+	require.Error(t, d.Set(nil))
 
 	assert.Panics(func() {
 		d.MustSet(d)
@@ -49,11 +49,11 @@ func TestDefaulter(t *testing.T) {
 		A: "defaultA",
 		B: []string{"default1"},
 	}
-	assert.Nil(d.Register(defaultFoo))
+	require.NoError(t, d.Register(defaultFoo))
 
 	// sets a default
 	var arg Foo
-	assert.Nil(d.Set(&arg))
+	require.NoError(t, d.Set(&arg))
 	assert.Equal("defaultA", arg.A)
 	assert.Equal([]string{"default1"}, arg.B)
 
@@ -61,14 +61,14 @@ func TestDefaulter(t *testing.T) {
 	arg1 := Foo{
 		A: "non-default-value",
 	}
-	assert.Nil(d.Set(&arg1))
+	require.NoError(t, d.Set(&arg1))
 	assert.Equal("non-default-value", arg1.A)
 
 	// errors on an unregistered type
 	type Bar struct {
 		A string
 	}
-	assert.NotNil(d.Set(&Bar{}))
+	require.Error(t, d.Set(&Bar{}))
 	assert.Panics(func() {
 		d.MustSet(&Bar{})
 	})
@@ -78,7 +78,7 @@ func TestServiceSetTest(t *testing.T) {
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
 	require.NotNil(t, d)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		desc string
@@ -149,7 +149,7 @@ func TestServiceSetTest(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			err := d.Set(tC.arg)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tC.want, tC.arg)
 		})
 	}
@@ -159,7 +159,7 @@ func TestRouteSetTest(t *testing.T) {
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
 	require.NotNil(t, d)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		desc string
@@ -241,7 +241,7 @@ func TestRouteSetTest(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			err := d.Set(tC.arg)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tC.want, tC.arg)
 		})
 	}
@@ -251,7 +251,7 @@ func TestUpstreamSetTest(t *testing.T) {
 	ctx := context.Background()
 	d, err := GetDefaulter(ctx, defaulterTestOpts)
 	require.NotNil(t, d)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		desc string
@@ -493,7 +493,7 @@ func TestUpstreamSetTest(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			err := d.Set(tC.arg)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tC.want, tC.arg)
 		})
 	}
@@ -555,7 +555,7 @@ func TestGetDefaulter_Konnect(t *testing.T) {
 			ctx := context.Background()
 			d, err := GetDefaulter(ctx, tc.opts)
 			assert.NotNil(d)
-			assert.Nil(err)
+			require.NoError(t, err)
 
 			if !reflect.DeepEqual(d.service, tc.want.service) {
 				assert.Equal(t, tc.want.service, d.service)
@@ -621,7 +621,7 @@ func TestCheckRestrictedFields(t *testing.T) {
 				t.Errorf("got error = %v, expected error = %v", err, tC.wantErr)
 			}
 			if tC.expectedErr != "" {
-				assert.Equal(err.Error(), tC.expectedErr)
+				assert.Equal(tC.expectedErr, err.Error())
 			}
 		})
 	}

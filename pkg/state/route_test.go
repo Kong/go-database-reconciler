@@ -310,17 +310,17 @@ func TestRouteGetMemoryReference(t *testing.T) {
 	assert.NotNil(route.Service)
 	err := collection.Add(route)
 	assert.NotNil(route.Service)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.Equal("my-route", *re.Name)
 
 	re.SNIs = kong.StringSlice("example.com", "demo.example.com")
 
 	re, err = collection.Get("my-route")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.Nil(re.SNIs)
 }
@@ -337,18 +337,18 @@ func TestRouteDelete(t *testing.T) {
 		ID: kong.String("service1-id"),
 	}
 	err := collection.Add(route)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("my-route")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.Equal("example.com", *re.Hosts[0])
 
 	err = collection.Delete(*re.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete(*re.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestRouteGetAll(t *testing.T) {
@@ -363,7 +363,7 @@ func TestRouteGetAll(t *testing.T) {
 		ID: kong.String("service1-id"),
 	}
 	err := collection.Add(route)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var route2 Route
 	route2.Name = kong.String("my-route2")
@@ -373,12 +373,12 @@ func TestRouteGetAll(t *testing.T) {
 		ID: kong.String("service1-id"),
 	}
 	err = collection.Add(route2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	routes, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(routes))
+	require.NoError(t, err)
+	assert.Len(routes, 2)
 }
 
 func TestRouteGetAllByServiceID(t *testing.T) {
@@ -438,14 +438,14 @@ func TestRouteGetAllByServiceID(t *testing.T) {
 
 	for _, route := range routes {
 		err := collection.Add(*route)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 
 	routes, err := collection.GetAllByServiceID("service1-id")
-	assert.Nil(err)
-	assert.Equal(2, len(routes))
+	require.NoError(t, err)
+	assert.Len(routes, 2)
 
 	routes, err = collection.GetAllByServiceID("service2-id")
-	assert.Nil(err)
-	assert.Equal(3, len(routes))
+	require.NoError(t, err)
+	assert.Len(routes, 3)
 }

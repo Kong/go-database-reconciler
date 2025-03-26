@@ -431,7 +431,7 @@ func Test_getFormatVersion(t *testing.T) {
 				t.Errorf("got error = %v, expected error = %v", err, tt.wantErr)
 			}
 			if tt.expectedErr != "" {
-				assert.Equal(t, err.Error(), tt.expectedErr)
+				assert.Equal(t, tt.expectedErr, err.Error())
 			}
 			if res != tt.expected {
 				t.Errorf("Expected %v, but isn't: %v", tt.expected, res)

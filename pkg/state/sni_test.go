@@ -6,6 +6,7 @@ import (
 
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func snisCollection() *SNIsCollection {
@@ -350,15 +351,15 @@ func TestSNIGetMemoryReference(t *testing.T) {
 		ID: kong.String("cert1-id"),
 	}
 	err := collection.Add(sni)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("first")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.Equal("my-sni", *re.Name)
 
 	re, err = collection.Get("my-sni")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 }
 
@@ -373,18 +374,18 @@ func TestSNIDelete(t *testing.T) {
 		ID: kong.String("cert1-id"),
 	}
 	err := collection.Add(sni)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	re, err := collection.Get("my-sni")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(re)
 	assert.Equal("first", *re.ID)
 
 	err = collection.Delete(*re.ID)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	err = collection.Delete(*re.ID)
-	assert.NotNil(err)
+	require.Error(t, err)
 }
 
 func TestSNIGetAll(t *testing.T) {
@@ -398,7 +399,7 @@ func TestSNIGetAll(t *testing.T) {
 		ID: kong.String("cert1-id"),
 	}
 	err := collection.Add(sni)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	var sni2 SNI
 	sni2.Name = kong.String("my-sni2")
@@ -407,12 +408,12 @@ func TestSNIGetAll(t *testing.T) {
 		ID: kong.String("cert1-id"),
 	}
 	err = collection.Add(sni2)
-	assert.Nil(err)
+	require.NoError(t, err)
 
 	snis, err := collection.GetAll()
 
-	assert.Nil(err)
-	assert.Equal(2, len(snis))
+	require.NoError(t, err)
+	assert.Len(snis, 2)
 }
 
 func TestSNIGetAllByServiceID(t *testing.T) {
@@ -467,14 +468,14 @@ func TestSNIGetAllByServiceID(t *testing.T) {
 
 	for _, sni := range snis {
 		err := collection.Add(*sni)
-		assert.Nil(err)
+		require.NoError(t, err)
 	}
 
 	snis, err := collection.GetAllByCertID("cert1-id")
-	assert.Nil(err)
-	assert.Equal(2, len(snis))
+	require.NoError(t, err)
+	assert.Len(snis, 2)
 
 	snis, err = collection.GetAllByCertID("cert2-id")
-	assert.Nil(err)
-	assert.Equal(3, len(snis))
+	require.NoError(t, err)
+	assert.Len(snis, 3)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSubFieldIndexer(t *testing.T) {
@@ -33,12 +34,12 @@ func TestSubFieldIndexer(t *testing.T) {
 	ok, val, err := in.FromObject(b)
 	assert := assert.New(t)
 	assert.True(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("fubar\x00", string(val))
 
 	ok, val, err = in.FromObject(Baz{})
 	assert.False(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Empty(val)
 
 	s = ""
@@ -48,20 +49,20 @@ func TestSubFieldIndexer(t *testing.T) {
 		},
 	})
 	assert.False(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Empty(val)
 
 	val, err = in.FromArgs("fubar")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("fubar\x00", string(val))
 
 	val, err = in.FromArgs(2)
 	assert.Nil(val)
-	assert.NotNil(err)
+	require.Error(t, err)
 
 	val, err = in.FromArgs("1", "2")
 	assert.Equal([]byte("12\x00"), val)
-	assert.Nil(err)
+	require.NoError(t, err)
 }
 
 func TestSubFieldIndexerPointer(t *testing.T) {
@@ -91,10 +92,10 @@ func TestSubFieldIndexerPointer(t *testing.T) {
 	ok, val, err := in.FromObject(b)
 	assert := assert.New(t)
 	assert.True(ok)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("fubar\x00", string(val))
 
 	val, err = in.FromArgs("fubar")
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.Equal("fubar\x00", string(val))
 }

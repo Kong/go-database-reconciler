@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewState(t *testing.T) {
 	state, err := NewKongState()
 	assert := assert.New(t)
-	assert.Nil(err)
+	require.NoError(t, err)
 	assert.NotNil(state)
 }
 

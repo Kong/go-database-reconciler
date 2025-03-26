@@ -16,11 +16,11 @@ func TestErrArrayString(t *testing.T) {
 
 	err.Errors = append(err.Errors, fmt.Errorf("foo failed"))
 
-	assert.Equal(err.Error(), "1 errors occurred:\n\tfoo failed\n")
+	assert.Equal("1 errors occurred:\n\tfoo failed\n", err.Error())
 
 	err.Errors = append(err.Errors, fmt.Errorf("bar failed"))
 
-	assert.Equal(err.Error(), "2 errors occurred:\n\tfoo failed\n\tbar failed\n")
+	assert.Equal("2 errors occurred:\n\tfoo failed\n\tbar failed\n", err.Error())
 }
 
 func Test_cleanAddress(t *testing.T) {

@@ -487,6 +487,21 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
+	group.Go(func() error {
+		partials, err := GetAllPartials(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("partials: %w", err)
+		}
+
+		partials, err = excludeKonnectManagedEntities(partials)
+		if err != nil {
+			return fmt.Errorf("partials: %w", err)
+		}
+
+		state.Partials = partials
+		return nil
+	})
+
 	if config.IncludeLicenses {
 		group.Go(func() error {
 			licenses, err := GetAllLicenses(ctx, client, config.SelectorTags)
@@ -596,6 +611,33 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 	}
 
 	return &state, nil
+}
+
+// GetAllPartials queries Kong for all the partials using client.
+func GetAllPartials(ctx context.Context, client *kong.Client,
+	tags []string,
+) ([]*kong.Partial, error) {
+	var partials []*kong.Partial
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.Partials.List(ctx, opt)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			return partials, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		partials = append(partials, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return partials, nil
 }
 
 // GetAllServices queries Kong for all the services using client.

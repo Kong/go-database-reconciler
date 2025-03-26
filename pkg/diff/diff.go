@@ -267,6 +267,8 @@ func (sc *Syncer) init() error {
 		types.FilterChain,
 
 		types.DegraphqlRoute,
+
+		types.Partial,
 	}
 
 	sc.entityDiffers = map[types.EntityType]types.Differ{}
@@ -639,8 +641,13 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 					return nil, err
 				}
 
-				// fill defaults and auto fields for the configuration that will be used for the diff
-				if err := kong.FillPluginsDefaults(&pluginCopy.Plugin, schema); err != nil {
+				linkedPartialConfig, err := utils.FindLinkedPartials(ctx, sc.kongClient, &pluginCopy.Plugin)
+				if err != nil {
+					return nil, err
+				}
+
+				err = kong.FillPluginsDefaultsWithPartials(&pluginCopy.Plugin, schema, linkedPartialConfig)
+				if err != nil {
 					return nil, fmt.Errorf("failed processing auto fields: %w", err)
 				}
 
@@ -660,9 +667,40 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				if oldPlugin, ok := e.OldObj.(*state.Plugin); ok {
 					oldPluginCopy := &state.Plugin{Plugin: *oldPlugin.DeepCopy()}
 					e.OldObj = oldPluginCopy
+					linkedPartialConfig, err := utils.FindLinkedPartials(ctx, sc.kongClient, &oldPluginCopy.Plugin)
+					if err != nil {
+						return nil, err
+					}
+
+					err = kong.FillPluginsDefaultsWithPartials(&oldPluginCopy.Plugin, schema, linkedPartialConfig)
+					if err != nil {
+						return nil, fmt.Errorf("failed processing auto fields: %w", err)
+					}
+
 					if err := kong.ClearUnmatchingDeprecations(&pluginCopy.Plugin, &oldPluginCopy.Plugin, schema); err != nil {
 						return nil, fmt.Errorf("failed processing auto fields: %w", err)
 					}
+				}
+			}
+		}
+
+		// If the event is for a partial, inject defaults in the partial's config
+		// that will be used for the diff. This is needed to avoid highlighting
+		// default values that were populated by Kong as differences.
+		if partial, ok := e.Obj.(*state.Partial); ok {
+			partialCopy := &state.Partial{Partial: *partial.DeepCopy()}
+			e.Obj = partialCopy
+
+			if exists, _ := utils.WorkspaceExists(ctx, sc.kongClient); exists {
+				var schema map[string]interface{}
+				schema, err = sc.kongClient.Partials.GetFullSchema(ctx, partialCopy.Partial.Type)
+				if err != nil {
+					return nil, err
+				}
+
+				// fill defaults fields for the configuration that will be used for the diff
+				if err := kong.FillPartialDefaults(&partialCopy.Partial, schema); err != nil {
+					return nil, fmt.Errorf("failed processing fields for partial: %w", err)
 				}
 			}
 		}
