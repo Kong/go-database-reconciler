@@ -48,10 +48,10 @@ jobs:
       - name: Check if secrets are available
         id: check
         run: |
-          if [ "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" == "" || ${{ secrets.DOCKERHUB_PULL_TOKEN }}" == "" || ${{ secrets.DOCKERHUB_PULL_USERNAME }}" == "" ]; then
-            echo "result=false" >> $GITHUB_OUTPUT
+          if [ "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" == "" ] || [ "${{ secrets.DOCKERHUB_PULL_TOKEN }}" == "" ] || [ "${{ secrets.DOCKERHUB_PULL_USERNAME }}" == "" ]; then
+            echo "result=false" >> "$GITHUB_OUTPUT"
           else
-            echo "result=true" >> $GITHUB_OUTPUT
+            echo "result=true" >> "$GITHUB_OUTPUT"
           fi
 
   codegen:
@@ -61,7 +61,7 @@ jobs:
     if: needs.up-to-date.outputs.status != 'true'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
       - run: make update-codegen verify-codegen
 
   enterprise-integration-tests:
