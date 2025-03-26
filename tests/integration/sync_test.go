@@ -7831,7 +7831,7 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 	ctx := context.Background()
 	dumpConfig := deckDump.Config{}
 
-	t.Run("no errors occur in case of subsequent syncs with defaultLookupTags for consumer-group", func(t *testing.T) {
+	t.Run("no errors occur in case of subsequent syncs with distributed config and defaultLookupTags for consumer-group", func(t *testing.T) {
 		mustResetKongState(ctx, t, client, dumpConfig)
 
 		// sync consumer-group file first
@@ -7844,6 +7844,22 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 
 		// sync again
 		err = sync("testdata/sync/015-consumer-groups/kong-consumers.yaml")
+		require.NoError(t, err)
+	})
+
+	t.Run("no errors occur in case of with distributed config when consumer is not tagged but consumer-group is", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+
+		// sync consumer-group file first
+		err := sync("testdata/sync/015-consumer-groups/kong-cg.yaml")
+		require.NoError(t, err)
+
+		// sync consumers file
+		err = sync("testdata/sync/015-consumer-groups/kong-consumers-no-tag.yaml")
+		require.NoError(t, err)
+
+		// sync again
+		err = sync("testdata/sync/015-consumer-groups/kong-consumers-no-tag.yaml")
 		require.NoError(t, err)
 	})
 }
