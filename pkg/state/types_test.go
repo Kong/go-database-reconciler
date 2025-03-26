@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/kong/go-kong/kong"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -539,6 +540,40 @@ func TestACLGroupEqual(t *testing.T) {
 	k2.Consumer = &kong.Consumer{Username: kong.String("u1")}
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 	assert.False(k1.EqualWithOpts(&k2, false, false, true))
+}
+
+func TestCACertificateEqual(t *testing.T) {
+	assert := assert.New(t)
+
+	var c1, c2 CACertificate
+	c1.ID = kong.String("cert")
+	c1.Cert = kong.String("==== cert")
+
+	c2.ID = kong.String("cert")
+	c2.Cert = kong.String("==== cert")
+
+	assert.True(c1.Equal(&c2))
+
+	c2.Cert = kong.String("==== another cert")
+	assert.False(c1.Equal(&c2), "should distinguish cert")
+	c2.Cert = kong.String("==== cert")
+
+	c2.CertDigest = kong.String("digest")
+	assert.True(c1.Equal(&c2), "should ignore cert_digest")
+	c2.CertDigest = nil
+
+	c2.ID = kong.String("another")
+	assert.False(c1.Equal(&c2), "should distinguish ID")
+	assert.True(c1.EqualWithOpts(&c2, true, false), "should ignore ID when configured")
+
+	c2.ID = kong.String("cert")
+	c2.CreatedAt = lo.ToPtr(int64(1))
+	assert.False(c1.Equal(&c2), "should distinguish createdAt")
+	assert.True(c1.EqualWithOpts(&c2, false, true), "should ignore createdAt when configured")
+
+	c2.CreatedAt = nil
+	c2.Tags = lo.ToSlicePtr([]string{"tag1", "tag2"})
+	assert.False(c1.Equal(&c2), "should distinguish tags")
 }
 
 func TestStripKey(t *testing.T) {
