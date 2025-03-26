@@ -1410,6 +1410,10 @@ func (c1 *CACertificate) EqualWithOpts(c2 *CACertificate,
 		c1Copy.CreatedAt = nil
 		c2Copy.CreatedAt = nil
 	}
+	// cert_digest is calculated and filled by Kong so we should ignore it in comparing.
+	c1Copy.CertDigest = nil
+	c2Copy.CertDigest = nil
+
 	return reflect.DeepEqual(c1Copy, c2Copy)
 }
 
