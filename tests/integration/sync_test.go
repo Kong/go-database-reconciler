@@ -7823,7 +7823,7 @@ func Test_Sync_Partials(t *testing.T) {
 }
 
 func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.0.0")
+	runWhen(t, "enterprise", ">=2.8.0")
 
 	client, err := getTestClient()
 	require.NoError(t, err)
