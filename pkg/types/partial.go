@@ -154,13 +154,11 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 	if errors.Is(err, state.ErrNotFound) {
 		if partial.ID != nil {
 			existingPartial, err := d.client.Partials.Get(context.TODO(), partial.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingPartial != nil {
-				return nil, fmt.Errorf("error: a partial with ID %s already exists", *partial.ID)
+				return nil, errDuplicateEntity("partial", *partial.ID)
 			}
 		}
 

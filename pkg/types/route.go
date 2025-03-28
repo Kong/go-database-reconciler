@@ -38,7 +38,6 @@ func routeFromStruct(arg crud.Event) *state.Route {
 func (s *routeCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	route := routeFromStruct(event)
-
 	createdRoute, err := s.client.Routes.Create(ctx, &route.Route)
 	if err != nil {
 		return nil, err
@@ -147,13 +146,11 @@ func (d *routeDiffer) createUpdateRoute(route *state.Route) (*crud.Event, error)
 	if errors.Is(err, state.ErrNotFound) {
 		if route.ID != nil {
 			existingRoute, err := d.client.Routes.Get(context.TODO(), route.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingRoute != nil {
-				return nil, fmt.Errorf("error: a route with ID %s already exists", *route.ID)
+				return nil, errDuplicateEntity("route", *route.ID)
 			}
 		}
 

@@ -162,19 +162,16 @@ func (d *aclGroupDiffer) createUpdateACLGroup(aclGroup *state.ACLGroup) (*crud.E
 		*aclGroup.Consumer.ID, *aclGroup.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		if aclGroup.ID != nil {
-			remoteACLGroup, err := d.client.ACLs.GetByID(context.TODO(), aclGroup.ID)
-
+			existingACLGroup, err := d.client.ACLs.GetByID(context.TODO(), aclGroup.ID)
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
-			if remoteACLGroup != nil {
-				return nil, fmt.Errorf("error: an ACL group with ID %s already exists", *aclGroup.ID)
+			if existingACLGroup != nil {
+				return nil, errDuplicateEntity("ACL group", *aclGroup.ID)
 			}
 		}
 
 		// aclGroup not present, create it
-
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,

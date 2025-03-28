@@ -169,7 +169,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		}
 
 		if existingPlugin != nil {
-			return nil, fmt.Errorf("error: a plugin with ID %s already exists", *plugin.ID)
+			return nil, errDuplicateEntity("plugin", *plugin.ID)
 		}
 
 		// plugin not present, create it

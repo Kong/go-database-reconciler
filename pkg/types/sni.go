@@ -138,13 +138,11 @@ func (d *sniDiffer) createUpdateSNI(sni *state.SNI) (*crud.Event, error) {
 	if errors.Is(err, state.ErrNotFound) {
 		if sni.ID != nil {
 			existingSNI, err := d.client.SNIs.Get(context.TODO(), sni.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingSNI != nil {
-				return nil, fmt.Errorf("error: a SNI with ID %s already exists", *sni.ID)
+				return nil, errDuplicateEntity("SNI", *sni.ID)
 			}
 		}
 

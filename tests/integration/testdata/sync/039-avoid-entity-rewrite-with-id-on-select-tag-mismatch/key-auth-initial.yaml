@@ -8,21 +8,3 @@ consumers:
     tags:
     - before
   username: consumer1
-plugins:
-- config:
-    anonymous: null
-    hide_credentials: false
-    key_in_body: false
-    key_in_header: true
-    key_in_query: true
-    key_names:
-    - apikey
-    run_on_preflight: true
-  enabled: true
-  id: 90b9d295-f703-4340-9a2b-443fb1800e7d
-  name: key-auth
-  protocols:
-  - grpc
-  - grpcs
-  - http
-  - https

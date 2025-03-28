@@ -34,7 +34,6 @@ func (s *certificateCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg
 	if s.isKonnect {
 		certificate.SNIs = nil
 	}
-
 	createdCertificate, err := s.client.Certificates.Create(ctx, &certificate.Certificate)
 	if err != nil {
 		return nil, err
@@ -159,14 +158,12 @@ func (d *certificateDiffer) createUpdateCertificate(
 
 	if errors.Is(err, state.ErrNotFound) {
 		if certificate.ID != nil {
-			remoteCertificate, err := d.client.Certificates.Get(context.TODO(), certificate.ID)
-
+			existingCertificate, err := d.client.Certificates.Get(context.TODO(), certificate.ID)
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
-			if remoteCertificate != nil {
-				return nil, fmt.Errorf("error: a certificate with ID %s already exists", *certificate.ID)
+			if existingCertificate != nil {
+				return nil, errDuplicateEntity("certificate", *certificate.ID)
 			}
 		}
 

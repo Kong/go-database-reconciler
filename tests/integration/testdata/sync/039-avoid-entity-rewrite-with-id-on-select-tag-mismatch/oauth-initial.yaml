@@ -12,29 +12,3 @@ consumers:
     tags:
     - before
   username: consumer1
-plugins:
-- config:
-    accept_http_if_already_terminated: false
-    anonymous: null
-    auth_header_name: authorization
-    enable_authorization_code: true
-    enable_client_credentials: false
-    enable_implicit_grant: false
-    enable_password_grant: false
-    global_credentials: false
-    hide_credentials: false
-    mandatory_scope: false
-    pkce: lax
-    provision_key: asdfgh
-    refresh_token_ttl: 1209600
-    reuse_refresh_token: false
-    scopes: null
-    token_expiration: 7200
-  enabled: true
-  id: d6d3fe72-95ae-4a12-b3d8-29dd5b26c613
-  name: oauth2
-  protocols:
-  - grpc
-  - grpcs
-  - http
-  - https

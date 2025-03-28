@@ -9,23 +9,3 @@ consumers:
     username: username1
   id: 8c0f9f90-b095-41ff-8697-6abcff30a017
   username: consumer1
-plugins:
-- config:
-    algorithms:
-    - hmac-sha1
-    - hmac-sha256
-    - hmac-sha384
-    - hmac-sha512
-    anonymous: null
-    clock_skew: 300
-    enforce_headers: []
-    hide_credentials: false
-    validate_request_body: false
-  enabled: true
-  id: cdf474f0-2830-4645-bfe5-b25078ee4876
-  name: hmac-auth
-  protocols:
-  - grpc
-  - grpcs
-  - http
-  - https

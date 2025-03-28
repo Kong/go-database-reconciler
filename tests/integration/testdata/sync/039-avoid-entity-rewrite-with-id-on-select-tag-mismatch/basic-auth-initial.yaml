@@ -9,15 +9,3 @@ consumers:
   custom_id: consumer-1
   id: c4f969ef-a249-4ffb-9d2e-9c511cfa9f67
   username: consumer1
-plugins:
-- config:
-    anonymous: null
-    hide_credentials: false
-  enabled: true
-  id: d7ad0672-cb03-4f7d-beda-2db5525ed62c
-  name: basic-auth
-  protocols:
-  - grpc
-  - grpcs
-  - http
-  - https

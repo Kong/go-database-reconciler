@@ -1,5 +1,6 @@
 _format_version: "3.0"
 ca_certificates:
+# This has validity up to ~2030 - after which the tests using this will fail and this needs an update.
 - cert: |-
     -----BEGIN CERTIFICATE-----
     MIIEdjCCA16gAwIBAgIJAPFB4atWynOBMA0GCSqGSIb3DQEBCwUAMIGJMQswCQYD

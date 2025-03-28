@@ -142,13 +142,11 @@ func (d *upstreamDiffer) createUpdateUpstream(upstream *state.Upstream) (*crud.E
 	if errors.Is(err, state.ErrNotFound) {
 		if upstream.ID != nil {
 			existingUpstream, err := d.client.Upstreams.Get(context.TODO(), upstream.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingUpstream != nil {
-				return nil, fmt.Errorf("error: an upstream with ID %s already exists", *upstream.ID)
+				return nil, errDuplicateEntity("upstream", *upstream.ID)
 			}
 		}
 

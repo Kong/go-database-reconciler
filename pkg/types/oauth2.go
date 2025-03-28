@@ -164,13 +164,11 @@ func (d *oauth2CredDiffer) createUpdateOauth2Cred(oauth2Cred *state.Oauth2Creden
 	if errors.Is(err, state.ErrNotFound) {
 		if oauth2Cred.ID != nil {
 			existingOauth2Cred, err := d.client.Oauth2Credentials.GetByID(context.TODO(), oauth2Cred.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingOauth2Cred != nil {
-				return nil, fmt.Errorf("error: an oauth2 credential with ID %s already exists", *oauth2Cred.ID)
+				return nil, errDuplicateEntity("oauth2 credential", *oauth2Cred.ID)
 			}
 		}
 

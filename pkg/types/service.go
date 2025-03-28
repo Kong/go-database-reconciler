@@ -30,7 +30,6 @@ func serviceFromStruct(arg crud.Event) *state.Service {
 func (s *serviceCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	service := serviceFromStruct(event)
-
 	createdService, err := s.client.Services.Create(ctx, &service.Service)
 	if err != nil {
 		return nil, err
@@ -141,13 +140,11 @@ func (d *serviceDiffer) createUpdateService(service *state.Service) (*crud.Event
 	if errors.Is(err, state.ErrNotFound) {
 		if service.ID != nil {
 			existingService, err := d.client.Services.Get(context.TODO(), service.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingService != nil {
-				return nil, fmt.Errorf("error: a service with ID %s already exists", *service.ID)
+				return nil, errDuplicateEntity("service", *service.ID)
 			}
 		}
 

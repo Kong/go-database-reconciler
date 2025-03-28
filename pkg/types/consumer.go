@@ -30,7 +30,6 @@ func consumerFromStruct(arg crud.Event) *state.Consumer {
 func (s *consumerCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	consumer := consumerFromStruct(event)
-
 	createdConsumer, err := s.client.Consumers.Create(ctx, &consumer.Consumer)
 	if err != nil {
 		return nil, err
@@ -141,13 +140,11 @@ func (d *consumerDiffer) createUpdateConsumer(consumer *state.Consumer) (*crud.E
 	if errors.Is(err, state.ErrNotFound) {
 		if consumer.ID != nil {
 			existingConsumer, err := d.client.Consumers.Get(context.TODO(), consumer.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingConsumer != nil {
-				return nil, fmt.Errorf("error: a consumer with ID %s already exists", *consumer.ID)
+				return nil, errDuplicateEntity("consumer", *consumer.ID)
 			}
 		}
 

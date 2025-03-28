@@ -10,24 +10,3 @@ consumers:
     tags:
     - before
   username: consumer1
-plugins:
-- config:
-    anonymous: null
-    claims_to_verify: null
-    cookie_names: []
-    header_names:
-    - authorization
-    key_claim_name: iss
-    maximum_expiration: 0
-    run_on_preflight: true
-    secret_is_base64: false
-    uri_param_names:
-    - jwt
-  enabled: true
-  id: 7d10a7ba-e86d-481a-834c-2d9d7ae33a6c
-  name: jwt
-  protocols:
-  - grpc
-  - grpcs
-  - http
-  - https

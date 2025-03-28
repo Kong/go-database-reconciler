@@ -162,13 +162,11 @@ func (d *hmacAuthDiffer) createUpdateHMACAuth(hmacAuth *state.HMACAuth) (*crud.E
 	if errors.Is(err, state.ErrNotFound) {
 		if hmacAuth.ID != nil {
 			existingHmacAuth, err := d.client.HMACAuths.GetByID(context.TODO(), hmacAuth.ID)
-
 			if err != nil && !kong.IsNotFoundErr(err) {
 				return nil, err
 			}
-
 			if existingHmacAuth != nil {
-				return nil, fmt.Errorf("error: a hmac-auth credential with ID %s already exists", *hmacAuth.ID)
+				return nil, errDuplicateEntity("hmac-auth credential", *hmacAuth.ID)
 			}
 		}
 
