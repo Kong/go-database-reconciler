@@ -91,6 +91,8 @@ type consumerGroupDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *consumerGroupDiffer) Deletes(handler func(crud.Event) error) error {
@@ -159,6 +161,16 @@ func (d *consumerGroupDiffer) createUpdateConsumerGroup(consumerGroup *state.Con
 	currentconsumerGroup, err := d.currentState.ConsumerGroups.Get(*consumerGroup.Name)
 
 	if errors.Is(err, state.ErrNotFound) {
+		if consumerGroup.ID != nil {
+			existingConsumerGroup, err := d.client.ConsumerGroups.Get(context.TODO(), consumerGroup.ID)
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
+			if existingConsumerGroup != nil {
+				return nil, errDuplicateEntity("consumer-group", *consumerGroup.ID)
+			}
+		}
+
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: "consumer-group",

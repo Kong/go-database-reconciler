@@ -97,6 +97,8 @@ type basicAuthDiffer struct {
 	once sync.Once
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *basicAuthDiffer) warnBasicAuth() {
@@ -173,8 +175,17 @@ func (d *basicAuthDiffer) createUpdateBasicAuth(basicAuth *state.BasicAuth) (*cr
 	basicAuth = &state.BasicAuth{BasicAuth: *basicAuth.DeepCopy()}
 	currentBasicAuth, err := d.currentState.BasicAuths.Get(*basicAuth.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		// basicAuth not present, create it
+		if basicAuth.ID != nil {
+			existingBasicAuth, err := d.client.BasicAuths.GetByID(context.TODO(), basicAuth.ID)
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
+			if existingBasicAuth != nil {
+				return nil, errDuplicateEntity("basic-auth credential", *basicAuth.ID)
+			}
+		}
 
+		// basicAuth not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,
