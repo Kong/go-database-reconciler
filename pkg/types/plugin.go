@@ -163,11 +163,9 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	)
 	if errors.Is(err, state.ErrNotFound) {
 		existingPlugin, err := d.kongClient.Plugins.Get(context.TODO(), plugin.ID)
-
 		if err != nil && !kong.IsNotFoundErr(err) {
 			return nil, err
 		}
-
 		if existingPlugin != nil {
 			return nil, errDuplicateEntity("plugin", *plugin.ID)
 		}

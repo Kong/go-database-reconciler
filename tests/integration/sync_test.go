@@ -7976,6 +7976,7 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
 			require.NoError(t, err)
 
 			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.Error(t, err)
 			assert.ErrorContains(t, err, tc.errorExpected)
 		})
 	}
@@ -8015,6 +8016,7 @@ func Test_Sync_Avoid_Vault_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T
 			require.NoError(t, err)
 
 			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.Error(t, err)
 			assert.ErrorContains(t, err, tc.errorExpected)
 		})
 	}
@@ -8053,6 +8055,7 @@ func Test_Sync_Avoid_Overwrite_for_Partial_On_Select_Tag_Mismatch_With_ID_Enterp
 			require.NoError(t, err)
 
 			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.Error(t, err)
 			assert.ErrorContains(t, err, tc.errorExpected)
 		})
 	}
@@ -8091,6 +8094,7 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID_Enterprise(t *test
 			require.NoError(t, err)
 
 			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.Error(t, err)
 			assert.ErrorContains(t, err, tc.errorExpected)
 		})
 	}
