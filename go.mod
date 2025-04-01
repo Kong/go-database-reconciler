@@ -2,7 +2,7 @@ module github.com/kong/go-database-reconciler
 
 go 1.23.5
 
-toolchain go1.24.0
+toolchain go1.24.1
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
@@ -27,7 +27,7 @@ require (
 	github.com/ssgelm/cookiejarparser v1.0.1
 	github.com/stretchr/testify v1.10.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 	golang.org/x/term v0.29.0
 	k8s.io/code-generator v0.32.3
 	sigs.k8s.io/yaml v1.4.0
