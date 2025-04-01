@@ -70,6 +70,8 @@ type vaultDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 // Deletes generates a memdb CRUD DELETE event for Vaults
@@ -142,6 +144,16 @@ func (d *vaultDiffer) createUpdateVault(vault *state.Vault) (*crud.Event,
 	currentVault, err := d.currentState.Vaults.Get(*vault.Prefix)
 
 	if errors.Is(err, state.ErrNotFound) {
+		if vault.ID != nil {
+			existingVault, err := d.client.Vaults.Get(context.TODO(), vault.ID)
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
+			if existingVault != nil {
+				return nil, errDuplicateEntity("vault", *vault.ID)
+			}
+		}
+
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: "vault",

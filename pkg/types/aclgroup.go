@@ -94,6 +94,8 @@ type aclGroupDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	client *kong.Client
 }
 
 func (d *aclGroupDiffer) Deletes(handler func(crud.Event) error) error {
@@ -159,8 +161,17 @@ func (d *aclGroupDiffer) createUpdateACLGroup(aclGroup *state.ACLGroup) (*crud.E
 	currentACLGroup, err := d.currentState.ACLGroups.Get(
 		*aclGroup.Consumer.ID, *aclGroup.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		// aclGroup not present, create it
+		if aclGroup.ID != nil {
+			existingACLGroup, err := d.client.ACLs.GetByID(context.TODO(), aclGroup.ID)
+			if err != nil && !kong.IsNotFoundErr(err) {
+				return nil, err
+			}
+			if existingACLGroup != nil {
+				return nil, errDuplicateEntity("ACL group", *aclGroup.ID)
+			}
+		}
 
+		// aclGroup not present, create it
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,
