@@ -21,6 +21,17 @@ func getTags(reversed bool) []*string {
 	return []*string{&fooString, &barString}
 }
 
+// getProtocols returns a slice of test protocols. If reversed is true, the protocols are backwards!
+// backwards protocol slices are useful for confirming that our equality checks ignore protocol order
+func getProtocols(reversed bool) []*string {
+	httpString := "http"
+	httpsString := "https"
+	if reversed {
+		return []*string{&httpsString, &httpString}
+	}
+	return []*string{&httpString, &httpsString}
+}
+
 func TestMeta(t *testing.T) {
 	assert := assert.New(t)
 
@@ -281,6 +292,11 @@ func TestPluginEqual(t *testing.T) {
 	assert.True(p1.EqualWithOpts(&p2, false, false, false))
 	p1.Tags = getTags(true)
 	p2.Tags = getTags(false)
+	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+
+	// Verify that plugins are equal even if protocols are out of order
+	p1.Protocols = getProtocols(true)
+	p2.Protocols = getProtocols(false)
 	assert.True(p1.EqualWithOpts(&p2, false, false, false))
 
 	p1.ID = kong.String("fuu")

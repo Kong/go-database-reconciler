@@ -2818,6 +2818,41 @@ func Test_Diff_PluginUpdate_OlderThan38x(t *testing.T) {
 	}
 }
 
+func Test_Diff_Plugin_Protocol_Order_Change(t *testing.T) {
+	setup(t)
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		stateFile        string
+		expectedDiff     string
+	}{
+		{
+			name:             "syncing and then diffing same file should not show false diff",
+			initialStateFile: "testdata/diff/004-plugin-update/initial-ip-restriction.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/initial-ip-restriction.yaml",
+			expectedDiff:     expectedOutputPluginUpdateNoChange,
+		},
+		{
+			name:             "changing protocol order should not show diff",
+			initialStateFile: "testdata/diff/004-plugin-update/protocol-initial-order-plugins.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/protocol-reordered-plugins.yaml",
+			expectedDiff:     expectedOutputPluginUpdateNoChange,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// initialize state
+			require.NoError(t, sync(tc.initialStateFile))
+
+			out, err := diff(tc.stateFile)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedDiff, out)
+		})
+	}
+}
+
 func Test_Diff_NoDeletes_OlderThan3x(t *testing.T) {
 	tests := []struct {
 		name                string

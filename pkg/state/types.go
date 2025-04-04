@@ -579,6 +579,9 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
 	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
 
+	sort.Slice(p1Copy.Protocols, func(i, j int) bool { return *(p1Copy.Protocols[i]) < *(p1Copy.Protocols[j]) })
+	sort.Slice(p2Copy.Protocols, func(i, j int) bool { return *(p2Copy.Protocols[i]) < *(p2Copy.Protocols[j]) })
+
 	p1Copy.Config = sortNestedArrays(p1Copy.Config)
 	p2Copy.Config = sortNestedArrays(p2Copy.Config)
 
