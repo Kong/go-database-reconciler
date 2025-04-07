@@ -132,7 +132,7 @@ func (d *consumerGroupPluginDiffer) warnConsumerGroupPlugin() {
 			"Check https://docs.konghq.com/gateway/latest/kong-enterprise/consumer-groups/ for more information."
 	)
 	d.once.Do(func() {
-		cprint.UpdatePrintln(consumerGroupPluginWarning)
+		cprint.UpdatePrintlnStdErr(consumerGroupPluginWarning)
 	})
 }
 

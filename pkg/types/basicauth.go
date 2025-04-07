@@ -107,7 +107,7 @@ func (d *basicAuthDiffer) warnBasicAuth() {
 			"credentials using decK doesn't work due to hashing of passwords in Kong."
 	)
 	d.once.Do(func() {
-		cprint.UpdatePrintln(basicAuthPasswordWarning)
+		cprint.UpdatePrintlnStdErr(basicAuthPasswordWarning)
 	})
 }
 
