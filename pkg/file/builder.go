@@ -1685,9 +1685,9 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// plugins for the route
 	var plugins []FPlugin
 	for _, p := range r.Plugins {
-		if err := checkForNestedForeignKeys(p.Plugin, primaryRelationRoute); err != nil {
-			return err
-		}
+		// if err := checkForNestedForeignKeys(p.Plugin, primaryRelationRoute); err != nil {
+		// 	return err
+		// }
 		p.Route = utils.GetRouteReference(r.Route)
 		plugins = append(plugins, *p)
 	}
@@ -1707,7 +1707,7 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
-		cID, rID, sID, cgID := pluginRelations(&p.Plugin)
+		cID, rID, sID, cgID := b.pluginRelations(&p.Plugin)
 		plugin, err := b.currentState.Plugins.GetByProp(*p.Name,
 			sID, rID, cID, cgID)
 		if utils.Empty(p.ID) {
@@ -1755,20 +1755,51 @@ func (b *stateBuilder) fillPluginConfig(plugin *FPlugin) error {
 	return nil
 }
 
-func pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
+func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
 	if plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
-		cID = *plugin.Consumer.ID
+		consumer, err := b.currentState.Consumers.GetByIDOrUsername(*plugin.Consumer.ID)
+		if err != nil {
+			b.err = err
+		}
+
+		if consumer != nil {
+			cID = *consumer.ID
+		}
+
 	}
 	if plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
-		rID = *plugin.Route.ID
+		route, err := b.currentState.Routes.Get(*plugin.Route.ID)
+		if err != nil {
+			b.err = err
+		}
+
+		if route != nil {
+			rID = *route.ID
+		}
 	}
 	if plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
-		sID = *plugin.Service.ID
+		service, err := b.currentState.Services.Get(*plugin.Service.ID)
+		if err != nil {
+			b.err = err
+		}
+
+		if service != nil {
+			sID = *service.ID
+		}
 	}
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
-		cgID = *plugin.ConsumerGroup.ID
+		consumerGroup, err := b.currentState.ConsumerGroups.Get(*plugin.ConsumerGroup.ID)
+		if err != nil {
+			b.err = err
+		}
+		fmt.Println("consumerGroup", consumerGroup)
+
+		if consumerGroup != nil {
+			cgID = *consumerGroup.ID
+		}
 	}
-	return
+
+	return cID, rID, sID, cgID
 }
 
 func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
