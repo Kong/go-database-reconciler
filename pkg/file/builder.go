@@ -1685,9 +1685,9 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// plugins for the route
 	var plugins []FPlugin
 	for _, p := range r.Plugins {
-		// if err := checkForNestedForeignKeys(p.Plugin, primaryRelationRoute); err != nil {
-		// 	return err
-		// }
+		if err := checkForNestedForeignKeys(p.Plugin, primaryRelationRoute); err != nil {
+			return err
+		}
 		p.Route = utils.GetRouteReference(r.Route)
 		plugins = append(plugins, *p)
 	}
@@ -1757,7 +1757,7 @@ func (b *stateBuilder) fillPluginConfig(plugin *FPlugin) error {
 
 func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
 	if plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
-		consumer, err := b.currentState.Consumers.GetByIDOrUsername(*plugin.Consumer.ID)
+		consumer, err := b.intermediate.Consumers.GetByIDOrUsername(*plugin.Consumer.ID)
 		if err != nil {
 			b.err = err
 		}
@@ -1768,7 +1768,7 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 	}
 	if plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
-		route, err := b.currentState.Routes.Get(*plugin.Route.ID)
+		route, err := b.intermediate.Routes.Get(*plugin.Route.ID)
 		if err != nil {
 			b.err = err
 		}
@@ -1778,7 +1778,7 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 		}
 	}
 	if plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
-		service, err := b.currentState.Services.Get(*plugin.Service.ID)
+		service, err := b.intermediate.Services.Get(*plugin.Service.ID)
 		if err != nil {
 			b.err = err
 		}
@@ -1788,11 +1788,10 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 		}
 	}
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
-		consumerGroup, err := b.currentState.ConsumerGroups.Get(*plugin.ConsumerGroup.ID)
+		consumerGroup, err := b.intermediate.ConsumerGroups.Get(*plugin.ConsumerGroup.ID)
 		if err != nil {
 			b.err = err
 		}
-		fmt.Println("consumerGroup", consumerGroup)
 
 		if consumerGroup != nil {
 			cgID = *consumerGroup.ID
