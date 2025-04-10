@@ -8216,7 +8216,8 @@ func Test_Sync_Plugins_Nested_Foreign_Keys_3x(t *testing.T) {
 // - >=3.0.0+enterprise
 // - konnect
 func Test_Sync_Plugins_Nested_Foreign_Keys_EE_3x(t *testing.T) {
-	runWhenEnterpriseOrKonnect(t, ">=3.0.0")
+	// prior versions don't support a consumer_group foreign key with a value
+	runWhenEnterpriseOrKonnect(t, ">=3.6.0")
 	setup(t)
 
 	client, err := getTestClient()
