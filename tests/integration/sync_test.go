@@ -8102,9 +8102,64 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID_Enterprise(t *test
 
 // test scope:
 //
-// - >=2.8.0
-// - konnect
+// - >=2.8.0 <3.0.0
 func Test_Sync_Plugins_Nested_Foreign_Keys(t *testing.T) {
+	runWhen(t, "kong", ">=2.8.0 <3.0.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "plugins with consumer reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-consumers-via-names.yaml",
+		},
+		{
+			name:      "plugins with consumer reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-consumers-via-ids.yaml",
+		},
+		{
+			name:      "plugins with route reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-routes-via-names.yaml",
+		},
+		{
+			name:      "plugins with route reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-routes-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-services-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-services-via-ids.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// re-sync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+		})
+	}
+
+}
+
+// test scope:
+//
+// - >=3.0.0
+// - konnect
+func Test_Sync_Plugins_Nested_Foreign_Keys_3x(t *testing.T) {
 	runWhenKongOrKonnect(t, ">=2.8.0")
 	setup(t)
 
@@ -8158,9 +8213,10 @@ func Test_Sync_Plugins_Nested_Foreign_Keys(t *testing.T) {
 
 // test scope:
 //
-// - >=2.8.0+enterprise
-func Test_Sync_Plugins_Nested_Foreign_Keys_EE(t *testing.T) {
-	runWhen(t, "enterprise", ">=2.8.0")
+// - >=3.0.0+enterprise
+// - konnect
+func Test_Sync_Plugins_Nested_Foreign_Keys_EE_3x(t *testing.T) {
+	runWhenEnterpriseOrKonnect(t, ">=3.0.0")
 	setup(t)
 
 	client, err := getTestClient()
