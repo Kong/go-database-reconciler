@@ -8160,7 +8160,7 @@ func Test_Sync_Plugins_Nested_Foreign_Keys(t *testing.T) {
 // - >=3.0.0
 // - konnect
 func Test_Sync_Plugins_Nested_Foreign_Keys_3x(t *testing.T) {
-	runWhenKongOrKonnect(t, ">=2.8.0")
+	runWhenKongOrKonnect(t, ">=3.0.0")
 	setup(t)
 
 	client, err := getTestClient()
