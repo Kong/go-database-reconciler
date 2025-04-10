@@ -275,6 +275,22 @@ func existingCACertificateState() *state.KongState {
 
 func existingPluginState() *state.KongState {
 	s, _ := state.NewKongState()
+	s.Consumers.Add(state.Consumer{
+		Consumer: kong.Consumer{
+			ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+		},
+	})
+	s.Routes.Add(state.Route{
+		Route: kong.Route{
+			ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+		},
+	})
+	s.ConsumerGroups.Add(state.ConsumerGroup{
+		ConsumerGroup: kong.ConsumerGroup{
+			ID:   kong.String("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
+			Name: kong.String("test-group"),
+		},
+	})
 	s.Plugins.Add(state.Plugin{
 		Plugin: kong.Plugin{
 			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
