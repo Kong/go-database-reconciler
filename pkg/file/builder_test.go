@@ -275,6 +275,22 @@ func existingCACertificateState() *state.KongState {
 
 func existingPluginState() *state.KongState {
 	s, _ := state.NewKongState()
+	s.Consumers.Add(state.Consumer{
+		Consumer: kong.Consumer{
+			ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+		},
+	})
+	s.Routes.Add(state.Route{
+		Route: kong.Route{
+			ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+		},
+	})
+	s.ConsumerGroups.Add(state.ConsumerGroup{
+		ConsumerGroup: kong.ConsumerGroup{
+			ID:   kong.String("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
+			Name: kong.String("test-group"),
+		},
+	})
 	s.Plugins.Add(state.Plugin{
 		Plugin: kong.Plugin{
 			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
@@ -305,6 +321,56 @@ func existingPluginState() *state.KongState {
 			},
 		},
 	})
+	return s
+}
+
+func existingScopedPluginState() *state.KongState {
+	s, _ := state.NewKongState()
+
+	s.Consumers.Add(state.Consumer{
+		Consumer: kong.Consumer{
+			ID: kong.String("cID"),
+		},
+	})
+
+	s.Services.Add(state.Service{
+		Service: kong.Service{
+			ID: kong.String("sID"),
+		},
+	})
+
+	s.Routes.Add(state.Route{
+		Route: kong.Route{
+			ID: kong.String("rID"),
+		},
+	})
+
+	s.ConsumerGroups.Add(state.ConsumerGroup{
+		ConsumerGroup: kong.ConsumerGroup{
+			ID:   kong.String("cgID"),
+			Name: kong.String("foo"),
+		},
+	})
+
+	s.Plugins.Add(state.Plugin{
+		Plugin: kong.Plugin{
+			ID:   kong.String("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
+			Name: kong.String("foo"),
+			Consumer: &kong.Consumer{
+				ID: kong.String("cID"),
+			},
+			Route: &kong.Route{
+				ID: kong.String("rID"),
+			},
+			ConsumerGroup: &kong.ConsumerGroup{
+				ID: kong.String("cgID"),
+			},
+			Service: &kong.Service{
+				ID: kong.String("sID"),
+			},
+		},
+	})
+
 	return s
 }
 
@@ -1079,12 +1145,13 @@ func Test_pluginRelations(t *testing.T) {
 		plugin *kong.Plugin
 	}
 	tests := []struct {
-		name     string
-		args     args
-		wantCID  string
-		wantRID  string
-		wantSID  string
-		wantCGID string
+		name         string
+		args         args
+		wantCID      string
+		wantRID      string
+		wantSID      string
+		wantCGID     string
+		currentState *state.KongState
 	}{
 		{
 			args: args{
@@ -1092,10 +1159,11 @@ func Test_pluginRelations(t *testing.T) {
 					Name: kong.String("foo"),
 				},
 			},
-			wantCID:  "",
-			wantRID:  "",
-			wantSID:  "",
-			wantCGID: "",
+			wantCID:      "",
+			wantRID:      "",
+			wantSID:      "",
+			wantCGID:     "",
+			currentState: emptyState(),
 		},
 		{
 			args: args{
@@ -1115,15 +1183,19 @@ func Test_pluginRelations(t *testing.T) {
 					},
 				},
 			},
-			wantCID:  "cID",
-			wantRID:  "rID",
-			wantSID:  "sID",
-			wantCGID: "cgID",
+			wantCID:      "cID",
+			wantRID:      "rID",
+			wantSID:      "sID",
+			wantCGID:     "cgID",
+			currentState: existingScopedPluginState(),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotCID, gotRID, gotSID, gotCGID := pluginRelations(tt.args.plugin)
+			b := &stateBuilder{
+				currentState: tt.currentState,
+			}
+			gotCID, gotRID, gotSID, gotCGID := b.pluginRelations(tt.args.plugin)
 			if gotCID != tt.wantCID {
 				t.Errorf("pluginRelations() gotCID = %v, want %v", gotCID, tt.wantCID)
 			}

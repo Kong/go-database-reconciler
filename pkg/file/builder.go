@@ -1707,7 +1707,7 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
-		cID, rID, sID, cgID := pluginRelations(&p.Plugin)
+		cID, rID, sID, cgID := b.pluginRelations(&p.Plugin)
 		plugin, err := b.currentState.Plugins.GetByProp(*p.Name,
 			sID, rID, cID, cgID)
 		if utils.Empty(p.ID) {
@@ -1755,20 +1755,50 @@ func (b *stateBuilder) fillPluginConfig(plugin *FPlugin) error {
 	return nil
 }
 
-func pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
+func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
 	if plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
-		cID = *plugin.Consumer.ID
+		consumer, err := b.currentState.Consumers.GetByIDOrUsername(*plugin.Consumer.ID)
+		if err != nil && !errors.Is(err, state.ErrNotFound) {
+			b.err = err
+		}
+
+		if consumer != nil {
+			cID = *consumer.ID
+		}
+
 	}
 	if plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
-		rID = *plugin.Route.ID
+		route, err := b.currentState.Routes.Get(*plugin.Route.ID)
+		if err != nil && !errors.Is(err, state.ErrNotFound) {
+			b.err = err
+		}
+
+		if route != nil {
+			rID = *route.ID
+		}
 	}
 	if plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
-		sID = *plugin.Service.ID
+		service, err := b.currentState.Services.Get(*plugin.Service.ID)
+		if err != nil && !errors.Is(err, state.ErrNotFound) {
+			b.err = err
+		}
+
+		if service != nil {
+			sID = *service.ID
+		}
 	}
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
-		cgID = *plugin.ConsumerGroup.ID
+		consumerGroup, err := b.currentState.ConsumerGroups.Get(*plugin.ConsumerGroup.ID)
+		if err != nil && !errors.Is(err, state.ErrNotFound) {
+			b.err = err
+		}
+
+		if consumerGroup != nil {
+			cgID = *consumerGroup.ID
+		}
 	}
-	return
+
+	return cID, rID, sID, cgID
 }
 
 func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
@@ -1955,21 +1985,17 @@ func defaulter(
 func checkForNestedForeignKeys(plugin kong.Plugin, primary string) error {
 	var errs []error
 
-	if primary != primaryRelationConsumer && plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
-		errs = append(errs, fmt.Errorf("nesting consumer (%v) under %v-scoped plugin plugin (%v) is not allowed",
+	if primary == primaryRelationConsumer && plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
+		errs = append(errs, fmt.Errorf("nesting consumer (%v) under %v-scoped plugin (%v) is not allowed",
 			*plugin.Consumer.ID, primary, *plugin.Name))
 	}
-	if primary != primaryRelationRoute && plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
+	if primary == primaryRelationRoute && plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
 		errs = append(errs, fmt.Errorf("nesting route (%v) under %v-scoped plugin (%v) is not allowed",
 			*plugin.Route.ID, primary, *plugin.Name))
 	}
-	if primary != primaryRelationService && plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
+	if primary == primaryRelationService && plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
 		errs = append(errs, fmt.Errorf("nesting service (%v) under %v-scoped plugin (%v) is not allowed",
 			*plugin.Service.ID, primary, *plugin.Name))
-	}
-	if primary != primaryRelationConsumerGroup && plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
-		errs = append(errs, fmt.Errorf("nesting consumer-group (%v) under %v-scoped plugin (%v) is not allowed",
-			*plugin.ConsumerGroup.ID, primary, *plugin.Name))
 	}
 	return errors.Join(errs...)
 }

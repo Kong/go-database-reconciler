@@ -7493,7 +7493,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	}
 }
 
-func Test_Sync_Scoped_Plugins(t *testing.T) {
+func Test_Sync_Scoped_Plugins_Same_Foreign_Key(t *testing.T) {
 	runWhen(t, "kong", "<3.0.0")
 	setup(t)
 
@@ -7503,19 +7503,19 @@ func Test_Sync_Scoped_Plugins(t *testing.T) {
 		errorExpected string
 	}{
 		{
-			name:          "syncing route-scoped plugin with service field set",
+			name:          "syncing route-scoped plugin with route field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/route-plugins.yaml",
-			errorExpected: "building state: nesting service (example-service) under route-scoped plugin (request-transformer) is not allowed",
+			errorExpected: "building state: nesting route (example-route) under route-scoped plugin (request-transformer) is not allowed",
 		},
 		{
-			name:          "syncing service-scoped plugin with route and consumer field set",
+			name:          "syncing service-scoped plugin with service field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/service-plugins.yaml",
-			errorExpected: "building state: nesting consumer (foo) under service-scoped plugin plugin (request-transformer) is not allowed\nnesting route (example-route) under service-scoped plugin (request-transformer) is not allowed",
+			errorExpected: "building state: nesting service (example-service) under service-scoped plugin (request-transformer) is not allowed",
 		},
 		{
-			name:          "syncing consumer-scoped plugin with service and route field set",
+			name:          "syncing consumer-scoped plugin with consumer field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/consumer-plugins.yaml",
-			errorExpected: "building state: nesting route (example-route) under consumer-scoped plugin (request-transformer) is not allowed\nnesting service (example-service) under consumer-scoped plugin (request-transformer) is not allowed",
+			errorExpected: "building state: nesting consumer (foo) under consumer-scoped plugin (request-transformer) is not allowed",
 		},
 	}
 
@@ -7527,7 +7527,7 @@ func Test_Sync_Scoped_Plugins(t *testing.T) {
 	}
 }
 
-func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
+func Test_Sync_Scoped_Plugins_Same_Foreign_Key_3x(t *testing.T) {
 	runWhen(t, "kong", ">=3.0.0")
 	setup(t)
 
@@ -7537,19 +7537,19 @@ func Test_Sync_Scoped_Plugins_3x(t *testing.T) {
 		errorExpected string
 	}{
 		{
-			name:          "syncing route-scoped plugin with service field set",
+			name:          "syncing route-scoped plugin with route field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/3x/route-plugins.yaml",
-			errorExpected: "building state: nesting service (example-service) under route-scoped plugin (request-transformer) is not allowed",
+			errorExpected: "building state: nesting route (example-route) under route-scoped plugin (request-transformer) is not allowed",
 		},
 		{
-			name:          "syncing service-scoped plugin with route and consumer field set",
+			name:          "syncing service-scoped plugin with service field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/3x/service-plugins.yaml",
-			errorExpected: "building state: nesting consumer (foo) under service-scoped plugin plugin (request-transformer) is not allowed\nnesting route (example-route) under service-scoped plugin (request-transformer) is not allowed",
+			errorExpected: "building state: nesting service (example-service) under service-scoped plugin (request-transformer) is not allowed",
 		},
 		{
-			name:          "syncing consumer-scoped plugin with service and route field set",
+			name:          "syncing consumer-scoped plugin with consumer field set",
 			file:          "testdata/sync/036-scoped-plugins-validation/3x/consumer-plugins.yaml",
-			errorExpected: "building state: nesting route (example-route) under consumer-scoped plugin (request-transformer) is not allowed\nnesting service (example-service) under consumer-scoped plugin (request-transformer) is not allowed",
+			errorExpected: "building state: nesting consumer (foo) under consumer-scoped plugin (request-transformer) is not allowed",
 		},
 	}
 
@@ -8096,6 +8096,155 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID_Enterprise(t *test
 			err = sync(tc.targetStateFile, "--select-tag", "after")
 			require.Error(t, err)
 			assert.ErrorContains(t, err, tc.errorExpected)
+		})
+	}
+}
+
+// test scope:
+//
+// - >=2.8.0 <3.0.0
+func Test_Sync_Plugins_Nested_Foreign_Keys(t *testing.T) {
+	runWhen(t, "kong", ">=2.8.0 <3.0.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "plugins with consumer reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-consumers-via-names.yaml",
+		},
+		{
+			name:      "plugins with consumer reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-consumers-via-ids.yaml",
+		},
+		{
+			name:      "plugins with route reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-routes-via-names.yaml",
+		},
+		{
+			name:      "plugins with route reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-routes-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-services-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/1_1/kong-services-via-ids.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// re-sync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+		})
+	}
+}
+
+// test scope:
+//
+// - >=3.0.0
+// - konnect
+func Test_Sync_Plugins_Nested_Foreign_Keys_3x(t *testing.T) {
+	runWhenKongOrKonnect(t, ">=3.0.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "plugins with consumer reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumers-via-names.yaml",
+		},
+		{
+			name:      "plugins with consumer reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumers-via-ids.yaml",
+		},
+		{
+			name:      "plugins with route reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-routes-via-names.yaml",
+		},
+		{
+			name:      "plugins with route reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-routes-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-services-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-services-via-ids.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// re-sync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+		})
+	}
+}
+
+// test scope:
+//
+// - >=3.0.0+enterprise
+// - konnect
+func Test_Sync_Plugins_Nested_Foreign_Keys_EE_3x(t *testing.T) {
+	// prior versions don't support a consumer_group foreign key with a value
+	runWhenEnterpriseOrKonnect(t, ">=3.6.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "plugins with consumer-group reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumer-groups-via-names.yaml",
+		},
+		{
+			name:      "plugins with consumer-group reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumer-groups-via-ids.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// re-sync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
 		})
 	}
 }
