@@ -8099,3 +8099,97 @@ func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID_Enterprise(t *test
 		})
 	}
 }
+
+// test scope:
+//
+// - >=2.8.0
+// - konnect
+func Test_Sync_Plugins_Nested_Foreign_Keys(t *testing.T) {
+	runWhenKongOrKonnect(t, ">=2.8.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "plugins with consumer reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumers-via-names.yaml",
+		},
+		{
+			name:      "plugins with consumer reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumers-via-ids.yaml",
+		},
+		{
+			name:      "plugins with route reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-routes-via-names.yaml",
+		},
+		{
+			name:      "plugins with route reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-routes-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-services-via-ids.yaml",
+		},
+		{
+			name:      "plugins with service reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-services-via-ids.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// re-sync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+		})
+	}
+
+}
+
+// test scope:
+//
+// - >=2.8.0+enterprise
+func Test_Sync_Plugins_Nested_Foreign_Keys_EE(t *testing.T) {
+	runWhen(t, "enterprise", ">=2.8.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "plugins with consumer-group reference - via name",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumer-groups-via-names.yaml",
+		},
+		{
+			name:      "plugins with consumer-group reference - via id",
+			stateFile: "testdata/sync/040-plugins-nested-foreign-keys/kong3x-consumer-groups-via-ids.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// re-sync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+		})
+	}
+}
