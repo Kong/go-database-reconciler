@@ -8152,7 +8152,6 @@ func Test_Sync_Plugins_Nested_Foreign_Keys(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-
 }
 
 // test scope:
@@ -8208,7 +8207,6 @@ func Test_Sync_Plugins_Nested_Foreign_Keys_3x(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-
 }
 
 // test scope:

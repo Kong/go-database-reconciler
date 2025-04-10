@@ -21,17 +21,3 @@ routes:
       name: rate-limiting
       protocols:
         - http
-- name: example-route-2
-  paths:
-  - /r2
-  service:
-    name: example-service
-  plugins:
-    - config:
-        minute: 200
-        policy: local
-      service: example-service
-      enabled: true
-      name: rate-limiting
-      protocols:
-        - http
