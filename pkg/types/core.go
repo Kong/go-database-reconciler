@@ -181,7 +181,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Service),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case Route:
@@ -197,7 +196,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Route),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case Upstream:
@@ -213,7 +211,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Upstream),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case Target:
@@ -260,7 +257,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Consumer),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case ConsumerGroup:
@@ -277,7 +273,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(ConsumerGroup),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case ConsumerGroupConsumer:
@@ -372,7 +367,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				isKonnect:    opts.IsKonnect,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case CACertificate:
@@ -388,7 +382,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(CACertificate),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case SNI:
@@ -404,7 +397,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(SNI),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case RBACEndpointPermission:
@@ -450,7 +442,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(ACLGroup),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case BasicAuth:
@@ -466,7 +457,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(BasicAuth),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case KeyAuth:
@@ -482,7 +472,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(KeyAuth),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case HMACAuth:
@@ -498,7 +487,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(HMACAuth),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case JWTAuth:
@@ -514,7 +502,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(JWTAuth),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case MTLSAuth:
@@ -545,7 +532,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(OAuth2Cred),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case Vault:
@@ -561,7 +547,6 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				kind:         entityTypeToKind(Vault),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
-				client:       opts.KongClient,
 			},
 		}, nil
 	case License:

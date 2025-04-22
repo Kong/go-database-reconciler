@@ -70,8 +70,6 @@ type serviceDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
-
-	client *kong.Client
 }
 
 func (d *serviceDiffer) Deletes(handler func(crud.Event) error) error {
@@ -138,16 +136,6 @@ func (d *serviceDiffer) createUpdateService(service *state.Service) (*crud.Event
 	currentService, err := d.currentState.Services.Get(*service.ID)
 
 	if errors.Is(err, state.ErrNotFound) {
-		if service.ID != nil {
-			existingService, err := d.client.Services.Get(context.TODO(), service.ID)
-			if err != nil && !kong.IsNotFoundErr(err) {
-				return nil, err
-			}
-			if existingService != nil {
-				return nil, errDuplicateEntity("service", *service.ID)
-			}
-		}
-
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: "service",

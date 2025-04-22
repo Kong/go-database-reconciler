@@ -79,8 +79,6 @@ type certificateDiffer struct {
 	currentState, targetState *state.KongState
 
 	isKonnect bool
-
-	client *kong.Client
 }
 
 func (d *certificateDiffer) Deletes(handler func(crud.Event) error) error {
@@ -157,16 +155,6 @@ func (d *certificateDiffer) createUpdateCertificate(
 	}
 
 	if errors.Is(err, state.ErrNotFound) {
-		if certificate.ID != nil {
-			existingCertificate, err := d.client.Certificates.Get(context.TODO(), certificate.ID)
-			if err != nil && !kong.IsNotFoundErr(err) {
-				return nil, err
-			}
-			if existingCertificate != nil {
-				return nil, errDuplicateEntity("certificate", *certificate.ID)
-			}
-		}
-
 		// certificate not present, create it
 		return &crud.Event{
 			Op:   crud.Create,

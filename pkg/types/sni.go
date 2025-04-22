@@ -71,8 +71,6 @@ type sniDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
-
-	client *kong.Client
 }
 
 func (d *sniDiffer) Deletes(handler func(crud.Event) error) error {
@@ -136,17 +134,8 @@ func (d *sniDiffer) createUpdateSNI(sni *state.SNI) (*crud.Event, error) {
 	sni = &state.SNI{SNI: *sni.DeepCopy()}
 	currentSNI, err := d.currentState.SNIs.Get(*sni.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		if sni.ID != nil {
-			existingSNI, err := d.client.SNIs.Get(context.TODO(), sni.ID)
-			if err != nil && !kong.IsNotFoundErr(err) {
-				return nil, err
-			}
-			if existingSNI != nil {
-				return nil, errDuplicateEntity("SNI", *sni.ID)
-			}
-		}
-
 		// sni not present, create it
+
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,
