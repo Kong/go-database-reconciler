@@ -7863,3 +7863,43 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// test scope:
+//
+//   - >=2.8.0
+//   - konnect
+//   - enterprise
+func Test_Sync_Avoid_Overwrite_On_Select_Tag_Mismatch_With_ID(t *testing.T) {
+	setup(t)
+
+	// setup stage
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		targetStateFile  string
+		errorExpected    string
+	}{
+		{
+			name:             "certificate",
+			initialStateFile: "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-initial.yaml",
+			targetStateFile:  "testdata/sync/039-avoid-entity-rewrite-with-id-on-select-tag-mismatch/certificate-final.yaml",
+			errorExpected:    "error: certificate with ID 13c562a1-191c-4464-9b18-e5222b46035a already exists",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = sync(tc.targetStateFile, "--select-tag", "after")
+			require.Error(t, err)
+			assert.ErrorContains(t, err, tc.errorExpected)
+		})
+	}
+}

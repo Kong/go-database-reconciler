@@ -367,6 +367,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				isKonnect:    opts.IsKonnect,
+				client:       opts.KongClient,
 			},
 		}, nil
 	case CACertificate:
