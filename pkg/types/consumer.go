@@ -70,8 +70,6 @@ type consumerDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
-
-	client *kong.Client
 }
 
 func (d *consumerDiffer) Deletes(handler func(crud.Event) error) error {
@@ -138,16 +136,6 @@ func (d *consumerDiffer) createUpdateConsumer(consumer *state.Consumer) (*crud.E
 	currentConsumer, err := d.currentState.Consumers.GetByIDOrUsername(*consumer.ID)
 
 	if errors.Is(err, state.ErrNotFound) {
-		if consumer.ID != nil {
-			existingConsumer, err := d.client.Consumers.Get(context.TODO(), consumer.ID)
-			if err != nil && !kong.IsNotFoundErr(err) {
-				return nil, err
-			}
-			if existingConsumer != nil {
-				return nil, errDuplicateEntity("consumer", *consumer.ID)
-			}
-		}
-
 		// consumer not present, create it
 		return &crud.Event{
 			Op:   crud.Create,

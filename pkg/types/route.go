@@ -78,8 +78,6 @@ type routeDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
-
-	client *kong.Client
 }
 
 func (d *routeDiffer) Deletes(handler func(crud.Event) error) error {
@@ -144,17 +142,8 @@ func (d *routeDiffer) createUpdateRoute(route *state.Route) (*crud.Event, error)
 	route = &state.Route{Route: *route.DeepCopy()}
 	currentRoute, err := d.currentState.Routes.Get(*route.ID)
 	if errors.Is(err, state.ErrNotFound) {
-		if route.ID != nil {
-			existingRoute, err := d.client.Routes.Get(context.TODO(), route.ID)
-			if err != nil && !kong.IsNotFoundErr(err) {
-				return nil, err
-			}
-			if existingRoute != nil {
-				return nil, errDuplicateEntity("route", *route.ID)
-			}
-		}
-
 		// route not present, create it
+
 		return &crud.Event{
 			Op:   crud.Create,
 			Kind: d.kind,
