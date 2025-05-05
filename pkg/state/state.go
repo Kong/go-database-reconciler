@@ -30,6 +30,8 @@ type KongState struct {
 	ConsumerGroupConsumers *ConsumerGroupConsumersCollection
 	ConsumerGroupPlugins   *ConsumerGroupPluginsCollection
 	Partials               *PartialsCollection
+	Keys                   *KeysCollection
+	KeySets                *KeySetsCollection
 
 	KeyAuths                *KeyAuthsCollection
 	HMACAuths               *HMACAuthsCollection
@@ -79,6 +81,8 @@ func NewKongState() (*KongState, error) {
 			vaultTableName:                  vaultTableSchema,
 			licenseTableName:                licenseTableSchema,
 			partialTableName:                partialTableSchema,
+			keyTableName:                    keyTableSchema,
+			keySetTableName:                 keySetTableSchema,
 
 			degraphqlRouteTemp.TableName(): degraphqlRouteTemp.Schema(),
 
@@ -125,6 +129,8 @@ func NewKongState() (*KongState, error) {
 	state.Vaults = (*VaultsCollection)(&state.common)
 	state.Licenses = (*LicensesCollection)(&state.common)
 	state.Partials = (*PartialsCollection)(&state.common)
+	state.Keys = (*KeysCollection)(&state.common)
+	state.KeySets = (*KeySetsCollection)(&state.common)
 
 	state.DegraphqlRoutes = newDegraphqlRoutesCollection(state.common)
 
