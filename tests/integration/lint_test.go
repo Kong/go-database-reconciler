@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 
-	"github.com/kong/deck/cmd"
+	"github.com/kong/deck/lint"
 )
 
 func Test_LintPlain(t *testing.T) {
@@ -30,7 +30,7 @@ func Test_LintPlain(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := lint(
+			output, err := fileLint(
 				"-s", tc.stateFile,
 				tc.rulesetFile,
 			)
@@ -47,7 +47,7 @@ func Test_LintPlain(t *testing.T) {
 type lintErrors struct {
 	TotalCount int
 	FailCount  int
-	Results    []cmd.LintResult
+	Results    []lint.Result
 }
 
 func Test_LintStructured(t *testing.T) {
@@ -106,7 +106,7 @@ func Test_LintStructured(t *testing.T) {
 			if tc.failSeverity != "" {
 				lintOpts = append(lintOpts, "--fail-severity", tc.failSeverity)
 			}
-			output, err := lint(lintOpts...)
+			output, err := fileLint(lintOpts...)
 			require.Error(t, err)
 
 			var expectedErrors, outputErrors lintErrors
@@ -131,7 +131,7 @@ func Test_LintStructured(t *testing.T) {
 			}
 
 			cmpOpts := []cmp.Option{
-				cmpopts.SortSlices(func(a, b cmd.LintResult) bool { return a.Line < b.Line }),
+				cmpopts.SortSlices(func(a, b lint.Result) bool { return a.Line < b.Line }),
 				cmpopts.EquateEmpty(),
 			}
 			if diff := cmp.Diff(outputErrors, expectedErrors, cmpOpts...); diff != "" {
