@@ -1905,53 +1905,50 @@ type Key struct {
 }
 
 // Identifier returns the endpoint key name or ID.
-func (k1 *Key) Identifier() string {
-	if k1.Name != nil {
-		return *k1.Name
+func (v1 *Key) Identifier() string {
+	if v1.Name != nil {
+		return *v1.Name
 	}
-	return *k1.ID
+	return *v1.ID
 }
 
 // Console returns an entity's identity in a human
 // readable string.
-func (k1 *Key) Console() string {
-	if k1.Name != nil {
-		return *k1.Name
-	}
-	return *k1.ID
+func (v1 *Key) Console() string {
+	return *v1.Name
 }
 
-// Equal returns true if k1 and k2 are equal.
+// Equal returns true if v1 and v2 are equal.
 // TODO add compare array without position
-func (k1 *Key) Equal(k2 *Key) bool {
-	return k1.EqualWithOpts(k2, false, false)
+func (v1 *Key) Equal(v2 *Key) bool {
+	return v1.EqualWithOpts(v2, false, false)
 }
 
-// EqualWithOpts returns true if k1 and k2 are equal.
+// EqualWithOpts returns true if v1 and v2 are equal.
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
-func (k1 *Key) EqualWithOpts(k2 *Key, ignoreID, ignoreTS bool) bool {
-	k1Copy := k1.Key.DeepCopy()
-	k2Copy := k2.Key.DeepCopy()
-	if len(k1Copy.Tags) == 0 {
-		k1Copy.Tags = nil
+func (v1 *Key) EqualWithOpts(v2 *Key, ignoreID, ignoreTS bool) bool {
+	v1Copy := v1.Key.DeepCopy()
+	v2Copy := v2.Key.DeepCopy()
+	if len(v1Copy.Tags) == 0 {
+		v1Copy.Tags = nil
 	}
-	if len(k2Copy.Tags) == 0 {
-		k2Copy.Tags = nil
+	if len(v2Copy.Tags) == 0 {
+		v2Copy.Tags = nil
 	}
-	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *(k1Copy.Tags[i]) < *(k1Copy.Tags[j]) })
-	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *(k2Copy.Tags[i]) < *(k2Copy.Tags[j]) })
+	sort.Slice(v1Copy.Tags, func(i, j int) bool { return *(v1Copy.Tags[i]) < *(v1Copy.Tags[j]) })
+	sort.Slice(v2Copy.Tags, func(i, j int) bool { return *(v2Copy.Tags[i]) < *(v2Copy.Tags[j]) })
 	if ignoreID {
-		k1Copy.ID = nil
-		k2Copy.ID = nil
+		v1Copy.ID = nil
+		v2Copy.ID = nil
 	}
 	if ignoreTS {
-		k1Copy.CreatedAt = nil
-		k2Copy.CreatedAt = nil
-		k1Copy.UpdatedAt = nil
-		k2Copy.UpdatedAt = nil
+		v1Copy.CreatedAt = nil
+		v2Copy.CreatedAt = nil
+		v1Copy.UpdatedAt = nil
+		v2Copy.UpdatedAt = nil
 	}
-	return reflect.DeepEqual(k1Copy, k2Copy)
+	return reflect.DeepEqual(v1Copy, v2Copy)
 }
 
 // KeySet represents a key-set in Kong.
@@ -1962,51 +1959,51 @@ type KeySet struct {
 }
 
 // Identifier returns the endpoint key name or ID.
-func (ks1 *KeySet) Identifier() string {
-	if ks1.Name != nil {
-		return *ks1.Name
+func (v1 *KeySet) Identifier() string {
+	if v1.Name != nil {
+		return *v1.Name
 	}
-	return *ks1.ID
+	return *v1.ID
 }
 
 // Console returns an entity's identity in a human
 // readable string.
-func (ks1 *KeySet) Console() string {
-	if ks1.Name != nil {
-		return *ks1.Name
+func (v1 *KeySet) Console() string {
+	if v1.Name != nil {
+		return *v1.Name
 	}
-	return *ks1.ID
+	return *v1.ID
 }
 
-// Equal returns true if ks1 and ks2 are equal.
+// Equal returns true if v1 and v2 are equal.
 // TODO add compare array without position
-func (ks1 *KeySet) Equal(ks2 *KeySet) bool {
-	return ks1.EqualWithOpts(ks2, false, false)
+func (v1 *KeySet) Equal(v2 *KeySet) bool {
+	return v1.EqualWithOpts(v2, false, false)
 }
 
-// EqualWithOpts returns true if ks1 and ks2 are equal.
+// EqualWithOpts returns true if v1 and v2 are equal.
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
-func (ks1 *KeySet) EqualWithOpts(ks2 *KeySet, ignoreID, ignoreTS bool) bool {
-	ks1Copy := ks1.KeySet.DeepCopy()
-	ks2Copy := ks2.KeySet.DeepCopy()
-	if len(ks1Copy.Tags) == 0 {
-		ks1Copy.Tags = nil
+func (v1 *KeySet) EqualWithOpts(v2 *KeySet, ignoreID, ignoreTS bool) bool {
+	v1Copy := v1.KeySet.DeepCopy()
+	v2Copy := v2.KeySet.DeepCopy()
+	if len(v1Copy.Tags) == 0 {
+		v1Copy.Tags = nil
 	}
-	if len(ks2Copy.Tags) == 0 {
-		ks2Copy.Tags = nil
+	if len(v2Copy.Tags) == 0 {
+		v2Copy.Tags = nil
 	}
-	sort.Slice(ks1Copy.Tags, func(i, j int) bool { return *(ks1Copy.Tags[i]) < *(ks1Copy.Tags[j]) })
-	sort.Slice(ks2Copy.Tags, func(i, j int) bool { return *(ks2Copy.Tags[i]) < *(ks2Copy.Tags[j]) })
+	sort.Slice(v1Copy.Tags, func(i, j int) bool { return *(v1Copy.Tags[i]) < *(v1Copy.Tags[j]) })
+	sort.Slice(v2Copy.Tags, func(i, j int) bool { return *(v2Copy.Tags[i]) < *(v2Copy.Tags[j]) })
 	if ignoreID {
-		ks1Copy.ID = nil
-		ks2Copy.ID = nil
+		v1Copy.ID = nil
+		v2Copy.ID = nil
 	}
 	if ignoreTS {
-		ks1Copy.CreatedAt = nil
-		ks2Copy.CreatedAt = nil
-		ks1Copy.UpdatedAt = nil
-		ks2Copy.UpdatedAt = nil
+		v1Copy.CreatedAt = nil
+		v2Copy.CreatedAt = nil
+		v1Copy.UpdatedAt = nil
+		v2Copy.UpdatedAt = nil
 	}
-	return reflect.DeepEqual(ks1Copy, ks2Copy)
+	return reflect.DeepEqual(v1Copy, v2Copy)
 }
