@@ -1,7 +1,6 @@
 package state
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/kong/go-kong/kong"
@@ -90,7 +89,7 @@ func TestKeysCollectionGet(t *testing.T) {
 		res, err := collection.Get("non-existent-key")
 		require.Error(err)
 		require.Nil(res)
-		assert.True(errors.Is(err, ErrNotFound))
+		assert.ErrorIs(err, ErrNotFound)
 	})
 
 	t.Run("get with empty ID", func(_ *testing.T) {
@@ -129,7 +128,7 @@ func TestKeysCollectionUpdate(t *testing.T) {
 
 		err := collection.Update(key)
 		require.Error(err)
-		assert.True(errors.Is(err, ErrNotFound))
+		assert.ErrorIs(err, ErrNotFound)
 	})
 
 	t.Run("update with empty ID", func(_ *testing.T) {
@@ -166,7 +165,7 @@ func TestKeysCollectionDelete(t *testing.T) {
 		res, err = collection.Get(keyID)
 		require.Error(err)
 		require.Nil(res)
-		assert.True(errors.Is(err, ErrNotFound))
+		assert.ErrorIs(err, ErrNotFound)
 	})
 
 	t.Run("delete key by name", func(_ *testing.T) {
@@ -189,13 +188,13 @@ func TestKeysCollectionDelete(t *testing.T) {
 		res, err = collection.Get(keyID)
 		require.Error(err)
 		require.Nil(res)
-		assert.True(errors.Is(err, ErrNotFound))
+		assert.ErrorIs(err, ErrNotFound)
 	})
 
 	t.Run("delete non-existent key", func(_ *testing.T) {
 		err := collection.Delete("non-existent")
 		require.Error(err)
-		assert.True(errors.Is(err, ErrNotFound))
+		assert.ErrorIs(err, ErrNotFound)
 	})
 
 	t.Run("delete with empty ID", func(_ *testing.T) {
