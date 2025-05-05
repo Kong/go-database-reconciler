@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.45.1-0.20250326064911-1a3c87c5bf97
+	github.com/kong/deck v1.47.0
 	github.com/kong/go-kong v0.65.1
 	github.com/samber/lo v1.49.1
 	github.com/shirou/gopsutil/v3 v3.24.5
@@ -77,7 +77,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kong/go-apiops v0.1.41 // indirect
+	github.com/kong/go-apiops v0.1.42 // indirect
 	github.com/kong/go-slugify v1.0.0 // indirect
 	github.com/kong/kubernetes-configuration v1.1.0 // indirect
 	github.com/kong/semver/v4 v4.0.1 // indirect

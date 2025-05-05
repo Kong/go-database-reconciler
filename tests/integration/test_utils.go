@@ -330,7 +330,7 @@ func dump(opts ...string) (string, error) {
 	return stripansi.Strip(string(out)), cmdErr
 }
 
-func lint(opts ...string) (string, error) {
+func fileLint(opts ...string) (string, error) {
 	deckCmd := cmd.NewRootCmd()
 	args := []string{"file", "lint"}
 	if len(opts) > 0 {
