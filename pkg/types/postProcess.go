@@ -544,3 +544,35 @@ func (crud partialPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.
 func (crud partialPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.Partials.Update(*args[0].(*state.Partial))
 }
+
+type keyPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud keyPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.Keys.Add(*args[0].(*state.Key))
+}
+
+func (crud keyPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.Keys.Delete(*((args[0].(*state.Key)).ID))
+}
+
+func (crud keyPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.Keys.Update(*args[0].(*state.Key))
+}
+
+type keySetPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud keySetPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.KeySets.Add(*args[0].(*state.KeySet))
+}
+
+func (crud keySetPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.KeySets.Delete(*((args[0].(*state.KeySet)).ID))
+}
+
+func (crud keySetPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.KeySets.Update(*args[0].(*state.KeySet))
+}
