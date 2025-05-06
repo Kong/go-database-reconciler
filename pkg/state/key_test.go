@@ -40,6 +40,11 @@ func TestKeysCollectionAdd(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "add key without name",
+			key:     createTestKey("key-id-2", ""),
+			wantErr: false,
+		},
+		{
 			name:    "add duplicate key by ID",
 			key:     createTestKey("key-id", "key-name"),
 			wantErr: true,
@@ -62,159 +67,152 @@ func TestKeysCollectionAdd(t *testing.T) {
 
 func TestKeysCollectionGet(t *testing.T) {
 	collection := keysCollection()
-	assert := assert.New(t)
-	require := require.New(t)
 
 	keyID := "key-id"
 	keyName := "key-name"
 	err := collection.Add(createTestKey(keyID, keyName))
-	require.NoError(err, "error adding key")
-	t.Run("get key by ID", func(_ *testing.T) {
+	require.NoError(t, err, "error adding key")
+	t.Run("get key by ID", func(t *testing.T) {
 		res, err := collection.Get(keyID)
-		require.NoError(err, "error getting key by ID")
-		require.NotNil(res)
-		assert.Equal(keyID, *res.ID)
-		assert.Equal(keyName, *res.Name)
+		require.NoError(t, err, "error getting key by ID")
+		require.NotNil(t, res)
+		assert.Equal(t, keyID, *res.ID)
+		assert.Equal(t, keyName, *res.Name)
 	})
 
-	t.Run("get key by name", func(_ *testing.T) {
+	t.Run("get key by name", func(t *testing.T) {
 		res, err := collection.Get(keyName)
-		require.NoError(err, "error getting key by Name")
-		require.NotNil(res)
-		assert.Equal(keyID, *res.ID)
-		assert.Equal(keyName, *res.Name)
+		require.NoError(t, err, "error getting key by Name")
+		require.NotNil(t, res)
+		assert.Equal(t, keyID, *res.ID)
+		assert.Equal(t, keyName, *res.Name)
 	})
 
-	t.Run("get non-existent key", func(_ *testing.T) {
+	t.Run("get non-existent key", func(t *testing.T) {
 		res, err := collection.Get("non-existent-key")
-		require.Error(err)
-		require.Nil(res)
-		assert.ErrorIs(err, ErrNotFound)
+		require.Error(t, err)
+		require.Nil(t, res)
+		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
-	t.Run("get with empty ID", func(_ *testing.T) {
+	t.Run("get with empty ID", func(t *testing.T) {
 		res, err := collection.Get("")
-		require.Error(err)
-		require.Nil(res)
-		assert.Equal(errIDRequired, err)
+		require.Error(t, err)
+		require.Nil(t, res)
+		assert.Equal(t, errIDRequired, err)
 	})
 }
 
 func TestKeysCollectionUpdate(t *testing.T) {
 	collection := keysCollection()
-	assert := assert.New(t)
-	require := require.New(t)
-	t.Run("update existing key", func(_ *testing.T) {
+
+	t.Run("update existing key", func(t *testing.T) {
 		keyID := "key-id"
 		err := collection.Add(createTestKey(keyID, "key-name"))
-		require.NoError(err, "error adding key")
+		require.NoError(t, err, "error adding key")
 
 		// Update the key
 		newName := "new-key-name"
 		updatedKey := createTestKey(keyID, newName)
 		err = collection.Update(updatedKey)
-		require.NoError(err, "error updating key")
+		require.NoError(t, err, "error updating key")
 
 		// Verify the key was updated
 		res, err := collection.Get(keyID)
-		require.NoError(err, "error getting key")
-		require.NotNil(res)
-		assert.Equal(keyID, *res.ID)
-		assert.Equal(newName, *res.Name)
+		require.NoError(t, err, "error getting key")
+		require.NotNil(t, res)
+		assert.Equal(t, keyID, *res.ID)
+		assert.Equal(t, newName, *res.Name)
 	})
 
-	t.Run("update non-existent key", func(_ *testing.T) {
+	t.Run("update non-existent key", func(t *testing.T) {
 		key := createTestKey("non-existent", "key-name")
 
 		err := collection.Update(key)
-		require.Error(err)
-		assert.ErrorIs(err, ErrNotFound)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
-	t.Run("update with empty ID", func(_ *testing.T) {
+	t.Run("update with empty ID", func(t *testing.T) {
 		key := Key{}
 
 		err := collection.Update(key)
-		require.Error(err)
-		assert.Equal(errIDRequired, err)
+		require.Error(t, err)
+		assert.Equal(t, errIDRequired, err)
 	})
 }
 
 func TestKeysCollectionDelete(t *testing.T) {
 	collection := keysCollection()
-	require := require.New(t)
-	assert := assert.New(t)
-
-	t.Run("delete key by ID", func(_ *testing.T) {
+	t.Run("delete key by ID", func(t *testing.T) {
 		// Add a key
 		keyID := "key-id"
 		keyName := "key-name"
 		err := collection.Add(createTestKey(keyID, keyName))
-		require.NoError(err, "error adding key")
+		require.NoError(t, err, "error adding key")
 
 		// Check if key exists
 		res, err := collection.Get(keyID)
-		require.NoError(err, "error getting key by ID")
-		require.NotNil(res)
+		require.NoError(t, err, "error getting key by ID")
+		require.NotNil(t, res)
 
 		// Delete key
 		err = collection.Delete(keyID)
-		require.NoError(err, "error in deleting key")
+		require.NoError(t, err, "error in deleting key")
 
 		// Verify the key was deleted
 		res, err = collection.Get(keyID)
-		require.Error(err)
-		require.Nil(res)
-		assert.ErrorIs(err, ErrNotFound)
+		require.Error(t, err)
+		require.Nil(t, res)
+		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
-	t.Run("delete key by name", func(_ *testing.T) {
+	t.Run("delete key by name", func(t *testing.T) {
 		// Add a key
 		keyID := "key-id"
 		keyName := "key-name"
 		err := collection.Add(createTestKey(keyID, keyName))
-		require.NoError(err, "error adding key")
+		require.NoError(t, err, "error adding key")
 
 		// Check if key exists
 		res, err := collection.Get(keyName)
-		require.NoError(err, "error getting key by name")
-		require.NotNil(res)
+		require.NoError(t, err, "error getting key by name")
+		require.NotNil(t, res)
 
 		// Delete key
 		err = collection.Delete(keyName)
-		require.NoError(err, "error in deleting key")
+		require.NoError(t, err, "error in deleting key")
 
 		// Verify the key was deleted
 		res, err = collection.Get(keyID)
-		require.Error(err)
-		require.Nil(res)
-		assert.ErrorIs(err, ErrNotFound)
+		require.Error(t, err)
+		require.Nil(t, res)
+		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
-	t.Run("delete non-existent key", func(_ *testing.T) {
+	t.Run("delete non-existent key", func(t *testing.T) {
 		err := collection.Delete("non-existent")
-		require.Error(err)
-		assert.ErrorIs(err, ErrNotFound)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
-	t.Run("delete with empty ID", func(_ *testing.T) {
+	t.Run("delete with empty ID", func(t *testing.T) {
 		err := collection.Delete("")
-		require.Error(err)
-		assert.Equal(errIDRequired, err)
+		require.Error(t, err)
+		assert.Equal(t, errIDRequired, err)
 	})
 }
 
 func TestKeysCollection_GetAll(t *testing.T) {
 	collection := keysCollection()
-	assert := assert.New(t)
-	require := require.New(t)
-	t.Run("get all keys from empty collection", func(_ *testing.T) {
+
+	t.Run("get all keys from empty collection", func(t *testing.T) {
 		res, err := collection.GetAll()
-		require.NoError(err)
-		assert.Empty(res)
+		require.NoError(t, err)
+		assert.Empty(t, res)
 	})
 
-	t.Run("get all keys from non-empty collection", func(_ *testing.T) {
+	t.Run("get all keys from non-empty collection", func(t *testing.T) {
 		// Add multiple keys
 		keys := []Key{
 			createTestKey("key-id-1", "key-name-1"),
@@ -224,14 +222,14 @@ func TestKeysCollection_GetAll(t *testing.T) {
 
 		for _, key := range keys {
 			err := collection.Add(key)
-			require.NoError(err, "error adding key")
+			require.NoError(t, err, "error adding key")
 		}
 
 		// Get all keys
 		res, err := collection.GetAll()
-		require.NoError(err, "error in getting all keys")
-		assert.Len(res, len(keys))
-		assert.IsType([]*Key{}, res)
+		require.NoError(t, err, "error in getting all keys")
+		assert.Len(t, res, len(keys))
+		assert.IsType(t, []*Key{}, res)
 
 		// Verify all keys are present
 		keyMap := make(map[string]bool)
@@ -240,7 +238,7 @@ func TestKeysCollection_GetAll(t *testing.T) {
 		}
 
 		for _, key := range keys {
-			assert.True(keyMap[*key.ID], "Key with ID %s not found in results", *key.ID)
+			assert.True(t, keyMap[*key.ID], "Key with ID %s not found in results", *key.ID)
 		}
 	})
 }

@@ -21,9 +21,10 @@ var keyTableSchema = &memdb.TableSchema{
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
 		"name": {
-			Name:    "name",
-			Unique:  true,
-			Indexer: &memdb.StringFieldIndex{Field: "Name"},
+			Name:         "name",
+			Unique:       true,
+			Indexer:      &memdb.StringFieldIndex{Field: "Name"},
+			AllowMissing: true,
 		},
 		all: allIndex,
 	},
@@ -85,17 +86,10 @@ func (k *KeysCollection) Get(nameOrID string) (*Key, error) {
 	}
 	txn := k.db.Txn(false)
 	defer txn.Abort()
-	key, err := getKey(txn, nameOrID)
-	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	return key, nil
+	return getKey(txn, nameOrID)
 }
 
-// Update udpates an existing key.
+// Update updates an existing key.
 func (k *KeysCollection) Update(key Key) error {
 	if utils.Empty(key.ID) {
 		return errIDRequired

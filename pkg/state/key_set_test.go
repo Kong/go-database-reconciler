@@ -40,6 +40,11 @@ func TestKeySetCollectionAdd(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "add key-set without name",
+			keySet:  createTestKeySet("keyset-id-2", ""),
+			wantErr: false,
+		},
+		{
 			name:    "add duplicate key-set by ID",
 			keySet:  createTestKeySet("keyset-id", "keyset-name"),
 			wantErr: true,
