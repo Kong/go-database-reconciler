@@ -86,17 +86,10 @@ func (k *KeySetsCollection) Get(nameOrID string) (*KeySet, error) {
 	}
 	txn := k.db.Txn(false)
 	defer txn.Abort()
-	set, err := getSet(txn, nameOrID)
-	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	return set, nil
+	return getSet(txn, nameOrID)
 }
 
-// Update udpates an existing key-set.
+// Update updates an existing key-set.
 func (k *KeySetsCollection) Update(set KeySet) error {
 	if utils.Empty(set.ID) {
 		return errIDRequired
