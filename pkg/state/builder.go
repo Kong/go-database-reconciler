@@ -405,10 +405,9 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			if err != nil {
 				return err
 			}
-			if !ok {
-				return fmt.Errorf("service %q not found", *d.Service.ID)
+			if ok {
+				d.Service = s
 			}
-			d.Service = s
 		}
 		err := kongState.DegraphqlRoutes.Add(DegraphqlRoute{DegraphqlRoute: *d})
 		if err != nil {
