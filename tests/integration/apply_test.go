@@ -24,7 +24,7 @@ func Test_Apply_Custom_Entities(t *testing.T) {
 		targetPartialStateFile string
 	}{
 		{
-			name:                   "certificate",
+			name:                   "custom entity - degraphql routes",
 			initialStateFile:       "testdata/apply/001-custom-entities/initial-state.yaml",
 			targetPartialStateFile: "testdata/apply/001-custom-entities/partial-update.yaml",
 		},
