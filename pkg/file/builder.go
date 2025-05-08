@@ -1766,15 +1766,28 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 			b.err = err
 		}
 
+		if consumer == nil {
+			consumer, err = b.intermediate.Consumers.GetByIDOrUsername(*plugin.Consumer.ID)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
+				b.err = err
+			}
+		}
+
 		if consumer != nil {
 			cID = *consumer.ID
 		}
-
 	}
 	if plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
 		route, err := b.currentState.Routes.Get(*plugin.Route.ID)
 		if err != nil && !errors.Is(err, state.ErrNotFound) {
 			b.err = err
+		}
+
+		if route == nil {
+			route, err = b.intermediate.Routes.Get(*plugin.Route.ID)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
+				b.err = err
+			}
 		}
 
 		if route != nil {
@@ -1787,6 +1800,13 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 			b.err = err
 		}
 
+		if service == nil {
+			service, err = b.intermediate.Services.Get(*plugin.Service.ID)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
+				b.err = err
+			}
+		}
+
 		if service != nil {
 			sID = *service.ID
 		}
@@ -1795,6 +1815,13 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 		consumerGroup, err := b.currentState.ConsumerGroups.Get(*plugin.ConsumerGroup.ID)
 		if err != nil && !errors.Is(err, state.ErrNotFound) {
 			b.err = err
+		}
+
+		if consumerGroup == nil {
+			consumerGroup, err = b.intermediate.ConsumerGroups.Get(*plugin.ConsumerGroup.ID)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
+				b.err = err
+			}
 		}
 
 		if consumerGroup != nil {
