@@ -286,6 +286,17 @@ func sync(kongFile string, opts ...string) error {
 	return deckCmd.ExecuteContext(context.Background())
 }
 
+func multiFileSync(kongFiles []string, opts ...string) error {
+	deckCmd := cmd.NewRootCmd()
+	args := []string{"gateway", "sync"}
+	args = append(args, kongFiles...)
+	if len(opts) > 0 {
+		args = append(args, opts...)
+	}
+	deckCmd.SetArgs(args)
+	return deckCmd.ExecuteContext(context.Background())
+}
+
 func diff(kongFile string, opts ...string) (string, error) {
 	deckCmd := cmd.NewRootCmd()
 	args := []string{"gateway", "diff", kongFile}
