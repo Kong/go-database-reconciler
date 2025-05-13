@@ -1,8 +1,6 @@
 module github.com/kong/go-database-reconciler
 
-go 1.23.5
-
-toolchain go1.24.0
+go 1.24.3
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 

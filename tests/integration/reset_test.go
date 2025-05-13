@@ -40,7 +40,7 @@ func Test_Reset_SkipCACert_2x(t *testing.T) {
 	// setup stage
 	client, err := getTestClient()
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	tests := []struct {
@@ -76,7 +76,7 @@ func Test_Reset_SkipCACert_3x(t *testing.T) {
 	// setup stage
 	client, err := getTestClient()
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	tests := []struct {
@@ -114,7 +114,7 @@ func Test_Reset_ConsumerGroupConsumersWithCustomID(t *testing.T) {
 
 	client, err := getTestClient()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 
 	require.NoError(t, sync("testdata/sync/028-consumer-group-consumers-custom_id/kong.yaml"))
