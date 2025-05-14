@@ -251,7 +251,7 @@ func reset(t *testing.T, opts ...string) {
 	}
 	deckCmd.SetArgs(args)
 	if err := deckCmd.Execute(); err != nil {
-		t.Fatalf(err.Error(), "failed to reset Kong's state")
+		t.Fatal(err.Error(), "failed to reset Kong's state")
 	}
 }
 

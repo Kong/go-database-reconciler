@@ -15,7 +15,7 @@ func Test_Apply_Custom_Entities(t *testing.T) {
 	setup(t)
 	client, err := getTestClient()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 	ctx := context.Background()
 	tests := []struct {
