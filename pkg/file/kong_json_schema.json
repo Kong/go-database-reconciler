@@ -1600,6 +1600,30 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "KeySet": {
+      "properties": {
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "updated_at": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "Kong": {
       "properties": {
         "service": {
@@ -1747,6 +1771,18 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PEM": {
+      "properties": {
+        "private_key": {
+          "type": "string"
+        },
+        "public_key": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
