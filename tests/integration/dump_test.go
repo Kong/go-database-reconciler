@@ -80,21 +80,29 @@ func Test_Dump_SelectTags_3x(t *testing.T) {
 	}
 }
 
-func Test_Dump_SelectTags_38x(t *testing.T) {
+func Test_Dump_SelectTags_Post_38x(t *testing.T) {
 	tests := []struct {
-		name         string
-		stateFile    string
-		expectedFile string
+		name           string
+		stateFile      string
+		expectedFile   string
+		runWhenVersion string
 	}{
 		{
-			name:         "dump with select-tags",
-			stateFile:    "testdata/dump/001-entities-with-tags/kong.yaml",
-			expectedFile: "testdata/dump/001-entities-with-tags/expected38.yaml",
+			name:           "dump with select-tags >=3.8.0 <3.10.0",
+			stateFile:      "testdata/dump/001-entities-with-tags/kong.yaml",
+			expectedFile:   "testdata/dump/001-entities-with-tags/expected38.yaml",
+			runWhenVersion: ">=3.8.0 <3.10.0",
+		},
+		{
+			name:           "dump with select-tags >=3.10.0",
+			stateFile:      "testdata/dump/001-entities-with-tags/kong.yaml",
+			expectedFile:   "testdata/dump/001-entities-with-tags/expected310.yaml",
+			runWhenVersion: ">=3.10.0",
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhen(t, "kong", ">=3.8.0")
+			runWhen(t, "kong", tc.runWhenVersion)
 			setup(t)
 
 			require.NoError(t, sync(tc.stateFile))
@@ -175,7 +183,14 @@ func Test_Dump_SkipConsumers(t *testing.T) {
 			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
 			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-39.yaml",
 			skipConsumers: false,
-			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.9.0") },
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.9.0 <3.10.0") },
+		},
+		{
+			name:          "3.10.0 dump with no skip-consumers",
+			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
+			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-310.yaml",
+			skipConsumers: false,
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.10.0") },
 		},
 	}
 	for _, tc := range tests {
