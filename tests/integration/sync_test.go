@@ -3549,7 +3549,7 @@ func Test_Sync_PluginsOnEntitiesFrom_3_10_0(t *testing.T) {
 	// setup stage
 	client, err := getTestClient()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 
 	tests := []struct {
