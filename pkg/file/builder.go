@@ -129,6 +129,8 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.consumers()
 	b.plugins()
 	b.filterChains()
+	b.keySets()
+	b.keys()
 	b.enterprise()
 
 	// konnect
@@ -139,6 +141,48 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 		return nil, nil, b.err
 	}
 	return b.rawState, b.konnectRawState, nil
+}
+
+func (b *stateBuilder) keys() {
+	if b.err != nil {
+		return
+	}
+	for _, k := range b.targetContent.Keys {
+		if utils.Empty(k.ID) {
+			key, err := b.currentState.Keys.Get(*k.Name)
+			if errors.Is(err, state.ErrNotFound) {
+				k.ID = uuid()
+			} else if err != nil {
+				b.err = err
+				return
+			} else {
+				k.ID = kong.String(*key.ID)
+			}
+		}
+		utils.MustMergeTags(&k.Key, b.selectTags)
+		b.rawState.Keys = append(b.rawState.Keys, &k.Key)
+	}
+}
+
+func (b *stateBuilder) keySets() {
+	if b.err != nil {
+		return
+	}
+	for _, k := range b.targetContent.KeySets {
+		if utils.Empty(k.ID) {
+			set, err := b.currentState.KeySets.Get(*k.Name)
+			if errors.Is(err, state.ErrNotFound) {
+				k.ID = uuid()
+			} else if err != nil {
+				b.err = err
+				return
+			} else {
+				k.ID = kong.String(*set.ID)
+			}
+		}
+		utils.MustMergeTags(&k.KeySet, b.selectTags)
+		b.rawState.KeySets = append(b.rawState.KeySets, &k.KeySet)
+	}
 }
 
 func (b *stateBuilder) ingestConsumerGroupScopedPlugins(cg FConsumerGroupObject) error {

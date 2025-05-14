@@ -1102,6 +1102,40 @@ func (c FPartial) sortKey() string {
 	return ""
 }
 
+// FKey represents a key in Kong.
+// +k8s:deepcopy-gen=true
+type FKey struct {
+	kong.Key `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (k FKey) sortKey() string {
+	if k.Name != nil {
+		return *k.Name
+	}
+	if k.ID != nil {
+		return *k.ID
+	}
+	return ""
+}
+
+// FKeySet represents a key-set in Kong.
+// +k8s:deepcopy-gen=true
+type FKeySet struct {
+	kong.KeySet `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (k FKeySet) sortKey() string {
+	if k.Name != nil {
+		return *k.Name
+	}
+	if k.ID != nil {
+		return *k.ID
+	}
+	return ""
+}
+
 //go:generate go run ./codegen/main.go
 
 // Content represents a serialized Kong state.
@@ -1136,4 +1170,7 @@ type Content struct {
 	CustomEntities []FCustomEntity `json:"custom_entities,omitempty" yaml:"custom_entities,omitempty"`
 
 	Partials []FPartial `json:"partials,omitempty" yaml:"partials,omitempty"`
+
+	Keys    []FKey    `json:"keys,omitempty" yaml:"keys,omitempty"`
+	KeySets []FKeySet `json:"key_sets,omitempty" yaml:"key_sets,omitempty"`
 }
