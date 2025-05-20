@@ -148,7 +148,7 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	if err != nil {
 		return nil, err
 	}
-	err = populateKeySets(kongState, file)
+	err = populateKeySets(kongState, file, config)
 	if err != nil {
 		return nil, err
 	}
@@ -945,13 +945,16 @@ func populateKeys(kongState *state.KongState, file *Content,
 	return nil
 }
 
-func populateKeySets(kongState *state.KongState, file *Content) error {
+func populateKeySets(kongState *state.KongState, file *Content,
+	config WriteConfig,
+) error {
 	sets, err := kongState.KeySets.GetAll()
 	if err != nil {
 		return err
 	}
 	for _, s := range sets {
 		s := FKeySet{KeySet: s.KeySet}
+		utils.ZeroOutID(&s, s.Name, config.WithID)
 		utils.ZeroOutTimestamps(&s)
 		file.KeySets = append(file.KeySets, s)
 	}
