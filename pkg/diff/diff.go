@@ -152,6 +152,10 @@ type Syncer struct {
 
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	noDeletes bool
+
+	// schema caching helps in reducing the number of GET calls to Kong Gateway
+	pluginSchemasCache  map[string]map[string]interface{}
+	partialSchemasCache map[string]map[string]interface{}
 }
 
 type SyncerOpts struct {
@@ -224,6 +228,9 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 		return nil, err
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
+
+	s.pluginSchemasCache = make(map[string]map[string]interface{})
+	s.partialSchemasCache = make(map[string]map[string]interface{})
 
 	return s, nil
 }
@@ -585,6 +592,36 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 	return diffString, err
 }
 
+func (sc *Syncer) getPluginSchema(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+	var schema map[string]interface{}
+
+	if schema, ok := sc.pluginSchemasCache[pluginName]; ok {
+		return schema, nil
+	}
+
+	schema, err := sc.kongClient.Plugins.GetFullSchema(ctx, &pluginName)
+	if err != nil {
+		return schema, err
+	}
+	sc.pluginSchemasCache[pluginName] = schema
+	return schema, nil
+}
+
+func (sc *Syncer) getPartialSchema(ctx context.Context, partialName string) (map[string]interface{}, error) {
+	var schema map[string]interface{}
+
+	if schema, ok := sc.partialSchemasCache[partialName]; ok {
+		return schema, nil
+	}
+
+	schema, err := sc.kongClient.Partials.GetFullSchema(ctx, &partialName)
+	if err != nil {
+		return schema, err
+	}
+	sc.partialSchemasCache[partialName] = schema
+	return schema, nil
+}
+
 // Solve generates a diff and walks the graph.
 func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
 	[]error, EntityChanges,
@@ -629,6 +666,11 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// configuration that is sent to Kong.
 		eventForKong := e
 
+		workspaceExists, err := utils.WorkspaceExists(ctx, sc.kongClient)
+		if err != nil {
+			return nil, err
+		}
+
 		// If the event is for a plugin, inject defaults in the plugin's config
 		// that will be used for the diff. This is needed to avoid highlighting
 		// default values that were populated by Kong as differences.
@@ -636,9 +678,8 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			pluginCopy := &state.Plugin{Plugin: *plugin.DeepCopy()}
 			e.Obj = pluginCopy
 
-			if exists, _ := utils.WorkspaceExists(ctx, sc.kongClient); exists {
-				var schema map[string]interface{}
-				schema, err = sc.kongClient.Plugins.GetFullSchema(ctx, pluginCopy.Plugin.Name)
+			if workspaceExists {
+				schema, err := sc.getPluginSchema(ctx, *pluginCopy.Plugin.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -693,9 +734,8 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			partialCopy := &state.Partial{Partial: *partial.DeepCopy()}
 			e.Obj = partialCopy
 
-			if exists, _ := utils.WorkspaceExists(ctx, sc.kongClient); exists {
-				var schema map[string]interface{}
-				schema, err = sc.kongClient.Partials.GetFullSchema(ctx, partialCopy.Partial.Type)
+			if workspaceExists {
+				schema, err := sc.getPartialSchema(ctx, *partialCopy.Partial.Type)
 				if err != nil {
 					return nil, err
 				}
