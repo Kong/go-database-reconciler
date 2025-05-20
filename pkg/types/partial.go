@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
@@ -74,6 +75,7 @@ type partialDiffer struct {
 	client                    *kong.Client
 
 	schemasCache map[string]map[string]interface{}
+	mu           sync.Mutex
 }
 
 // Deletes generates a memdb CRUD DELETE event for Partials
@@ -169,7 +171,7 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 	// found, check if update needed
 	// before checking the diff, fill in the defaults
 	currentPartial = &state.Partial{Partial: *currentPartial.DeepCopy()}
-	schema, err := d.client.Partials.GetFullSchema(context.TODO(), partial.Type)
+	schema, err := d.getPartialSchema(context.TODO(), *partial.Type)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting schema for partial: %w", err)
 	}
@@ -190,17 +192,19 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 	return nil, nil
 }
 
-func (d *partialDiffer) getPartialSchema(ctx context.Context, partialName string) (map[string]interface{}, error) {
+func (d *partialDiffer) getPartialSchema(ctx context.Context, partialType string) (map[string]interface{}, error) {
 	var schema map[string]interface{}
 
-	if schema, ok := d.schemasCache[partialName]; ok {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if schema, ok := d.schemasCache[partialType]; ok {
 		return schema, nil
 	}
 
-	schema, err := d.client.Plugins.GetFullSchema(ctx, &partialName)
+	schema, err := d.client.Partials.GetFullSchema(ctx, &partialType)
 	if err != nil {
 		return schema, err
 	}
-	d.schemasCache[partialName] = schema
+	d.schemasCache[partialType] = schema
 	return schema, nil
 }

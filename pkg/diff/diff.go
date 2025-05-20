@@ -156,6 +156,8 @@ type Syncer struct {
 	// schema caching helps in reducing the number of GET calls to Kong Gateway
 	pluginSchemasCache  map[string]map[string]interface{}
 	partialSchemasCache map[string]map[string]interface{}
+
+	cacheMutex sync.Mutex
 }
 
 type SyncerOpts struct {
@@ -231,6 +233,8 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 	s.pluginSchemasCache = make(map[string]map[string]interface{})
 	s.partialSchemasCache = make(map[string]map[string]interface{})
+
+	s.cacheMutex = sync.Mutex{}
 
 	return s, nil
 }
@@ -595,6 +599,8 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 func (sc *Syncer) getPluginSchema(ctx context.Context, pluginName string) (map[string]interface{}, error) {
 	var schema map[string]interface{}
 
+	sc.cacheMutex.Lock()
+	defer sc.cacheMutex.Unlock()
 	if schema, ok := sc.pluginSchemasCache[pluginName]; ok {
 		return schema, nil
 	}
@@ -610,6 +616,8 @@ func (sc *Syncer) getPluginSchema(ctx context.Context, pluginName string) (map[s
 func (sc *Syncer) getPartialSchema(ctx context.Context, partialName string) (map[string]interface{}, error) {
 	var schema map[string]interface{}
 
+	sc.cacheMutex.Lock()
+	defer sc.cacheMutex.Unlock()
 	if schema, ok := sc.partialSchemasCache[partialName]; ok {
 		return schema, nil
 	}
