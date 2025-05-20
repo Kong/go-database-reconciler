@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
@@ -92,6 +93,7 @@ type pluginDiffer struct {
 	kongClient                *kong.Client
 
 	schemasCache map[string]map[string]interface{}
+	mu           sync.Mutex
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
@@ -223,6 +225,8 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 func (d *pluginDiffer) getPluginSchema(ctx context.Context, pluginName string) (map[string]interface{}, error) {
 	var schema map[string]interface{}
 
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if schema, ok := d.schemasCache[pluginName]; ok {
 		return schema, nil
 	}
