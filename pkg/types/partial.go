@@ -72,6 +72,8 @@ type partialDiffer struct {
 
 	currentState, targetState *state.KongState
 	client                    *kong.Client
+
+	schemasCache map[string]map[string]interface{}
 }
 
 // Deletes generates a memdb CRUD DELETE event for Partials
@@ -186,4 +188,19 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 		}, nil
 	}
 	return nil, nil
+}
+
+func (d *partialDiffer) getPartialSchema(ctx context.Context, partialName string) (map[string]interface{}, error) {
+	var schema map[string]interface{}
+
+	if schema, ok := d.schemasCache[partialName]; ok {
+		return schema, nil
+	}
+
+	schema, err := d.client.Plugins.GetFullSchema(ctx, &partialName)
+	if err != nil {
+		return schema, err
+	}
+	d.schemasCache[partialName] = schema
+	return schema, nil
 }

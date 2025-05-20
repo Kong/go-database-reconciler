@@ -173,6 +173,10 @@ func entityTypeToKind(t EntityType) crud.Kind {
 	return crud.Kind(t)
 }
 
+func initCache() map[string]map[string]interface{} {
+	return make(map[string]map[string]interface{})
+}
+
 func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 	switch t {
 	case Service:
@@ -249,6 +253,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				kongClient:   opts.KongClient,
+				schemasCache: initCache(),
 			},
 		}, nil
 	case Consumer:
@@ -617,6 +622,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				client:       opts.KongClient,
+				schemasCache: initCache(),
 			},
 		}, nil
 	case Key:
