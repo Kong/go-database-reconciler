@@ -8,13 +8,13 @@ import (
 /*
                                        Root
                                          |
-         +----------+----------+---------+------------+---------------+--------------+
-         |          |          |         |            |               |              |
-         v          v          v         v            v               v              v
-L1    Service    RbacRole  Upstream  Certificate  CACertificate  Consumer ---+--- Partial
-      Package        |         |        |     |      |                |      |
-        |            v         v        v     |      v                v      |
-L2      |        RBACRole   Target     SNI    +-> Service       Credentials  |
+         +----------+----------+---------+------------+---------------+--------------+----------+
+         |          |          |         |            |               |              |          |
+         v          v          v         v            v               v              v          v
+L1    Service    RbacRole  Upstream  Certificate  CACertificate  Consumer ---+--- Partial     KeySet
+      Package        |         |        |     |      |                |      |                  |
+        |            v         v        v     |      v                v      |                  v
+L2      |        RBACRole   Target     SNI    +-> Service       Credentials  |                 Key
         |        Endpoint                         |  |              (7)      |
         |                                         |  |                       |
         |                                         |  |                       |
@@ -43,6 +43,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.Vault,
 		types.License,
 		types.Partial,
+		types.KeySet,
 	},
 	{
 		types.ConsumerGroup,
@@ -50,6 +51,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.SNI,
 		types.Service,
 		types.Upstream,
+		types.Key,
 
 		types.KeyAuth, types.HMACAuth, types.JWTAuth,
 		types.BasicAuth, types.OAuth2Cred, types.ACLGroup,
