@@ -396,3 +396,37 @@ func Test_Dump_CustomEntities(t *testing.T) {
 	require.Truef(t, ok, "'query' field should have type 'string' but actual '%T'", obj["query"])
 	require.Equal(t, "query{ name }", query)
 }
+
+func Test_Dump_KeysAndKeySets(t *testing.T) {
+	runWhen(t, "kong", ">=3.1.0")
+	setup(t)
+
+	tests := []struct {
+		name         string
+		stateFile    string
+		expectedFile string
+	}{
+		{
+			name:         "dump keys and key-sets - jwk keys",
+			stateFile:    "testdata/dump/005-keys-and-key_sets/kong.yaml",
+			expectedFile: "testdata/dump/005-keys-and-key_sets/kong.yaml",
+		},
+		{
+			name:         "dump keys and key-sets - pem keys",
+			stateFile:    "testdata/dump/005-keys-and-key_sets/kong-pem.yaml",
+			expectedFile: "testdata/dump/005-keys-and-key_sets/kong-pem.yaml",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, sync(tc.stateFile))
+
+			output, err := dump("-o", "-", "--with-id")
+			require.NoError(t, err)
+
+			expected, err := readFile(tc.expectedFile)
+			require.NoError(t, err)
+			assert.Equal(t, expected, output)
+		})
+	}
+}

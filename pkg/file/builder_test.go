@@ -534,6 +534,38 @@ func existingConsumerGroupState(t *testing.T) *state.KongState {
 	return s
 }
 
+func existingKeyState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.Keys.Add(
+		state.Key{
+			Key: kong.Key{
+				ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name: kong.String("foo"),
+				KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+				JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+			},
+		})
+	return s
+}
+
+func existingKeySetState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.KeySets.Add(
+		state.KeySet{
+			KeySet: kong.KeySet{
+				ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name: kong.String("existing-set"),
+			},
+		})
+	return s
+}
+
 var testRand *rand.Rand
 
 var deterministicUUID = func() *string {
@@ -5112,6 +5144,251 @@ func Test_stateBuilder_plugins(t *testing.T) {
 
 			require.NoError(t, b.err)
 			assert.Equal(tt.want, b.targetContent.Plugins)
+		})
+	}
+}
+
+func Test_stateBuilder_keys(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "generates a new key from valid config passed",
+			fields: fields{
+				targetContent: &Content{
+					Keys: []FKey{
+						{
+							Key: kong.Key{
+								Name: kong.String("foo"),
+								KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+								JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+							},
+						},
+						{
+							Key: kong.Key{
+								Name: kong.String("my-pem-key"),
+								KID:  kong.String("my-pem-key"),
+								PEM: &kong.PEM{
+									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Keys: []*kong.Key{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("foo"),
+						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+					},
+					{
+						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: kong.String("my-pem-key"),
+						KID:  kong.String("my-pem-key"),
+						PEM: &kong.PEM{
+							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing key",
+			fields: fields{
+				targetContent: &Content{
+					Keys: []FKey{
+						{
+							Key: kong.Key{
+								Name: kong.String("foo"),
+								KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+								JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+							},
+						},
+					},
+				},
+				currentState: existingKeyState(t),
+			},
+			want: &utils.KongRawState{
+				Keys: []*kong.Key{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("foo"),
+						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty key entities",
+			fields: fields{
+				targetContent: &Content{
+					Keys: []FKey{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Keys: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			_, _, err := b.build()
+
+			require.NoError(t, err, "build error is not nil")
+			assert.Equal(t, tt.want, b.rawState)
+		})
+	}
+}
+
+func Test_stateBuilder_keySets(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "generates a new key-set and associate it with keys from valid config passed",
+			fields: fields{
+				targetContent: &Content{
+					KeySets: []FKeySet{
+						{
+							KeySet: kong.KeySet{
+								Name: kong.String("set-1"),
+							},
+						},
+					},
+					Keys: []FKey{
+						{
+							Key: kong.Key{
+								Name: kong.String("foo"),
+								KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+								JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+								Set: &kong.KeySet{
+									Name: kong.String("set-1"),
+								},
+							},
+						},
+						{
+							Key: kong.Key{
+								Name: kong.String("my-pem-key"),
+								KID:  kong.String("my-pem-key"),
+								PEM: &kong.PEM{
+									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+								},
+								Set: &kong.KeySet{
+									Name: kong.String("set-1"),
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				KeySets: []*kong.KeySet{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("set-1"),
+					},
+				},
+				Keys: []*kong.Key{
+					{
+						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: kong.String("foo"),
+						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+						Set: &kong.KeySet{
+							Name: kong.String("set-1"),
+						},
+					},
+					{
+						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: kong.String("my-pem-key"),
+						KID:  kong.String("my-pem-key"),
+						PEM: &kong.PEM{
+							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+						},
+						Set: &kong.KeySet{
+							Name: kong.String("set-1"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing keyset",
+			fields: fields{
+				targetContent: &Content{
+					KeySets: []FKeySet{
+						{
+							KeySet: kong.KeySet{
+								Name: kong.String("existing-set"),
+							},
+						},
+					},
+				},
+				currentState: existingKeySetState(t),
+			},
+			want: &utils.KongRawState{
+				KeySets: []*kong.KeySet{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("existing-set"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty key-set entities",
+			fields: fields{
+				targetContent: &Content{
+					KeySets: []FKeySet{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				KeySets: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			_, _, err := b.build()
+
+			require.NoError(t, err, "build error is not nil")
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }
