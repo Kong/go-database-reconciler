@@ -147,6 +147,24 @@ func (b *stateBuilder) keys() {
 	if b.err != nil {
 		return
 	}
+
+	// Load all existing keys in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		keys, err := b.currentState.Keys.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+		for _, k := range keys {
+			err = b.intermediate.Keys.Add(*k)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
+	}
+
 	for _, k := range b.targetContent.Keys {
 		if utils.Empty(k.ID) {
 			key, err := b.currentState.Keys.Get(*k.Name)
@@ -168,6 +186,24 @@ func (b *stateBuilder) keySets() {
 	if b.err != nil {
 		return
 	}
+
+	// Load all existing keySets in to the immediate state for
+	// foreign key lookups if we're doing a partial apply
+	if b.isPartialApply {
+		keySets, err := b.currentState.KeySets.GetAll()
+		if err != nil {
+			b.err = err
+			return
+		}
+		for _, k := range keySets {
+			err = b.intermediate.KeySets.Add(*k)
+			if err != nil {
+				b.err = err
+				return
+			}
+		}
+	}
+
 	for _, k := range b.targetContent.KeySets {
 		if utils.Empty(k.ID) {
 			set, err := b.currentState.KeySets.Get(*k.Name)
