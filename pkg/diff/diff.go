@@ -153,7 +153,10 @@ type Syncer struct {
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	noDeletes bool
 
-	// schema caching helps in reducing the number of GET calls to Kong Gateway
+	// These caches store the schemas of a plugin and partials, respectively.
+	// Schema retrieval is often required in the diffing process, for filling in defaults and auto fields
+	// present in plugins or partials.
+	// Thus, caching the schemas avoids unnecessary repeated requests to Kong.
 	pluginSchemasCache  *types.PluginSchemaCache
 	partialSchemasCache *types.PartialSchemaCache
 }
