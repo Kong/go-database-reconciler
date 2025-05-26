@@ -154,10 +154,8 @@ type Syncer struct {
 	noDeletes bool
 
 	// schema caching helps in reducing the number of GET calls to Kong Gateway
-	pluginSchemasCache  map[string]map[string]interface{}
-	partialSchemasCache map[string]map[string]interface{}
-
-	cacheMutex sync.Mutex
+	pluginSchemasCache  *types.PluginSchemaCache
+	partialSchemasCache *types.PartialSchemaCache
 }
 
 type SyncerOpts struct {
@@ -231,10 +229,8 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
 
-	s.pluginSchemasCache = make(map[string]map[string]interface{})
-	s.partialSchemasCache = make(map[string]map[string]interface{})
-
-	s.cacheMutex = sync.Mutex{}
+	s.pluginSchemasCache = types.NewPluginSchemaCache(s.kongClient)
+	s.partialSchemasCache = types.NewPartialSchemaCache(s.kongClient)
 
 	return s, nil
 }
@@ -596,40 +592,6 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 	return diffString, err
 }
 
-func (sc *Syncer) getPluginSchema(ctx context.Context, pluginName string) (map[string]interface{}, error) {
-	var schema map[string]interface{}
-
-	sc.cacheMutex.Lock()
-	defer sc.cacheMutex.Unlock()
-	if schema, ok := sc.pluginSchemasCache[pluginName]; ok {
-		return schema, nil
-	}
-
-	schema, err := sc.kongClient.Plugins.GetFullSchema(ctx, &pluginName)
-	if err != nil {
-		return schema, err
-	}
-	sc.pluginSchemasCache[pluginName] = schema
-	return schema, nil
-}
-
-func (sc *Syncer) getPartialSchema(ctx context.Context, partialName string) (map[string]interface{}, error) {
-	var schema map[string]interface{}
-
-	sc.cacheMutex.Lock()
-	defer sc.cacheMutex.Unlock()
-	if schema, ok := sc.partialSchemasCache[partialName]; ok {
-		return schema, nil
-	}
-
-	schema, err := sc.kongClient.Partials.GetFullSchema(ctx, &partialName)
-	if err != nil {
-		return schema, err
-	}
-	sc.partialSchemasCache[partialName] = schema
-	return schema, nil
-}
-
 // Solve generates a diff and walks the graph.
 func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOut bool) (Stats,
 	[]error, EntityChanges,
@@ -687,7 +649,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = pluginCopy
 
 			if workspaceExists {
-				schema, err := sc.getPluginSchema(ctx, *pluginCopy.Plugin.Name)
+				schema, err := sc.pluginSchemasCache.Get(ctx, *pluginCopy.Plugin.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -743,7 +705,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = partialCopy
 
 			if workspaceExists {
-				schema, err := sc.getPartialSchema(ctx, *partialCopy.Partial.Type)
+				schema, err := sc.partialSchemasCache.Get(ctx, *partialCopy.Partial.Type)
 				if err != nil {
 					return nil, err
 				}

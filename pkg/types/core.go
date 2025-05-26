@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
@@ -174,14 +173,6 @@ func entityTypeToKind(t EntityType) crud.Kind {
 	return crud.Kind(t)
 }
 
-func initCache() map[string]map[string]interface{} {
-	return make(map[string]map[string]interface{})
-}
-
-func initMutex() sync.Mutex {
-	return sync.Mutex{}
-}
-
 func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 	switch t {
 	case Service:
@@ -258,8 +249,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				kongClient:   opts.KongClient,
-				schemasCache: initCache(),
-				mu:           initMutex(),
+				schemasCache: NewPluginSchemaCache(opts.KongClient),
 			},
 		}, nil
 	case Consumer:
@@ -628,8 +618,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				client:       opts.KongClient,
-				schemasCache: initCache(),
-				mu:           initMutex(),
+				schemasCache: NewPartialSchemaCache(opts.KongClient),
 			},
 		}, nil
 	case Key:
