@@ -228,7 +228,11 @@ func (b *stateBuilder) keySets() {
 		}
 		utils.MustMergeTags(&k.KeySet, b.selectTags)
 		b.rawState.KeySets = append(b.rawState.KeySets, &k.KeySet)
-		b.intermediate.KeySets.AddIgnoringDuplicates(state.KeySet{KeySet: k.KeySet})
+		err := b.intermediate.KeySets.AddIgnoringDuplicates(state.KeySet{KeySet: k.KeySet})
+		if err != nil {
+			b.err = err
+			return
+		}
 	}
 }
 
