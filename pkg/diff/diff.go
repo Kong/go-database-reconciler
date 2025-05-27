@@ -232,11 +232,15 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
 
-	s.pluginSchemasCache = types.NewSchemaCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+	s.pluginSchemasCache = types.NewSchemaCache(func(ctx context.Context,
+		pluginName string,
+	) (map[string]interface{}, error) {
 		return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
 	})
 
-	s.partialSchemasCache = types.NewSchemaCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
+	s.partialSchemasCache = types.NewSchemaCache(func(ctx context.Context,
+		partialType string,
+	) (map[string]interface{}, error) {
 		return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
 	})
 
