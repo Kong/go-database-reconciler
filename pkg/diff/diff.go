@@ -152,6 +152,13 @@ type Syncer struct {
 
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	noDeletes bool
+
+	// These caches store the schemas of a plugin and partials, respectively.
+	// Schema retrieval is often required in the diffing process, for filling in defaults and auto fields
+	// present in plugins or partials.
+	// Thus, caching the schemas avoids unnecessary repeated requests to Kong.
+	pluginSchemasCache  *types.SchemaCache
+	partialSchemasCache *types.SchemaCache
 }
 
 type SyncerOpts struct {
@@ -224,6 +231,18 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 		return nil, err
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
+
+	s.pluginSchemasCache = types.NewSchemaCache(func(ctx context.Context,
+		pluginName string,
+	) (map[string]interface{}, error) {
+		return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
+	})
+
+	s.partialSchemasCache = types.NewSchemaCache(func(ctx context.Context,
+		partialType string,
+	) (map[string]interface{}, error) {
+		return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
+	})
 
 	return s, nil
 }
@@ -629,6 +648,11 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		// configuration that is sent to Kong.
 		eventForKong := e
 
+		workspaceExists, err := utils.WorkspaceExists(ctx, sc.kongClient)
+		if err != nil {
+			return nil, err
+		}
+
 		// If the event is for a plugin, inject defaults in the plugin's config
 		// that will be used for the diff. This is needed to avoid highlighting
 		// default values that were populated by Kong as differences.
@@ -636,9 +660,8 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			pluginCopy := &state.Plugin{Plugin: *plugin.DeepCopy()}
 			e.Obj = pluginCopy
 
-			if exists, _ := utils.WorkspaceExists(ctx, sc.kongClient); exists {
-				var schema map[string]interface{}
-				schema, err = sc.kongClient.Plugins.GetFullSchema(ctx, pluginCopy.Plugin.Name)
+			if workspaceExists {
+				schema, err := sc.pluginSchemasCache.Get(ctx, *pluginCopy.Plugin.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -693,9 +716,8 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			partialCopy := &state.Partial{Partial: *partial.DeepCopy()}
 			e.Obj = partialCopy
 
-			if exists, _ := utils.WorkspaceExists(ctx, sc.kongClient); exists {
-				var schema map[string]interface{}
-				schema, err = sc.kongClient.Partials.GetFullSchema(ctx, partialCopy.Partial.Type)
+			if workspaceExists {
+				schema, err := sc.partialSchemasCache.Get(ctx, *partialCopy.Partial.Type)
 				if err != nil {
 					return nil, err
 				}

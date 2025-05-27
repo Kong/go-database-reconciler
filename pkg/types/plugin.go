@@ -90,6 +90,8 @@ type pluginDiffer struct {
 
 	currentState, targetState *state.KongState
 	kongClient                *kong.Client
+
+	schemasCache *SchemaCache
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
@@ -177,7 +179,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	currentPlugin = &state.Plugin{Plugin: *currentPlugin.DeepCopy()}
 	// found, check if update needed
 	// before checking the diff, fill in the defaults
-	schema, err := d.kongClient.Plugins.GetFullSchema(context.TODO(), plugin.Name)
+	schema, err := d.schemasCache.Get(context.TODO(), *plugin.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting schema: %w", err)
 	}
