@@ -157,8 +157,8 @@ type Syncer struct {
 	// Schema retrieval is often required in the diffing process, for filling in defaults and auto fields
 	// present in plugins or partials.
 	// Thus, caching the schemas avoids unnecessary repeated requests to Kong.
-	pluginSchemasCache  *types.PluginSchemaCache
-	partialSchemasCache *types.PartialSchemaCache
+	pluginSchemasCache  *types.SchemaCache
+	partialSchemasCache *types.SchemaCache
 }
 
 type SyncerOpts struct {
@@ -232,8 +232,13 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
 
-	s.pluginSchemasCache = types.NewPluginSchemaCache(s.kongClient)
-	s.partialSchemasCache = types.NewPartialSchemaCache(s.kongClient)
+	s.pluginSchemasCache = types.NewSchemaCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+		return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
+	})
+
+	s.partialSchemasCache = types.NewSchemaCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
+		return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
+	})
 
 	return s, nil
 }

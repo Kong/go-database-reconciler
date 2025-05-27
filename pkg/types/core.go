@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -249,7 +250,9 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				kongClient:   opts.KongClient,
-				schemasCache: NewPluginSchemaCache(opts.KongClient),
+				schemasCache: NewSchemaCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+					return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
+				}),
 			},
 		}, nil
 	case Consumer:
@@ -618,7 +621,9 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				client:       opts.KongClient,
-				schemasCache: NewPartialSchemaCache(opts.KongClient),
+				schemasCache: NewSchemaCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
+					return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
+				}),
 			},
 		}, nil
 	case Key:
