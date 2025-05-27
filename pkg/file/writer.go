@@ -942,7 +942,6 @@ func populateKeys(kongState *state.KongState, file *Content,
 					return err
 				}
 			}
-			fmt.Println(*ks.Name)
 			utils.ZeroOutID(ks, ks.Name, config.WithID)
 			utils.ZeroOutTimestamps(ks)
 			k.Set = &ks.KeySet
