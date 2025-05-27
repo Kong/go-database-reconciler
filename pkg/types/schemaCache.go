@@ -8,15 +8,15 @@ import (
 type SchemaFetcher func(ctx context.Context, identifier string) (map[string]interface{}, error)
 
 type SchemaCache struct {
-	fetcher    SchemaFetcher
-	cache      map[string]map[string]interface{}
-	cacheMutex sync.RWMutex
+	schemaFetcher SchemaFetcher
+	cache         map[string]map[string]interface{}
+	cacheMutex    sync.RWMutex
 }
 
 func NewSchemaCache(fetcher SchemaFetcher) *SchemaCache {
 	return &SchemaCache{
-		fetcher: fetcher,
-		cache:   make(map[string]map[string]interface{}),
+		schemaFetcher: fetcher,
+		cache:         make(map[string]map[string]interface{}),
 	}
 }
 
@@ -28,7 +28,7 @@ func (sc *SchemaCache) Get(ctx context.Context, identifier string) (map[string]i
 	}
 	sc.cacheMutex.RUnlock()
 
-	schema, err := sc.fetcher(ctx, identifier)
+	schema, err := sc.schemaFetcher(ctx, identifier)
 	if err != nil {
 		return nil, err
 	}
