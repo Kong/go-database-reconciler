@@ -178,6 +178,16 @@ func (b *stateBuilder) keys() {
 			}
 		}
 		utils.MustMergeTags(&k.Key, b.selectTags)
+
+		if k.Set != nil && utils.Empty(k.Set.ID) && !utils.Empty(k.Set.Name) {
+			s, err := b.intermediate.KeySets.Get(*k.Set.Name)
+			if err != nil || s == nil {
+				b.err = fmt.Errorf("retrieve intermediate services (%s): %w", *k.Set.Name, err)
+			}
+			k.Set.ID = s.ID
+			k.Set.Name = nil
+		}
+
 		b.rawState.Keys = append(b.rawState.Keys, &k.Key)
 	}
 }
@@ -218,6 +228,7 @@ func (b *stateBuilder) keySets() {
 		}
 		utils.MustMergeTags(&k.KeySet, b.selectTags)
 		b.rawState.KeySets = append(b.rawState.KeySets, &k.KeySet)
+		b.intermediate.KeySets.AddIgnoringDuplicates(state.KeySet{KeySet: k.KeySet})
 	}
 }
 

@@ -33,6 +33,35 @@ var keySetTableSchema = &memdb.TableSchema{
 // KeySetsCollection stores and indexes Kong KeySets.
 type KeySetsCollection collection
 
+// AddIgnoringDuplicates adds a keySet to the KeySetsCollection, ignoring duplicates.
+// It first checks for duplicates by keySet ID and then by keySet Name.
+// If a duplicate is found, it returns nil without adding the keySet.
+// If an error occurs during the duplicate check, it returns the error.
+// If no duplicates are found, it adds the keySet to the collection.
+func (k *KeySetsCollection) AddIgnoringDuplicates(keySet KeySet) error {
+	// Detect duplicates
+	if !utils.Empty(keySet.ID) {
+		k, err := k.Get(*keySet.ID)
+		if k != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(keySet.Name) {
+		k, err := k.Get(*keySet.Name)
+		if k != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+	return k.Add(keySet)
+}
+
 // Add adds a key-set to the collection.
 // key-set.ID should not be nil else an error is thrown.
 func (k *KeySetsCollection) Add(set KeySet) error {
