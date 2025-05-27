@@ -185,7 +185,6 @@ func (b *stateBuilder) keys() {
 				b.err = fmt.Errorf("retrieve intermediate services (%s): %w", *k.Set.Name, err)
 			}
 			k.Set.ID = s.ID
-			k.Set.Name = nil
 		}
 
 		b.rawState.Keys = append(b.rawState.Keys, &k.Key)

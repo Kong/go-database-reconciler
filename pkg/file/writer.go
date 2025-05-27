@@ -935,6 +935,18 @@ func populateKeys(kongState *state.KongState, file *Content,
 	}
 	for _, k := range keys {
 		k := FKey{Key: k.Key}
+		if k.Set != nil {
+			ks, err := kongState.KeySets.Get(*k.Set.ID)
+			if err != nil {
+				if !errors.Is(err, state.ErrNotFound) {
+					return err
+				}
+			}
+			fmt.Println(*ks.Name)
+			utils.ZeroOutID(ks, ks.Name, config.WithID)
+			utils.ZeroOutTimestamps(ks)
+			k.Set = &ks.KeySet
+		}
 		utils.ZeroOutID(&k, k.Name, config.WithID)
 		utils.ZeroOutTimestamps(&k)
 		file.Keys = append(file.Keys, k)
