@@ -182,7 +182,7 @@ func (b *stateBuilder) keys() {
 		if k.Set != nil && utils.Empty(k.Set.ID) && !utils.Empty(k.Set.Name) {
 			s, err := b.intermediate.KeySets.Get(*k.Set.Name)
 			if err != nil || s == nil {
-				b.err = fmt.Errorf("retrieve intermediate services (%s): %w", *k.Set.Name, err)
+				b.err = fmt.Errorf("retrieve intermediate key-set (%s): %w", *k.Set.Name, err)
 			}
 			k.Set.ID = s.ID
 			k.Set.Name = nil
