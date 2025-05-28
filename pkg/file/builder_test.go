@@ -5324,7 +5324,7 @@ func Test_stateBuilder_keySets(t *testing.T) {
 						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
 						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 						Set: &kong.KeySet{
-							Name: kong.String("set-1"),
+							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						},
 					},
 					{
@@ -5336,7 +5336,7 @@ func Test_stateBuilder_keySets(t *testing.T) {
 							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 						},
 						Set: &kong.KeySet{
-							Name: kong.String("set-1"),
+							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						},
 					},
 				},
