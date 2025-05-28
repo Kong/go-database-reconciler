@@ -15,11 +15,18 @@ type keyCRUD struct {
 	client *kong.Client
 }
 
+func stripKeySetReferencesName(key *state.Key) {
+	if key.Key.Set != nil && key.Key.Set.Name != nil {
+		key.Key.Set.Name = nil
+	}
+}
+
 func keyFromStruct(arg crud.Event) *state.Key {
 	key, ok := arg.Obj.(*state.Key)
 	if !ok {
 		panic("unexpected type, expected *state.Key")
 	}
+	stripKeySetReferencesName(key)
 	return key
 }
 
