@@ -12,7 +12,7 @@ func TestOpString(t *testing.T) {
 	op := Op{"foo"}
 	var op2 Op
 	assert.Equal("foo", op.String())
-	assert.Equal("", op2.String())
+	assert.Empty(op2.String())
 }
 
 func TestActionError(t *testing.T) {
