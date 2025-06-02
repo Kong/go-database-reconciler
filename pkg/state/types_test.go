@@ -32,6 +32,17 @@ func getProtocols(reversed bool) []*string {
 	return []*string{&httpString, &httpsString}
 }
 
+func getCACertificates(reversed bool) []*string {
+	ca1 := "ca1"
+	ca2 := "ca2"
+	ca3 := "ca3"
+
+	if reversed {
+		return []*string{&ca3, &ca2, &ca1}
+	}
+	return []*string{&ca1, &ca2, &ca3}
+}
+
 func TestMeta(t *testing.T) {
 	assert := assert.New(t)
 
@@ -86,6 +97,10 @@ func TestServiceEqual(t *testing.T) {
 	s1.UpdatedAt = kong.Int(2)
 	assert.False(s1.EqualWithOpts(&s2, false, false))
 	assert.False(s1.EqualWithOpts(&s2, false, true))
+
+	s1.CACertificates = getCACertificates(false)
+	s2.CACertificates = getCACertificates(true)
+	assert.True(s1.EqualWithOpts(&s2, true, true))
 }
 
 func TestRouteEqual(t *testing.T) {
