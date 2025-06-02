@@ -461,7 +461,7 @@ Summary:
 }
 
 `
-	expectedOutputPluginUpdateNoChange = `Summary:
+	expectedOutputNoChange = `Summary:
   Created: 0
   Updated: 0
   Deleted: 0
@@ -2643,19 +2643,19 @@ func Test_Diff_PluginUpdate_38x(t *testing.T) {
 			name:             "initial setup sent twice - no diff expected",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/initial-ee.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only old fields with same values",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-no-change-old-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only new fields with same values",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-no-change-new-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		// Determining order in which the plugins would be updated is not fixed.
 		// Hence, the diff string checking can fail.
@@ -2711,19 +2711,19 @@ func Test_Diff_PluginUpdate_NewerThan39x(t *testing.T) {
 			name:             "initial setup sent twice - no diff expected",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/initial-ee.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only old fields with same values",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-no-change-old-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only new fields with same values",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ee.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/kong-ee-no-change-new-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		// Determining order in which the plugins would be updated is not fixed.
 		// Hence, the diff string checking can fail.
@@ -2779,19 +2779,19 @@ func Test_Diff_PluginUpdate_OlderThan38x(t *testing.T) {
 			name:             "initial setup sent twice - no diff expected",
 			initialStateFile: "testdata/diff/005-deprecated-fields/kong-initial.yaml",
 			stateFile:        "testdata/diff/005-deprecated-fields/kong-initial.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only old fields with same values",
 			initialStateFile: "testdata/diff/005-deprecated-fields/kong-initial.yaml",
 			stateFile:        "testdata/diff/005-deprecated-fields/kong-no-change-old-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only new fields with same values",
 			initialStateFile: "testdata/diff/005-deprecated-fields/kong-initial.yaml",
 			stateFile:        "testdata/diff/005-deprecated-fields/kong-no-change-new-fields.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "initial vs updating by sending only old fields with new values",
@@ -2831,13 +2831,13 @@ func Test_Diff_Plugin_Protocol_Order_Change(t *testing.T) {
 			name:             "syncing and then diffing same file should not show false diff",
 			initialStateFile: "testdata/diff/004-plugin-update/initial-ip-restriction.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/initial-ip-restriction.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "changing protocol order should not show diff",
 			initialStateFile: "testdata/diff/004-plugin-update/protocol-initial-order-plugins.yaml",
 			stateFile:        "testdata/diff/004-plugin-update/protocol-reordered-plugins.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 	}
 
@@ -3024,13 +3024,13 @@ func Test_Diff_Services_CACertificate_Order(t *testing.T) {
 			name:             "syncing and then diffing same file should not show false diff",
 			initialStateFile: "testdata/diff/007-ca-certs-order/initial.yaml",
 			stateFile:        "testdata/diff/007-ca-certs-order/initial.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 		{
 			name:             "changing ca-certs order should not show diff",
 			initialStateFile: "testdata/diff/007-ca-certs-order/initial.yaml",
 			stateFile:        "testdata/diff/007-ca-certs-order/update.yaml",
-			expectedDiff:     expectedOutputPluginUpdateNoChange,
+			expectedDiff:     expectedOutputNoChange,
 		},
 	}
 
