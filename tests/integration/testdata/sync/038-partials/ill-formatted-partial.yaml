@@ -1,0 +1,16 @@
+_format_version: "3.0"
+
+plugins:
+  - config:
+      identifier: ip
+      limit:
+      - 10000
+      namespace: testns
+      strategy: redis
+      sync_rate: 2
+      window_size:
+      - 30
+      window_type: sliding
+    name: rate-limiting-advanced
+    partials:
+    - path: config.redis
