@@ -1559,10 +1559,6 @@ func (b *stateBuilder) plugins() {
 			p.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 		}
 
-		if p.Partials != nil {
-			p.Partials = b.findLinkedPartials(&p.Plugin)
-		}
-
 		if err := b.validatePlugin(p); err != nil {
 			b.err = err
 			return
@@ -1786,7 +1782,7 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 			}
 		}
 		if p.Partials != nil {
-			plugin.Partials = b.findLinkedPartials(&p.Plugin)
+			p.Partials = b.findLinkedPartials(&p.Plugin)
 		}
 		if p.Config == nil {
 			p.Config = make(map[string]interface{})
