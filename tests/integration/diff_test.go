@@ -3010,3 +3010,38 @@ func Test_Diff_Partials(t *testing.T) {
 	assert.Equal(t, int32(0), stats.DeleteOps.Count())
 	assert.Equal(t, int32(0), stats.UpdateOps.Count())
 }
+
+func Test_Diff_Services_CACertificate_Order(t *testing.T) {
+	setup(t)
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		stateFile        string
+		expectedDiff     string
+	}{
+		{
+			name:             "syncing and then diffing same file should not show false diff",
+			initialStateFile: "testdata/diff/007-ca-certs-order/initial.yaml",
+			stateFile:        "testdata/diff/007-ca-certs-order/initial.yaml",
+			expectedDiff:     expectedOutputPluginUpdateNoChange,
+		},
+		{
+			name:             "changing ca-certs order should not show diff",
+			initialStateFile: "testdata/diff/007-ca-certs-order/initial.yaml",
+			stateFile:        "testdata/diff/007-ca-certs-order/update.yaml",
+			expectedDiff:     expectedOutputPluginUpdateNoChange,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// initialize state
+			require.NoError(t, sync(tc.initialStateFile))
+
+			out, err := diff(tc.stateFile)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedDiff, out)
+		})
+	}
+}

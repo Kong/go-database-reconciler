@@ -110,8 +110,16 @@ func (s1 *Service) EqualWithOpts(s2 *Service,
 
 	// Cassandra can sometimes mess up tag order, but tag order doesn't actually matter: tags are sets
 	// even though we represent them with slices. Sort before comparison to avoid spurious diff detection.
+	// Same is true for CACertificates.
 	sort.Slice(s1Copy.Tags, func(i, j int) bool { return *(s1Copy.Tags[i]) < *(s1Copy.Tags[j]) })
 	sort.Slice(s2Copy.Tags, func(i, j int) bool { return *(s2Copy.Tags[i]) < *(s2Copy.Tags[j]) })
+
+	sort.Slice(s1Copy.CACertificates, func(i, j int) bool {
+		return *(s1Copy.CACertificates[i]) < *(s1Copy.CACertificates[j])
+	})
+	sort.Slice(s2Copy.CACertificates, func(i, j int) bool {
+		return *(s2Copy.CACertificates[i]) < *(s2Copy.CACertificates[j])
+	})
 
 	if ignoreID {
 		s1Copy.ID = nil
