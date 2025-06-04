@@ -8127,6 +8127,80 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorContains(t, err, "partial non-existent-partial for plugin rate-limiting-advanced: entity not found")
 	})
+
+	t.Run("partial linking fails if partial information is not provided properly", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+		err := sync("testdata/sync/038-partials/plugin-partial-no-ids.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: either partial ID or name is required")
+
+		err = sync("testdata/sync/038-partials/ill-formatted-partial.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: missing required fields - name or id")
+	})
+
+	t.Run("partial linking works fine in case of nested plugin", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t, "testdata/sync/038-partials/nested-plugin-partials.yaml", client, dumpConfig)
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Empty(t, errs, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		// check for partial
+		partials, err := newState.Partials.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, partials)
+
+		require.Len(t, partials, 1)
+		assert.Equal(t, "13dc230d-d65e-439a-9f05-9fd71abfee4d", *partials[0].ID)
+		assert.Equal(t, "my-ee-partial", *partials[0].Name)
+		assert.Equal(t, "redis-ee", *partials[0].Type)
+		assert.IsType(t, kong.Configuration{}, partials[0].Config)
+		assert.Equal(t, partialConfig, partials[0].Config)
+
+		// check for plugin
+		plugins, err := newState.Plugins.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, plugins)
+		require.Len(t, plugins, 1)
+		assert.Equal(t, "rate-limiting-advanced", *plugins[0].Name)
+		assert.IsType(t, []*kong.PartialLink{}, plugins[0].Partials)
+		require.Len(t, plugins[0].Partials, 1)
+		assert.Equal(t, "13dc230d-d65e-439a-9f05-9fd71abfee4d", *plugins[0].Partials[0].ID)
+		assert.Equal(t, "config.redis", *plugins[0].Partials[0].Path)
+	})
+
+	t.Run("partial linking fails in a nested plugin if partial does not exist", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+		err := sync("testdata/sync/038-partials/nested-plugin-partial-not-exists.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "partial non-existent-partial for plugin rate-limiting-advanced: entity not found")
+	})
+
+	t.Run("partial linking fails in a nested plugin if partial information is not provided properly", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+		err := sync("testdata/sync/038-partials/nested-plugin-partial-no-ids.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: either partial ID or name is required")
+
+		err = sync("testdata/sync/038-partials/nested-plugin-ill-formatted-partial.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: missing required fields - name or id")
+	})
 }
 
 func Test_Sync_Partials(t *testing.T) {

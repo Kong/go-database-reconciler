@@ -5098,7 +5098,7 @@ func Test_stateBuilder_plugins(t *testing.T) {
 				},
 				intermediate: emptyState(),
 			},
-			wantErr: "partial for plugin custom-plugin: partial ID or name is required",
+			wantErr: "partial for plugin custom-plugin: either partial ID or name is required",
 		},
 		{
 			name: "error when partial is not found",
