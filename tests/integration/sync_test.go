@@ -8132,7 +8132,7 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		mustResetKongState(ctx, t, client, dumpConfig)
 		err := sync("testdata/sync/038-partials/plugin-partial-no-ids.yaml")
 		require.Error(t, err)
-		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: partial ID or name is required")
+		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: either partial ID or name is required")
 
 		err = sync("testdata/sync/038-partials/ill-formatted-partial.yaml")
 		require.Error(t, err)
@@ -8195,7 +8195,7 @@ func Test_Sync_Partials_Plugins(t *testing.T) {
 		mustResetKongState(ctx, t, client, dumpConfig)
 		err := sync("testdata/sync/038-partials/nested-plugin-partial-no-ids.yaml")
 		require.Error(t, err)
-		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: partial ID or name is required")
+		assert.ErrorContains(t, err, "partial for plugin rate-limiting-advanced: either partial ID or name is required")
 
 		err = sync("testdata/sync/038-partials/nested-plugin-ill-formatted-partial.yaml")
 		require.Error(t, err)

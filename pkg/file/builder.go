@@ -1909,7 +1909,7 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 		}
 
 		if utils.Empty(findID) {
-			b.err = fmt.Errorf("partial for plugin %v: partial ID or name is required", *plugin.Name)
+			b.err = fmt.Errorf("partial for plugin %v: either partial ID or name is required", *plugin.Name)
 			return nil
 		}
 
