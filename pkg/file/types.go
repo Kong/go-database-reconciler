@@ -792,6 +792,7 @@ type Info struct {
 type LookUpSelectorTags struct {
 	ConsumerGroups []string `json:"consumer_groups,omitempty" yaml:"consumer_groups,omitempty"`
 	Consumers      []string `json:"consumers,omitempty" yaml:"consumers,omitempty"`
+	Partials       []string `json:"partials,omitempty" yaml:"partials,omitempty"`
 	Routes         []string `json:"routes,omitempty" yaml:"routes,omitempty"`
 	Services       []string `json:"services,omitempty" yaml:"services,omitempty"`
 }
