@@ -54,6 +54,7 @@ type Config struct {
 	LookUpSelectorTagsConsumers      []string
 	LookUpSelectorTagsRoutes         []string
 	LookUpSelectorTagsServices       []string
+	LookUpSelectorTagsPartials       []string
 
 	// KonnectControlPlane
 	KonnectControlPlane string
@@ -514,6 +515,26 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		partials, err = excludeKonnectManagedEntities(partials)
 		if err != nil {
 			return fmt.Errorf("partials: %w", err)
+		}
+
+		if config.LookUpSelectorTagsPartials != nil {
+			globalPartials, err := GetAllPartials(ctx, client, config.LookUpSelectorTagsPartials)
+			if err != nil {
+				return fmt.Errorf("error retrieving global partials: %w", err)
+			}
+			// if globalPartials are not present, add them.
+			for _, globalPartial := range globalPartials {
+				found := false
+				for _, partial := range partials {
+					if *globalPartial.ID == *partial.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					partials = append(partials, globalPartial)
+				}
+			}
 		}
 
 		state.Partials = partials

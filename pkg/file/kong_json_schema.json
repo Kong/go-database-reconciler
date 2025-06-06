@@ -1692,6 +1692,12 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "partials": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

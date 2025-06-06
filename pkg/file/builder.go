@@ -39,6 +39,7 @@ type stateBuilder struct {
 	lookupTagsConsumers      []string
 	lookupTagsRoutes         []string
 	lookupTagsServices       []string
+	lookupTagsPartials       []string
 	skipCACerts              bool
 	includeLicenses          bool
 	intermediate             *state.KongState
@@ -301,7 +302,22 @@ func (b *stateBuilder) partials() {
 				p.ID = kong.String(*partial.ID)
 			}
 		}
-		utils.MustMergeTags(&p.Partial, b.selectTags)
+
+		stringTags := make([]string, len(p.Tags))
+		for i, tag := range p.Tags {
+			if tag != nil {
+				stringTags[i] = *tag
+			}
+		}
+		sort.Strings(stringTags)
+		sort.Strings(b.lookupTagsPartials)
+		// if the partial tags and the lookup tags are the same, it means
+		// that the partial is a global partial retrieved from upstream,
+		// therefore we don't want to merge its tags with the selected tags.
+		if !reflect.DeepEqual(stringTags, b.lookupTagsPartials) {
+			utils.MustMergeTags(&p.Partial, b.selectTags)
+		}
+
 		if partial != nil {
 			p.Partial.CreatedAt = partial.CreatedAt
 		}
