@@ -224,7 +224,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 	}
 
 	opt := []cmp.Option{
-		cmpopts.IgnoreFields(kong.Service{}, "CreatedAt", "UpdatedAt"),
+		cmpopts.IgnoreFields(kong.Service{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.Route{}, "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.Plugin{}, "ID", "CreatedAt"),
 		cmpopts.IgnoreFields(kong.Upstream{}, "ID", "CreatedAt"),
@@ -242,6 +242,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 		cmpopts.IgnoreFields(kong.KeyAuth{}, "ID", "CreatedAt"),
 		cmpopts.IgnoreFields(kong.Key{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.KeySet{}, "ID", "CreatedAt", "UpdatedAt"),
+		cmpopts.IgnoreFields(kong.Partial{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.SortSlices(sortSlices),
 		cmpopts.SortSlices(func(a, b *string) bool { return *a < *b }),
 		cmpopts.EquateEmpty(),
