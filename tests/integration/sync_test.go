@@ -8841,3 +8841,44 @@ func Test_Sync_KeysAndKeySets(t *testing.T) {
 		})
 	}
 }
+
+func Test_Sync_SkipCustomEntitiesWithSelectorTags(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.0.0")
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	ctx := context.Background()
+	dumpConfig := deckDump.Config{
+		CustomEntityTypes:                  []string{"degraphql_routes"},
+		SkipCustomEntitiesWithSelectorTags: true,
+	}
+
+	tests := []struct {
+		name      string
+		stateFile string
+	}{
+		{
+			name:      "skip adding degraphql_routes to state when select_tags are present",
+			stateFile: "testdata/sync/043-skip-custom-entities/select-tag.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, dumpConfig)
+			// syncing initial state
+			err := sync("testdata/sync/043-skip-custom-entities/initial.yaml")
+			require.NoError(t, err)
+
+			// syncing state with selector tags
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+
+			// resync with no error
+			err = sync(tc.stateFile)
+			require.NoError(t, err)
+		})
+	}
+}

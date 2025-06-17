@@ -41,7 +41,8 @@ type Config struct {
 	IncludeLicenses bool
 
 	// CustomEntityTypes lists types of custom entities to list.
-	CustomEntityTypes []string
+	CustomEntityTypes                  []string
+	SkipCustomEntitiesWithSelectorTags bool
 
 	// SelectorTags can be used to export entities tagged with only specific
 	// tags.
@@ -588,7 +589,16 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		})
 	}
 
-	if len(config.CustomEntityTypes) > 0 {
+	// If SkipCustomEntitiesWithSelectorTags is true and SelectorTags is not empty,
+	// we want to skip custom entities. This is because custom entities don't support
+	// tagging and including them in the state results in errors while attempting a
+	// deck sync or apply.
+	var skipCustomEntities bool
+	if config.SkipCustomEntitiesWithSelectorTags && len(config.SelectorTags) > 0 {
+		skipCustomEntities = true
+	}
+
+	if !skipCustomEntities && len(config.CustomEntityTypes) > 0 {
 		// Get custom entities with types given in config.CustomEntityTypes.
 		customEntityLock := sync.Mutex{}
 		for _, entityType := range config.CustomEntityTypes {
