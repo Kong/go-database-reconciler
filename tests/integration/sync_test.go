@@ -8856,10 +8856,8 @@ func Test_Sync_SkipCustomEntitiesWithSelectorTags(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		stateFile     string
-		errorExpected bool
-		errorString   string
+		name      string
+		stateFile string
 	}{
 		{
 			name:      "skip adding degraphql_routes to state when select_tags are present",
