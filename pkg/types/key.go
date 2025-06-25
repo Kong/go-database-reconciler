@@ -140,7 +140,7 @@ func (d *keyDiffer) createUpdateKey(key *state.Key) (*crud.Event,
 	error,
 ) {
 	keyCopy := &state.Key{Key: *key.DeepCopy()}
-	currentKey, err := d.currentState.Keys.Get(*key.Name)
+	currentKey, err := d.currentState.Keys.Get(*key.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{
 			Op:   crud.Create,

@@ -133,7 +133,7 @@ func (d *keySetDiffer) createUpdateKeySet(set *state.KeySet) (*crud.Event,
 	error,
 ) {
 	setCopy := &state.KeySet{KeySet: *set.DeepCopy()}
-	currentSet, err := d.currentState.KeySets.Get(*set.Name)
+	currentSet, err := d.currentState.KeySets.Get(*set.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{
 			Op:   crud.Create,
