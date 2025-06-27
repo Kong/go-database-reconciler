@@ -58,7 +58,8 @@ type Config struct {
 	LookUpSelectorTagsPartials       []string
 
 	// KonnectControlPlane
-	KonnectControlPlane string
+	KonnectControlPlane   string
+	KonnectControlPlaneID string
 
 	// IsConsumerGroupScopedPluginSupported
 	IsConsumerGroupScopedPluginSupported bool

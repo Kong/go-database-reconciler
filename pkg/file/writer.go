@@ -24,6 +24,7 @@ type WriteConfig struct {
 	FileFormat                       Format
 	WithID                           bool
 	ControlPlaneName                 string
+	ControlPlaneID                   string
 	KongVersion                      string
 	IsConsumerGroupPolicyOverrideSet bool
 }
@@ -60,6 +61,9 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		file.Konnect = &Konnect{
 			ControlPlaneName: config.ControlPlaneName,
 		}
+	}
+	if config.ControlPlaneID != "" {
+		file.Konnect.ControlPlaneID = config.ControlPlaneID
 	}
 
 	selectTags := config.SelectTags
