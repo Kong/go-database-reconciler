@@ -853,6 +853,17 @@ func (c1 *ConsumerGroup) EqualWithOpts(c2 *ConsumerGroup,
 		u1Copy.CreatedAt = nil
 		u2Copy.CreatedAt = nil
 	}
+
+	if len(u1Copy.Tags) == 0 {
+		u1Copy.Tags = nil
+	}
+	if len(u2Copy.Tags) == 0 {
+		u2Copy.Tags = nil
+	}
+
+	sort.Slice(u1Copy.Tags, func(i, j int) bool { return *(u1Copy.Tags[i]) < *(u1Copy.Tags[j]) })
+	sort.Slice(u2Copy.Tags, func(i, j int) bool { return *(u2Copy.Tags[i]) < *(u2Copy.Tags[j]) })
+
 	return reflect.DeepEqual(u1Copy, u2Copy)
 }
 
@@ -905,6 +916,37 @@ func (c1 *ConsumerGroupConsumer) EqualWithOpts(c2 *ConsumerGroupConsumer,
 		c2Copy.ConsumerGroup.CreatedAt = nil
 		c1Copy.ConsumerGroup.CreatedAt = nil
 	}
+
+	if len(c1Copy.ConsumerGroup.Tags) == 0 {
+		c1Copy.ConsumerGroup.Tags = nil
+	}
+
+	if len(c2Copy.ConsumerGroup.Tags) == 0 {
+		c2Copy.ConsumerGroup.Tags = nil
+	}
+
+	sort.Slice(c1Copy.ConsumerGroup.Tags, func(i, j int) bool {
+		return *(c1Copy.ConsumerGroup.Tags[i]) < *(c1Copy.ConsumerGroup.Tags[j])
+	})
+	sort.Slice(c2Copy.ConsumerGroup.Tags, func(i, j int) bool {
+		return *(c2Copy.ConsumerGroup.Tags[i]) < *(c2Copy.ConsumerGroup.Tags[j])
+	})
+
+	if len(c1Copy.Consumer.Tags) == 0 {
+		c1Copy.Consumer.Tags = nil
+	}
+
+	if len(c2Copy.Consumer.Tags) == 0 {
+		c2Copy.Consumer.Tags = nil
+	}
+
+	sort.Slice(c1Copy.Consumer.Tags, func(i, j int) bool {
+		return *(c1Copy.Consumer.Tags[i]) < *(c1Copy.Consumer.Tags[j])
+	})
+	sort.Slice(c2Copy.Consumer.Tags, func(i, j int) bool {
+		return *(c2Copy.Consumer.Tags[i]) < *(c2Copy.Consumer.Tags[j])
+	})
+
 	return reflect.DeepEqual(c1Copy, c2Copy)
 }
 
@@ -952,6 +994,17 @@ func (c1 *ConsumerGroupPlugin) EqualWithOpts(c2 *ConsumerGroupPlugin,
 		c1Copy.ConsumerGroup.CreatedAt = nil
 		c2Copy.ConsumerGroup.CreatedAt = nil
 	}
+
+	if len(c1Copy.Tags) == 0 {
+		c1Copy.Tags = nil
+	}
+	if len(c2Copy.Tags) == 0 {
+		c2Copy.Tags = nil
+	}
+
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+
 	return reflect.DeepEqual(c1Copy, c2Copy)
 }
 
@@ -1902,6 +1955,16 @@ func (p *Partial) EqualWithOpts(p2 *Partial, ignoreID, ignoreTS bool) bool {
 		p1Copy.UpdatedAt = nil
 		p2Copy.UpdatedAt = nil
 	}
+
+	if len(p1Copy.Tags) == 0 {
+		p1Copy.Tags = nil
+	}
+	if len(p2Copy.Tags) == 0 {
+		p2Copy.Tags = nil
+	}
+
+	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
+	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
 	return reflect.DeepEqual(p1Copy, p2Copy)
 }
 
