@@ -1266,7 +1266,8 @@ func (b *stateBuilder) routes() {
 		}
 
 		for _, r := range routes {
-			err = b.intermediate.Routes.Add(*r)
+			// If service has nested route, it has already been added, so add ignoring duplicates.
+			err = b.intermediate.Routes.AddIgnoringDuplicates(*r)
 			if err != nil {
 				b.err = err
 				return

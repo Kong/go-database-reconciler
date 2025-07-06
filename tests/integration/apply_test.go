@@ -122,3 +122,73 @@ func Test_Apply_KeysAndKeySets(t *testing.T) {
 		})
 	}
 }
+
+func Test_Apply_NestedRoute(t *testing.T) {
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		updateStateFile  string
+		expectedState    utils.KongRawState
+	}{
+		{
+			name:             "nested route in service",
+			initialStateFile: "testdata/apply/003-nested-route/initial.yaml",
+			updateStateFile:  "testdata/apply/003-nested-route/update.yaml",
+			expectedState: utils.KongRawState{
+				Services: []*kong.Service{
+					{
+						ConnectTimeout: kong.Int(60000),
+						Enabled:        kong.Bool(true),
+						Host:           kong.String("httpbin.konghq.com"),
+						ID:             kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						Name:           kong.String("test_svc"),
+						Path:           kong.String("/anything"),
+						Port:           kong.Int(80),
+						Protocol:       kong.String("http"),
+						ReadTimeout:    kong.Int(60000),
+						Retries:        kong.Int(5),
+						WriteTimeout:   kong.Int(60000),
+						Tags:           nil,
+					},
+				},
+				Routes: []*kong.Route{
+					{
+						ID:                      kong.String("d533e04a-9136-4439-8522-caed769aa158"),
+						Name:                    kong.String("test_rt"),
+						Paths:                   []*string{kong.String("/test"), kong.String("/test/abc")},
+						PathHandling:            kong.String("v0"),
+						PreserveHost:            kong.Bool(false),
+						Protocols:               []*string{kong.String("http"), kong.String("https")},
+						RegexPriority:           kong.Int(0),
+						StripPath:               kong.Bool(true),
+						HTTPSRedirectStatusCode: kong.Int(426),
+						RequestBuffering:        kong.Bool(true),
+						ResponseBuffering:       kong.Bool(true),
+						Service: &kong.Service{
+							ID: kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = apply(tc.updateStateFile)
+			require.NoError(t, err)
+
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
