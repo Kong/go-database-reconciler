@@ -123,7 +123,7 @@ func Test_Apply_KeysAndKeySets(t *testing.T) {
 	}
 }
 
-func Test_Apply_NestedRoute(t *testing.T) {
+func Test_Apply_NestedEntity(t *testing.T) {
 	setup(t)
 
 	client, err := getTestClient()
@@ -135,11 +135,12 @@ func Test_Apply_NestedRoute(t *testing.T) {
 		initialStateFile string
 		updateStateFile  string
 		expectedState    utils.KongRawState
+		runWhen          func(t *testing.T)
 	}{
 		{
 			name:             "nested route in service",
-			initialStateFile: "testdata/apply/003-nested-route/initial.yaml",
-			updateStateFile:  "testdata/apply/003-nested-route/update.yaml",
+			initialStateFile: "testdata/apply/003-nested-entity/route-initial.yaml",
+			updateStateFile:  "testdata/apply/003-nested-entity/route-update.yaml",
 			expectedState: utils.KongRawState{
 				Services: []*kong.Service{
 					{
@@ -177,10 +178,42 @@ func Test_Apply_NestedRoute(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:             "nested consumer in consumer group",
+			initialStateFile: "testdata/apply/003-nested-entity/consumer-group-initial.yaml",
+			updateStateFile:  "testdata/apply/003-nested-entity/consumer-group-update.yaml",
+			runWhen:          func(t *testing.T) { runWhen(t, "enterprise", ">=2.7.0") },
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("gold"),
+						},
+						Consumers: []*kong.Consumer{
+							{
+								Username: kong.String("alice"),
+								ID:       kong.String("3401bb32-32b2-4d50-8533-6669b27d5a42"),
+								Tags:     []*string{kong.String("internal-user"), kong.String("internal-user2")},
+							},
+						},
+					},
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("alice"),
+						ID:       kong.String("3401bb32-32b2-4d50-8533-6669b27d5a42"),
+						Tags:     []*string{kong.String("internal-user"), kong.String("internal-user2")},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.runWhen != nil {
+				tc.runWhen(t)
+			}
 			mustResetKongState(ctx, t, client, deckDump.Config{})
 			err := sync(tc.initialStateFile)
 			require.NoError(t, err)
