@@ -122,3 +122,254 @@ func Test_Apply_KeysAndKeySets(t *testing.T) {
 		})
 	}
 }
+
+func Test_Apply_NestedEntity(t *testing.T) {
+	setup(t)
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		updateStateFile  string
+		expectedState    utils.KongRawState
+		runWhen          func(t *testing.T)
+	}{
+		{
+			name:             "nested route in service",
+			initialStateFile: "testdata/apply/003-nested-entity/route-initial.yaml",
+			updateStateFile:  "testdata/apply/003-nested-entity/route-update.yaml",
+			expectedState: utils.KongRawState{
+				Services: []*kong.Service{
+					{
+						ConnectTimeout: kong.Int(60000),
+						Enabled:        kong.Bool(true),
+						Host:           kong.String("httpbin.konghq.com"),
+						ID:             kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						Name:           kong.String("test_svc"),
+						Path:           kong.String("/anything"),
+						Port:           kong.Int(80),
+						Protocol:       kong.String("http"),
+						ReadTimeout:    kong.Int(60000),
+						Retries:        kong.Int(5),
+						WriteTimeout:   kong.Int(60000),
+						Tags:           nil,
+					},
+				},
+				Routes: []*kong.Route{
+					{
+						ID:                      kong.String("d533e04a-9136-4439-8522-caed769aa158"),
+						Name:                    kong.String("test_rt"),
+						Paths:                   []*string{kong.String("/test"), kong.String("/test/abc")},
+						PathHandling:            kong.String("v0"),
+						PreserveHost:            kong.Bool(false),
+						Protocols:               []*string{kong.String("http"), kong.String("https")},
+						RegexPriority:           kong.Int(0),
+						StripPath:               kong.Bool(true),
+						HTTPSRedirectStatusCode: kong.Int(426),
+						RequestBuffering:        kong.Bool(true),
+						ResponseBuffering:       kong.Bool(true),
+						Service: &kong.Service{
+							ID: kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name:             "nested consumer in consumer group",
+			initialStateFile: "testdata/apply/003-nested-entity/consumer-group-initial.yaml",
+			updateStateFile:  "testdata/apply/003-nested-entity/consumer-group-update.yaml",
+			runWhen:          func(t *testing.T) { runWhen(t, "enterprise", ">=2.7.0") },
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("gold"),
+						},
+						Consumers: []*kong.Consumer{
+							{
+								Username: kong.String("alice"),
+								ID:       kong.String("3401bb32-32b2-4d50-8533-6669b27d5a42"),
+								Tags:     []*string{kong.String("internal-user"), kong.String("internal-user2")},
+							},
+						},
+					},
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("alice"),
+						ID:       kong.String("3401bb32-32b2-4d50-8533-6669b27d5a42"),
+						Tags:     []*string{kong.String("internal-user"), kong.String("internal-user2")},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.runWhen != nil {
+				tc.runWhen(t)
+			}
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = apply(tc.updateStateFile)
+			require.NoError(t, err)
+
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+func Test_Apply_Service_Route(t *testing.T) {
+	setup(t)
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		updateStateFile  string
+		expectedState    utils.KongRawState
+		runWhen          func(t *testing.T)
+	}{
+		{
+			name:             "route addition and update for a service",
+			initialStateFile: "testdata/apply/005-routes/route-initial.yaml",
+			updateStateFile:  "testdata/apply/005-routes/route-update.yaml",
+			expectedState: utils.KongRawState{
+				Services: []*kong.Service{
+					{
+						ConnectTimeout: kong.Int(60000),
+						Enabled:        kong.Bool(true),
+						Host:           kong.String("mockbin.org"),
+						ID:             kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						Name:           kong.String("svc1"),
+						Port:           kong.Int(80),
+						Protocol:       kong.String("http"),
+						ReadTimeout:    kong.Int(60000),
+						Retries:        kong.Int(5),
+						WriteTimeout:   kong.Int(60000),
+						Tags:           nil,
+					},
+				},
+				Routes: []*kong.Route{
+					{
+						ID:                      kong.String("87b6a97e-f3f7-4c47-857a-7464cb9e202b"),
+						Name:                    kong.String("r1"),
+						Paths:                   []*string{kong.String("/r1")},
+						PathHandling:            kong.String("v0"),
+						PreserveHost:            kong.Bool(false),
+						Protocols:               []*string{kong.String("http"), kong.String("https")},
+						RegexPriority:           kong.Int(0),
+						StripPath:               kong.Bool(true),
+						HTTPSRedirectStatusCode: kong.Int(426),
+						RequestBuffering:        kong.Bool(true),
+						ResponseBuffering:       kong.Bool(true),
+						Service: &kong.Service{
+							ID: kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						},
+					},
+					{
+						ID:                      kong.String("87b6a97e-f3f7-4c47-857a-7464cb9e202c"),
+						Name:                    kong.String("r2"),
+						Paths:                   []*string{kong.String("/r2")},
+						PathHandling:            kong.String("v0"),
+						PreserveHost:            kong.Bool(false),
+						Protocols:               []*string{kong.String("http"), kong.String("https")},
+						RegexPriority:           kong.Int(0),
+						StripPath:               kong.Bool(true),
+						HTTPSRedirectStatusCode: kong.Int(301),
+						RequestBuffering:        kong.Bool(true),
+						ResponseBuffering:       kong.Bool(true),
+						Service: &kong.Service{
+							ID: kong.String("c34277f2-b3f0-4778-aa6a-7701fc67f65b"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = apply(tc.updateStateFile)
+			require.NoError(t, err)
+
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+func Test_Apply_Consumer_Group_Consumer(t *testing.T) {
+	runWhen(t, "enterprise", ">=2.7.0")
+	setup(t)
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		updateStateFile  string
+		expectedState    utils.KongRawState
+		runWhen          func(t *testing.T)
+	}{
+		{
+			name:             "consumer addition and update to consumer group",
+			initialStateFile: "testdata/apply/004-consumers-and-groups/consumer-group-consumer-initial.yaml",
+			updateStateFile:  "testdata/apply/004-consumers-and-groups/consumer-group-consumer-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("gold"),
+						},
+						Consumers: []*kong.Consumer{
+							{
+								Username: kong.String("alice"),
+								Tags:     []*string{kong.String("internal-user"), kong.String("internal-user2")},
+							},
+							{
+								Username: kong.String("frank"),
+								Tags:     []*string{kong.String("internal-user3")},
+							},
+						},
+					},
+				},
+				Consumers: []*kong.Consumer{
+					{
+						Username: kong.String("alice"),
+						Tags:     []*string{kong.String("internal-user"), kong.String("internal-user2")},
+					},
+					{
+						Username: kong.String("frank"),
+						Tags:     []*string{kong.String("internal-user3")},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = apply(tc.updateStateFile)
+			require.NoError(t, err)
+
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
