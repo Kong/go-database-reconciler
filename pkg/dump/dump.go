@@ -71,6 +71,12 @@ type Config struct {
 	// If IsConsumerGroupPolicyOverrideSet is true, we let users create
 	// policy-based overrides for RLA plugin
 	IsConsumerGroupPolicyOverrideSet bool
+
+	// This flag is specifically used for the `deck gateway dump` command.
+	// If true, the content of the entities is sanitized at deck level.
+	// We require it here to signal the Writer about the sanitization, so
+	// that referential integrity can be handled properly via IDs.
+	SanitizeContent bool
 }
 
 func deduplicate(stringSlice []string) []string {
