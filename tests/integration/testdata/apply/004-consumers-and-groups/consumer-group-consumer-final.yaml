@@ -1,0 +1,13 @@
+_format_version: "3.0"
+consumers:
+  - username: alice
+    groups:
+      - name: gold
+    tags:
+    - internal-user
+    - internal-user2
+  - username: frank
+    groups:
+      - name: gold
+    tags:
+    - internal-user3
