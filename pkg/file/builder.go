@@ -459,7 +459,8 @@ func (b *stateBuilder) consumerGroups() {
 		// Replace the consumergroup in the raw state if it exists
 		foundCg := false
 		for i, existingCG := range b.rawState.ConsumerGroups {
-			if existingCG.ConsumerGroup.ID == cg.ID {
+			// The IDs are pointers to strings, so compare values at the address.
+			if *existingCG.ConsumerGroup.ID == *cg.ID {
 				b.rawState.ConsumerGroups[i] = &cgo
 				foundCg = true
 				break
@@ -681,7 +682,7 @@ func (b *stateBuilder) consumers() {
 		}
 
 		for _, c := range consumers {
-			err = b.intermediate.Consumers.Add(*c)
+			err = b.intermediate.Consumers.AddIgnoringDuplicates(*c)
 			if err != nil {
 				b.err = err
 				return
@@ -1266,7 +1267,8 @@ func (b *stateBuilder) routes() {
 		}
 
 		for _, r := range routes {
-			err = b.intermediate.Routes.Add(*r)
+			// If service has nested route, it has already been added, so add ignoring duplicates.
+			err = b.intermediate.Routes.AddIgnoringDuplicates(*r)
 			if err != nil {
 				b.err = err
 				return
