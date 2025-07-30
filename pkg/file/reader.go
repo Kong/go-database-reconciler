@@ -79,7 +79,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.client = wsClient
 	builder.ctx = ctx
 	builder.skipCACerts = dumpConfig.SkipCACerts
-	builder.isKonnect = dumpConfig.KonnectControlPlane != ""
+	builder.isKonnect = dumpConfig.KonnectControlPlane != "" || dumpConfig.KonnectControlPlaneID != ""
 	builder.includeLicenses = dumpConfig.IncludeLicenses
 	builder.isPartialApply = dumpConfig.IsPartialApply
 	builder.isConsumerGroupPolicyOverrideSet = dumpConfig.IsConsumerGroupPolicyOverrideSet

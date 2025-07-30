@@ -1660,6 +1660,9 @@
         "control_plane_name": {
           "type": "string"
         },
+        "control_plane_id": {
+          "type": "string"
+        },
         "runtime_group_name": {
           "type": "string"
         }
