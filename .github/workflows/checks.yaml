@@ -48,7 +48,7 @@ jobs:
       - name: Check if secrets are available
         id: check
         run: |
-          if [ "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" == "" ] || [ "${{ secrets.DOCKERHUB_PULL_TOKEN }}" == "" ] || [ "${{ secrets.DOCKERHUB_PULL_USERNAME }}" == "" ]; then
+          if [ "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" == "" ] || [ "${{ secrets.GHA_DOCKERHUB_PULL_USER }}" == "" ] || [ "${{ secrets.GHA_KONG_ORG_DOCKERHUB_PUBLIC_TOKEN }}" == "" ]; then
             echo "result=false" >> "$GITHUB_OUTPUT"
           else
             echo "result=true" >> "$GITHUB_OUTPUT"
