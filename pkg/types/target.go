@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kong/go-kong/kong"
-
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/state"
+	"github.com/kong/go-kong/kong"
 )
 
 // targetCRUD implements crud.Actions interface.
