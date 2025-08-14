@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.49.0
-	github.com/kong/go-kong v0.66.1
+	github.com/kong/go-kong v0.67.0
 	github.com/samber/lo v1.50.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.0.1
@@ -28,7 +28,7 @@ require (
 	golang.org/x/sync v0.14.0
 	golang.org/x/term v0.32.0
 	k8s.io/code-generator v0.33.3
-	sigs.k8s.io/yaml v1.4.0
+	sigs.k8s.io/yaml v1.5.0
 )
 
 require (

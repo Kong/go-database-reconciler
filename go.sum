@@ -223,6 +223,8 @@ github.com/kong/go-apiops v0.1.45 h1:hZxIE9FSC9D5IqBIORKXBaNA8udXRkBajbnNzQU47hM
 github.com/kong/go-apiops v0.1.45/go.mod h1:hKnHJ3UyeuG932SkI/yMpuT/PqSqGXNTS1zhno1lDqg=
 github.com/kong/go-kong v0.66.1 h1:UVdemzcCpfXEl6O/VHdf0rT2bXdIO5ykuJbf2z1JTko=
 github.com/kong/go-kong v0.66.1/go.mod h1:wRMPAXGOB3kn53TF6zN4l2JhIWPUfXDFKNHkMHBB3iQ=
+github.com/kong/go-kong v0.67.0 h1:54zXKc58IZpZdlJCv8p95SJjejTxT+cwbWXw97icCak=
+github.com/kong/go-kong v0.67.0/go.mod h1:J0vGB3wsZ2i99zly1zTRe3v7rOKpkhQZRwbcTFP76qM=
 github.com/kong/go-slugify v1.0.0 h1:vCFAyf2sdoSlBtLcrmDWUFn0ohlpKiKvQfXZkO5vSKY=
 github.com/kong/go-slugify v1.0.0/go.mod h1:dbR2h3J2QKXQ1k0aww6cN7o4cIcwlWflr6RKRdcoaiw=
 github.com/kong/kubernetes-configuration v1.1.0 h1:zCj7QlOiZgwQ2wSNlVNR0K6Z+plXTalfihtDzLXQWzs=
@@ -614,3 +616,4 @@ sigs.k8s.io/structured-merge-diff/v4 v4.6.0 h1:IUA9nvMmnKWcj5jl84xn+T5MnlZKThmUW
 sigs.k8s.io/structured-merge-diff/v4 v4.6.0/go.mod h1:dDy58f92j70zLsuZVuUX5Wp9vtxXpaZnkPGWeqDfCps=
 sigs.k8s.io/yaml v1.4.0 h1:Mk1wCc2gy/F0THH0TAp1QYyJNzRm2KCLy3o5ASXVI5E=
 sigs.k8s.io/yaml v1.4.0/go.mod h1:Ejl7/uTz7PSA4eKMyQCUTnhZYNmLIl+5c2lQPGR2BPY=
+sigs.k8s.io/yaml v1.5.0/go.mod h1:wZs27Rbxoai4C0f8/9urLZtZtF3avA3gKvGyPdDqTO4=
