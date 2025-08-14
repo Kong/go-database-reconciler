@@ -94,10 +94,16 @@ func Test_Dump_SelectTags_Post_38x(t *testing.T) {
 			runWhenVersion: ">=3.8.0 <3.10.0",
 		},
 		{
-			name:           "dump with select-tags >=3.10.0",
+			name:           "dump with select-tags >=3.10.0 < 3.11.0",
 			stateFile:      "testdata/dump/001-entities-with-tags/kong.yaml",
 			expectedFile:   "testdata/dump/001-entities-with-tags/expected310.yaml",
-			runWhenVersion: ">=3.10.0",
+			runWhenVersion: ">=3.10.0 <3.11.0",
+		},
+		{
+			name:           "dump with select-tags >=3.11.0",
+			stateFile:      "testdata/dump/001-entities-with-tags/kong.yaml",
+			expectedFile:   "testdata/dump/001-entities-with-tags/expected311.yaml",
+			runWhenVersion: ">=3.11.0",
 		},
 	}
 	for _, tc := range tests {
