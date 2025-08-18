@@ -26,6 +26,7 @@ type WriteConfig struct {
 	ControlPlaneName                 string
 	KongVersion                      string
 	IsConsumerGroupPolicyOverrideSet bool
+	SanitizeContent                  bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
@@ -458,7 +459,12 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get consumer %s for plugin %s [%s]: %w", cID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(consumer.Username) {
+			// If config.SanitizeContent is true, we wish to use IDs instead of usernames or names.
+			// This is because Plugins use string references to Consumers, Services, etc. rather than objects.
+			// Check file/types.go#foo (shadow type for Plugin) for how we embed string references.
+			// Since the marshaling and unmarshaling of the Plugin uses "ID" field for embedding,
+			// if we overwrite it with name/username, referential integrity will be lost.
+			if !utils.Empty(consumer.Username) && !config.SanitizeContent {
 				cID = *consumer.Username
 			}
 			p.Consumer.ID = &cID
@@ -470,7 +476,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get service %s for plugin %s [%s]: %w", sID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(service.Name) {
+			if !utils.Empty(service.Name) && !config.SanitizeContent {
 				sID = *service.Name
 			}
 			p.Service.ID = &sID
@@ -482,7 +488,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get route %s for plugin %s [%s]: %w", rID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(route.Name) {
+			if !utils.Empty(route.Name) && !config.SanitizeContent {
 				rID = *route.Name
 			}
 			p.Route.ID = &rID
@@ -494,7 +500,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get consumer-group %s for plugin %s [%s]: %w", cgID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(cg.Name) {
+			if !utils.Empty(cg.Name) && !config.SanitizeContent {
 				cgID = *cg.Name
 			}
 			p.ConsumerGroup.ID = &cgID
@@ -513,7 +519,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 }
 
 func populateFilterChains(kongState *state.KongState, file *Content,
-	_ WriteConfig,
+	config WriteConfig,
 ) error {
 	filterChains, err := kongState.FilterChains.GetAll()
 	if err != nil {
@@ -529,7 +535,12 @@ func populateFilterChains(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get service %s for filter chain %s [%s]: %w", sID, *f.Name, *f.ID, err)
 			}
-			if !utils.Empty(service.Name) {
+			// If config.SanitizeContent is true, we wish to use IDs instead of names.
+			// This is because Plugins use string references to Services, Routes, etc. rather than objects.
+			// Check file/types.go#SerializableFilterChain for how we embed string references.
+			// Since the marshaling and unmarshaling of the Plugin uses "ID" field for embedding,
+			// if we overwrite it with name/username, referential integrity will be lost.
+			if !utils.Empty(service.Name) && !config.SanitizeContent {
 				sID = *service.Name
 			}
 			f.Service.ID = &sID
@@ -541,7 +552,7 @@ func populateFilterChains(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get route %s for filter chain %s [%s]: %w", rID, *f.Name, *f.ID, err)
 			}
-			if !utils.Empty(route.Name) {
+			if !utils.Empty(route.Name) && !config.SanitizeContent {
 				rID = *route.Name
 			}
 			f.Route.ID = &rID
