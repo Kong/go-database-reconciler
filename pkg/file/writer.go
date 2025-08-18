@@ -987,7 +987,6 @@ func populateKeySets(kongState *state.KongState, file *Content,
 }
 
 func WriteContentToFile(content *Content, filename string, format Format) error {
-	// fmt.Println(*content.Plugins[0].Service.Name)
 	var c []byte
 	var err error
 	switch format {
