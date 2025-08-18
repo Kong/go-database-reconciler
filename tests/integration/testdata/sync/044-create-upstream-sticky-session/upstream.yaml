@@ -1,0 +1,8 @@
+_format_version: "3.0"
+upstreams:
+- name: upstream2
+  algorithm: sticky-sessions
+  sticky_sessions_cookie: gdrtest
+  sticky_sessions_cookie_path: /demo
+  targets:
+  - target: 198.51.100.11:80

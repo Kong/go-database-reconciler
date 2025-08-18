@@ -1369,6 +1369,12 @@
         },
         "use_srv_name": {
           "type": "boolean"
+        },
+        "sticky_sessions_cookie": {
+          "type": "string"
+        },
+        "sticky_sessions_cookie_path": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -2176,6 +2182,12 @@
         },
         "use_srv_name": {
           "type": "boolean"
+        },
+        "sticky_sessions_cookie": {
+          "type": "string"
+        },
+        "sticky_sessions_cookie_path": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
