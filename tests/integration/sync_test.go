@@ -523,6 +523,57 @@ var (
 		},
 	}
 
+	upstream_pre311 = []*kong.Upstream{
+		{
+			Name:      kong.String("upstream1"),
+			Algorithm: kong.String("round-robin"),
+			Slots:     kong.Int(10000),
+			Healthchecks: &kong.Healthcheck{
+				Threshold: kong.Float64(0),
+				Active: &kong.ActiveHealthcheck{
+					Concurrency: kong.Int(10),
+					Healthy: &kong.Healthy{
+						HTTPStatuses: []int{200, 302},
+						Interval:     kong.Int(0),
+						Successes:    kong.Int(0),
+					},
+					HTTPPath:               kong.String("/"),
+					Type:                   kong.String("http"),
+					Timeout:                kong.Int(1),
+					HTTPSVerifyCertificate: kong.Bool(true),
+					Unhealthy: &kong.Unhealthy{
+						HTTPFailures: kong.Int(0),
+						TCPFailures:  kong.Int(0),
+						Timeouts:     kong.Int(0),
+						Interval:     kong.Int(0),
+						HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
+					},
+				},
+				Passive: &kong.PassiveHealthcheck{
+					Healthy: &kong.Healthy{
+						HTTPStatuses: []int{
+							200, 201, 202, 203, 204, 205,
+							206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
+							306, 307, 308,
+						},
+						Successes: kong.Int(0),
+					},
+					Type: kong.String("http"),
+					Unhealthy: &kong.Unhealthy{
+						HTTPFailures: kong.Int(0),
+						TCPFailures:  kong.Int(0),
+						Timeouts:     kong.Int(0),
+						HTTPStatuses: []int{429, 500, 503},
+					},
+				},
+			},
+			HashOn:                   kong.String("none"),
+			HashFallback:             kong.String("none"),
+			HashOnCookiePath:         kong.String("/"),
+			UseSrvName:               kong.Bool(false),
+		},
+	}
+
 	// latest
 	upstream = []*kong.Upstream{
 		{
@@ -568,10 +619,65 @@ var (
 					},
 				},
 			},
-			HashOn:           kong.String("none"),
-			HashFallback:     kong.String("none"),
-			HashOnCookiePath: kong.String("/"),
-			UseSrvName:       kong.Bool(false),
+			HashOn:                   kong.String("none"),
+			HashFallback:             kong.String("none"),
+			HashOnCookiePath:         kong.String("/"),
+			UseSrvName:               kong.Bool(false),
+			StickySessionsCookie:     nil,
+			StickySessionsCookiePath: kong.String("/"),
+		},
+	}
+
+	upstreamStickySession = []*kong.Upstream{
+		{
+			Name:      kong.String("upstream2"),
+			Algorithm: kong.String("sticky-sessions"),
+			Slots:     kong.Int(10000),
+			Healthchecks: &kong.Healthcheck{
+				Threshold: kong.Float64(0),
+				Active: &kong.ActiveHealthcheck{
+					Concurrency: kong.Int(10),
+					Healthy: &kong.Healthy{
+						HTTPStatuses: []int{200, 302},
+						Interval:     kong.Int(0),
+						Successes:    kong.Int(0),
+					},
+					HTTPPath:               kong.String("/"),
+					Type:                   kong.String("http"),
+					Timeout:                kong.Int(1),
+					HTTPSVerifyCertificate: kong.Bool(true),
+					Unhealthy: &kong.Unhealthy{
+						HTTPFailures: kong.Int(0),
+						TCPFailures:  kong.Int(0),
+						Timeouts:     kong.Int(0),
+						Interval:     kong.Int(0),
+						HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
+					},
+				},
+				Passive: &kong.PassiveHealthcheck{
+					Healthy: &kong.Healthy{
+						HTTPStatuses: []int{
+							200, 201, 202, 203, 204, 205,
+							206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
+							306, 307, 308,
+						},
+						Successes: kong.Int(0),
+					},
+					Type: kong.String("http"),
+					Unhealthy: &kong.Unhealthy{
+						HTTPFailures: kong.Int(0),
+						TCPFailures:  kong.Int(0),
+						Timeouts:     kong.Int(0),
+						HTTPStatuses: []int{429, 500, 503},
+					},
+				},
+			},
+			HashOn:                   kong.String("none"),
+			HashFallback:             kong.String("none"),
+			HashOnCookiePath:         kong.String("/"),
+			UseSrvName:               kong.Bool(false),
+			StickySessionsCookie:     kong.String("gdrtest"),
+			StickySessionsCookiePath: kong.String("/demo"),
 		},
 	}
 
@@ -2659,8 +2765,8 @@ func Test_Sync_Upstream_Target_From_30(t *testing.T) {
 }
 
 // test scope:
-//   - 3.x
-func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
+//   - 3.11
+func Test_Sync_Upstream_Target_With_Sticky_Sessions(t *testing.T) {
 	// setup stage
 	client, err := getTestClient()
 	if err != nil {
@@ -2674,9 +2780,9 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 	}{
 		{
 			name:     "creates an upstream and target",
-			kongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			kongFile: "testdata/sync/044-create-upstream-sticky-session/upstream.yaml",
 			expectedState: utils.KongRawState{
-				Upstreams: upstream,
+				Upstreams: upstreamStickySession,
 				Targets:   target,
 			},
 		},
@@ -2684,7 +2790,62 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhenKongOrKonnect(t, ">=3.1.0")
+			runWhen(t, "enterprise", ">=3.11.0")
+			setup(t)
+
+			sync(tc.kongFile)
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+// test scope:
+//   - 3.x
+func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	tests := []struct {
+		name          string
+		kongFile      string
+		expectedState utils.KongRawState
+		runWhenVersion   string
+	}{
+		{
+			name:     "creates an upstream and target (pre 3.11)",
+			kongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre311,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.1.0 <3.11.0",
+		},
+		{
+			name:     "creates an upstream and target (post 3.11)",
+			kongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.11.0",
+		},
+		{
+			name:     "creates an upstream and target (sticky-sessions upstream)",
+			kongFile: "testdata/sync/044-create-upstream-sticky-session/upstream.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstreamStickySession,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.11.0",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhenKongOrKonnect(t, tc.runWhenVersion)
 			setup(t)
 
 			sync(tc.kongFile)
@@ -2819,7 +2980,17 @@ func Test_Sync_Upstreams_Target_ZeroWeight_3x(t *testing.T) {
 		name          string
 		kongFile      string
 		expectedState utils.KongRawState
+		runWhenVersion string
 	}{
+		{
+			name:     "creates an upstream and target with weight equals to zero",
+			kongFile: "testdata/sync/005-create-upstream-and-target-weight/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre311,
+				Targets:   targetZeroWeight,
+			},
+			runWhenVersion: ">=3.1.0 < 3.11.0",
+		},
 		{
 			name:     "creates an upstream and target with weight equals to zero",
 			kongFile: "testdata/sync/005-create-upstream-and-target-weight/kong3x.yaml",
@@ -2827,12 +2998,13 @@ func Test_Sync_Upstreams_Target_ZeroWeight_3x(t *testing.T) {
 				Upstreams: upstream,
 				Targets:   targetZeroWeight,
 			},
+			runWhenVersion: ">=3.11.0",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhenKongOrKonnect(t, ">=3.1.0")
+			runWhenKongOrKonnect(t, tc.runWhenVersion)
 			setup(t)
 
 			sync(tc.kongFile)
