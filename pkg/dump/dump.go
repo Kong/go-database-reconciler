@@ -14,13 +14,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	// SelectTag represents the select tags
-	SelectTag = iota
-	// DefaultLookupTag represents the lookup selector tags
-	DefaultLookupTag
-)
-
 // Config can be used to skip exporting certain entities
 type Config struct {
 	// If true, only RBAC resources are exported.
@@ -163,10 +156,7 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			getConsumerGroupsFunc = GetAllConsumerGroupsWithoutConsumers
 		}
 
-		// Passing config.SelectorTags here fetches only those consumer-groups (and inclusive consumers,
-		// where applicable) which are tagged with the same tag as provided in the config.SelectorTags.
-		// If config.SelectorTags is empty, all consumer-groups are fetched.
-		consumerGroups, err = getConsumerGroupsFunc(ctx, client, config.SelectorTags, SelectTag)
+		consumerGroups, err = getConsumerGroupsFunc(ctx, client, config.SelectorTags)
 		if err != nil {
 			if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
 				return nil
@@ -174,15 +164,7 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("consumer_groups: %w", err)
 		}
 		if config.LookUpSelectorTagsConsumerGroups != nil {
-			// Passing config.LookUpSelectorTagsConsumerGroups here fetches only those consumer-groups
-			// which are tagged with the same tag as provided in the config.LookUpSelectorTagsConsumerGroups.
-			// This doesn't apply to the consumers within the consumer-group; they will be fetched (wherever
-			// applicable) regardless of their tags.
-			// LookUpSelectorTagsConsumerGroups are useful when the config is distributed. If the config
-			// under process refers to a consumer-group which exists on the gateway but is not defined in the
-			// same config file, the presence of lookup tags will be able to fetch that consumer-group.
-			globalConsumerGroups, err := getConsumerGroupsFunc(ctx, client, config.LookUpSelectorTagsConsumerGroups,
-				DefaultLookupTag)
+			globalConsumerGroups, err := getConsumerGroupsFunc(ctx, client, config.LookUpSelectorTagsConsumerGroups)
 			if err != nil {
 				return fmt.Errorf("error retrieving global consumer groups: %w", err)
 			}
@@ -1015,7 +997,7 @@ func GetAllUpstreams(ctx context.Context,
 
 // GetAllConsumerGroups queries Kong for all the ConsumerGroups using client.
 func GetAllConsumerGroups(ctx context.Context,
-	client *kong.Client, tags []string, tagType int,
+	client *kong.Client, tags []string,
 ) ([]*kong.ConsumerGroupObject, error) {
 	var consumerGroupObjects []*kong.ConsumerGroupObject
 	opt := newOpt(tags)
@@ -1044,7 +1026,7 @@ func GetAllConsumerGroups(ctx context.Context,
 			consumers := []*kong.Consumer{}
 			for _, c := range r.Consumers {
 				// if tags are set and if the consumer is not tagged, skip it
-				if tagType == SelectTag && len(tags) > 0 && !utils.HasTags(c, tags) {
+				if len(tags) > 0 && !utils.HasTags(c, tags) {
 					continue
 				}
 				consumers = append(consumers, c)
@@ -1064,7 +1046,7 @@ func GetAllConsumerGroups(ctx context.Context,
 // This does not include "consumer-group-plugins" or policy overrides associated
 // with a consumer-group
 func GetAllConsumerGroupsDefault(ctx context.Context,
-	client *kong.Client, tags []string, tagType int,
+	client *kong.Client, tags []string,
 ) ([]*kong.ConsumerGroupObject, error) {
 	var consumerGroupObjects []*kong.ConsumerGroupObject
 	opt := newOpt(tags)
@@ -1092,7 +1074,7 @@ func GetAllConsumerGroupsDefault(ctx context.Context,
 			consumers := []*kong.Consumer{}
 			for _, c := range r.Consumers {
 				// if tags are set and if the consumer is not tagged, skip it
-				if tagType == SelectTag && len(tags) > 0 && !utils.HasTags(c, tags) {
+				if len(tags) > 0 && !utils.HasTags(c, tags) {
 					continue
 				}
 				consumers = append(consumers, c)
@@ -1113,7 +1095,7 @@ func GetAllConsumerGroupsDefault(ctx context.Context,
 // This does not include "consumer-group-plugins" or policy overrides associated
 // with a consumer-group
 func GetAllConsumerGroupsWithoutConsumersDefault(ctx context.Context,
-	client *kong.Client, tags []string, _ int,
+	client *kong.Client, tags []string,
 ) ([]*kong.ConsumerGroupObject, error) {
 	var consumerGroupObjects []*kong.ConsumerGroupObject
 	opt := newOpt(tags)
@@ -1151,7 +1133,7 @@ func GetAllConsumerGroupsWithoutConsumersDefault(ctx context.Context,
 // GetAllConsumerGroupsWithoutConsumers queries Kong for all the ConsumerGroups,
 // skipping consumers, using client.
 func GetAllConsumerGroupsWithoutConsumers(ctx context.Context,
-	client *kong.Client, tags []string, _ int,
+	client *kong.Client, tags []string,
 ) ([]*kong.ConsumerGroupObject, error) {
 	var consumerGroupObjects []*kong.ConsumerGroupObject
 	opt := newOpt(tags)

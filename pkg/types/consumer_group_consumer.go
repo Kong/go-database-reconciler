@@ -4,11 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-kong/kong"
+)
+
+var (
+	alreadyInGroupErr = "already in group"
 )
 
 // consumerGroupConsumerCRUD implements crud.Actions interface.
@@ -41,7 +46,10 @@ func (s *consumerGroupConsumerCRUD) Create(ctx context.Context, arg ...crud.Arg)
 	} else {
 		_, err = s.client.ConsumerGroupConsumers.Create(ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID)
 	}
-	if err != nil {
+	// If a consumer is already present in a consumer-group, we are not erroring out.
+	// Since this API call doesn't create any logical resource for the end-users, just a mapping
+	// between two existing resources, it is safe to error out here.
+	if err != nil && !strings.Contains(err.Error(), alreadyInGroupErr) {
 		return nil, err
 	}
 

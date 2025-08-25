@@ -567,10 +567,10 @@ var (
 					},
 				},
 			},
-			HashOn:                   kong.String("none"),
-			HashFallback:             kong.String("none"),
-			HashOnCookiePath:         kong.String("/"),
-			UseSrvName:               kong.Bool(false),
+			HashOn:           kong.String("none"),
+			HashFallback:     kong.String("none"),
+			HashOnCookiePath: kong.String("/"),
+			UseSrvName:       kong.Bool(false),
 		},
 	}
 
@@ -2809,10 +2809,10 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
-		runWhenVersion   string
+		name           string
+		kongFile       string
+		expectedState  utils.KongRawState
+		runWhenVersion string
 	}{
 		{
 			name:     "creates an upstream and target (pre 3.11)",
@@ -2977,9 +2977,9 @@ func Test_Sync_Upstreams_Target_ZeroWeight_3x(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
+		name           string
+		kongFile       string
+		expectedState  utils.KongRawState
 		runWhenVersion string
 	}{
 		{
@@ -8732,6 +8732,44 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		// sync again
 		err = sync("testdata/sync/015-consumer-groups/kong-consumers-no-tag.yaml")
 		require.NoError(t, err)
+	})
+
+	t.Run("no errors occur in case of distributed config when >1 consumers are tagged with different tags", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+
+		// sync consumer-group file first
+		err := sync("testdata/sync/015-consumer-groups/kong-cg.yaml")
+		require.NoError(t, err)
+
+		// sync consumer file 1
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+		require.NoError(t, err)
+
+		// sync consumer file 2
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+		require.NoError(t, err)
+
+		//re-sync with no error
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+		require.NoError(t, err)
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+		require.NoError(t, err)
+
+		// check number of consumerGroupConsumers
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		consumerGroupConsumers, err := currentState.ConsumerGroupConsumers.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, consumerGroupConsumers)
+		require.Len(t, consumerGroupConsumers, 2)
+
+		consumerNames := []string{"user1", "user2"}
+
+		for _, consumerGroupConsumer := range consumerGroupConsumers {
+			assert.Contains(t, consumerNames, *consumerGroupConsumer.Consumer.Username)
+			assert.Equal(t, "foo-group", *consumerGroupConsumer.ConsumerGroup.Name)
+		}
 	})
 }
 
