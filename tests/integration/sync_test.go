@@ -2900,10 +2900,11 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
-		runWhenVersion   string
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
+		runWhenVersion  string
 	}{
 		{
 			name:     "creates an upstream and target (pre 3.11)",
@@ -2928,6 +2929,26 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 			kongFile: "testdata/sync/044-create-upstream-sticky-session/upstream.yaml",
 			expectedState: utils.KongRawState{
 				Upstreams: upstreamStickySession,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.11.0",
+		},
+		{
+			name:            "upstream and target without differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.11.0",
+		},
+		{
+			name:            "updates an upstream and target with differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x-before.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
 				Targets:   target,
 			},
 			runWhenVersion: ">=3.11.0",
