@@ -2654,13 +2654,32 @@ func Test_Sync_Upstream_Target_Till_1_5_2(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
 	}{
 		{
 			name:     "creates an upstream and target",
 			kongFile: "testdata/sync/004-create-upstream-and-target/kong.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre31,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "upstream and target without differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre31,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "updates an upstream and target with differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong-before.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong.yaml",
 			expectedState: utils.KongRawState{
 				Upstreams: upstream_pre31,
 				Targets:   target,
@@ -2672,6 +2691,11 @@ func Test_Sync_Upstream_Target_Till_1_5_2(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			runWhen(t, "kong", "<=1.5.2")
 			setup(t)
+
+			// if there is an initial state, we need to sync it first
+			if tc.initialKongFile != "" {
+				sync(tc.initialKongFile)
+			}
 
 			sync(tc.kongFile)
 			testKongState(t, client, false, tc.expectedState, ignoreFields)
@@ -2704,13 +2728,32 @@ func Test_Sync_Upstream_Target_From_2x(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
 	}{
 		{
 			name:     "creates an upstream and target",
 			kongFile: "testdata/sync/004-create-upstream-and-target/kong.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre31,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "upstream and target without differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre31,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "updates an upstream and target with differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong-before.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong.yaml",
 			expectedState: utils.KongRawState{
 				Upstreams: upstream_pre31,
 				Targets:   target,
@@ -2722,6 +2765,11 @@ func Test_Sync_Upstream_Target_From_2x(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			runWhen(t, "kong", ">=2.1.0 <3.0.0")
 			setup(t)
+
+			// if there is an initial state, we need to sync it first
+			if tc.initialKongFile != "" {
+				sync(tc.initialKongFile)
+			}
 
 			sync(tc.kongFile)
 			testKongState(t, client, false, tc.expectedState, nil)
@@ -2739,13 +2787,32 @@ func Test_Sync_Upstream_Target_From_30(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
 	}{
 		{
 			name:     "creates an upstream and target",
 			kongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre31,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "upstream and target without differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream_pre31,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "updates an upstream and target with differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x-before.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
 			expectedState: utils.KongRawState{
 				Upstreams: upstream_pre31,
 				Targets:   target,
@@ -2757,6 +2824,11 @@ func Test_Sync_Upstream_Target_From_30(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			runWhen(t, "kong", ">=3.0.0 <3.1.0")
 			setup(t)
+
+			// if there is an initial state, we need to sync it first
+			if tc.initialKongFile != "" {
+				sync(tc.initialKongFile)
+			}
 
 			sync(tc.kongFile)
 			testKongState(t, client, false, tc.expectedState, nil)
@@ -2774,15 +2846,34 @@ func Test_Sync_Upstream_Target_With_Sticky_Sessions(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
 	}{
 		{
 			name:     "creates an upstream and target",
 			kongFile: "testdata/sync/044-create-upstream-sticky-session/upstream.yaml",
 			expectedState: utils.KongRawState{
 				Upstreams: upstreamStickySession,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "upstream and target without differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
+				Targets:   target,
+			},
+		},
+		{
+			name:            "updates an upstream and target with differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x-before.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
 				Targets:   target,
 			},
 		},
@@ -2809,10 +2900,11 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
-		runWhenVersion   string
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
+		runWhenVersion  string
 	}{
 		{
 			name:     "creates an upstream and target (pre 3.11)",
@@ -2841,12 +2933,37 @@ func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 			},
 			runWhenVersion: ">=3.11.0",
 		},
+		{
+			name:            "upstream and target without differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.11.0",
+		},
+		{
+			name:            "updates an upstream and target with differences",
+			initialKongFile: "testdata/sync/004-create-upstream-and-target/kong3x-before.yaml",
+			kongFile:        "testdata/sync/004-create-upstream-and-target/kong3x.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
+				Targets:   target,
+			},
+			runWhenVersion: ">=3.11.0",
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			runWhenKongOrKonnect(t, tc.runWhenVersion)
 			setup(t)
+
+			// if there is an initial state, we need to sync it first
+			if tc.initialKongFile != "" {
+				sync(tc.initialKongFile)
+			}
 
 			sync(tc.kongFile)
 			testKongState(t, client, false, tc.expectedState, nil)
@@ -9046,7 +9163,7 @@ func Test_Sync_KeysAndKeySets(t *testing.T) {
 							ID: kong.String("d46b0e15-ffbc-4b15-ad92-09ef67935453"),
 						},
 						PEM: &kong.PEM{
-							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqvxMU4LTcHBYmCuLMhMP\nDWlZdcNRXuJkw26MRjLBxXjnPAyDolmuFFMIqPDlSaJkkzu2tn7m9p8KB90wLiMC\nIbDjseruCO+7EaIRY4d6RdpE+XowCjJu7SbC2CqWBAzKkO7WWAunO3KOsQRk1NEK\nI51CoZ26LPYQvjIGIY2/pPxq0Ydl9dyURqVfmTywni1WeScgdEZXuy9WIcobqBST\n8vV5Q5HJsZNFLR7Fy61+HHfnQiWIYyi6h8QRT+Css9y5KbH7KuN6tnb94UZaOmHl\nYeoHcP/CqviZnQOf5804qcVpPKbsGU8jupTriiJZU3a8f59eHV0ybI4ORXYgDSWd\nFQIDAQAB\n-----END PUBLIC KEY-----"),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               //nolint:lll
+							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqvxMU4LTcHBYmCuLMhMP\nDWlZdcNRXuJkw26MRjLBxXjnPAyDolmuFFMIqPDlSaJkkzu2tn7m9p8KB90wLiMC\nIbDjseruCO+7EaIRY4d6RdpE+XowCjJu7SbC2CqWBAzKkO7WWAunO3KOsQRk1NEK\nI51CoZ26LPYQvjIGIY2/pPxq0Ydl9dyURqVfmTywni1WeScgdEZXuy9WIcobqBST\n8vV5Q5HJsZNFLR7Fy61+HHfnQiWIYyi6h8QRT+Css9y5KbH7KuN6tnb94UZaOmHl\nYeoHcP/CqviZnQOf5804qcVpPKbsGU8jupTriiJZU3a8f59eHV0ybI4ORXYgDSWd\nFQIDAQAB\n-----END PUBLIC KEY-----"), //nolint:lll
 							PrivateKey: kong.String("-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAqvxMU4LTcHBYmCuLMhMPDWlZdcNRXuJkw26MRjLBxXjnPAyD\nolmuFFMIqPDlSaJkkzu2tn7m9p8KB90wLiMCIbDjseruCO+7EaIRY4d6RdpE+Xow\nCjJu7SbC2CqWBAzKkO7WWAunO3KOsQRk1NEKI51CoZ26LPYQvjIGIY2/pPxq0Ydl\n9dyURqVfmTywni1WeScgdEZXuy9WIcobqBST8vV5Q5HJsZNFLR7Fy61+HHfnQiWI\nYyi6h8QRT+Css9y5KbH7KuN6tnb94UZaOmHlYeoHcP/CqviZnQOf5804qcVpPKbs\nGU8jupTriiJZU3a8f59eHV0ybI4ORXYgDSWdFQIDAQABAoIBAEOOqAGfATe9y+Nj\n4P2J9jqQU15qK65XuQRWm2npCBKj8IkTULdGw7cYD6XgeFedqCtcPpbgkRUERYxR\n4oV4I5F4OJ7FegNh5QHUjRZMIw2Sbgo8Mtr0jkt5MycBvIAhJbAaDep/wDWGz8Y1\nPDmx1lW3/umoTjURjA/5594+CWiABYzuIi4WprWe4pIKqSKOMHnCYVAD243mwJ7y\nvsatO3LRKYfLw74ifCYhWNBHaZwfw+OO2P5Ku0AGhY4StOLCHobJ8/KkkmkTlYzv\nrcF4cVdvpBfdTEQed0oD7u3xfnp3GpNU3wZFsZJRSVXouhroaMC7en4uMc+5yguW\nqrPIoEkCgYEAxm1UllY9rRfGV6884hdBFKDjE825BC1VlqcRIUEB4CpJvUF/6+A3\ngx5c4nKDJAFQMrWpr4jOcq3iLiWnJ73e80b+JpWFODdt16g2KCOINs1j8vf2U6Og\nx+Vo8vHek/Uomz1n5W0oXrJ4VedHl9NYa8r/YrVXd4k4WcaA0TXmMhMCgYEA3Jit\nzrEmrQIrLK66RgXF2RafA5c3atRHWBb5ddnGk0bV90cfsTsaDMDvpy7ZYgojBNpw\n7U6AYzqnPro6cHEginV97BFb6oetMvOWvljUob+tpnYOofgwk2hw7PeChViX7iS9\nujgTygi8ZIc2G0r7xntH+v6WHKp4yNQiCAyfGTcCgYAYKgZMDJKUOrn3wapraiON\nzI36wmnOnWq33v6SCyWcU+oI9yoJ4pNAD3mGRiW8Q8CtfDv+2W0ywAQ0VHeHunKl\nM7cNodXIY8+nnJ+Dwdf7vIV4eEPyKZIR5dkjBNtzLz7TsOWvJdzts1Q+Od0ZGy7A\naccyER1mvDo1jJvxXlv7KwKBgQDDBK9TdUVt2eb1X5sJ4HyiiN8XO44ggX55IAZ1\n64skFJGARH5+HnPPJpo3wLEpfTCsT7lZ8faKwwWr7NNRKJHOFkS2eDo8QqoZy0NP\nEBUa0evgp6oUAuheyQxcUgwver0GKbEZeg30pHh4nxh0VHv1YnOmL3/h48tYMEHN\nv+q/TQKBgQCXQmN8cY2K7UfZJ6BYEdguQZS5XISFbLNkG8wXQX9vFiF8TuSWawDN\nTrRHVDGwoMGWxjZBLCsitA6zwrMLJZs4RuetKHFou7MiDQ69YGdfNRlRvD5QCJDc\nY0ICsYjI7VM89Qj/41WQyRHYHm7E9key3avMGdbYtxdc0Ku4LnD4zg==\n-----END RSA PRIVATE KEY-----"), //nolint:lll
 						},
 					},
