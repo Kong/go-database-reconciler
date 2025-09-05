@@ -8898,45 +8898,53 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	// requires deck change to work
-	// t.Run("no errors occur in case of distributed config when >1 consumers are tagged with different tags", func(t *testing.T) {
-	// 	mustResetKongState(ctx, t, client, dumpConfig)
+	t.Run("no errors occur in case of distributed config when >1 consumers are tagged with different tags", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
 
-	// 	// sync consumer-group file first
-	// 	err := sync("testdata/sync/015-consumer-groups/kong-cg.yaml")
-	// 	require.NoError(t, err)
+		// sync consumer-group file first
+		err := sync("testdata/sync/015-consumer-groups/kong-cg.yaml")
+		require.NoError(t, err)
 
-	// 	// sync consumer file 1
-	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
-	// 	require.NoError(t, err)
+		// sync consumer file 1
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+		require.NoError(t, err)
 
-	// 	// sync consumer file 2
-	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
-	// 	require.NoError(t, err)
+		// sync consumer file 2
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+		require.NoError(t, err)
 
-	// 	//re-sync with no error
-	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
-	// 	require.NoError(t, err)
-	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
-	// 	require.NoError(t, err)
+		//re-sync with no error
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+		require.NoError(t, err)
+		err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+		require.NoError(t, err)
 
-	// 	// check number of consumerGroupConsumers
-	// 	currentState, err := fetchCurrentState(ctx, client, dumpConfig)
-	// 	require.NoError(t, err)
+		// check number of consumerGroupConsumers
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
 
-	// 	consumerGroupConsumers, err := currentState.ConsumerGroupConsumers.GetAll()
-	// 	require.NoError(t, err)
-	// 	require.NotNil(t, consumerGroupConsumers)
-	// 	require.Len(t, consumerGroupConsumers, 2)
+		consumerGroupConsumers, err := currentState.ConsumerGroupConsumers.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, consumerGroupConsumers)
+		require.Len(t, consumerGroupConsumers, 2)
 
-	// 	consumerNames := []string{"user1", "user2"}
+		consumerNames := []string{"user1", "user2"}
 
-	// 	for _, consumerGroupConsumer := range consumerGroupConsumers {
-	// 		assert.Contains(t, consumerNames, *consumerGroupConsumer.Consumer.Username)
-	// 		assert.Equal(t, "foo-group", *consumerGroupConsumer.ConsumerGroup.Name)
-	// 	}
-	// })
+		for _, consumerGroupConsumer := range consumerGroupConsumers {
+			assert.Contains(t, consumerNames, *consumerGroupConsumer.Consumer.Username)
+			assert.Equal(t, "foo-group", *consumerGroupConsumer.ConsumerGroup.Name)
+		}
 
+		// check number of consumers
+		consumers, err := currentState.Consumers.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, consumers)
+		require.Len(t, consumers, 2)
+
+		for _, consumer := range consumers {
+			assert.Contains(t, consumerNames, *consumer.Username)
+		}
+	})
 }
 
 // test scope:
