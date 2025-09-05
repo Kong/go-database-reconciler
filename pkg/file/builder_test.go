@@ -5392,3 +5392,164 @@ func Test_stateBuilder_keySets(t *testing.T) {
 		})
 	}
 }
+
+func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+
+	type fields struct {
+		targetContent            *Content
+		currentState             *state.KongState
+		lookupTagsConsumers      []string
+		lookupTagsConsumerGroups []string
+		checkIntermediateState   bool
+	}
+	type args struct {
+		cgID *string
+		c    *FConsumer
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *kong.Consumer
+		wantErr bool
+	}{
+		{
+			name: "matches existing consumer by username from target content with consumer lookup tags",
+			fields: fields{
+				targetContent: &Content{
+					Consumers: []FConsumer{
+						{
+							Consumer: kong.Consumer{
+								ID:       kong.String("existing-consumer-id"),
+								Username: kong.String("test-user"),
+								Tags:     kong.StringSlice("lookup-tag"),
+							},
+						},
+					},
+				},
+				currentState:        emptyState(),
+				lookupTagsConsumers: []string{"lookup-tag"},
+			},
+			args: args{
+				cgID: kong.String("cg-123"),
+				c: &FConsumer{
+					Consumer: kong.Consumer{
+						Username: kong.String("test-user"),
+					},
+				},
+			},
+			want: &kong.Consumer{
+				ID:       kong.String("existing-consumer-id"),
+				Username: kong.String("test-user"),
+				Tags:     kong.StringSlice("lookup-tag"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "matches existing consumer by custom ID from target content with consumer lookup tags",
+			fields: fields{
+				targetContent: &Content{
+					Consumers: []FConsumer{
+						{
+							Consumer: kong.Consumer{
+								ID:       kong.String("existing-consumer-id"),
+								CustomID: kong.String("custom-123"),
+								Tags:     kong.StringSlice("lookup-tag"),
+							},
+						},
+					},
+				},
+				currentState:        emptyState(),
+				lookupTagsConsumers: []string{"lookup-tag"},
+			},
+			args: args{
+				cgID: kong.String("cg-123"),
+				c: &FConsumer{
+					Consumer: kong.Consumer{
+						CustomID: kong.String("custom-123"),
+					},
+				},
+			},
+			want: &kong.Consumer{
+				ID:       kong.String("existing-consumer-id"),
+				CustomID: kong.String("custom-123"),
+				Tags:     kong.StringSlice("lookup-tag"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "matches existing consumer from from target content with consumer-group lookup tags",
+			fields: fields{
+				targetContent: &Content{
+					Consumers: []FConsumer{
+						{
+							Consumer: kong.Consumer{
+								ID:       kong.String("existing-consumer-id"),
+								Username: kong.String("test-user"),
+							},
+							Groups: []*kong.ConsumerGroup{
+								{
+									ID:   kong.String("cg-123"),
+									Tags: kong.StringSlice("cg-lookup-tag"),
+								},
+							},
+						},
+					},
+				},
+				currentState:             emptyState(),
+				lookupTagsConsumerGroups: []string{"cg-lookup-tag"},
+				checkIntermediateState:   true,
+			},
+			args: args{
+				cgID: kong.String("cg-123"),
+				c: &FConsumer{
+					Consumer: kong.Consumer{
+						ID:       kong.String("existing-consumer-id"),
+						Username: kong.String("test-user"),
+					},
+				},
+			},
+			want: &kong.Consumer{
+				ID:       kong.String("existing-consumer-id"),
+				Username: kong.String("test-user"),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent:            tt.fields.targetContent,
+				currentState:             tt.fields.currentState,
+				lookupTagsConsumers:      tt.fields.lookupTagsConsumers,
+				lookupTagsConsumerGroups: tt.fields.lookupTagsConsumerGroups,
+				rawState:                 &utils.KongRawState{},
+			}
+
+			intermediate, err := state.NewKongState()
+			require.NoError(t, err)
+			b.intermediate = intermediate
+
+			got, err := b.ingestConsumerGroupConsumer(tt.args.cgID, tt.args.c)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+
+			if !tt.fields.checkIntermediateState {
+				return
+			}
+
+			// Verify consumer group consumer relationship was added
+			cgConsumers, err := b.intermediate.ConsumerGroupConsumers.GetAll()
+			require.NoError(t, err)
+			assert.Len(t, cgConsumers, 1)
+			assert.Equal(t, tt.args.cgID, cgConsumers[0].ConsumerGroup.ID)
+			assert.Equal(t, got.ID, cgConsumers[0].Consumer.ID)
+		})
+	}
+}

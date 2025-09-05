@@ -615,6 +615,8 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 			}
 		}
 		sort.Strings(stringTCTags)
+
+		// checking if consumer is pulled via default_lookup_tags for consumers
 		if reflect.DeepEqual(stringTCTags, b.lookupTagsConsumers) && !utils.Empty(tc.ID) {
 			if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
 				(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
@@ -627,7 +629,10 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 			}
 		}
 
-		// also check if this is pulled from cg lookup
+		// checking if consumer is pulled via default_lookup_tags for consumers-groups
+		// if groups is not nil, then only we check for the tag match with groups
+		// if the group tags match with lookup tags for consumer-groups, the consumer is
+		// likely to be already pulled into the state, and we don't want to create it again.
 		if tc.Groups != nil && !utils.Empty(tc.ID) {
 			for _, group := range tc.Groups {
 				groupTags := make([]string, len(group.Tags))
@@ -642,6 +647,8 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 				if reflect.DeepEqual(groupTags, b.lookupTagsConsumerGroups) && !utils.Empty(tc.ID) {
 					if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
 						(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
+						// ingesting as consumerGroupConsumer in the intermediate state
+						// so that it is not created again while processing consumers
 						err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
 							ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
 								ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
@@ -672,7 +679,6 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 			consumer, err = b.currentState.Consumers.GetByCustomID(*c.CustomID)
 		}
 	}
-
 	if utils.Empty(c.ID) {
 		if errors.Is(err, state.ErrNotFound) {
 			c.ID = uuid()
@@ -692,6 +698,7 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 	if err != nil {
 		return nil, err
 	}
+
 	err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
 		ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
 			ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
@@ -902,7 +909,6 @@ func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
 				found = true
 				break
 			}
-
 		}
 		if !found {
 			var groupIdentifier string
