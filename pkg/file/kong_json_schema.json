@@ -1290,6 +1290,9 @@
         },
         "weight": {
           "type": "integer"
+        },
+        "failover": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -2088,6 +2091,9 @@
         },
         "weight": {
           "type": "integer"
+        },
+        "failover": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
