@@ -691,6 +691,17 @@ var (
 		},
 	}
 
+	target_failover = []*kong.Target{
+		{
+			Target: kong.String("198.51.100.11:80"),
+			Upstream: &kong.Upstream{
+				ID: kong.String("a6f89ffc-1e53-4b01-9d3d-7a142bcd"),
+			},
+			Weight:   kong.Int(100),
+			Failover: kong.Bool(true),
+		},
+	}
+
 	targetZeroWeight = []*kong.Target{
 		{
 			Target: kong.String("198.51.100.11:80"),
@@ -2891,6 +2902,42 @@ func Test_Sync_Upstream_Target_With_Sticky_Sessions(t *testing.T) {
 }
 
 // test scope:
+//   - 3.11
+func Test_Sync_Upstream_Failover_Target(t *testing.T) {
+	// setup stage
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	tests := []struct {
+		name            string
+		initialKongFile string
+		kongFile        string
+		expectedState   utils.KongRawState
+	}{
+		{
+			name:     "creates a failover target",
+			kongFile: "testdata/sync/045-create-upstream-and-failover-target/kong.yaml",
+			expectedState: utils.KongRawState{
+				Upstreams: upstream,
+				Targets:   target_failover,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhen(t, "enterprise", ">=3.12.0")
+			setup(t)
+
+			sync(tc.kongFile)
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+// test scope:
 //   - 3.x
 func Test_Sync_Upstream_Target_From_3x(t *testing.T) {
 	// setup stage
@@ -3094,9 +3141,9 @@ func Test_Sync_Upstreams_Target_ZeroWeight_3x(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		kongFile      string
-		expectedState utils.KongRawState
+		name           string
+		kongFile       string
+		expectedState  utils.KongRawState
 		runWhenVersion string
 	}{
 		{
