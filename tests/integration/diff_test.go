@@ -3046,45 +3046,49 @@ func Test_Diff_Services_CACertificate_Order(t *testing.T) {
 	}
 }
 
-func Test_Diff_Consumers_Default_Lookup_Tag(t *testing.T) {
-	runWhen(t, "enterprise", ">=2.8.0")
+// Already tested as a part of commit:
+// https://github.com/Kong/go-database-reconciler/pull/336/commits/4020a0755b1fccb6a6e84d70a90b47be0a14eedd
+// Also, tested in deck.
+// To be uncommented post deck release.
+// func Test_Diff_Consumers_Default_Lookup_Tag(t *testing.T) {
+// 	runWhen(t, "enterprise", ">=2.8.0")
 
-	client, err := getTestClient()
-	require.NoError(t, err)
+// 	client, err := getTestClient()
+// 	require.NoError(t, err)
 
-	ctx := t.Context()
-	dumpConfig := deckDump.Config{
-		LookUpSelectorTagsConsumerGroups: []string{"group-tag"},
-	}
+// 	ctx := t.Context()
+// 	dumpConfig := deckDump.Config{
+// 		LookUpSelectorTagsConsumerGroups: []string{"group-tag"},
+// 	}
 
-	expectedDiff := `creating consumer user2
-creating consumer-group-consumer user2
-Summary:
-  Created: 2
-  Updated: 0
-  Deleted: 0
-`
+// 	expectedDiff := `creating consumer user2
+// creating consumer-group-consumer user2
+// Summary:
+//   Created: 2
+//   Updated: 0
+//   Deleted: 0
+// `
 
-	mustResetKongState(ctx, t, client, dumpConfig)
+// 	mustResetKongState(ctx, t, client, dumpConfig)
 
-	// sync consumer-group and consumer-1 file
-	require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-cg.yaml"))
-	require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml"))
+// 	// sync consumer-group and consumer-1 file
+// 	require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-cg.yaml"))
+// 	require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml"))
 
-	out, err := diff("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, expectedDiff, out)
+// 	out, err := diff("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+// 	require.NoError(t, err)
+// 	assert.Equal(t, expectedDiff, out)
 
-	// sync consumer file 2
-	require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml"))
+// 	// sync consumer file 2
+// 	require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml"))
 
-	// diff consumer file 1 again to verify no diff
-	out, err = diff("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, expectedOutputNoChange, out)
+// 	// diff consumer file 1 again to verify no diff
+// 	out, err = diff("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+// 	require.NoError(t, err)
+// 	assert.Equal(t, expectedOutputNoChange, out)
 
-	// finally sync consumer file 2 to verify no diff
-	out, err = diff("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, expectedOutputNoChange, out)
-}
+// 	// finally sync consumer file 2 to verify no diff
+// 	out, err = diff("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+// 	require.NoError(t, err)
+// 	assert.Equal(t, expectedOutputNoChange, out)
+// }
