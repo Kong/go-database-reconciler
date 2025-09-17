@@ -1,6 +1,7 @@
 package state
 
 import (
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/kong/go-kong/kong"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 // getTags returns a slice of test tags. If reversed is true, the tags are backwards!
@@ -300,56 +302,51 @@ func TestPluginEqual(t *testing.T) {
 	p2.Name = kong.String("baz")
 
 	assert.False(p1.Equal(&p2))
-	assert.False(p1.EqualWithOpts(&p2, false, false, false))
+	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
 	p2.Name = kong.String("bar")
 	assert.True(p1.Equal(&p2))
-	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 	p1.Tags = getTags(true)
 	p2.Tags = getTags(false)
-	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
 	// Verify that plugins are equal even if protocols are out of order
 	p1.Protocols = getProtocols(true)
 	p2.Protocols = getProtocols(false)
-	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
 	p1.ID = kong.String("fuu")
-	assert.False(p1.EqualWithOpts(&p2, false, false, false))
-	assert.True(p1.EqualWithOpts(&p2, true, false, false))
-
+	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
+	assert.True(p1.EqualWithOpts(&p2, true, false, false, gjson.Result{}))
 	timestamp := 1
 	p2.CreatedAt = &timestamp
-	assert.False(p1.EqualWithOpts(&p2, false, false, false))
-	assert.False(p1.EqualWithOpts(&p2, false, true, false))
-
+	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
+	assert.False(p1.EqualWithOpts(&p2, false, true, false, gjson.Result{}))
 	p1.Service = &kong.Service{ID: kong.String("1")}
 	p2.Service = &kong.Service{ID: kong.String("2")}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
-	assert.True(p1.EqualWithOpts(&p2, true, true, true))
-
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
+	assert.True(p1.EqualWithOpts(&p2, true, true, true, gjson.Result{}))
 	p1.Service = &kong.Service{ID: kong.String("2")}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{"foo": "bar"}
 	p2.Config = kong.Configuration{"foo": "bar"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
-
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 	p2.Config = kong.Configuration{"foo": "baz"}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{"foo": []interface{}{"b", "a", "c"}, "bar": "baz"}
 	p2.Config = kong.Configuration{"foo": []interface{}{"a", "b", "c"}, "bar": "baz"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
+	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
-
-	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "bar"}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{
 		"foo": []interface{}{"b", "a", "c"},
@@ -365,7 +362,7 @@ func TestPluginEqual(t *testing.T) {
 			"key1": []interface{}{"a", "b", "c"},
 		},
 	}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{
 		"foo": []interface{}{"a", "c", "c"},
@@ -374,7 +371,7 @@ func TestPluginEqual(t *testing.T) {
 			"key1": []interface{}{"a", "b", "c"},
 		},
 	}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 }
 
 func TestConsumerEqual(t *testing.T) {
@@ -699,7 +696,7 @@ func TestSortNestedArrays(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := sortNestedArrays(tt.input)
+			result := sortNestedArraysBasedOnSchema(tt.input, gjson.Result{})
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("expected %v, got %v", tt.expected, result)
 			}
@@ -722,8 +719,8 @@ func TestDeepEqualWithSorting(t *testing.T) {
 		},
 	}
 
-	sortedMap1 := sortNestedArrays(map1)
-	sortedMap2 := sortNestedArrays(map2)
+	sortedMap1 := sortNestedArraysBasedOnSchema(map1, gjson.Result{})
+	sortedMap2 := sortNestedArraysBasedOnSchema(map2, gjson.Result{})
 
 	if !reflect.DeepEqual(sortedMap1, sortedMap2) {
 		t.Errorf("expected maps to be equal, but they are not")
@@ -791,4 +788,186 @@ func TestPluginConsole(t *testing.T) {
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+func TestSortNestedArraysBasedOnSchema(t *testing.T) {
+	filePath := "./fixtures/test-plugin-config.json"
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		t.Fatalf("failed to open file: %v", err)
+	}
+
+	gjsonRes := gjson.ParseBytes(fileBytes)
+	config := gjsonRes.Get("fields.#(config).config")
+
+	// Create a plugin with all field types from the schema
+	original := Plugin{
+		Plugin: kong.Plugin{
+			Name: kong.String("request-transformer"),
+			Config: kong.Configuration{
+				"primitive_str": "test-value",
+				"record_of_array_of_str": map[string]interface{}{
+					"headers": []interface{}{
+						"header-z",
+						"header-a",
+						"header-m",
+					},
+				},
+				"map_type": map[string]interface{}{
+					"key": "value",
+				},
+				"array_of_record": []interface{}{
+					map[string]interface{}{
+						"host": "host2.example.com",
+						"port": float64(6380),
+					},
+					map[string]interface{}{
+						"host": "host1.example.com",
+						"port": float64(6379),
+					},
+				},
+				"nested_array_of_array_of_str": []interface{}{
+					[]interface{}{"z", "a", "m"},
+					[]interface{}{"b", "y", "c"},
+				},
+				"nested_array_of_set_of_str": []interface{}{
+					[]interface{}{"z", "a", "m"},
+					[]interface{}{"b", "y", "c"},
+				},
+				"nested_set_of_array_of_str": []interface{}{
+					[]interface{}{"z", "a", "m"},
+					[]interface{}{"b", "y", "c"},
+				},
+				"nested_set_of_set_of_str": []interface{}{
+					[]interface{}{"z", "a", "m"},
+					[]interface{}{"b", "y", "c"},
+				},
+				"nested_array_of_record_of_array": []interface{}{
+					[]interface{}{
+						map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}},
+						map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}},
+					},
+				},
+				"nested_array_of_record_of_set": []interface{}{
+					[]interface{}{
+						map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}},
+						map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}},
+					},
+				},
+				"shorthand_record_of_set_array": map[string]interface{}{
+					"set_hosts": []interface{}{
+						"example.com",
+						"abcgefgh.com",
+						"zzz.com",
+					},
+					"array_hosts": []interface{}{
+						"example.com",
+						"abcgefgh.com",
+						"zzz.com",
+					},
+				},
+			},
+		},
+	}
+
+	// Clone the plugin
+	clonedPlugin := original.DeepCopy()
+
+	// Sort the cloned config
+	sortedConfig := sortNestedArraysBasedOnSchema(clonedPlugin.Config, config)
+
+	// Verify primitive string remains unchanged
+	assert.Equal(t, original.Config["primitive_str"], sortedConfig["primitive_str"])
+
+	// Verify map_type keys remain unchanged
+	mapType := sortedConfig["map_type"].(map[string]interface{})
+	assert.Equal(t, original.Config["map_type"].(map[string]interface{})["key"], mapType["key"])
+
+	// Verify array fields remain in ORIGINAL order
+	recordOfArray := sortedConfig["record_of_array_of_str"].(map[string]interface{})
+	headers := recordOfArray["headers"].([]interface{})
+	originalRecordOfArray := original.Config["record_of_array_of_str"].(map[string]interface{})
+	originalHeaders := originalRecordOfArray["headers"].([]interface{})
+	assert.Equal(t, originalHeaders, headers)
+
+	// Verify array_of_record remains in ORIGINAL order
+	arrayOfRecord := sortedConfig["array_of_record"].([]interface{})
+	assert.Equal(t, len(original.Config["array_of_record"].([]interface{})), len(arrayOfRecord))
+	firstRecord := arrayOfRecord[0].(map[string]interface{})
+	originalFirstRecord := original.Config["array_of_record"].([]interface{})[0].(map[string]interface{})
+	assert.Equal(t, originalFirstRecord["host"], firstRecord["host"], "array of records should NOT be sorted")
+
+	// Verify nested_array_of_array_of_str remains in ORIGINAL order
+	nestedArrayOfArray := sortedConfig["nested_array_of_array_of_str"].([]interface{})
+	originalNestedArrayOfArray := original.Config["nested_array_of_array_of_str"].([]interface{})
+	assert.Equal(t, originalNestedArrayOfArray[0], nestedArrayOfArray[0], "nested arrays should NOT be sorted")
+	assert.Equal(t, originalNestedArrayOfArray[1], nestedArrayOfArray[1], "nested arrays should NOT be sorted")
+
+	// Verify nested_array_of_set_of_str - outer array NOT sorted, inner sets SHOULD be sorted
+	nestedArrayOfSet := sortedConfig["nested_array_of_set_of_str"].([]interface{})
+	originalNestedArrayOfSet := original.Config["nested_array_of_set_of_str"].([]interface{})
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalNestedArrayOfSet[0].([]interface{})))
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalNestedArrayOfSet[1].([]interface{})))
+	assert.Equal(t, originalNestedArrayOfSet[0], nestedArrayOfSet[0], "inner sets should be sorted")
+	assert.Equal(t, originalNestedArrayOfSet[1], nestedArrayOfSet[1], "inner sets should be sorted")
+
+	// Verify nested_set_of_array_of_str - outer set SHOULD be sorted, inner arrays NOT sorted
+	nestedSetOfArray := sortedConfig["nested_set_of_array_of_str"].([]interface{})
+	// Outer set should be sorted, but elements are arrays which maintain order
+	assert.Equal(t, 2, len(nestedSetOfArray))
+
+	// Verify nested_set_of_set_of_str - both outer and inner sets SHOULD be sorted
+	nestedSetOfSet := sortedConfig["nested_set_of_set_of_str"].([]interface{})
+	assert.Equal(t, 2, len(nestedSetOfSet))
+	// Inner sets should be sorted
+	innerSet1 := nestedSetOfSet[0].([]interface{})
+	innerSet2 := nestedSetOfSet[1].([]interface{})
+	originalNestedSetOfSet := original.Config["nested_set_of_set_of_str"].([]interface{})
+	originalInnerSet1 := originalNestedSetOfSet[0].([]interface{})
+	originalInnerSet2 := originalNestedSetOfSet[1].([]interface{})
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalInnerSet1))
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalInnerSet2))
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalNestedSetOfSet))
+	assert.Equal(t, originalInnerSet1, innerSet1, "inner sets should be sorted")
+	assert.Equal(t, originalInnerSet2, innerSet2, "inner sets should be sorted")
+	assert.Equal(t, originalNestedSetOfSet, nestedSetOfSet, "outer set should be sorted")
+
+	// Verify nested_array_of_record_of_array - arrays NOT sorted
+	// Verify nested_array_of_record_of_set - outer array NOT sorted, inner sets SHOULD be sorted
+	nestedArrayOfRecordArray1 := sortedConfig["nested_array_of_record_of_array"].([]interface{})
+	outerArray1 := nestedArrayOfRecordArray1[0].([]interface{})
+	record1 := outerArray1[0].(map[string]interface{})
+	ports1 := record1["ports"].([]interface{})
+	originalNestedArrayOfRecordArray := original.Config["nested_array_of_record_of_array"].([]interface{})
+	originalOuterArray1 := originalNestedArrayOfRecordArray[0].([]interface{})
+	originalRecord1 := originalOuterArray1[0].(map[string]interface{})
+	originalPorts1 := originalRecord1["ports"].([]interface{})
+	assert.Equal(t, originalPorts1, ports1)
+
+	// Verify nested_array_of_record_of_set - outer array NOT sorted, inner sets SHOULD be sorted
+	nestedArrayOfRecordArray2 := sortedConfig["nested_array_of_record_of_set"].([]interface{})
+	outerArray2 := nestedArrayOfRecordArray2[0].([]interface{})
+	record2 := outerArray2[0].(map[string]interface{})
+	ports2 := record2["ports"].([]interface{})
+	originalNestedArrayOfRecordSet := original.Config["nested_array_of_record_of_set"].([]interface{})
+	originalOuterArray2 := originalNestedArrayOfRecordSet[0].([]interface{})
+	originalRecord2 := originalOuterArray2[0].(map[string]interface{})
+	originalPorts2 := originalRecord2["ports"].([]interface{})
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalPorts2))
+	assert.Equal(t, originalPorts2, ports2)
+
+	// Verify shorthand fields (shorthand_record_of_set_array)
+	recordType := sortedConfig["shorthand_record_of_set_array"].(map[string]interface{})
+	originalRecordType := original.Config["shorthand_record_of_set_array"].(map[string]interface{})
+
+	// set_hosts should be SORTED
+	setHosts := recordType["set_hosts"].([]interface{})
+	originalSetHosts := originalRecordType["set_hosts"].([]interface{})
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalSetHosts))
+	assert.Equal(t, originalSetHosts, setHosts, "set fields should be sorted")
+
+	// set_hosts should be SORTED
+	arrayHosts := recordType["array_hosts"].([]interface{})
+	originalArrayHosts := originalRecordType["array_hosts"].([]interface{})
+	assert.Equal(t, originalArrayHosts, arrayHosts, "array fields should NOT be sorted")
 }
