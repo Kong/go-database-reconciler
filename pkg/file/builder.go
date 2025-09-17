@@ -615,6 +615,8 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 			}
 		}
 		sort.Strings(stringTCTags)
+
+		// checking if consumer is pulled via default_lookup_tags for consumers
 		if reflect.DeepEqual(stringTCTags, b.lookupTagsConsumers) && !utils.Empty(tc.ID) {
 			if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
 				(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
@@ -624,6 +626,47 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 					CustomID: tc.CustomID,
 					Tags:     tc.Tags,
 				}, nil
+			}
+		}
+
+		// checking if consumer is pulled via default_lookup_tags for consumers-groups
+		// if groups is not nil, then only we check for the tag match with groups
+		// if the group tags match with lookup tags for consumer-groups, the consumer is
+		// likely to be already pulled into the state, and we don't want to create it again.
+		if tc.Groups != nil && !utils.Empty(tc.ID) {
+			for _, group := range tc.Groups {
+				groupTags := make([]string, len(group.Tags))
+				for i, tag := range group.Tags {
+					if tag != nil {
+						groupTags[i] = *tag
+					}
+				}
+
+				sort.Strings(groupTags)
+				sort.Strings(b.lookupTagsConsumerGroups)
+				if reflect.DeepEqual(groupTags, b.lookupTagsConsumerGroups) && !utils.Empty(tc.ID) {
+					if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
+						(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
+						// ingesting as consumerGroupConsumer in the intermediate state
+						// so that it is not created again while processing consumers
+						err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
+							ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
+								ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
+								Consumer:      &c.Consumer,
+							},
+						})
+						if err != nil {
+							return nil, err
+						}
+
+						return &kong.Consumer{
+							ID:       tc.ID,
+							Username: tc.Username,
+							CustomID: tc.CustomID,
+							Tags:     tc.Tags,
+						}, nil
+					}
+				}
 			}
 		}
 	}
@@ -655,6 +698,7 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 	if err != nil {
 		return nil, err
 	}
+
 	err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
 		ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
 			ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
@@ -691,7 +735,6 @@ func (b *stateBuilder) consumers() {
 	}
 
 	for _, c := range b.targetContent.Consumers {
-
 		var (
 			consumer *state.Consumer
 			err      error

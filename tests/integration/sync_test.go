@@ -567,10 +567,10 @@ var (
 					},
 				},
 			},
-			HashOn:                   kong.String("none"),
-			HashFallback:             kong.String("none"),
-			HashOnCookiePath:         kong.String("/"),
-			UseSrvName:               kong.Bool(false),
+			HashOn:           kong.String("none"),
+			HashFallback:     kong.String("none"),
+			HashOnCookiePath: kong.String("/"),
+			UseSrvName:       kong.Bool(false),
 		},
 	}
 
@@ -8897,6 +8897,58 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		err = sync("testdata/sync/015-consumer-groups/kong-consumers-no-tag.yaml")
 		require.NoError(t, err)
 	})
+
+	// Already tested as a part of commit:
+	// https://github.com/Kong/go-database-reconciler/pull/336/commits/4020a0755b1fccb6a6e84d70a90b47be0a14eedd
+	// Also, tested in deck.
+	// To be uncommented post deck release.
+	// t.Run("no errors occur in case of distributed config when >1 consumers are tagged with different tags", func(t *testing.T) {
+	// 	mustResetKongState(ctx, t, client, dumpConfig)
+
+	// 	// sync consumer-group file first
+	// 	err := sync("testdata/sync/015-consumer-groups/kong-cg.yaml")
+	// 	require.NoError(t, err)
+
+	// 	// sync consumer file 1
+	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+	// 	require.NoError(t, err)
+
+	// 	// sync consumer file 2
+	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+	// 	require.NoError(t, err)
+
+	// 	//re-sync with no error
+	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
+	// 	require.NoError(t, err)
+	// 	err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
+	// 	require.NoError(t, err)
+
+	// 	// check number of consumerGroupConsumers
+	// 	currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+	// 	require.NoError(t, err)
+
+	// 	consumerGroupConsumers, err := currentState.ConsumerGroupConsumers.GetAll()
+	// 	require.NoError(t, err)
+	// 	require.NotNil(t, consumerGroupConsumers)
+	// 	require.Len(t, consumerGroupConsumers, 2)
+
+	// 	consumerNames := []string{"user1", "user2"}
+
+	// 	for _, consumerGroupConsumer := range consumerGroupConsumers {
+	// 		assert.Contains(t, consumerNames, *consumerGroupConsumer.Consumer.Username)
+	// 		assert.Equal(t, "foo-group", *consumerGroupConsumer.ConsumerGroup.Name)
+	// 	}
+
+	// 	// check number of consumers
+	// 	consumers, err := currentState.Consumers.GetAll()
+	// 	require.NoError(t, err)
+	// 	require.NotNil(t, consumers)
+	// 	require.Len(t, consumers, 2)
+
+	// 	for _, consumer := range consumers {
+	// 		assert.Contains(t, consumerNames, *consumer.Username)
+	// 	}
+	// })
 }
 
 // test scope:
@@ -9210,7 +9262,7 @@ func Test_Sync_KeysAndKeySets(t *testing.T) {
 							ID: kong.String("d46b0e15-ffbc-4b15-ad92-09ef67935453"),
 						},
 						PEM: &kong.PEM{
-							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqvxMU4LTcHBYmCuLMhMP\nDWlZdcNRXuJkw26MRjLBxXjnPAyDolmuFFMIqPDlSaJkkzu2tn7m9p8KB90wLiMC\nIbDjseruCO+7EaIRY4d6RdpE+XowCjJu7SbC2CqWBAzKkO7WWAunO3KOsQRk1NEK\nI51CoZ26LPYQvjIGIY2/pPxq0Ydl9dyURqVfmTywni1WeScgdEZXuy9WIcobqBST\n8vV5Q5HJsZNFLR7Fy61+HHfnQiWIYyi6h8QRT+Css9y5KbH7KuN6tnb94UZaOmHl\nYeoHcP/CqviZnQOf5804qcVpPKbsGU8jupTriiJZU3a8f59eHV0ybI4ORXYgDSWd\nFQIDAQAB\n-----END PUBLIC KEY-----"), //nolint:lll
+							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqvxMU4LTcHBYmCuLMhMP\nDWlZdcNRXuJkw26MRjLBxXjnPAyDolmuFFMIqPDlSaJkkzu2tn7m9p8KB90wLiMC\nIbDjseruCO+7EaIRY4d6RdpE+XowCjJu7SbC2CqWBAzKkO7WWAunO3KOsQRk1NEK\nI51CoZ26LPYQvjIGIY2/pPxq0Ydl9dyURqVfmTywni1WeScgdEZXuy9WIcobqBST\n8vV5Q5HJsZNFLR7Fy61+HHfnQiWIYyi6h8QRT+Css9y5KbH7KuN6tnb94UZaOmHl\nYeoHcP/CqviZnQOf5804qcVpPKbsGU8jupTriiJZU3a8f59eHV0ybI4ORXYgDSWd\nFQIDAQAB\n-----END PUBLIC KEY-----"),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               //nolint:lll
 							PrivateKey: kong.String("-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAqvxMU4LTcHBYmCuLMhMPDWlZdcNRXuJkw26MRjLBxXjnPAyD\nolmuFFMIqPDlSaJkkzu2tn7m9p8KB90wLiMCIbDjseruCO+7EaIRY4d6RdpE+Xow\nCjJu7SbC2CqWBAzKkO7WWAunO3KOsQRk1NEKI51CoZ26LPYQvjIGIY2/pPxq0Ydl\n9dyURqVfmTywni1WeScgdEZXuy9WIcobqBST8vV5Q5HJsZNFLR7Fy61+HHfnQiWI\nYyi6h8QRT+Css9y5KbH7KuN6tnb94UZaOmHlYeoHcP/CqviZnQOf5804qcVpPKbs\nGU8jupTriiJZU3a8f59eHV0ybI4ORXYgDSWdFQIDAQABAoIBAEOOqAGfATe9y+Nj\n4P2J9jqQU15qK65XuQRWm2npCBKj8IkTULdGw7cYD6XgeFedqCtcPpbgkRUERYxR\n4oV4I5F4OJ7FegNh5QHUjRZMIw2Sbgo8Mtr0jkt5MycBvIAhJbAaDep/wDWGz8Y1\nPDmx1lW3/umoTjURjA/5594+CWiABYzuIi4WprWe4pIKqSKOMHnCYVAD243mwJ7y\nvsatO3LRKYfLw74ifCYhWNBHaZwfw+OO2P5Ku0AGhY4StOLCHobJ8/KkkmkTlYzv\nrcF4cVdvpBfdTEQed0oD7u3xfnp3GpNU3wZFsZJRSVXouhroaMC7en4uMc+5yguW\nqrPIoEkCgYEAxm1UllY9rRfGV6884hdBFKDjE825BC1VlqcRIUEB4CpJvUF/6+A3\ngx5c4nKDJAFQMrWpr4jOcq3iLiWnJ73e80b+JpWFODdt16g2KCOINs1j8vf2U6Og\nx+Vo8vHek/Uomz1n5W0oXrJ4VedHl9NYa8r/YrVXd4k4WcaA0TXmMhMCgYEA3Jit\nzrEmrQIrLK66RgXF2RafA5c3atRHWBb5ddnGk0bV90cfsTsaDMDvpy7ZYgojBNpw\n7U6AYzqnPro6cHEginV97BFb6oetMvOWvljUob+tpnYOofgwk2hw7PeChViX7iS9\nujgTygi8ZIc2G0r7xntH+v6WHKp4yNQiCAyfGTcCgYAYKgZMDJKUOrn3wapraiON\nzI36wmnOnWq33v6SCyWcU+oI9yoJ4pNAD3mGRiW8Q8CtfDv+2W0ywAQ0VHeHunKl\nM7cNodXIY8+nnJ+Dwdf7vIV4eEPyKZIR5dkjBNtzLz7TsOWvJdzts1Q+Od0ZGy7A\naccyER1mvDo1jJvxXlv7KwKBgQDDBK9TdUVt2eb1X5sJ4HyiiN8XO44ggX55IAZ1\n64skFJGARH5+HnPPJpo3wLEpfTCsT7lZ8faKwwWr7NNRKJHOFkS2eDo8QqoZy0NP\nEBUa0evgp6oUAuheyQxcUgwver0GKbEZeg30pHh4nxh0VHv1YnOmL3/h48tYMEHN\nv+q/TQKBgQCXQmN8cY2K7UfZJ6BYEdguQZS5XISFbLNkG8wXQX9vFiF8TuSWawDN\nTrRHVDGwoMGWxjZBLCsitA6zwrMLJZs4RuetKHFou7MiDQ69YGdfNRlRvD5QCJDc\nY0ICsYjI7VM89Qj/41WQyRHYHm7E9key3avMGdbYtxdc0Ku4LnD4zg==\n-----END RSA PRIVATE KEY-----"), //nolint:lll
 						},
 					},
