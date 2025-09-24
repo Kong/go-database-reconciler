@@ -116,7 +116,7 @@ func main() {
 
 	// creds
 	schema.Definitions["ACLGroup"].Required = []string{"group"}
-	schema.Definitions["BasicAuth"].Required = []string{"username", "password"}
+	schema.Definitions["BasicAuthOptions"].Required = []string{"username", "password"}
 	schema.Definitions["HMACAuth"].Required = []string{"username", "secret"}
 	schema.Definitions["JWTAuth"].Required = []string{
 		"algorithm", "key",
