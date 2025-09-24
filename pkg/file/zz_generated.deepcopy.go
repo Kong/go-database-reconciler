@@ -320,11 +320,11 @@ func (in *FConsumer) DeepCopyInto(out *FConsumer) {
 	}
 	if in.BasicAuths != nil {
 		in, out := &in.BasicAuths, &out.BasicAuths
-		*out = make([]*kong.BasicAuth, len(*in))
+		*out = make([]*kong.BasicAuthOptions, len(*in))
 		for i := range *in {
 			if (*in)[i] != nil {
 				in, out := &(*in)[i], &(*out)[i]
-				*out = new(kong.BasicAuth)
+				*out = new(kong.BasicAuthOptions)
 				(*in).DeepCopyInto(*out)
 			}
 		}

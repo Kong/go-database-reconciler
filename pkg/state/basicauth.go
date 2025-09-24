@@ -31,7 +31,10 @@ func (k *BasicAuthsCollection) Get(keyOrID string) (*BasicAuth, error) {
 	if !ok {
 		panic(unexpectedType)
 	}
-	return &BasicAuth{BasicAuth: *basicAuth.DeepCopy()}, nil
+	return &BasicAuth{
+		BasicAuth: *basicAuth.DeepCopy(),
+		SkipHash:  basicAuth.SkipHash,
+	}, nil
 }
 
 // GetAllByConsumerID returns all basic-auth credentials
@@ -50,7 +53,10 @@ func (k *BasicAuthsCollection) GetAllByConsumerID(id string) ([]*BasicAuth,
 		if !ok {
 			panic(unexpectedType)
 		}
-		res = append(res, &BasicAuth{BasicAuth: *r.DeepCopy()})
+		res = append(res, &BasicAuth{
+			BasicAuth: *r.DeepCopy(),
+			SkipHash:  r.SkipHash,
+		})
 	}
 	return res, nil
 }
@@ -79,7 +85,10 @@ func (k *BasicAuthsCollection) GetAll() ([]*BasicAuth, error) {
 		if !ok {
 			panic(unexpectedType)
 		}
-		res = append(res, &BasicAuth{BasicAuth: *r.DeepCopy()})
+		res = append(res, &BasicAuth{
+			BasicAuth: *r.DeepCopy(),
+			SkipHash:  r.SkipHash,
+		})
 	}
 	return res, nil
 }

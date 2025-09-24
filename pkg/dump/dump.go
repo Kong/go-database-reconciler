@@ -77,6 +77,8 @@ type Config struct {
 	// We require it here to signal the Writer about the sanitization, so
 	// that referential integrity can be handled properly via IDs.
 	SanitizeContent bool
+
+	SkipHashForBasicAuth bool
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -268,7 +270,15 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("basic-auths: %w", err)
 		}
-		state.BasicAuths = basicAuths
+		var options []*kong.BasicAuthOptions
+		for _, basicAuth := range basicAuths {
+			option := &kong.BasicAuthOptions{
+				BasicAuth: *basicAuth,
+				// SkipHash will be nil by default, which is what you want
+			}
+			options = append(options, option)
+		}
+		state.BasicAuths = options
 		return nil
 	})
 

@@ -1396,10 +1396,12 @@ func Test_stateBuilder_consumers(t *testing.T) {
 									Key: kong.String("foo-key"),
 								},
 							},
-							BasicAuths: []*kong.BasicAuth{
+							BasicAuths: []*kong.BasicAuthOptions{
 								{
-									Username: kong.String("basic-username"),
-									Password: kong.String("basic-password"),
+									BasicAuth: kong.BasicAuth{
+										Username: kong.String("basic-username"),
+										Password: kong.String("basic-password"),
+									},
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
@@ -1448,14 +1450,16 @@ func Test_stateBuilder_consumers(t *testing.T) {
 						},
 					},
 				},
-				BasicAuths: []*kong.BasicAuth{
+				BasicAuths: []*kong.BasicAuthOptions{
 					{
-						ID:       kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Username: kong.String("basic-username"),
-						Password: kong.String("basic-password"),
-						Consumer: &kong.Consumer{
-							ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-							Username: kong.String("foo"),
+						BasicAuth: kong.BasicAuth{
+							ID:       kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+							Username: kong.String("basic-username"),
+							Password: kong.String("basic-password"),
+							Consumer: &kong.Consumer{
+								ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+								Username: kong.String("foo"),
+							},
 						},
 					},
 				},
@@ -1542,10 +1546,12 @@ func Test_stateBuilder_consumers(t *testing.T) {
 									Key: kong.String("foo-apikey"),
 								},
 							},
-							BasicAuths: []*kong.BasicAuth{
+							BasicAuths: []*kong.BasicAuthOptions{
 								{
-									Username: kong.String("basic-username"),
-									Password: kong.String("basic-password"),
+									BasicAuth: kong.BasicAuth{
+										Username: kong.String("basic-username"),
+										Password: kong.String("basic-password"),
+									},
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
@@ -1600,14 +1606,16 @@ func Test_stateBuilder_consumers(t *testing.T) {
 						},
 					},
 				},
-				BasicAuths: []*kong.BasicAuth{
+				BasicAuths: []*kong.BasicAuthOptions{
 					{
-						ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
-						Username: kong.String("basic-username"),
-						Password: kong.String("basic-password"),
-						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+						BasicAuth: kong.BasicAuth{
+							ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
+							Username: kong.String("basic-username"),
+							Password: kong.String("basic-password"),
+							Consumer: &kong.Consumer{
+								ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								Username: kong.String("foo"),
+							},
 						},
 					},
 				},
@@ -1680,10 +1688,12 @@ func Test_stateBuilder_consumers(t *testing.T) {
 									Key: kong.String("foo-apikey"),
 								},
 							},
-							BasicAuths: []*kong.BasicAuth{
+							BasicAuths: []*kong.BasicAuthOptions{
 								{
-									Username: kong.String("basic-username"),
-									Password: kong.String("basic-password"),
+									BasicAuth: kong.BasicAuth{
+										Username: kong.String("basic-username"),
+										Password: kong.String("basic-password"),
+									},
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
@@ -1739,14 +1749,16 @@ func Test_stateBuilder_consumers(t *testing.T) {
 						},
 					},
 				},
-				BasicAuths: []*kong.BasicAuth{
+				BasicAuths: []*kong.BasicAuthOptions{
 					{
-						ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
-						Username: kong.String("basic-username"),
-						Password: kong.String("basic-password"),
-						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+						BasicAuth: kong.BasicAuth{
+							ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
+							Username: kong.String("basic-username"),
+							Password: kong.String("basic-password"),
+							Consumer: &kong.Consumer{
+								ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								Username: kong.String("foo"),
+							},
 						},
 					},
 				},

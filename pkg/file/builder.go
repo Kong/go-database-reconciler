@@ -65,6 +65,8 @@ type stateBuilder struct {
 
 	isConsumerGroupPolicyOverrideSet bool
 
+	skipHashForBasicAuth bool
+
 	err error
 }
 
@@ -834,7 +836,7 @@ func (b *stateBuilder) consumers() {
 			return
 		}
 
-		var basicAuths []kong.BasicAuth
+		var basicAuths []kong.BasicAuthOptions
 		for _, cred := range c.BasicAuths {
 			cred.Consumer = utils.GetConsumerReference(c.Consumer)
 			basicAuths = append(basicAuths, *cred)
@@ -948,7 +950,7 @@ func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
 	return nil
 }
 
-func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuth) error {
+func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuthOptions) error {
 	for _, cred := range creds {
 		existingCred, err := b.currentState.BasicAuths.Get(*cred.Username)
 		if utils.Empty(cred.ID) {
@@ -966,6 +968,10 @@ func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuth) error {
 		if existingCred != nil {
 			cred.CreatedAt = existingCred.CreatedAt
 		}
+		if b.skipHashForBasicAuth {
+			cred.SkipHash = kong.Bool(true)
+		}
+
 		b.rawState.BasicAuths = append(b.rawState.BasicAuths, &cred)
 	}
 	return nil
