@@ -216,12 +216,15 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "BasicAuth": {
+    "BasicAuthOptions": {
       "required": [
         "username",
         "password"
       ],
       "properties": {
+        "_skip_hash": {
+          "type": "boolean"
+        },
         "consumer": {
           "$ref": "#/definitions/Consumer"
         },
@@ -474,7 +477,7 @@
         "basicauth_credentials": {
           "items": {
             "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/BasicAuth"
+            "$ref": "#/definitions/BasicAuthOptions"
           },
           "type": "array"
         },
@@ -1535,6 +1538,9 @@
           "type": "array"
         },
         "consumer_group_policy_overrides": {
+          "type": "boolean"
+        },
+        "skip_hash_for_basic_auth": {
           "type": "boolean"
         }
       },
