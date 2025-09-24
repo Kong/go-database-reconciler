@@ -1,0 +1,233 @@
+
+_format_version: "3.0"
+plugins:
+- name: jwt-signer
+  config:
+    access_token_audience_claim:
+    - aud
+    access_token_audiences_allowed:
+    - aud1
+    - aud2
+    access_token_consumer_by:
+    - username
+    - custom_id
+    access_token_consumer_claim: null
+    access_token_expiry_claim:
+    - exp
+    access_token_introspection_audience_claim:
+    - aud
+    access_token_introspection_audiences_allowed:
+    - aud1
+    - aud2
+    access_token_introspection_authorization: null
+    access_token_introspection_body_args: null
+    access_token_introspection_consumer_by:
+    - username
+    - custom_id
+    access_token_introspection_consumer_claim: null
+    access_token_introspection_endpoint: null
+    access_token_introspection_expiry_claim:
+    - exp
+    access_token_introspection_hint: access_token
+    access_token_introspection_issuer_claim:
+    - iss
+    access_token_introspection_issuers_allowed:
+    - iss1
+    - iss2
+    access_token_introspection_jwt_claim: null
+    access_token_introspection_leeway: 0
+    access_token_introspection_notbefore_claim:
+    - nbf
+    access_token_introspection_optional_claims:
+    - ['aud']
+    access_token_introspection_required_claims:
+    - ['exp']
+    - ['iss']
+    access_token_introspection_scopes_claim:
+    - scope
+    access_token_introspection_scopes_required: null
+    access_token_introspection_subject_claim:
+    - sub
+    access_token_introspection_subjects_allowed:
+    - sub1
+    - sub2
+    access_token_introspection_timeout: null
+    access_token_issuer: kong
+    access_token_issuer_claim:
+    - iss1
+    - iss2
+    access_token_issuers_allowed:
+    - test
+    access_token_jwks_uri: https://example.com
+    access_token_jwks_uri_client_certificate: null
+    access_token_jwks_uri_client_password: null
+    access_token_jwks_uri_client_username: null
+    access_token_jwks_uri_rotate_period: 0
+    access_token_keyset: kong
+    access_token_keyset_client_certificate: null
+    access_token_keyset_client_password: null
+    access_token_keyset_client_username: null
+    access_token_keyset_rotate_period: 0
+    access_token_leeway: 0
+    access_token_notbefore_claim:
+    - nbf
+    access_token_optional: false
+    access_token_optional_claims:
+    - - aud
+    access_token_request_header: Authorization
+    access_token_required_claims:
+    - - exp
+    - - iss
+    access_token_scopes_claim:
+    - scope
+    access_token_scopes_required: null
+    access_token_signing: false
+    access_token_signing_algorithm: RS256
+    access_token_subject_claim:
+    - sub
+    access_token_subjects_allowed:
+    - sub1
+    - sub2
+    access_token_upstream_header: XXX:bearer
+    access_token_upstream_leeway: 0
+    add_access_token_claims: {}
+    add_channel_token_claims: {}
+    add_claims: {}
+    cache_access_token_introspection: true
+    cache_channel_token_introspection: true
+    channel_token_audience_claim:
+    - aud
+    channel_token_audiences_allowed:
+    - aud1
+    - aud2
+    channel_token_consumer_by:
+    - username
+    - custom_id
+    channel_token_consumer_claim: null
+    channel_token_expiry_claim:
+    - exp
+    channel_token_introspection_audience_claim:
+    - aud
+    channel_token_introspection_audiences_allowed:
+    - aud1
+    - aud2
+    channel_token_introspection_authorization: null
+    channel_token_introspection_body_args: null
+    channel_token_introspection_consumer_by:
+    - username
+    - custom_id
+    channel_token_introspection_consumer_claim: null
+    channel_token_introspection_endpoint: null
+    channel_token_introspection_expiry_claim:
+    - exp
+    channel_token_introspection_hint: null
+    channel_token_introspection_issuer_claim:
+    - iss
+    channel_token_introspection_issuers_allowed:
+    - iss1
+    - iss2
+    channel_token_introspection_jwt_claim: null
+    channel_token_introspection_leeway: 0
+    channel_token_introspection_notbefore_claim:
+    - nbf
+    channel_token_introspection_optional_claims:
+    - - aud
+    channel_token_introspection_required_claims:
+    - - exp
+    - - iss
+      - sub
+    - - sub
+    channel_token_introspection_scopes_claim:
+    - scope
+    channel_token_introspection_scopes_required: null
+    channel_token_introspection_subject_claim:
+    - sub
+    channel_token_introspection_subjects_allowed:
+    - sub1
+    - sub2
+    channel_token_introspection_timeout: null
+    channel_token_issuer: kong
+    channel_token_issuer_claim:
+    - iss1
+    - iss2
+    channel_token_issuers_allowed:
+    - test
+    channel_token_jwks_uri: null
+    channel_token_jwks_uri_client_certificate: null
+    channel_token_jwks_uri_client_password: null
+    channel_token_jwks_uri_client_username: null
+    channel_token_jwks_uri_rotate_period: 0
+    channel_token_keyset: kong
+    channel_token_keyset_client_certificate: null
+    channel_token_keyset_client_password: null
+    channel_token_keyset_client_username: null
+    channel_token_keyset_rotate_period: 0
+    channel_token_leeway: 0
+    channel_token_notbefore_claim:
+    - nbf
+    channel_token_optional: true
+    channel_token_optional_claims:
+    - - aud
+    channel_token_request_header: null
+    channel_token_required_claims:
+    - - exp
+    - - iss
+    channel_token_scopes_claim:
+    - scope
+    channel_token_scopes_required: null
+    channel_token_signing: false
+    channel_token_signing_algorithm: RS256
+    channel_token_subject_claim:
+    - sub
+    channel_token_subjects_allowed:
+    - sub1
+    - sub2
+    channel_token_upstream_header: ZZZ:bearer
+    channel_token_upstream_leeway: 0
+    enable_access_token_introspection: true
+    enable_channel_token_introspection: true
+    enable_hs_signatures: false
+    enable_instrumentation: false
+    original_access_token_upstream_header: YYY:bearer
+    original_channel_token_upstream_header: null
+    realm: null
+    remove_access_token_claims: []
+    remove_channel_token_claims: []
+    set_access_token_claims: {}
+    set_channel_token_claims: {}
+    set_claims: {}
+    trust_access_token_introspection: true
+    trust_channel_token_introspection: true
+    verify_access_token_audience: true
+    verify_access_token_expiry: true
+    verify_access_token_introspection_audience: true
+    verify_access_token_introspection_expiry: true
+    verify_access_token_introspection_issuer: true
+    verify_access_token_introspection_notbefore: true
+    verify_access_token_introspection_scopes: true
+    verify_access_token_introspection_subject: true
+    verify_access_token_issuer: true
+    verify_access_token_notbefore: true
+    verify_access_token_scopes: true
+    verify_access_token_signature: false
+    verify_access_token_subject: true
+    verify_channel_token_audience: true
+    verify_channel_token_expiry: true
+    verify_channel_token_introspection_audience: true
+    verify_channel_token_introspection_expiry: true
+    verify_channel_token_introspection_issuer: true
+    verify_channel_token_introspection_notbefore: true
+    verify_channel_token_introspection_scopes: true
+    verify_channel_token_introspection_subject: true
+    verify_channel_token_issuer: true
+    verify_channel_token_notbefore: true
+    verify_channel_token_scopes: true
+    verify_channel_token_signature: false
+    verify_channel_token_subject: true
+  enabled: true
+  protocols:
+    - grpc
+    - grpcs
+    - http
+    - https
+    

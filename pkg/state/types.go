@@ -656,10 +656,10 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 			return strconv.Itoa(v)
 		case float64:
 			return strconv.FormatFloat(v, 'f', -1, 64)
-		case map[string]interface{}:
+		case map[string]interface{}, []interface{}:
 			jsonBytes, err := json.Marshal(v)
 			if err != nil {
-				panic(fmt.Sprintf("error converting map to JSON string: %v", err))
+				panic(fmt.Sprintf("error converting map or array to JSON string: %v", err))
 			}
 			return string(jsonBytes)
 		default:

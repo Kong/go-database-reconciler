@@ -9423,3 +9423,18 @@ func Test_Sync_SkipCustomEntitiesWithSelectorTags(t *testing.T) {
 		})
 	}
 }
+
+func Test_Sync_PluginConfig_Nested_Arrays(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.12.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/plugin-nested-array.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	// resync with no error
+	require.NoError(t, sync(kongFile))
+}
