@@ -3092,3 +3092,21 @@ func Test_Diff_Services_CACertificate_Order(t *testing.T) {
 // 	require.NoError(t, err)
 // 	assert.Equal(t, expectedOutputNoChange, out)
 // }
+
+func Test_Diff_PluginConfig_Nested_Arrays(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.12.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/plugin-nested-array.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	// diff with an element order change inside the nested array
+	diffFile := "testdata/sync/003-create-a-plugin/plugin-nested-array-reordered.yaml"
+	out, err := diff(diffFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+}

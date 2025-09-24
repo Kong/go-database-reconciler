@@ -679,10 +679,13 @@ func sortNestedArrays(m map[string]interface{}) map[string]interface{} {
 	for k, v := range m {
 		switch value := v.(type) {
 		case []interface{}:
-			// Recursively sort each element if it's a map
+			// Recursively sort each element if it's a map or array
 			for i, elem := range value {
-				if elemMap, ok := elem.(map[string]interface{}); ok {
-					value[i] = sortNestedArrays(elemMap)
+				switch elemType := elem.(type) {
+				case map[string]interface{}:
+					value[i] = sortNestedArrays(elemType)
+				case []interface{}:
+					value[i] = sortArrayElementsRecursively(elemType)
 				}
 			}
 			sort.Sort(EmptyInterfaceUsingUnderlyingType(value))
@@ -695,6 +698,21 @@ func sortNestedArrays(m map[string]interface{}) map[string]interface{} {
 	}
 
 	return sortedMap
+}
+
+// Helper function to sort array elements recursively
+func sortArrayElementsRecursively(arr []interface{}) []interface{} {
+	for i, elem := range arr {
+		switch elemType := elem.(type) {
+		case map[string]interface{}:
+			arr[i] = sortNestedArrays(elemType)
+		case []interface{}:
+			arr[i] = sortArrayElementsRecursively(elemType)
+		}
+	}
+
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(arr))
+	return arr
 }
 
 // Consumer represents a consumer in Kong.
