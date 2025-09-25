@@ -274,7 +274,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		for _, basicAuth := range basicAuths {
 			option := &kong.BasicAuthOptions{
 				BasicAuth: *basicAuth,
-				// SkipHash will be nil by default, which is what you want
 			}
 			options = append(options, option)
 		}
