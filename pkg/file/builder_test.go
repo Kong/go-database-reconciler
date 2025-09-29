@@ -1546,7 +1546,6 @@ func Test_stateBuilder_consumers(t *testing.T) {
 							},
 							BasicAuths: []*kong.BasicAuth{
 								{
-
 									Username: kong.String("basic-username"),
 									Password: kong.String("basic-password"),
 								},
