@@ -739,9 +739,7 @@ func populateConsumers(kongState *state.KongState, file *Content,
 		for _, k := range basicAuths {
 			k.Consumer = nil
 			utils.ZeroOutTimestamps(k)
-			c.BasicAuths = append(c.BasicAuths, &kong.BasicAuthOptions{
-				BasicAuth: k.BasicAuth,
-			})
+			c.BasicAuths = append(c.BasicAuths, &k.BasicAuth)
 		}
 		oauth2Creds, err := kongState.Oauth2Creds.GetAllByConsumerID(*c.ID)
 		if err != nil {

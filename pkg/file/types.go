@@ -691,7 +691,7 @@ type FConsumer struct {
 	KeyAuths      []*kong.KeyAuth          `json:"keyauth_credentials,omitempty" yaml:"keyauth_credentials,omitempty"`
 	HMACAuths     []*kong.HMACAuth         `json:"hmacauth_credentials,omitempty" yaml:"hmacauth_credentials,omitempty"`
 	JWTAuths      []*kong.JWTAuth          `json:"jwt_secrets,omitempty" yaml:"jwt_secrets,omitempty"`
-	BasicAuths    []*kong.BasicAuthOptions `json:"basicauth_credentials,omitempty" yaml:"basicauth_credentials,omitempty"`
+	BasicAuths    []*kong.BasicAuth        `json:"basicauth_credentials,omitempty" yaml:"basicauth_credentials,omitempty"`
 	Oauth2Creds   []*kong.Oauth2Credential `json:"oauth2_credentials,omitempty" yaml:"oauth2_credentials,omitempty"`
 	ACLGroups     []*kong.ACLGroup         `json:"acls,omitempty" yaml:"acls,omitempty"`
 	MTLSAuths     []*kong.MTLSAuth         `json:"mtls_auth_credentials,omitempty" yaml:"mtls_auth_credentials,omitempty"`

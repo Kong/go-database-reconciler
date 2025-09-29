@@ -216,15 +216,12 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "BasicAuthOptions": {
+    "BasicAuth": {
       "required": [
         "username",
         "password"
       ],
       "properties": {
-        "_skip_hash": {
-          "type": "boolean"
-        },
         "consumer": {
           "$ref": "#/definitions/Consumer"
         },
@@ -477,7 +474,7 @@
         "basicauth_credentials": {
           "items": {
             "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/BasicAuthOptions"
+            "$ref": "#/definitions/BasicAuth"
           },
           "type": "array"
         },

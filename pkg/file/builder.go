@@ -839,7 +839,9 @@ func (b *stateBuilder) consumers() {
 		var basicAuths []kong.BasicAuthOptions
 		for _, cred := range c.BasicAuths {
 			cred.Consumer = utils.GetConsumerReference(c.Consumer)
-			basicAuths = append(basicAuths, *cred)
+			basicAuths = append(basicAuths, kong.BasicAuthOptions{
+				BasicAuth: *cred,
+			})
 		}
 		if err := b.ingestBasicAuths(basicAuths); err != nil {
 			b.err = err

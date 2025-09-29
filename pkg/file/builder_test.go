@@ -1396,12 +1396,10 @@ func Test_stateBuilder_consumers(t *testing.T) {
 									Key: kong.String("foo-key"),
 								},
 							},
-							BasicAuths: []*kong.BasicAuthOptions{
+							BasicAuths: []*kong.BasicAuth{
 								{
-									BasicAuth: kong.BasicAuth{
-										Username: kong.String("basic-username"),
-										Password: kong.String("basic-password"),
-									},
+									Username: kong.String("basic-username"),
+									Password: kong.String("basic-password"),
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
@@ -1546,12 +1544,11 @@ func Test_stateBuilder_consumers(t *testing.T) {
 									Key: kong.String("foo-apikey"),
 								},
 							},
-							BasicAuths: []*kong.BasicAuthOptions{
+							BasicAuths: []*kong.BasicAuth{
 								{
-									BasicAuth: kong.BasicAuth{
-										Username: kong.String("basic-username"),
-										Password: kong.String("basic-password"),
-									},
+
+									Username: kong.String("basic-username"),
+									Password: kong.String("basic-password"),
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
@@ -1688,12 +1685,10 @@ func Test_stateBuilder_consumers(t *testing.T) {
 									Key: kong.String("foo-apikey"),
 								},
 							},
-							BasicAuths: []*kong.BasicAuthOptions{
+							BasicAuths: []*kong.BasicAuth{
 								{
-									BasicAuth: kong.BasicAuth{
-										Username: kong.String("basic-username"),
-										Password: kong.String("basic-password"),
-									},
+									Username: kong.String("basic-username"),
+									Password: kong.String("basic-password"),
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
