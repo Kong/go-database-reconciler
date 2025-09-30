@@ -8913,7 +8913,7 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")
 		require.NoError(t, err)
 
-		//re-sync with no error
+		// re-sync with no error
 		err = sync("testdata/sync/015-consumer-groups/kong-consumer-1.yaml")
 		require.NoError(t, err)
 		err = sync("testdata/sync/015-consumer-groups/kong-consumer-2.yaml")

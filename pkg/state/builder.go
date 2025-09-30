@@ -197,7 +197,10 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			continue
 		}
 		cred.Consumer = c
-		err = kongState.BasicAuths.Add(BasicAuth{BasicAuth: *cred})
+		err = kongState.BasicAuths.Add(BasicAuth{
+			BasicAuth: cred.BasicAuth,
+			SkipHash:  cred.SkipHash,
+		})
 		if err != nil {
 			return fmt.Errorf("inserting basic-auth into state: %w", err)
 		}

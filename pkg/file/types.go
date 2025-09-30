@@ -784,6 +784,7 @@ type Info struct {
 	LookUpSelectorTags           *LookUpSelectorTags `json:"default_lookup_tags,omitempty" yaml:"default_lookup_tags,omitempty"` //nolint
 	Defaults                     KongDefaults        `json:"defaults,omitempty" yaml:"defaults,omitempty"`
 	ConsumerGroupPolicyOverrides bool                `json:"consumer_group_policy_overrides,omitempty" yaml:"consumer_group_policy_overrides,omitempty"` //nolint
+	SkipHashForBasicAuth         bool                `json:"skip_hash_for_basic_auth,omitempty" yaml:"skip_hash_for_basic_auth,omitempty"`               //nolint
 }
 
 // LookUpSelectorTags contains tags to lookup

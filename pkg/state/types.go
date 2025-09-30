@@ -1295,6 +1295,7 @@ func (j1 *JWTAuth) GetConsumer() string {
 // It adds some helper methods along with Meta to the original BasicAuth object.
 type BasicAuth struct {
 	kong.BasicAuth `yaml:",inline"`
+	SkipHash       *bool
 	Meta
 }
 

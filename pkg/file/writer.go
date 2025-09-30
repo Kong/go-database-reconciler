@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -45,6 +46,22 @@ func getFormatVersion(kongVersion string) (string, error) {
 	return formatVersion, nil
 }
 
+func exportIDsWithBasicAuth(kongState *state.KongState) bool {
+	basicAuths, err := kongState.BasicAuths.GetAll()
+	if err != nil {
+		return false
+	}
+
+	exportIDs := len(basicAuths) > 0
+
+	if exportIDs {
+		const idsWarning = "Warning: basic-auth credentials detected, IDs will be exported"
+		cprint.UpdatePrintlnStdErr(idsWarning)
+	}
+
+	return exportIDs
+}
+
 // KongStateToFile generates a state object to file.Content.
 // It will omit timestamps and IDs while writing.
 func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Content, error) {
@@ -78,6 +95,10 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		} else {
 			file.Info.ConsumerGroupPolicyOverrides = true
 		}
+	}
+
+	if exportIDsWithBasicAuth(kongState) {
+		config.WithID = true
 	}
 
 	err = populateServices(kongState, file, config)

@@ -1536,6 +1536,9 @@
         },
         "consumer_group_policy_overrides": {
           "type": "boolean"
+        },
+        "skip_hash_for_basic_auth": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
