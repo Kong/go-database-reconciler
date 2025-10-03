@@ -345,8 +345,9 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 						// In that case, we still want to include the partial reference
 						// in the plugin, but we cannot validate its existence.
 						// So we print a warning and include the partial reference as-is.
-						const partialNotFoundWarning = "Warning: partial referenced in plugin not found in state.\n" +
-							"Ensure valid `default_lookup_tags` are set to load the partial."
+						partialNotFoundWarning := fmt.Sprintf("Warning: partial %v referenced in plugin %v not found in state.\n"+
+							"Ensure valid `default_lookup_tags` are set to load the partial.",
+							partial.Partial.FriendlyName(), p.FriendlyName())
 						cprint.UpdatePrintlnStdErr(partialNotFoundWarning)
 						pluginPartials = append(pluginPartials, &kong.PartialLink{
 							Partial: partial.Partial,
