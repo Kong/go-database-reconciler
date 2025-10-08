@@ -362,6 +362,34 @@ func dump(opts ...string) (string, error) {
 	return stripansi.Strip(string(out)), cmdErr
 }
 
+func dumpWithStdErrCheck(opts ...string) (string, string, error) {
+	deckCmd := cmd.NewRootCmd()
+	args := []string{"gateway", "dump"}
+	if len(opts) > 0 {
+		args = append(args, opts...)
+	}
+	deckCmd.SetArgs(args)
+
+	// capture command output to be used during tests
+	rescueStdout := os.Stdout
+	rescueStderr := os.Stderr
+	rOut, wOut, _ := os.Pipe()
+	rErr, wErr, _ := os.Pipe()
+	os.Stdout = wOut
+	os.Stderr = wErr
+
+	cmdErr := deckCmd.ExecuteContext(context.Background())
+
+	wOut.Close()
+	wErr.Close()
+	out, _ := io.ReadAll(rOut)
+	errOut, _ := io.ReadAll(rErr)
+	os.Stdout = rescueStdout
+	os.Stderr = rescueStderr
+
+	return stripansi.Strip(string(out)), stripansi.Strip(string(errOut)), cmdErr
+}
+
 func fileLint(opts ...string) (string, error) {
 	deckCmd := cmd.NewRootCmd()
 	args := []string{"file", "lint"}
