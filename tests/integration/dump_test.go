@@ -436,3 +436,45 @@ func Test_Dump_KeysAndKeySets(t *testing.T) {
 		})
 	}
 }
+
+func Test_Dump_PluginWithPartials_Select_Tags(t *testing.T) {
+	runWhen(t, "kong", ">=3.10.0")
+	setup(t)
+
+	tests := []struct {
+		name            string
+		stateFile       string
+		expectedFile    string
+		expectedWarning string
+	}{
+		{
+			name:         "dump with select-tags: global plugins with partials",
+			stateFile:    "testdata/dump/006-plugin-partials/plugin-partials-different-tags-global.yaml",
+			expectedFile: "testdata/dump/006-plugin-partials/select-tagged-dump-global.yaml",
+			expectedWarning: "Warning: partial my-redis-config referenced in plugin rate-limiting not found in state.\n" +
+				"Ensure valid `default_lookup_tags` are set before syncing.\n",
+		},
+		{
+			name:         "dump with select-tags: nested plugins with partials",
+			stateFile:    "testdata/dump/006-plugin-partials/plugin-partials-different-tags-nested.yaml",
+			expectedFile: "testdata/dump/006-plugin-partials/select-tagged-dump-nested.yaml",
+			expectedWarning: "Warning: partial redis-svc referenced in plugin rate-limiting not found in state.\n" +
+				"Ensure valid `default_lookup_tags` are set before syncing.\n",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, sync(tc.stateFile))
+
+			flags := []string{"-o", "-", "--select-tag", "example"}
+			stdout, stderr, err := dumpWithStdErrCheck(flags...)
+			require.NoError(t, err)
+
+			expected, err := readFile(tc.expectedFile)
+			require.NoError(t, err)
+			assert.Equal(t, expected, stdout)
+			assert.Equal(t, tc.expectedWarning, stderr)
+		})
+	}
+}

@@ -1,0 +1,35 @@
+_format_version: "3.0"
+_info:
+  defaults: {}
+  select_tags:
+  - example
+plugins:
+- config:
+    day: null
+    error_code: 429
+    error_message: API rate limit exceeded
+    fault_tolerant: true
+    header_name: null
+    hide_client_headers: false
+    hour: null
+    limit_by: consumer
+    minute: null
+    month: null
+    path: null
+    policy: local
+    second: 100
+    sync_rate: -1
+    year: null
+  enabled: true
+  name: rate-limiting
+  partials:
+  - id: 834f4f71-11d8-495d-b646-a70832385548
+    name: my-redis-config
+    path: config.redis
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  tags:
+  - example

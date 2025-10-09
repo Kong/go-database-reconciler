@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
@@ -332,13 +333,24 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			var pluginPartials []*kong.PartialLink
 			for _, partial := range p.Partials {
 				if partial.Partial != nil && !utils.Empty(partial.Partial.ID) {
-					ok, pt, err := ensurePartial(kongState, *partial.Partial.ID)
-					if err != nil {
-						return err
-					}
+					ok, pt, _ := ensurePartial(kongState, *partial.Partial.ID)
 					if ok {
 						pluginPartials = append(pluginPartials, &kong.PartialLink{
 							Partial: pt,
+							Path:    partial.Path,
+						})
+					} else {
+						// If the partial is not found in the state, it is possible
+						// that the user has used select-tags to generate a dump config.
+						// In that case, we still want to include the partial reference
+						// in the plugin, but we cannot validate its existence.
+						// So we print a warning and include the partial reference as-is.
+						partialNotFoundWarning := fmt.Sprintf("Warning: partial %v referenced in plugin %v not found in state.\n"+
+							"Ensure valid `default_lookup_tags` are set before syncing.",
+							partial.Partial.FriendlyName(), p.FriendlyName())
+						cprint.UpdatePrintlnStdErr(partialNotFoundWarning)
+						pluginPartials = append(pluginPartials, &kong.PartialLink{
+							Partial: partial.Partial,
 							Path:    partial.Path,
 						})
 					}
