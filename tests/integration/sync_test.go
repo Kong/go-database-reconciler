@@ -8958,6 +8958,54 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 		// re-sync with no error
 		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-initial.yaml"))
 	})
+
+	t.Run("no errors occur in case of distributed config when a new consumer-group is added for a consumer", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+
+		// sync consumer-group file first
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumer-groups.yaml"))
+
+		// sync consumer file
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-initial.yaml"))
+		// re-sync with no error
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-initial.yaml"))
+		// check groups
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+		consumerGroupConsumers, err := currentState.ConsumerGroupConsumers.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, consumerGroupConsumers)
+		require.Len(t, consumerGroupConsumers, 2)
+
+		// add new consumer-group file
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-update.yaml"))
+		// re-sync with no error
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-update.yaml"))
+
+		// check groups
+		currentState, err = fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+		consumerGroupConsumers, err = currentState.ConsumerGroupConsumers.GetAll()
+		require.NoError(t, err)
+		require.NotNil(t, consumerGroupConsumers)
+		require.Len(t, consumerGroupConsumers, 3)
+
+		expectedGroups := map[string]bool{
+			"consumer-group-1": false,
+			"consumer-group-2": false,
+			"consumer-group-3": false,
+		}
+
+		for _, c := range consumerGroupConsumers {
+			assert.Equal(t, "test-consumer", *c.Consumer.Username)
+			assert.Contains(t, expectedGroups, *c.ConsumerGroup.Name)
+			expectedGroups[*c.ConsumerGroup.Name] = true
+		}
+
+		for g, found := range expectedGroups {
+			assert.True(t, found, "expected consumer group %q to be present", g)
+		}
+	})
 }
 
 // test scope:
