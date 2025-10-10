@@ -66,6 +66,8 @@ type stateBuilder struct {
 	isConsumerGroupPolicyOverrideSet bool
 
 	skipHashForBasicAuth bool
+	// Track consumer IDs to avoid duplicates in rawState
+	consumerIDsInRawState map[string]bool
 
 	err error
 }
@@ -85,6 +87,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.rawState = &utils.KongRawState{}
 	b.konnectRawState = &utils.KonnectRawState{}
 	b.schemasCache = make(map[string]map[string]interface{})
+	b.consumerIDsInRawState = make(map[string]bool)
 
 	b.intermediate, err = state.NewKongState()
 	if err != nil {
@@ -601,6 +604,24 @@ func (b *stateBuilder) caCertificates() {
 	}
 }
 
+// addConsumerToRawState adds a consumer to rawState only if it hasn't been added before
+// This is to ensure that one consumer is not added multiple times in the rawState,
+// as it is a basic appending with no checks. This leads to fewer errors during state
+// processing.
+func (b *stateBuilder) addConsumerToRawState(consumer *kong.Consumer) {
+	if consumer == nil || consumer.ID == nil {
+		return
+	}
+
+	consumerID := *consumer.ID
+	if b.consumerIDsInRawState[consumerID] {
+		return
+	}
+
+	b.consumerIDsInRawState[consumerID] = true
+	b.rawState.Consumers = append(b.rawState.Consumers, consumer)
+}
+
 func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (*kong.Consumer, error) {
 	var (
 		consumer *state.Consumer
@@ -695,7 +716,7 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 		c.Consumer.CreatedAt = consumer.CreatedAt
 	}
 
-	b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
+	b.addConsumerToRawState(&c.Consumer)
 	err = b.intermediate.Consumers.AddIgnoringDuplicates(state.Consumer{Consumer: c.Consumer})
 	if err != nil {
 		return nil, err
@@ -798,7 +819,7 @@ func (b *stateBuilder) consumers() {
 			}
 		}
 		if !consumerAlreadyAdded {
-			b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
+			b.addConsumerToRawState(&c.Consumer)
 			err = b.intermediate.Consumers.AddIgnoringDuplicates(state.Consumer{Consumer: c.Consumer})
 			if err != nil {
 				b.err = err
