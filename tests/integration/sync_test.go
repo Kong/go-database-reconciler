@@ -8945,6 +8945,19 @@ func Test_Sync_Consumers_Default_Lookup_Tag(t *testing.T) {
 			assert.Contains(t, consumerNames, *consumer.Username)
 		}
 	})
+
+	t.Run("no errors occur in case of distributed config when a consumer is a part of >1 consumer-groups", func(t *testing.T) {
+		mustResetKongState(ctx, t, client, dumpConfig)
+
+		// sync consumer-group file first
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumer-groups.yaml"))
+
+		// sync consumer file
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-initial.yaml"))
+
+		// re-sync with no error
+		require.NoError(t, sync("testdata/sync/015-consumer-groups/kong-consumers-multiple-groups-initial.yaml"))
+	})
 }
 
 // test scope:
