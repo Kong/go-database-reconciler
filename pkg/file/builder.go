@@ -825,10 +825,31 @@ func (b *stateBuilder) consumers() {
 				b.err = err
 				return
 			}
-			// ingest consumer into consumer group
-			if err := b.ingestIntoConsumerGroup(c); err != nil {
+		}
+
+		for _, group := range c.Groups {
+			var groupIdentifier string
+			if group.ID != nil {
+				groupIdentifier = *group.ID
+			} else if group.Name != nil {
+				cg, err := b.intermediate.ConsumerGroups.Get(*group.Name)
+				if err != nil {
+					b.err = err
+					return
+				}
+				groupIdentifier = *cg.ID
+			}
+			consumerExistsInGroup, err := b.intermediate.ConsumerGroupConsumers.Get(*c.ID, groupIdentifier)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
 				b.err = err
 				return
+			}
+			if consumerExistsInGroup == nil {
+				// ingest consumer into consumer group
+				if err := b.ingestIntoConsumerGroup(c, group); err != nil {
+					b.err = err
+					return
+				}
 			}
 		}
 
@@ -919,8 +940,8 @@ func (b *stateBuilder) consumers() {
 	}
 }
 
-func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
-	for _, group := range consumer.Groups {
+func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer, consumerGroup *kong.ConsumerGroup) error {
+	ingest := func(group *kong.ConsumerGroup) error {
 		found := false
 		for _, cg := range b.rawState.ConsumerGroups {
 			if group.ID != nil && *cg.ConsumerGroup.ID == *group.ID {
@@ -946,8 +967,17 @@ func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
 				"consumer-group '%s' not found for consumer '%s'", groupIdentifier, *consumer.ID,
 			)
 		}
+
+		return nil
 	}
-	return nil
+
+	if consumerGroup == nil {
+		for _, group := range consumer.Groups {
+			return ingest(group)
+		}
+	}
+
+	return ingest(consumerGroup)
 }
 
 func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
