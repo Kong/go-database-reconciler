@@ -56,8 +56,8 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 	}
 	gjsonSchema := gjson.ParseBytes((jsonb))
 
-	defaultFields, err = parseSchemaForDefaults(gjsonSchema, defaultFields)
-	if err != nil {
+	defaultFields = parseSchemaForDefaults(gjsonSchema, defaultFields)
+	if defaultFields == nil {
 		return fmt.Errorf("error parsing schema for defaults: %w", err)
 	}
 
@@ -93,7 +93,7 @@ func getEntityIdentifier(v reflect.Value, entityType string) (string, error) {
 	return entityIdentifier, nil
 }
 
-func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interface{}) (map[string]interface{}, error) {
+func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interface{}) map[string]interface{} {
 	schemaFields := schema.Get("fields")
 	defaultRecordValue := schema.Get("default")
 
@@ -107,8 +107,8 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 
 		fieldSchema := value.Get(fname)
 		if fieldSchema.Get("fields").Exists() {
-			nestedMap, err := parseSchemaForDefaults(fieldSchema, make(map[string]interface{}))
-			if err != nil {
+			nestedMap := parseSchemaForDefaults(fieldSchema, make(map[string]interface{}))
+			if nestedMap == nil {
 				return false
 			}
 			defaultFields[fname] = nestedMap
@@ -127,7 +127,7 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 		return true
 	})
 
-	return defaultFields, nil
+	return defaultFields
 }
 
 func parseEntityWithDefaults(entity reflect.Value, defaultFields map[string]interface{}) error {
