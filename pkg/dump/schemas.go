@@ -11,11 +11,21 @@ import (
 
 // Some entities in Konnect have different names compared to Kong Gateway
 var kongToKonnectEntitiesMap = map[string]string{
-	"services":    "service",
-	"routes":      "route",
-	"upstreams":   "upstream",
-	"targets":     "target",
-	"jwt_secrets": "jwt",
+	"services":              "service",
+	"routes":                "route",
+	"upstreams":             "upstream",
+	"targets":               "target",
+	"jwt_secrets":           "jwt",
+	"consumers":             "consumer",
+	"consumer_groups":       "consumer_group",
+	"certificates":          "certificate",
+	"ca_certificates":       "ca_certificate",
+	"keys":                  "key",
+	"key_sets":              "key-set",
+	"hmacauth_credentials":  "hmac-auth",
+	"basicauth_credentials": "basic-auth",
+	"mtls_auth_credentials": "mtls-auth",
+	"snis":                  "sni",
 }
 
 type SchemaFetcher struct {
@@ -68,13 +78,18 @@ func (s *SchemaFetcher) getSchema(entityType, entityIdentifier string) (kong.Sch
 		return kong.Schema{}, fmt.Errorf("kong client is not initialized")
 	}
 
-	if entityType == "plugins" { // || entityType == ConsumerGroupPlugin {
+	if entityType == "plugins" {
 		schema, err = s.pluginSchemasCache.Get(s.ctx, entityIdentifier)
 		return schema, err
 	}
 
 	if entityType == "partials" {
 		schema, err = s.partialSchemasCache.Get(s.ctx, entityIdentifier)
+		return schema, err
+	}
+
+	if entityType == "vaults" {
+		schema, err = s.vaultSchemaCache.Get(s.ctx, entityIdentifier)
 		return schema, err
 	}
 
