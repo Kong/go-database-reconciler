@@ -59,6 +59,11 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 		return fmt.Errorf("error parsing schema for defaults")
 	}
 
+	// no processing needed if no default fields found
+	if len(defaultFields) == 0 {
+		return nil
+	}
+
 	err = parseEntityWithDefaults(v, defaultFields)
 	if err != nil {
 		return fmt.Errorf("error parsing entity with defaults: %w", err)
