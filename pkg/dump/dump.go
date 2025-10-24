@@ -207,6 +207,36 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
+		if config.SkipDefaults {
+			for i, cg := range consumerGroups {
+				consumerGroup := cg.ConsumerGroup
+				consumers := cg.Consumers
+				plugins := cg.Plugins
+
+				err := removeDefaultsFromState([]interface{}{consumerGroup}, schemaFetcher, "consumer_groups")
+				if err != nil {
+					return fmt.Errorf("error removing defaults from consumer_groups: %w", err)
+				}
+
+				err = removeDefaultsFromState(consumers, schemaFetcher, "consumers")
+				if err != nil {
+					return fmt.Errorf("error removing defaults from consumers: %w", err)
+				}
+
+				err = removeDefaultsFromState(plugins, schemaFetcher, "plugins")
+				if err != nil {
+					return fmt.Errorf("error removing defaults from plugins: %w", err)
+				}
+
+				cg.ConsumerGroup = consumerGroup
+				cg.Consumers = consumers
+				cg.Plugins = plugins
+
+				consumerGroups[i] = cg
+			}
+		}
+
 		state.ConsumerGroups = consumerGroups
 		return nil
 	})
