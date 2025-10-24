@@ -56,7 +56,7 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 
 	defaultFields = parseSchemaForDefaults(gjsonSchema, defaultFields)
 	if defaultFields == nil {
-		return fmt.Errorf("error parsing schema for defaults: %w", err)
+		return fmt.Errorf("error parsing schema for defaults")
 	}
 
 	err = parseEntityWithDefaults(v, defaultFields)
