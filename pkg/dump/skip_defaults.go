@@ -47,8 +47,6 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 		return fmt.Errorf("error fetching schema for entity %s of type %s: %w", entityIdentifier, entityType, err)
 	}
 
-	fmt.Println(entityIdentifier)
-
 	defaultFields := make(map[string]interface{})
 	jsonb, err := json.Marshal(&schema)
 	if err != nil {
@@ -268,10 +266,10 @@ func compareSlices(fieldSlice, defaultSlice reflect.Value) bool {
 	}
 
 	for i := 0; i < fieldSlice.Len(); i++ {
-		fieldElem := fieldSlice.Index(i)
+		fieldElem := fieldSlice.Index(i).Interface()
 		defaultElem := defaultSlice.Index(i).Interface()
 
-		if compareValues(fieldElem, defaultElem) {
+		if !compareValues(fieldElem, defaultElem) {
 			return false
 		}
 	}
