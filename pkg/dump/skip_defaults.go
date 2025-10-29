@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
-	"unicode"
+	"sync"
 
+	"github.com/ettle/strcase"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/tidwall/gjson"
 	"golang.org/x/sync/errgroup"
 )
+
+var defaultFieldsCache = map[string]interface{}{}
+var defaultFieldsMu sync.Mutex
 
 func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 	state *utils.KongRawState, schemaFetcher *SchemaFetcher,
@@ -27,17 +30,17 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 			consumers := cg.Consumers
 			plugins := cg.Plugins
 
-			err := removeDefaultsFromStateEntities([]interface{}{consumerGroup}, schemaFetcher, "consumer_groups")
+			err := processStateEntities([]interface{}{consumerGroup}, schemaFetcher, "consumer_groups")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from consumer_groups: %w", err)
 			}
 
-			err = removeDefaultsFromStateEntities(consumers, schemaFetcher, "consumers")
+			err = processStateEntities(consumers, schemaFetcher, "consumers")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from consumers: %w", err)
 			}
 
-			err = removeDefaultsFromStateEntities(plugins, schemaFetcher, "plugins")
+			err = processStateEntities(plugins, schemaFetcher, "plugins")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from plugins: %w", err)
 			}
@@ -52,7 +55,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		err := removeDefaultsFromStateEntities(state.Consumers, schemaFetcher, "consumers")
+		err := processStateEntities(state.Consumers, schemaFetcher, "consumers")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from consumers: %w", err)
 		}
@@ -61,7 +64,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Key Auth credentials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.KeyAuths, schemaFetcher, "keyauth_credentials")
+		err := processStateEntities(state.KeyAuths, schemaFetcher, "keyauth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from key auths: %w", err)
 		}
@@ -70,7 +73,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// HMAC Auth credentials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.HMACAuths, schemaFetcher, "hmacauth_credentials")
+		err := processStateEntities(state.HMACAuths, schemaFetcher, "hmacauth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from hmac auths: %w", err)
 		}
@@ -79,7 +82,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// JWT Auth credentials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.JWTAuths, schemaFetcher, "jwt_secrets")
+		err := processStateEntities(state.JWTAuths, schemaFetcher, "jwt_secrets")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from jwt auths: %w", err)
 		}
@@ -88,7 +91,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Basic Auth credentials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.BasicAuths, schemaFetcher, "basicauth_credential")
+		err := processStateEntities(state.BasicAuths, schemaFetcher, "basicauth_credential")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from basic auths: %w", err)
 		}
@@ -97,7 +100,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// OAuth2 credentials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Oauth2Creds, schemaFetcher, "oauth2_credentials")
+		err := processStateEntities(state.Oauth2Creds, schemaFetcher, "oauth2_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from oauth2 creds: %w", err)
 		}
@@ -106,7 +109,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// ACL Groups
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.ACLGroups, schemaFetcher, "acls")
+		err := processStateEntities(state.ACLGroups, schemaFetcher, "acls")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from acl groups: %w", err)
 		}
@@ -115,7 +118,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// mTLS Auth credentials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.MTLSAuths, schemaFetcher, "mtls_auth_credentials")
+		err := processStateEntities(state.MTLSAuths, schemaFetcher, "mtls_auth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from mtls auths: %w", err)
 		}
@@ -127,7 +130,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		err := removeDefaultsFromStateEntities(state.Services, schemaFetcher, "services")
+		err := processStateEntities(state.Services, schemaFetcher, "services")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from services: %w", err)
 		}
@@ -136,7 +139,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Routes
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Routes, schemaFetcher, "routes")
+		err := processStateEntities(state.Routes, schemaFetcher, "routes")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from routes: %w", err)
 		}
@@ -145,7 +148,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Plugins
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Plugins, schemaFetcher, "plugins")
+		err := processStateEntities(state.Plugins, schemaFetcher, "plugins")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from plugins: %w", err)
 		}
@@ -154,7 +157,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Filter Chains
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.FilterChains, schemaFetcher, "filter_chains")
+		err := processStateEntities(state.FilterChains, schemaFetcher, "filter_chains")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from filter chains: %w", err)
 		}
@@ -163,7 +166,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Certificates
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Certificates, schemaFetcher, "certificates")
+		err := processStateEntities(state.Certificates, schemaFetcher, "certificates")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from certificates: %w", err)
 		}
@@ -172,7 +175,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// CA Certificates
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.CACertificates, schemaFetcher, "ca_certificates")
+		err := processStateEntities(state.CACertificates, schemaFetcher, "ca_certificates")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from ca certificates: %w", err)
 		}
@@ -181,7 +184,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// SNIs
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.SNIs, schemaFetcher, "snis")
+		err := processStateEntities(state.SNIs, schemaFetcher, "snis")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from snis: %w", err)
 		}
@@ -190,7 +193,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Upstreams
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Upstreams, schemaFetcher, "upstreams")
+		err := processStateEntities(state.Upstreams, schemaFetcher, "upstreams")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from upstreams: %w", err)
 		}
@@ -199,7 +202,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Targets
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Targets, schemaFetcher, "targets")
+		err := processStateEntities(state.Targets, schemaFetcher, "targets")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from targets: %w", err)
 		}
@@ -208,7 +211,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Vaults
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Vaults, schemaFetcher, "vaults")
+		err := processStateEntities(state.Vaults, schemaFetcher, "vaults")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from vaults: %w", err)
 		}
@@ -217,7 +220,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Partials
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Partials, schemaFetcher, "partials")
+		err := processStateEntities(state.Partials, schemaFetcher, "partials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from partials: %w", err)
 		}
@@ -226,7 +229,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Keys
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Keys, schemaFetcher, "keys")
+		err := processStateEntities(state.Keys, schemaFetcher, "keys")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from keys: %w", err)
 		}
@@ -235,7 +238,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Key Sets
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.KeySets, schemaFetcher, "key_sets")
+		err := processStateEntities(state.KeySets, schemaFetcher, "key_sets")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from key sets: %w", err)
 		}
@@ -244,7 +247,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Licenses
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.Licenses, schemaFetcher, "licenses")
+		err := processStateEntities(state.Licenses, schemaFetcher, "licenses")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from licenses: %w", err)
 		}
@@ -253,7 +256,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// RBAC Roles
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.RBACRoles, schemaFetcher, "rbac_roles")
+		err := processStateEntities(state.RBACRoles, schemaFetcher, "rbac_roles")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from rbac roles: %w", err)
 		}
@@ -262,7 +265,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// RBAC Endpoint Permissions
 	group.Go(func() error {
-		err := removeDefaultsFromStateEntities(state.RBACEndpointPermissions, schemaFetcher, "rbac_endpoint_permissions")
+		err := processStateEntities(state.RBACEndpointPermissions, schemaFetcher, "rbac_endpoint_permissions")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from rbac endpoint permissions: %w", err)
 		}
@@ -270,7 +273,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 	})
 }
 
-func removeDefaultsFromStateEntities[T any](entities []T, schemaFetcher *SchemaFetcher, entityType string) error {
+func processStateEntities[T any](entities []T, schemaFetcher *SchemaFetcher, entityType string) error {
 	if len(entities) == 0 {
 		return nil
 	}
@@ -310,9 +313,19 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 	}
 	gjsonSchema := gjson.ParseBytes((jsonb))
 
-	defaultFields = parseSchemaForDefaults(gjsonSchema, defaultFields)
-	if defaultFields == nil {
-		return fmt.Errorf("error parsing schema for defaults")
+	defaultFieldsMu.Lock()
+	defer defaultFieldsMu.Unlock()
+
+	cacheKey := entityType + "::" + entityIdentifier
+
+	if defaultFieldsCached, exists := defaultFieldsCache[cacheKey]; exists {
+		defaultFields = defaultFieldsCached.(map[string]interface{})
+	} else {
+		defaultFields = parseSchemaForDefaults(gjsonSchema, defaultFields)
+		if defaultFields == nil {
+			return fmt.Errorf("error parsing schema for defaults")
+		}
+		defaultFieldsCache[cacheKey] = defaultFields
 	}
 
 	// no processing needed if no default fields found
@@ -320,7 +333,7 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 		return nil
 	}
 
-	err = parseEntityWithDefaults(v, defaultFields)
+	err = stripDefaultValuesFromEntity(v, defaultFields)
 	if err != nil {
 		return fmt.Errorf("error parsing entity with defaults: %w", err)
 	}
@@ -354,18 +367,35 @@ func getEntityIdentifier(v reflect.Value, entityType string) (string, error) {
 
 func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interface{}) map[string]interface{} {
 	schemaFields := schema.Get("fields")
+	if schemaFields.Type == gjson.Null {
+		schemaFields = schema.Get("properties")
+	}
 	defaultRecordValue := schema.Get("default")
 
-	schemaFields.ForEach(func(_, value gjson.Result) bool {
-		ms := value.Map()
+	isObject := false
+	if schemaFields.IsObject() {
+		isObject = true
+	}
+
+	schemaFields.ForEach(func(key, value gjson.Result) bool {
 		fname := ""
-		for k := range ms {
-			fname = k
-			break
+
+		var fieldValue gjson.Result
+		var fieldSchema gjson.Result
+
+		if isObject && key.Type != gjson.Null {
+			fname = key.String()
+			fieldSchema = value
+		} else {
+			ms := value.Map()
+			for k := range ms {
+				fname = k
+				break
+			}
+			fieldSchema = value.Get(fname)
 		}
 
-		fieldSchema := value.Get(fname)
-		if fieldSchema.Get("fields").Exists() {
+		if fieldSchema.Get("fields").Exists() || fieldSchema.Get("properties").Exists() {
 			nestedMap := parseSchemaForDefaults(fieldSchema, make(map[string]interface{}))
 			if nestedMap == nil {
 				return false
@@ -373,23 +403,39 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 			defaultFields[fname] = nestedMap
 		}
 
-		if defaultRecordValue.Exists() && defaultRecordValue.Get(fname).Exists() {
-			value = defaultRecordValue.Get(fname)
+		if isObject {
+			fieldValue = value.Get("default")
+		} else if defaultRecordValue.Exists() && defaultRecordValue.Get(fname).Exists() {
+			fieldValue = defaultRecordValue.Get(fname)
 		} else {
-			value = value.Get(fname + ".default")
+			fieldValue = value.Get(fname + ".default")
 		}
 
-		if value.Exists() {
-			defaultFields[fname] = value.Value()
+		if fieldValue.Exists() {
+			defaultFields[fname] = fieldValue.Value()
 		}
 
 		return true
 	})
 
+	// All credentials' schemas in konnect are embedded under "value" field
+	// which doesn't match gateway schema or internal go-kong representation
+	// Thus, merging values from "value" field to the defaultFields map directly
+	// ------------------------------------------------------------------------
+	// @TODO: Uncomment the code below if such handling is needed in future.
+	// At the moment, only jwt_secrets have a default for "algorithm" which is a required
+	// field. Hence, not skipping it.
+	// if valueMap, ok := defaultFields["value"]; ok {
+	// 	for k, v := range valueMap.(map[string]interface{}) {
+	// 		defaultFields[k] = v
+	// 	}
+	// 	delete(defaultFields, "value")
+	// }
+
 	return defaultFields
 }
 
-func parseEntityWithDefaults(entity reflect.Value, defaultFields map[string]interface{}) error {
+func stripDefaultValuesFromEntity(entity reflect.Value, defaultFields map[string]interface{}) error {
 	if entity.Kind() != reflect.Struct {
 		return fmt.Errorf("entity is not a struct")
 	}
@@ -404,7 +450,7 @@ func parseEntityWithDefaults(entity reflect.Value, defaultFields map[string]inte
 			continue
 		}
 		fieldValue := field.Interface()
-		snakeCaseFieldName := toSnakeCase(fieldName)
+		snakeCaseFieldName := strcase.ToSnake(fieldName)
 		if defaultValue, hasDefault := defaultFields[snakeCaseFieldName]; hasDefault {
 			if compareValues(fieldValue, defaultValue) {
 				if field.CanSet() {
@@ -427,17 +473,6 @@ func parseEntityWithDefaults(entity reflect.Value, defaultFields map[string]inte
 	}
 
 	return nil
-}
-
-func toSnakeCase(s string) string {
-	var result strings.Builder
-	for i, r := range s {
-		if i > 0 && unicode.IsUpper(r) {
-			result.WriteByte('_')
-		}
-		result.WriteRune(unicode.ToLower(r))
-	}
-	return result.String()
 }
 
 func isNumericKind(kind reflect.Kind) bool {

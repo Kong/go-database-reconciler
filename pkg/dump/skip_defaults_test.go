@@ -41,7 +41,7 @@ func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
 	// Create a schema fetcher with a mock client that won't be used
 	schemaFetcher := &SchemaFetcher{}
 	entities := []*TestEntity{}
-	err := removeDefaultsFromStateEntities(entities, schemaFetcher, "test")
+	err := processStateEntities(entities, schemaFetcher, "test")
 	if err != nil {
 		t.Errorf("Expected no error for empty entities, got %v", err)
 	}
@@ -105,7 +105,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 							"default": [1, 2]
 						}
 					}
-					
+
 				]
 			}`,
 			expectedFields: map[string]interface{}{
@@ -158,19 +158,25 @@ func TestParseSchemaForDefaults(t *testing.T) {
 		{
 			name: "schema with default record value",
 			schemaJSON: `{
-				"fields": {
+				"fields": [{
 					"test": {
-						"name": {
-							"type": "string"
-						}
+						"fields": [{
+							"name": {
+								"type": "string"
+							}
+						}]
 					}
-				},
+				}],
 				"default": {
-					"name": "record-default"
+					"test": {
+						"name": "record-default"
+					}
 				}
 			}`,
 			expectedFields: map[string]interface{}{
-				"name": "record-default",
+				"test": map[string]interface{}{
+					"name": "record-default",
+				},
 			},
 		},
 		{
@@ -284,10 +290,10 @@ func TestParseEntityWithDefaults(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			entity := tt.setupEntity()
 			entityValue := reflect.ValueOf(entity).Elem()
-			err := parseEntityWithDefaults(entityValue, tt.defaultFields)
+			err := stripDefaultValuesFromEntity(entityValue, tt.defaultFields)
 
 			if (err != nil) != tt.expectedError {
-				t.Errorf("parseEntityWithDefaults() error = %v, expectedError %v", err, tt.expectedError)
+				t.Errorf("stripDefaultValuesFromEntity() error = %v, expectedError %v", err, tt.expectedError)
 				return
 			}
 
