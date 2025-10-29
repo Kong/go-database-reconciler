@@ -13,8 +13,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var defaultFieldsCache = map[string]interface{}{}
-var defaultFieldsMu sync.Mutex
+var (
+	defaultFieldsCache = map[string]interface{}{}
+	defaultFieldsMu    sync.Mutex
+)
 
 func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 	state *utils.KongRawState, schemaFetcher *SchemaFetcher,
