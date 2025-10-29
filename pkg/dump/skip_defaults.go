@@ -1,20 +1,280 @@
 package dump
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 	"unicode"
 
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/tidwall/gjson"
+	"golang.org/x/sync/errgroup"
 )
 
-func removeDefaultsFromState[T any](entities []T, schemaFetcher *SchemaFetcher, entityType string) error {
-	if schemaFetcher == nil {
-		return fmt.Errorf("schemaFetcher is nil")
-	}
+func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
+	state *utils.KongRawState, schemaFetcher *SchemaFetcher,
+) {
+	// Consumer Groups
+	group.Go(func() error {
+		for i, cg := range state.ConsumerGroups {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 
+			consumerGroup := cg.ConsumerGroup
+			consumers := cg.Consumers
+			plugins := cg.Plugins
+
+			err := removeDefaultsFromStateEntities([]interface{}{consumerGroup}, schemaFetcher, "consumer_groups")
+			if err != nil {
+				return fmt.Errorf("error removing defaults from consumer_groups: %w", err)
+			}
+
+			err = removeDefaultsFromStateEntities(consumers, schemaFetcher, "consumers")
+			if err != nil {
+				return fmt.Errorf("error removing defaults from consumers: %w", err)
+			}
+
+			err = removeDefaultsFromStateEntities(plugins, schemaFetcher, "plugins")
+			if err != nil {
+				return fmt.Errorf("error removing defaults from plugins: %w", err)
+			}
+
+			cg.ConsumerGroup = consumerGroup
+			cg.Consumers = consumers
+			cg.Plugins = plugins
+
+			state.ConsumerGroups[i] = cg
+		}
+		return nil
+	})
+
+	// Consumers
+	group.Go(func() error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		err := removeDefaultsFromStateEntities(state.Consumers, schemaFetcher, "consumers")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from consumers: %w", err)
+		}
+		return nil
+	})
+
+	// Key Auth credentials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.KeyAuths, schemaFetcher, "keyauth_credentials")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from key auths: %w", err)
+		}
+		return nil
+	})
+
+	// HMAC Auth credentials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.HMACAuths, schemaFetcher, "hmacauth_credentials")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from hmac auths: %w", err)
+		}
+		return nil
+	})
+
+	// JWT Auth credentials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.JWTAuths, schemaFetcher, "jwt_secrets")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from jwt auths: %w", err)
+		}
+		return nil
+	})
+
+	// Basic Auth credentials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.BasicAuths, schemaFetcher, "basicauth_credential")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from basic auths: %w", err)
+		}
+		return nil
+	})
+
+	// OAuth2 credentials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Oauth2Creds, schemaFetcher, "oauth2_credentials")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from oauth2 creds: %w", err)
+		}
+		return nil
+	})
+
+	// ACL Groups
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.ACLGroups, schemaFetcher, "acls")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from acl groups: %w", err)
+		}
+		return nil
+	})
+
+	// mTLS Auth credentials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.MTLSAuths, schemaFetcher, "mtls_auth_credentials")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from mtls auths: %w", err)
+		}
+		return nil
+	})
+
+	// Services
+	group.Go(func() error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		err := removeDefaultsFromStateEntities(state.Services, schemaFetcher, "services")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from services: %w", err)
+		}
+		return nil
+	})
+
+	// Routes
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Routes, schemaFetcher, "routes")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from routes: %w", err)
+		}
+		return nil
+	})
+
+	// Plugins
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Plugins, schemaFetcher, "plugins")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from plugins: %w", err)
+		}
+		return nil
+	})
+
+	// Filter Chains
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.FilterChains, schemaFetcher, "filter_chains")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from filter chains: %w", err)
+		}
+		return nil
+	})
+
+	// Certificates
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Certificates, schemaFetcher, "certificates")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from certificates: %w", err)
+		}
+		return nil
+	})
+
+	// CA Certificates
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.CACertificates, schemaFetcher, "ca_certificates")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from ca certificates: %w", err)
+		}
+		return nil
+	})
+
+	// SNIs
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.SNIs, schemaFetcher, "snis")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from snis: %w", err)
+		}
+		return nil
+	})
+
+	// Upstreams
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Upstreams, schemaFetcher, "upstreams")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from upstreams: %w", err)
+		}
+		return nil
+	})
+
+	// Targets
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Targets, schemaFetcher, "targets")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from targets: %w", err)
+		}
+		return nil
+	})
+
+	// Vaults
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Vaults, schemaFetcher, "vaults")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from vaults: %w", err)
+		}
+		return nil
+	})
+
+	// Partials
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Partials, schemaFetcher, "partials")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from partials: %w", err)
+		}
+		return nil
+	})
+
+	// Keys
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Keys, schemaFetcher, "keys")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from keys: %w", err)
+		}
+		return nil
+	})
+
+	// Key Sets
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.KeySets, schemaFetcher, "key_sets")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from key sets: %w", err)
+		}
+		return nil
+	})
+
+	// Licenses
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.Licenses, schemaFetcher, "licenses")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from licenses: %w", err)
+		}
+		return nil
+	})
+
+	// RBAC Roles
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.RBACRoles, schemaFetcher, "rbac_roles")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from rbac roles: %w", err)
+		}
+		return nil
+	})
+
+	// RBAC Endpoint Permissions
+	group.Go(func() error {
+		err := removeDefaultsFromStateEntities(state.RBACEndpointPermissions, schemaFetcher, "rbac_endpoint_permissions")
+		if err != nil {
+			return fmt.Errorf("error removing defaults from rbac endpoint permissions: %w", err)
+		}
+		return nil
+	})
+}
+
+func removeDefaultsFromStateEntities[T any](entities []T, schemaFetcher *SchemaFetcher, entityType string) error {
 	if len(entities) == 0 {
 		return nil
 	}
@@ -296,15 +556,24 @@ func compareMaps(fieldMap, defaultMap reflect.Value) interface{} {
 			continue
 		}
 
+		if !fieldVal.CanInterface() || !defaultVal.CanInterface() {
+			continue // Skip unexported fields
+		}
+
 		fieldVal = reflect.ValueOf(fieldVal.Interface())
 		defaultVal = reflect.ValueOf(defaultVal.Interface())
+
+		if !fieldVal.IsValid() || !defaultVal.IsValid() {
+			continue
+		}
 
 		if fieldVal.Kind() == reflect.Map && defaultVal.Kind() == reflect.Map {
 			nestedResult := compareMaps(fieldVal, defaultVal)
 			if nestedMap, ok := nestedResult.(map[string]interface{}); ok && len(nestedMap) > 0 {
 				newMap[key.String()] = nestedResult
 			}
-		} else if !compareValues(fieldVal.Interface(), defaultVal.Interface()) {
+		} else if fieldVal.CanInterface() && defaultVal.CanInterface() &&
+			!compareValues(fieldVal.Interface(), defaultVal.Interface()) {
 			newMap[key.String()] = fieldVal.Interface()
 		}
 	}

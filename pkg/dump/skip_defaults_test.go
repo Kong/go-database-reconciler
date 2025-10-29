@@ -37,22 +37,11 @@ type PartialEntity struct {
 	Config map[string]interface{} `json:"config,omitempty"`
 }
 
-func TestRemoveDefaultsFromState_NilSchemaFetcher(t *testing.T) {
-	entities := []*TestEntity{{Name: kong.String("test")}}
-	err := removeDefaultsFromState(entities, nil, "test")
-	if err == nil {
-		t.Error("Expected error for nil schemaFetcher, got nil")
-	}
-	if err.Error() != "schemaFetcher is nil" {
-		t.Errorf("Expected 'schemaFetcher is nil', got %q", err.Error())
-	}
-}
-
 func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
 	// Create a schema fetcher with a mock client that won't be used
 	schemaFetcher := &SchemaFetcher{}
 	entities := []*TestEntity{}
-	err := removeDefaultsFromState(entities, schemaFetcher, "test")
+	err := removeDefaultsFromStateEntities(entities, schemaFetcher, "test")
 	if err != nil {
 		t.Errorf("Expected no error for empty entities, got %v", err)
 	}
@@ -390,6 +379,10 @@ func TestCompareMaps(t *testing.T) {
 					"timeout":   5000,
 					"retries":   3,
 					"protocols": []string{"http", "https"},
+					"throttling": map[string]interface{}{
+						"enabled": true,
+						"max":     100,
+					},
 				},
 				"enabled": true,
 				"version": "1.0",
@@ -398,6 +391,10 @@ func TestCompareMaps(t *testing.T) {
 				"config": map[string]interface{}{
 					"timeout":   5000,
 					"protocols": []string{"http", "https"},
+					"throttling": map[string]interface{}{
+						"enabled": true,
+						"max":     10,
+					},
 				},
 				"enabled": false,
 				"version": "1.0",
@@ -405,6 +402,9 @@ func TestCompareMaps(t *testing.T) {
 			expected: map[string]interface{}{
 				"config": map[string]interface{}{
 					"retries": 3,
+					"throttling": map[string]interface{}{
+						"max": 100,
+					},
 				},
 				"enabled": true,
 			},

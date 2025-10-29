@@ -6,27 +6,9 @@ import (
 	"net/http"
 
 	"github.com/kong/go-database-reconciler/pkg/types"
+	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 )
-
-// Some entities in Konnect have different names compared to Kong Gateway
-var kongToKonnectEntitiesMap = map[string]string{
-	"services":              "service",
-	"routes":                "route",
-	"upstreams":             "upstream",
-	"targets":               "target",
-	"jwt_secrets":           "jwt",
-	"consumers":             "consumer",
-	"consumer_groups":       "consumer_group",
-	"certificates":          "certificate",
-	"ca_certificates":       "ca_certificate",
-	"keys":                  "key",
-	"key_sets":              "key-set",
-	"hmacauth_credentials":  "hmac-auth",
-	"basicauth_credentials": "basic-auth",
-	"mtls_auth_credentials": "mtls-auth",
-	"snis":                  "sni",
-}
 
 type SchemaFetcher struct {
 	ctx                 context.Context
@@ -123,7 +105,7 @@ func getKonnectEntitySchema(ctx context.Context, client *kong.Client, entityType
 		ok     bool
 	)
 
-	entityType, ok = kongToKonnectEntitiesMap[entityType]
+	entityType, ok = utils.KongToKonnectEntitiesMap[entityType]
 	if !ok {
 		return schema, nil
 	}

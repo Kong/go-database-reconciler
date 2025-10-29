@@ -208,35 +208,6 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 			}
 		}
 
-		if config.SkipDefaults {
-			for i, cg := range consumerGroups {
-				consumerGroup := cg.ConsumerGroup
-				consumers := cg.Consumers
-				plugins := cg.Plugins
-
-				err := removeDefaultsFromState([]interface{}{consumerGroup}, schemaFetcher, "consumer_groups")
-				if err != nil {
-					return fmt.Errorf("error removing defaults from consumer_groups: %w", err)
-				}
-
-				err = removeDefaultsFromState(consumers, schemaFetcher, "consumers")
-				if err != nil {
-					return fmt.Errorf("error removing defaults from consumers: %w", err)
-				}
-
-				err = removeDefaultsFromState(plugins, schemaFetcher, "plugins")
-				if err != nil {
-					return fmt.Errorf("error removing defaults from plugins: %w", err)
-				}
-
-				cg.ConsumerGroup = consumerGroup
-				cg.Consumers = consumers
-				cg.Plugins = plugins
-
-				consumerGroups[i] = cg
-			}
-		}
-
 		state.ConsumerGroups = consumerGroups
 		return nil
 	})
@@ -270,13 +241,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 			}
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(consumers, schemaFetcher, "consumers")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from consumers: %w", err)
-			}
-		}
-
 		state.Consumers = consumers
 		return nil
 	})
@@ -285,13 +249,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		keyAuths, err := GetAllKeyAuths(ctx, client, config.SelectorTags)
 		if err != nil {
 			return fmt.Errorf("key-auths: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(keyAuths, schemaFetcher, "keyauth_credentials")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from keyauth_credentials: %w", err)
-			}
 		}
 
 		state.KeyAuths = keyAuths
@@ -304,12 +261,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("hmac-auths: %w", err)
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(hmacAuths, schemaFetcher, "hmacauth_credentials")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from hmacauth_credentials: %w", err)
-			}
-		}
 		state.HMACAuths = hmacAuths
 		return nil
 	})
@@ -320,13 +271,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("jwts: %w", err)
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(jwtAuths, schemaFetcher, "jwt_secrets")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from jwt_secrets: %w", err)
-			}
-		}
-
 		state.JWTAuths = jwtAuths
 		return nil
 	})
@@ -335,13 +279,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		basicAuths, err := GetAllBasicAuths(ctx, client, config.SelectorTags)
 		if err != nil {
 			return fmt.Errorf("basic-auths: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(basicAuths, schemaFetcher, "basicauth_credential")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from basicauth_credential: %w", err)
-			}
 		}
 
 		var options []*kong.BasicAuthOptions
@@ -362,12 +299,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 			if err != nil {
 				return fmt.Errorf("oauth2: %w", err)
 			}
-			if config.SkipDefaults {
-				err := removeDefaultsFromState(oauth2Creds, schemaFetcher, "oauth2_credentials")
-				if err != nil {
-					return fmt.Errorf("error removing defaults from oauth2_credentials: %w", err)
-				}
-			}
 			state.Oauth2Creds = oauth2Creds
 			return nil
 		})
@@ -377,12 +308,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		aclGroups, err := GetAllACLGroups(ctx, client, config.SelectorTags)
 		if err != nil {
 			return fmt.Errorf("acls: %w", err)
-		}
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(aclGroups, schemaFetcher, "acls")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from acls: %w", err)
-			}
 		}
 		state.ACLGroups = aclGroups
 		return nil
@@ -401,12 +326,6 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		mtlsAuths, err := GetAllMTLSAuths(ctx, client, nil)
 		if err != nil {
 			return fmt.Errorf("mtls-auths: %w", err)
-		}
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(mtlsAuths, schemaFetcher, "mtls_auth_credentials")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from mtls_auth_credentials: %w", err)
-			}
 		}
 		state.MTLSAuths = mtlsAuths
 		return nil
@@ -447,12 +366,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			}
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(services, schemaFetcher, "services")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from services: %w", err)
-			}
-		}
 		state.Services = services
 		return nil
 	})
@@ -488,13 +401,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			}
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(routes, schemaFetcher, "routes")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from routes: %w", err)
-			}
-		}
-
 		state.Routes = routes
 		return nil
 	})
@@ -510,13 +416,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		if config.SkipConsumers {
 			plugins = excludeConsumersPlugins(plugins)
 			plugins = excludeConsumerGroupsPlugins(plugins)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(plugins, schemaFetcher, "plugins")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from plugins: %w", err)
-			}
 		}
 
 		state.Plugins = plugins
@@ -545,13 +444,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("filter chains: %w", err)
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(filterChains, schemaFetcher, "filter_chains")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from filter_chains: %w", err)
-			}
-		}
-
 		state.FilterChains = filterChains
 		return nil
 	})
@@ -565,13 +457,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		certificates, err = excludeKonnectManagedEntities(certificates)
 		if err != nil {
 			return fmt.Errorf("certificates: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(certificates, schemaFetcher, "certificates")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from certificates: %w", err)
-			}
 		}
 
 		state.Certificates = certificates
@@ -590,13 +475,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 				return fmt.Errorf("ca-certificates: %w", err)
 			}
 
-			if config.SkipDefaults {
-				err := removeDefaultsFromState(caCerts, schemaFetcher, "ca_certificates")
-				if err != nil {
-					return fmt.Errorf("error removing defaults from ca_certificates: %w", err)
-				}
-			}
-
 			state.CACertificates = caCerts
 			return nil
 		})
@@ -611,13 +489,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		snis, err = excludeKonnectManagedEntities(snis)
 		if err != nil {
 			return fmt.Errorf("snis: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(snis, schemaFetcher, "snis")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from snis: %w", err)
-			}
 		}
 
 		state.SNIs = snis
@@ -635,13 +506,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("upstreams: %w", err)
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(upstreams, schemaFetcher, "upstreams")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from upstreams: %w", err)
-			}
-		}
-
 		state.Upstreams = upstreams
 		targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
 		if err != nil {
@@ -651,13 +515,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		targets, err = excludeKonnectManagedEntities(targets)
 		if err != nil {
 			return fmt.Errorf("targets: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(targets, schemaFetcher, "targets")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from targets: %w", err)
-			}
 		}
 
 		state.Targets = targets
@@ -673,13 +530,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		vaults, err = excludeKonnectManagedEntities(vaults)
 		if err != nil {
 			return fmt.Errorf("vaults: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(vaults, schemaFetcher, "vaults")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from vaults: %w", err)
-			}
 		}
 
 		state.Vaults = vaults
@@ -717,13 +567,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			}
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(partials, schemaFetcher, "partials")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from partials: %w", err)
-			}
-		}
-
 		state.Partials = partials
 		return nil
 	})
@@ -737,13 +580,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		keys, err = excludeKonnectManagedEntities(keys)
 		if err != nil {
 			return fmt.Errorf("keys: %w", err)
-		}
-
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(keys, schemaFetcher, "keys")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from keys: %w", err)
-			}
 		}
 
 		state.Keys = keys
@@ -761,13 +597,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			return fmt.Errorf("key-sets: %w", err)
 		}
 
-		if config.SkipDefaults {
-			err := removeDefaultsFromState(keySets, schemaFetcher, "key_sets")
-			if err != nil {
-				return fmt.Errorf("error removing defaults from key_sets: %w", err)
-			}
-		}
-
 		state.KeySets = keySets
 		return nil
 	})
@@ -782,13 +611,6 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			licenses, err = excludeKonnectManagedEntities(licenses)
 			if err != nil {
 				return fmt.Errorf("licenses: %w", err)
-			}
-
-			if config.SkipDefaults {
-				err := removeDefaultsFromState(licenses, schemaFetcher, "licenses")
-				if err != nil {
-					return fmt.Errorf("error removing defaults from licenses: %w", err)
-				}
 			}
 
 			state.Licenses = licenses
@@ -876,29 +698,40 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 		return nil, err
 	}
 
-	if config.SkipDefaults {
-		isKonnect := config.KonnectControlPlane != ""
-		schemaFetcher = NewSchemaFetcher(ctx, client, isKonnect)
-	}
-
-	group, ctx := errgroup.WithContext(ctx)
+	group, newCtx := errgroup.WithContext(ctx)
 
 	// dump only rbac resources
 	if config.RBACResourcesOnly {
-		getEnterpriseRBACConfiguration(ctx, group, client, &state)
+		getEnterpriseRBACConfiguration(newCtx, group, client, &state)
 	} else {
 		// regular case
-		getProxyConfiguration(ctx, group, client, config, &state)
+		getProxyConfiguration(newCtx, group, client, config, &state)
 
 		if !config.SkipConsumers {
-			getConsumerGroupsConfiguration(ctx, group, client, config, &state)
-			getConsumerConfiguration(ctx, group, client, config, &state)
+			getConsumerGroupsConfiguration(newCtx, group, client, config, &state)
+			getConsumerConfiguration(newCtx, group, client, config, &state)
 		}
 	}
 
 	err := group.Wait()
 	if err != nil {
 		return nil, err
+	}
+
+	if config.SkipDefaults {
+		isKonnect := config.KonnectControlPlane != ""
+		schemaFetcher = NewSchemaFetcher(ctx, client, isKonnect)
+
+		if schemaFetcher == nil {
+			return nil, fmt.Errorf("schemaFetcher is nil")
+		}
+
+		group, newCtx := errgroup.WithContext(ctx)
+		removeDefaultsFromState(newCtx, group, &state, schemaFetcher)
+		err := group.Wait()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &state, nil
@@ -1178,9 +1011,6 @@ func GetAllConsumers(ctx context.Context,
 	for {
 		s, nextopt, err := client.Consumers.List(ctx, opt)
 		if err != nil {
-			return nil, err
-		}
-		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
 		if err := ctx.Err(); err != nil {
