@@ -42,10 +42,6 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 				return fmt.Errorf("error removing defaults from plugins: %w", err)
 			}
 
-			cg.ConsumerGroup = consumerGroup
-			cg.Consumers = consumers
-			cg.Plugins = plugins
-
 			state.ConsumerGroups[i] = cg
 		}
 		return nil
