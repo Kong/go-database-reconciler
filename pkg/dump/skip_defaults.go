@@ -335,7 +335,7 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 		return nil
 	}
 
-	defaultFields = handleExceptions(entityType, entityIdentifier, defaultFields)
+	defaultFields = handleExceptions(entityType, defaultFields)
 
 	err = stripDefaultValuesFromEntity(v, defaultFields)
 	if err != nil {
@@ -345,7 +345,7 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 	return nil
 }
 
-func handleExceptions(entityType string, entityIdentifier string, defaultFields map[string]interface{}) map[string]interface{} {
+func handleExceptions(entityType string, defaultFields map[string]interface{}) map[string]interface{} {
 	// Don't skip default for "algorithm" field in jwt_secrets
 	if entityType == "jwt_secrets" {
 		delete(defaultFields, "algorithm")
