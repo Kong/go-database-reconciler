@@ -21,6 +21,8 @@ const (
 	DefaultLookupTag
 )
 
+var schemaFetcher *SchemaFetcher
+
 // Config can be used to skip exporting certain entities
 type Config struct {
 	// If true, only RBAC resources are exported.
@@ -79,6 +81,9 @@ type Config struct {
 	SanitizeContent bool
 
 	SkipHashForBasicAuth bool
+
+	// This flag is set to remove default values while dumping entities.
+	SkipDefaults bool
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -202,6 +207,7 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.ConsumerGroups = consumerGroups
 		return nil
 	})
@@ -234,6 +240,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.Consumers = consumers
 		return nil
 	})
@@ -243,6 +250,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("key-auths: %w", err)
 		}
+
 		state.KeyAuths = keyAuths
 		return nil
 	})
@@ -252,6 +260,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("hmac-auths: %w", err)
 		}
+
 		state.HMACAuths = hmacAuths
 		return nil
 	})
@@ -261,6 +270,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("jwts: %w", err)
 		}
+
 		state.JWTAuths = jwtAuths
 		return nil
 	})
@@ -270,6 +280,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("basic-auths: %w", err)
 		}
+
 		var options []*kong.BasicAuthOptions
 		for _, basicAuth := range basicAuths {
 			option := &kong.BasicAuthOptions{
@@ -354,6 +365,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.Services = services
 		return nil
 	})
@@ -388,6 +400,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.Routes = routes
 		return nil
 	})
@@ -404,6 +417,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			plugins = excludeConsumersPlugins(plugins)
 			plugins = excludeConsumerGroupsPlugins(plugins)
 		}
+
 		state.Plugins = plugins
 		return nil
 	})
@@ -684,24 +698,40 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 		return nil, err
 	}
 
-	group, ctx := errgroup.WithContext(ctx)
+	group, newCtx := errgroup.WithContext(ctx)
 
 	// dump only rbac resources
 	if config.RBACResourcesOnly {
-		getEnterpriseRBACConfiguration(ctx, group, client, &state)
+		getEnterpriseRBACConfiguration(newCtx, group, client, &state)
 	} else {
 		// regular case
-		getProxyConfiguration(ctx, group, client, config, &state)
+		getProxyConfiguration(newCtx, group, client, config, &state)
 
 		if !config.SkipConsumers {
-			getConsumerGroupsConfiguration(ctx, group, client, config, &state)
-			getConsumerConfiguration(ctx, group, client, config, &state)
+			getConsumerGroupsConfiguration(newCtx, group, client, config, &state)
+			getConsumerConfiguration(newCtx, group, client, config, &state)
 		}
 	}
 
 	err := group.Wait()
 	if err != nil {
 		return nil, err
+	}
+
+	if config.SkipDefaults {
+		isKonnect := config.KonnectControlPlane != ""
+		schemaFetcher = NewSchemaFetcher(ctx, client, isKonnect)
+
+		if schemaFetcher == nil {
+			return nil, fmt.Errorf("schemaFetcher is nil")
+		}
+
+		group, newCtx := errgroup.WithContext(ctx)
+		removeDefaultsFromState(newCtx, group, &state, schemaFetcher)
+		err := group.Wait()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &state, nil
@@ -981,9 +1011,6 @@ func GetAllConsumers(ctx context.Context,
 	for {
 		s, nextopt, err := client.Consumers.List(ctx, opt)
 		if err != nil {
-			return nil, err
-		}
-		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
 		if err := ctx.Err(); err != nil {
