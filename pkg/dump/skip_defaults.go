@@ -335,12 +335,23 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, schemaFetch
 		return nil
 	}
 
+	defaultFields = handleExceptions(entityType, defaultFields)
+
 	err = stripDefaultValuesFromEntity(v, defaultFields)
 	if err != nil {
 		return fmt.Errorf("error parsing entity with defaults: %w", err)
 	}
 
 	return nil
+}
+
+func handleExceptions(entityType string, defaultFields map[string]interface{}) map[string]interface{} {
+	// Don't skip default for "algorithm" field in jwt_secrets
+	if entityType == "jwt_secrets" {
+		delete(defaultFields, "algorithm")
+	}
+
+	return defaultFields
 }
 
 func getEntityIdentifier(v reflect.Value, entityType string) (string, error) {
@@ -423,16 +434,12 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 	// All credentials' schemas in konnect are embedded under "value" field
 	// which doesn't match gateway schema or internal go-kong representation
 	// Thus, merging values from "value" field to the defaultFields map directly
-	// ------------------------------------------------------------------------
-	// @TODO: Uncomment the code below if such handling is needed in future.
-	// At the moment, only jwt_secrets have a default for "algorithm" which is a required
-	// field. Hence, not skipping it.
-	// if valueMap, ok := defaultFields["value"]; ok {
-	// 	for k, v := range valueMap.(map[string]interface{}) {
-	// 		defaultFields[k] = v
-	// 	}
-	// 	delete(defaultFields, "value")
-	// }
+	if valueMap, ok := defaultFields["value"]; ok {
+		for k, v := range valueMap.(map[string]interface{}) {
+			defaultFields[k] = v
+		}
+		delete(defaultFields, "value")
+	}
 
 	return defaultFields
 }
