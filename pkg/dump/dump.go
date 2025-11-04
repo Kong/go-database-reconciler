@@ -21,8 +21,6 @@ const (
 	DefaultLookupTag
 )
 
-var schemaFetcher *SchemaFetcher
-
 // Config can be used to skip exporting certain entities
 type Config struct {
 	// If true, only RBAC resources are exported.
@@ -720,7 +718,7 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 
 	if config.SkipDefaults {
 		isKonnect := config.KonnectControlPlane != ""
-		schemaFetcher = NewSchemaFetcher(ctx, client, isKonnect)
+		schemaFetcher := NewSchemaFetcher(ctx, client, isKonnect)
 
 		if schemaFetcher == nil {
 			return nil, fmt.Errorf("schemaFetcher is nil")
