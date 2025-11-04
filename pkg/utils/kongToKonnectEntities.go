@@ -17,4 +17,5 @@ var KongToKonnectEntitiesMap = map[string]string{
 	"basicauth_credentials": "basic-auth",
 	"mtls_auth_credentials": "mtls-auth",
 	"snis":                  "sni",
+	"vaults":                "vault",
 }
