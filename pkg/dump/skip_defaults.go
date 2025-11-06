@@ -431,6 +431,59 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 		return true
 	})
 
+	// Handle shorthand_fields by finding defaults from their "replaced_with" or "translate_backwards" paths
+	shorthandFields := schema.Get("shorthand_fields")
+	if shorthandFields.Exists() && shorthandFields.IsArray() {
+		shorthandFields.ForEach(func(_, value gjson.Result) bool {
+			ms := value.Map()
+			for fieldName := range ms {
+				fieldSchema := value.Get(fieldName)
+				replacements := fieldSchema.Get("deprecation.replaced_with.#.path").Array()
+				var replacedPaths []string
+				var pathArray []gjson.Result
+
+				if len(replacements) > 0 {
+					// replacements is an array of objects with path arrays inside each object.
+					// Eg; {
+					// 	"redis_host":
+					// 		"replaced_with": [
+					// 			{
+					// 				"path": ["redis", "host"]
+					// 			}
+					// 		]
+					// }
+					// typically there's only one; if multiple, we consider only the first one
+					pathArray = replacements[0].Array()
+				} else {
+					// backward translation gives an array with the path segments
+					// Eg; {
+					// 	 "redis_host": {
+					// 		"translate_backwards": ["redis", "host"]
+					// 	}
+					// }
+					backwardTranslation := fieldSchema.Get("translate_backwards")
+					if backwardTranslation.Exists() {
+						pathArray = backwardTranslation.Array()
+					}
+				}
+
+				replacedPaths = make([]string, len(pathArray))
+				for i, segment := range pathArray {
+					replacedPaths[i] = segment.String()
+				}
+
+				if len(replacedPaths) > 0 {
+					defaultValue := findDefaultInReplacementPath(schema, replacedPaths)
+					if defaultValue.Exists() {
+						defaultFields[fieldName] = defaultValue.Value()
+					}
+				}
+
+			}
+			return true
+		})
+	}
+
 	// All credentials' schemas in konnect are embedded under "value" field
 	// which doesn't match gateway schema or internal go-kong representation
 	// Thus, merging values from "value" field to the defaultFields map directly
@@ -442,6 +495,64 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 	}
 
 	return defaultFields
+}
+
+// findDefaultInReplacementPath traverses the schema to find the default value at the specified path
+func findDefaultInReplacementPath(schema gjson.Result, pathSegments []string) gjson.Result {
+	schemaFields := schema.Get("fields")
+	if schemaFields.Type == gjson.Null {
+		schemaFields = schema.Get("properties")
+	}
+
+	// Begin iteration from the root schema fields
+	// current represents the current level in the schema traversal
+	// when the path is fully traversed, current will hold the default value
+	// On each iteration, we update current to the next level in the schema, whenever
+	// the path segment is found.
+	current := schemaFields
+
+	for i, segment := range pathSegments {
+		var next gjson.Result
+		isLastSegment := i == len(pathSegments)-1
+		isArray := current.IsArray()
+
+		current.ForEach(func(key, value gjson.Result) bool {
+			var fieldExists bool
+			var fieldValue gjson.Result
+
+			if isArray {
+				// For arrays, check if the segment exists in the value
+				fieldExists = value.Get(segment).Exists()
+				fieldValue = value
+			} else {
+				// For objects, check if the key matches the segment
+				fieldExists = key.String() == segment
+				fieldValue = current
+			}
+
+			if fieldExists {
+				if isLastSegment {
+					next = fieldValue.Get(segment + ".default")
+				} else {
+					next = fieldValue.Get(segment + ".fields")
+					if next.Type == gjson.Null {
+						next = fieldValue.Get(segment + ".properties")
+					}
+				}
+				// stop iteration by returning false as we have found the field
+				return false
+			}
+			return true
+		})
+
+		if !next.Exists() {
+			return gjson.Result{} // Return empty result if path not found
+		}
+
+		current = next
+	}
+
+	return current
 }
 
 func stripDefaultValuesFromEntity(entity reflect.Value, defaultFields map[string]interface{}) error {
