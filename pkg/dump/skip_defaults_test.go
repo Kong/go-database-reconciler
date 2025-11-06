@@ -186,6 +186,180 @@ func TestParseSchemaForDefaults(t *testing.T) {
 			}`,
 			expectedFields: map[string]interface{}{},
 		},
+		{
+			name: "schema with deprecated shorthand_fields with backward translation",
+			schemaJSON: `{
+				"fields": [
+					{
+						"name": {
+							"type": "string",
+							"default": "default-name"
+						}
+					},
+					{
+						"config": {
+							"type": "record",
+							"fields": [
+								{
+									"redis": {
+										"type": "record",
+										"fields": [
+											{
+												"host": {
+													"type": "string",
+													"default": "localhost"
+												}
+											},
+											{
+												"port": {
+													"type": "number",
+													"default": 6379
+												}
+											}
+										]
+									}
+								}
+							],
+							"shorthand_fields": [
+								{	
+									"redis_host": {
+										"translate_backwards": [
+											"redis",
+											"host"
+										],
+										"type": "string"
+									}
+								},
+								{
+									"redis_port": {
+										"translate_backwards": [
+											"redis",
+											"port"
+										],
+										"type": "integer"
+									}	
+								}
+							]
+						}
+					}
+				]
+			}`,
+			expectedFields: map[string]interface{}{
+				"name": "default-name",
+				"config": map[string]interface{}{
+					"redis": map[string]interface{}{
+						"host": "localhost",
+						"port": float64(6379),
+					},
+					"redis_host": "localhost",
+					"redis_port": float64(6379),
+				},
+			},
+		},
+		{
+			name: "schema with deprecatedshorthand_fields with replaced_with paths",
+			schemaJSON: `{
+				"fields": [
+					{
+						"name": {
+							"type": "string",
+							"default": "default-name"
+						}
+					},
+					{
+						"config": {
+							"type": "record",
+							"fields": [
+								{
+									"redis": {
+										"type": "record",
+										"fields": [
+											{
+												"host": {
+													"type": "string",
+													"default": "localhost"
+												}
+											},
+											{
+												"port": {
+													"type": "number",
+													"default": 6379
+												}
+											},
+											{
+												"read_timeout": {
+													"type": "number",
+													"default": 10
+												}
+											},
+											{
+												"send_timeout": {
+													"type": "number",
+													"default": 10
+												}
+											}
+										]
+									}
+								}
+							],
+							"shorthand_fields": [
+								{	
+									"redis_host": {
+										"deprecation": {
+											"replaced_with": [{
+												"path": ["redis", "host"]
+											}]
+										},
+										"type": "string"
+									}
+								},
+								{
+									"redis_port": {
+										"deprecation": {
+											"replaced_with": [
+												{
+													"path": ["redis", "port"]
+												}
+											]
+										},
+										"type": "integer"
+									}	
+								},
+								{
+									"timeout": {
+										"deprecation": {
+											"replaced_with": [
+												{
+													"path": ["redis", "read_timeout"]
+												},
+												{
+													"path": ["redis", "send_timeout"]
+												}
+											]
+										},
+										"type": "integer"
+									}	
+								}
+							]
+						}
+					}
+				]
+			}`,
+			expectedFields: map[string]interface{}{
+				"name": "default-name",
+				"config": map[string]interface{}{
+					"redis": map[string]interface{}{
+						"host":         "localhost",
+						"port":         float64(6379),
+						"read_timeout": float64(10),
+						"send_timeout": float64(10),
+					},
+					"redis_host": "localhost",
+					"redis_port": float64(6379),
+					"timeout":    float64(10),
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
