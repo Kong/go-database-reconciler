@@ -181,5 +181,5 @@ func TestConsumerGetAll(t *testing.T) {
 	allConsumers, err := collection.GetAll()
 
 	require.NoError(t, err)
-	assert.Equal(len(consumers), len(allConsumers))
+	assert.Len(allConsumers, len(consumers))
 }
