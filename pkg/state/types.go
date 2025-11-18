@@ -569,18 +569,6 @@ func (p1 *Plugin) Equal(p2 *Plugin) bool {
 	return p1.EqualWithOpts(p2, false, false, false, gjson.Result{})
 }
 
-func getConfigSchema(schema gjson.Result) (gjson.Result, error) {
-	fields := schema.Get("fields")
-
-	for _, field := range fields.Array() {
-		config := field.Map()["config"]
-		if config.Exists() {
-			return config, nil
-		}
-	}
-	return schema, fmt.Errorf("no 'config' field found in schema")
-}
-
 // EqualWithOpts returns true if p1 and p2 are equal.
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
@@ -685,49 +673,6 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 	return strings.Compare(objI, objJ) == -1
 }
 
-// Helper function to sort nested arrays in a map
-func sortNestedArrays(m map[string]interface{}) map[string]interface{} {
-	sortedMap := make(map[string]interface{})
-
-	for k, v := range m {
-		switch value := v.(type) {
-		case []interface{}:
-			// Recursively sort each element if it's a map or array
-			for i, elem := range value {
-				switch elemType := elem.(type) {
-				case map[string]interface{}:
-					value[i] = sortNestedArrays(elemType)
-				case []interface{}:
-					value[i] = sortArrayElementsRecursively(elemType)
-				}
-			}
-			sort.Sort(EmptyInterfaceUsingUnderlyingType(value))
-			sortedMap[k] = value
-		case map[string]interface{}:
-			sortedMap[k] = sortNestedArrays(value)
-		default:
-			sortedMap[k] = value
-		}
-	}
-
-	return sortedMap
-}
-
-// Helper function to sort array elements recursively
-func sortArrayElementsRecursively(arr []interface{}) []interface{} {
-	for i, elem := range arr {
-		switch elemType := elem.(type) {
-		case map[string]interface{}:
-			arr[i] = sortNestedArrays(elemType)
-		case []interface{}:
-			arr[i] = sortArrayElementsRecursively(elemType)
-		}
-	}
-
-	sort.Sort(EmptyInterfaceUsingUnderlyingType(arr))
-	return arr
-}
-
 // Helper function to get schema for a field name
 func getSchemaForFieldName(schema gjson.Result, fieldName string) gjson.Result {
 	// Cache the query strings to avoid repeated allocations
@@ -741,15 +686,6 @@ func getSchemaForFieldName(schema gjson.Result, fieldName string) gjson.Result {
 	}
 
 	return result
-}
-
-// Package-level contains function to avoid repeated allocations
-var complexTypes = map[string]bool{
-	"array":   true,
-	"set":     true,
-	"record":  true,
-	"map":     true,
-	"foreign": true,
 }
 
 // Helper function to determine if we should skip sorting based on schema

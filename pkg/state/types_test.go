@@ -914,12 +914,13 @@ func TestSortNestedArraysBasedOnSchema(t *testing.T) {
 	// Verify nested_set_of_array_of_str - outer set SHOULD be sorted, inner arrays NOT sorted
 	nestedSetOfArray := sortedConfig["nested_set_of_array_of_str"].([]interface{})
 	// Outer set should be sorted, but elements are arrays which maintain order
-	assert.Equal(t, 2, len(nestedSetOfArray))
+	originalNestedSetOfArray := original.Config["nested_set_of_array_of_str"].([]interface{})
+	// Sort the outer set for comparison
+	sort.Sort(EmptyInterfaceUsingUnderlyingType(originalNestedSetOfArray))
+	assert.Equal(t, originalNestedSetOfArray, nestedSetOfArray, "outer set should be sorted")
 
 	// Verify nested_set_of_set_of_str - both outer and inner sets SHOULD be sorted
 	nestedSetOfSet := sortedConfig["nested_set_of_set_of_str"].([]interface{})
-	assert.Equal(t, 2, len(nestedSetOfSet))
-	// Inner sets should be sorted
 	innerSet1 := nestedSetOfSet[0].([]interface{})
 	innerSet2 := nestedSetOfSet[1].([]interface{})
 	originalNestedSetOfSet := original.Config["nested_set_of_set_of_str"].([]interface{})
