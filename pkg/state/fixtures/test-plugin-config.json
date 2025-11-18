@@ -196,6 +196,29 @@
 								}
 							}
 						}
+					},
+					{
+						"nested_set_of_record_of_set": {
+							"type": "array",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "set",
+								"elements": {
+									"fields": [
+										{
+											"ports": {
+												"elements": {
+													"type": "number"
+												},
+												"type": "set"
+											}
+										}
+									],
+									"type": "record"
+								}
+							}
+						}
 					}
 				],
 				"required": true,
