@@ -1,0 +1,10 @@
+_format_version: "3.0"
+plugins:
+  - name: kafka-log
+    config:
+      topic: logs
+      bootstrap_servers:
+        - host: kafka1
+          port: 9091
+        - host: kafka2
+          port: 9092
