@@ -897,11 +897,11 @@ func TestSortNestedArraysBasedOnSchema(t *testing.T) {
 			[]interface{}{"z", "a", "m"}, // not sorted
 			[]interface{}{"b", "y", "c"}, // not sorted
 		},
-		"nested_array_of_set_of_str": []interface{}{ //not sorted
+		"nested_array_of_set_of_str": []interface{}{ // not sorted
 			[]interface{}{"a", "m", "z"}, // sorted
 			[]interface{}{"b", "c", "y"}, // sorted
 		},
-		"nested_set_of_array_of_str": []interface{}{ //sorted
+		"nested_set_of_array_of_str": []interface{}{ // sorted
 			[]interface{}{"b", "y", "c"}, // not sorted
 			[]interface{}{"z", "a", "m"}, // not sorted
 		},
@@ -911,8 +911,8 @@ func TestSortNestedArraysBasedOnSchema(t *testing.T) {
 		},
 		"nested_array_of_record_of_array": []interface{}{
 			[]interface{}{ // not sorted
-				map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}}, //not sorted
-				map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}}, //not sorted
+				map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}}, // not sorted
+				map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}}, // not sorted
 			},
 		},
 		"nested_array_of_record_of_set": []interface{}{
