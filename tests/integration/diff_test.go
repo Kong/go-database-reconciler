@@ -3177,7 +3177,6 @@ func Test_Diff_PluginConfigReorderArraySetValues(t *testing.T) {
 		initialStateFile string
 		stateFile        string
 		isDiffExpected   bool
-		runWhen          func(t *testing.T)
 		expectedDiff     string
 	}{
 		{
@@ -3186,24 +3185,18 @@ func Test_Diff_PluginConfigReorderArraySetValues(t *testing.T) {
 			stateFile:        "testdata/diff/004-plugin-update/final-request-transformer-reorder-array.yaml",
 			isDiffExpected:   true,
 			expectedDiff:     expectedOutputRequestTransformerArrayReorder,
-			runWhen:          func(t *testing.T) { runWhen(t, "enterprise", ">=3.0.0") },
 		},
 		{
 			name:             "Reordering plugin config values of type set should not show diff",
-			initialStateFile: "testdata/diff/004-plugin-update/initial-kafka-upstream-reorder-set.yaml",
-			stateFile:        "testdata/diff/004-plugin-update/final-kafka-upstream-reorder-set.yaml",
+			initialStateFile: "testdata/diff/004-plugin-update/initial-jwt-reorder-set.yaml",
+			stateFile:        "testdata/diff/004-plugin-update/final-jwt-reorder-set.yaml",
 			isDiffExpected:   false,
-			runWhen:          func(t *testing.T) { runWhen(t, "enterprise", ">=3.0.0") },
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.runWhen != nil {
-				tc.runWhen(t)
-			}
 			reset(t)
-
 			// initialize state
 			require.NoError(t, sync(tc.initialStateFile))
 
