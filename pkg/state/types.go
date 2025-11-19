@@ -675,16 +675,13 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 
 // Helper function to get schema for a field name
 func getSchemaForFieldName(schema gjson.Result, fieldName string) gjson.Result {
-	// Cache the query strings to avoid repeated allocations
 	fieldsQuery := "fields.#(" + fieldName + ")." + fieldName
 	result := schema.Get(fieldsQuery)
-
 	if !result.Exists() {
 		// try shorthand fields
 		shorthandQuery := "shorthand_fields.#(" + fieldName + ")." + fieldName
 		result = schema.Get(shorthandQuery)
 	}
-
 	return result
 }
 
@@ -699,9 +696,7 @@ func skipSort(schema gjson.Result) bool {
 		return false
 	}
 
-	typeStr := typeResult.String()
-
-	return typeStr == "array"
+	return typeResult.String() == "array"
 }
 
 // Helper function to sort nested arrays in a map referring to schema

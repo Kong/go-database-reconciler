@@ -1,10 +1,10 @@
 _format_version: "3.0"
 plugins:
-  - name: kafka-log
+  - name: kafka-upstream
     config:
       topic: logs
       bootstrap_servers:
-        - host: kafka2
-          port: 9092
         - host: kafka1
           port: 9091
+        - host: kafka2
+          port: 9092
