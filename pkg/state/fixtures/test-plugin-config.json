@@ -1,35 +1,6 @@
 {
 	"fields": [
 		{
-			"protocols": {
-				"default": [
-					"grpc",
-					"grpcs",
-					"http",
-					"https"
-				],
-				"description": "A set of strings representing protocols.",
-				"elements": {
-					"description": "A string representing a protocol, such as HTTP or HTTPS.",
-					"one_of": [
-						"grpc",
-						"grpcs",
-						"http",
-						"https",
-						"tcp",
-						"tls",
-						"tls_passthrough",
-						"udp",
-						"ws",
-						"wss"
-					],
-					"type": "string"
-				},
-				"required": true,
-				"type": "set"
-			}
-		},
-		{
 			"config": {
 				"fields": [
 					{

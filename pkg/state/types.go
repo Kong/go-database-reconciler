@@ -12,6 +12,12 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	pluginConfigKey              = "fields.#(config).config"
+	fieldsQueryTemplate          = "fields.#(%s).%s"
+	shorthandFieldsQueryTemplate = "shorthand_fields.#(%s).%s"
+)
+
 // entity abstracts out common fields in a credentials.
 // TODO generalize for each and every entity.
 type entity interface {
@@ -591,8 +597,9 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	sort.Slice(p1Copy.Protocols, func(i, j int) bool { return *(p1Copy.Protocols[i]) < *(p1Copy.Protocols[j]) })
 	sort.Slice(p2Copy.Protocols, func(i, j int) bool { return *(p2Copy.Protocols[i]) < *(p2Copy.Protocols[j]) })
 
-	p1Copy.Config = sortNestedArraysBasedOnSchema(p1Copy.Config, schema.Get("fields.#(config).config"))
-	p2Copy.Config = sortNestedArraysBasedOnSchema(p2Copy.Config, schema.Get("fields.#(config).config"))
+	configSchema := schema.Get(pluginConfigKey)
+	p1Copy.Config = sortNestedArraysBasedOnSchema(p1Copy.Config, configSchema)
+	p2Copy.Config = sortNestedArraysBasedOnSchema(p2Copy.Config, configSchema)
 
 	if ignoreID {
 		p1Copy.ID = nil
@@ -675,28 +682,28 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 
 // Helper function to get schema for a field name
 func getSchemaForFieldName(schema gjson.Result, fieldName string) gjson.Result {
-	fieldsQuery := "fields.#(" + fieldName + ")." + fieldName
+	fieldsQuery := fmt.Sprintf(fieldsQueryTemplate, fieldName, fieldName)
 	result := schema.Get(fieldsQuery)
 	if !result.Exists() {
 		// try shorthand fields
-		shorthandQuery := "shorthand_fields.#(" + fieldName + ")." + fieldName
+		shorthandQuery := fmt.Sprintf(shorthandFieldsQueryTemplate, fieldName, fieldName)
 		result = schema.Get(shorthandQuery)
 	}
 	return result
 }
 
-// Helper function to determine if we should skip sorting based on schema
-func skipSort(schema gjson.Result) bool {
+// Helper function to determine if we should sort based on schema
+func shouldSort(schema gjson.Result) bool {
 	if !schema.Exists() {
-		return false
+		return true
 	}
 
 	typeResult := schema.Get("type")
 	if !typeResult.Exists() {
-		return false
+		return true
 	}
 
-	return typeResult.String() == "array"
+	return typeResult.String() != "array"
 }
 
 // Helper function to sort nested arrays in a map referring to schema
@@ -707,7 +714,7 @@ func sortNestedArraysBasedOnSchema(m map[string]interface{}, schema gjson.Result
 		switch value := v.(type) {
 		case []interface{}:
 			currSchema := getSchemaForFieldName(schema, k)
-			// For arrays, get the element schema
+			// For list types like array or set, get the element schema
 			elementsSchema := currSchema.Get("elements")
 			// Recursively sort each element if it's a map or array
 			for i, elem := range value {
@@ -715,11 +722,11 @@ func sortNestedArraysBasedOnSchema(m map[string]interface{}, schema gjson.Result
 				case map[string]interface{}:
 					value[i] = sortNestedArraysBasedOnSchema(elemType, elementsSchema)
 				case []interface{}:
-					value[i] = sortArrayElementsRecursiveltBasedOnSchema(elemType, elementsSchema)
+					value[i] = sortArrayElementsRecursivelyBasedOnSchema(elemType, elementsSchema)
 				}
 			}
 
-			if !skipSort(currSchema) {
+			if shouldSort(currSchema) {
 				sort.Sort(EmptyInterfaceUsingUnderlyingType(value))
 			}
 			sortedMap[k] = value
@@ -735,7 +742,7 @@ func sortNestedArraysBasedOnSchema(m map[string]interface{}, schema gjson.Result
 }
 
 // Helper function to sort array elements recursively
-func sortArrayElementsRecursiveltBasedOnSchema(arr []interface{}, parentSchema gjson.Result) []interface{} {
+func sortArrayElementsRecursivelyBasedOnSchema(arr []interface{}, parentSchema gjson.Result) []interface{} {
 	elementsSchema := parentSchema.Get("elements")
 
 	for i, elem := range arr {
@@ -743,11 +750,11 @@ func sortArrayElementsRecursiveltBasedOnSchema(arr []interface{}, parentSchema g
 		case map[string]interface{}:
 			arr[i] = sortNestedArraysBasedOnSchema(elemType, elementsSchema)
 		case []interface{}:
-			arr[i] = sortArrayElementsRecursiveltBasedOnSchema(elemType, elementsSchema)
+			arr[i] = sortArrayElementsRecursivelyBasedOnSchema(elemType, elementsSchema)
 		}
 	}
 
-	if !skipSort(parentSchema) {
+	if shouldSort(parentSchema) {
 		sort.Sort(EmptyInterfaceUsingUnderlyingType(arr))
 	}
 	return arr

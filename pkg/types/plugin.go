@@ -211,11 +211,8 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
 	}
 
-	jsonb, err := json.Marshal(&schema)
-	if err != nil {
-		return nil, err
-	}
-	gjsonSchema := gjson.ParseBytes((jsonb))
+	jsonb, _ := json.Marshal(&schema)
+	gjsonSchema := gjson.ParseBytes(jsonb)
 
 	if !currentPlugin.EqualWithOpts(pluginWithDefaults, false, true, false, gjsonSchema) {
 		return &crud.Event{
