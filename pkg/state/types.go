@@ -12,12 +12,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const (
-	pluginConfigKey              = "fields.#(config).config"
-	fieldsQueryTemplate          = "fields.#(%s).%s"
-	shorthandFieldsQueryTemplate = "shorthand_fields.#(%s).%s"
-)
-
 // entity abstracts out common fields in a credentials.
 // TODO generalize for each and every entity.
 type entity interface {
@@ -597,6 +591,7 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	sort.Slice(p1Copy.Protocols, func(i, j int) bool { return *(p1Copy.Protocols[i]) < *(p1Copy.Protocols[j]) })
 	sort.Slice(p2Copy.Protocols, func(i, j int) bool { return *(p2Copy.Protocols[i]) < *(p2Copy.Protocols[j]) })
 
+	const pluginConfigKey = "fields.#(config).config"
 	configSchema := schema.Get(pluginConfigKey)
 	p1Copy.Config = sortNestedArraysBasedOnSchema(p1Copy.Config, configSchema)
 	p2Copy.Config = sortNestedArraysBasedOnSchema(p2Copy.Config, configSchema)
@@ -682,6 +677,8 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 
 // Helper function to get schema for a field name
 func getSchemaForFieldName(schema gjson.Result, fieldName string) gjson.Result {
+	const fieldsQueryTemplate = "fields.#(%s).%s"
+	const shorthandFieldsQueryTemplate = "shorthand_fields.#(%s).%s"
 	fieldsQuery := fmt.Sprintf(fieldsQueryTemplate, fieldName, fieldName)
 	result := schema.Get(fieldsQuery)
 	if !result.Exists() {
