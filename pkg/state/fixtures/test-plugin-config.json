@@ -1,0 +1,225 @@
+{
+	"fields": [
+		{
+			"config": {
+				"fields": [
+					{
+						"primitive_str": {
+							"description": "The primitive string field.",
+							"type": "string"
+						}
+					},
+					{
+						"record_of_array_of_str": {
+							"fields": [
+								{
+									"headers": {
+										"default": [],
+										"elements": {
+											"type": "string"
+										},
+										"required": true,
+										"type": "array"
+									}
+								}
+							],
+							"required": true,
+							"type": "record"
+						}
+					},
+					{
+						"map_type": {
+							"description": "The custom query params to be added in the callout HTTP request. Values can contain Lua expressions in the form `$(some_lua_expression)`. The syntax is based on `request-transformer-advanced` templates.",
+							"keys": {
+								"type": "string"
+							},
+							"required": false,
+							"type": "map",
+							"values": {
+								"referenceable": true,
+								"required": false,
+								"type": "string"
+							}
+						}
+					},
+					{
+						"array_of_record": {
+							"description": "Sentinel node addresses to use for Redis connections when the `redis` strategy is defined. Defining this field implies using a Redis Sentinel. The minimum length of the array is 1 element.",
+							"elements": {
+								"fields": [
+									{
+										"host": {
+											"default": "127.0.0.1",
+											"description": "A string representing a host name, such as example.com.",
+											"required": true,
+											"type": "string"
+										}
+									},
+									{
+										"port": {
+											"default": 6379,
+											"description": "An integer representing a port number between 0 and 65535, inclusive.",
+											"type": "integer"
+										}
+									}
+								],
+								"type": "record"
+							},
+							"len_min": 1,
+							"required": false,
+							"type": "array"
+						}
+					},
+					{
+						"nested_array_of_array_of_str": {
+							"type": "array",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "array",
+								"elements": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					{
+						"nested_array_of_set_of_str": {
+							"type": "array",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "set",
+								"elements": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					{
+						"nested_set_of_array_of_str": {
+							"type": "set",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "array",
+								"elements": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					{
+						"nested_set_of_set_of_str": {
+							"type": "set",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "set",
+								"elements": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					{
+						"nested_array_of_record_of_array": {
+							"type": "array",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "array",
+								"elements": {
+									"fields": [
+										{
+											"ports": {
+												"elements": {
+													"type": "number"
+												},
+												"type": "array"
+											}
+										}
+									],
+									"type": "record"
+								}
+							}
+						}
+					},
+					{
+						"nested_array_of_record_of_set": {
+							"type": "array",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "array",
+								"elements": {
+									"fields": [
+										{
+											"ports": {
+												"elements": {
+													"type": "number"
+												},
+												"type": "set"
+											}
+										}
+									],
+									"type": "record"
+								}
+							}
+						}
+					},
+					{
+						"nested_set_of_record_of_set": {
+							"type": "array",
+							"required": false,
+							"description": "List of list of strings.",
+							"elements": {
+								"type": "set",
+								"elements": {
+									"fields": [
+										{
+											"ports": {
+												"elements": {
+													"type": "number"
+												},
+												"type": "set"
+											}
+										}
+									],
+									"type": "record"
+								}
+							}
+						}
+					}
+				],
+				"required": true,
+				"type": "record",
+				"shorthand_fields": [
+					{
+						"shorthand_record_of_set_array": {
+							"fields": [
+								{
+									"set_hosts": {
+										"elements": {
+											"type": "string"
+										},
+										"type": "set"
+									}
+								},
+								{
+									"array_hosts": {
+										"elements": {
+											"type": "string"
+										},
+										"type": "array"
+									}
+								}
+							],
+							"type": "record"
+						}
+					}
+				]
+			}
+		}
+	]
+}
