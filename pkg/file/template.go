@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // default env var prefix, can be set using SetEnvVarPrefix
@@ -121,4 +123,92 @@ func renderTemplate(content string, mockEnvVars bool) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+func processLine(line string, t *template.Template) (string, error) {
+	// If entire line is a comment, add a newline and move on
+	if strings.HasPrefix(strings.TrimSpace(line), "#") {
+		line = "\n"
+	} else {
+		lineTemplate, err := t.Clone()
+		if err != nil {
+			return "", err
+		}
+
+		lineTemplate, err = lineTemplate.Parse(line)
+		if err != nil {
+			return "", err
+		}
+
+		var buffer bytes.Buffer
+		err = lineTemplate.Execute(&buffer, nil)
+		if err != nil {
+			return "", err
+		}
+
+		line = buffer.String()
+	}
+
+	return line, nil
+}
+
+func renderTemplateConcurrentImplementation(content string, mockEnvVars bool) (string, error) {
+	workers := 4
+
+	var templateFuncs template.FuncMap
+	if mockEnvVars {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVarMocked,
+			"toBool":  toBoolMocked,
+			"toInt":   toIntMocked,
+			"toFloat": toFloatMocked,
+			"indent":  indent,
+		}
+	} else {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVar,
+			"toBool":  toBool,
+			"toInt":   toInt,
+			"toFloat": toFloat,
+			"indent":  indent,
+		}
+	}
+	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
+
+	lines := strings.Split(content, "\n")
+	output := make([]string, len(lines))
+
+	type job struct {
+		index int
+		line  string
+	}
+	jobs := make(chan job, 100)
+
+	eg := new(errgroup.Group)
+	for w := 0; w < workers; w++ {
+		eg.Go(func() error {
+			for j := range jobs {
+				processedLine, err := processLine(j.line, t)
+				if err != nil {
+					return err
+				}
+				output[j.index] = processedLine
+			}
+			return nil
+		})
+	}
+
+	for i, line := range lines {
+		jobs <- job{index: i, line: line}
+	}
+	close(jobs)
+	if err := eg.Wait(); err != nil {
+		return "", err
+	}
+	result := strings.Join(output, "\n")
+
+	if !strings.HasSuffix(content, "\n") {
+		result = strings.TrimSuffix(result, "\n")
+	}
+	return result, nil
 }

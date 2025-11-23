@@ -109,3 +109,80 @@ Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 
 	os.Unsetenv("DECK_MY_VARIABLE")
 }
+
+func Test_renderTemplateConcurrent(t *testing.T) {
+	content := "Hello, ${{ env \"DECK_MY_VARIABLE\" }}!"
+	expectedOutput := "Hello, my_value!"
+	mockEnvVars := false
+
+	os.Setenv("DECK_MY_VARIABLE", "my_value")
+
+	output, err := renderTemplateConcurrentImplementation(content, mockEnvVars)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	if output != expectedOutput {
+		t.Errorf("Expected output %q, but got %q", expectedOutput, output)
+	}
+	os.Unsetenv("DECK_MY_VARIABLE")
+}
+
+func Test_renderTemplateCustomPrefixConcurrent(t *testing.T) {
+	oldPrefix := envVarPrefix
+	SetEnvVarPrefix("PREFIX_")
+	content := "Hello, ${{ env \"PREFIX_MY_VARIABLE\" }}!"
+	expectedOutput := "Hello, my_value!"
+	mockEnvVars := false
+
+	os.Setenv("PREFIX_MY_VARIABLE", "my_value")
+
+	output, err := renderTemplateConcurrentImplementation(content, mockEnvVars)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	if output != expectedOutput {
+		t.Errorf("Expected output %q, but got %q", expectedOutput, output)
+	}
+	os.Unsetenv("PREFIX_MY_VARIABLE")
+	SetEnvVarPrefix(oldPrefix)
+}
+
+func Test_renderTemplateIgnoresCommentsConcurrent(t *testing.T) {
+	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!
+  # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
+
+	expectedOutput := `Hello, my_value!
+`
+	mockEnvVars := false
+
+	os.Setenv("DECK_MY_VARIABLE", "my_value")
+
+	output, err := renderTemplateConcurrentImplementation(content, mockEnvVars)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	if output != expectedOutput {
+		t.Errorf("Expected output %q, but got %q", expectedOutput, output)
+	}
+	os.Unsetenv("DECK_MY_VARIABLE")
+}
+
+func Test_renderTemplateErrorWhenNotSetConcurrent(t *testing.T) {
+	content := `
+Hello, ${{ env "DECK_MY_VARIABLE" }}!
+Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
+
+	mockEnvVars := false
+
+	os.Setenv("DECK_MY_VARIABLE", "my_value")
+
+	_, err := renderTemplateConcurrentImplementation(content, mockEnvVars)
+	if err == nil {
+		t.Errorf("expected error but did not receive one")
+	}
+
+	os.Unsetenv("DECK_MY_VARIABLE")
+}
