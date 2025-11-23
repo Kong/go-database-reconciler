@@ -96,40 +96,29 @@ func renderTemplate(content string, mockEnvVars bool) (string, error) {
 	}
 	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
 
-	// Parse content line by line
+	// Parse content line by line, and ignore lines that start with #
 	var allContent bytes.Buffer
 	lines := strings.Split(content, "\n")
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		if !strings.HasPrefix(strings.TrimSpace(line), "#") {
-			var buffer bytes.Buffer
-			lineTemplate, err := t.Clone()
-			if err != nil {
-				return "", err
-			}
-
-			lineTemplate, err = lineTemplate.Parse(line)
-			if err != nil {
-				return "", err
-			}
-
-			// Clear the buffer before executing the template
-			buffer.Reset()
-
-			err = lineTemplate.Execute(&buffer, nil)
-			if err != nil {
-				return "", err
-			}
-
-			line = buffer.String()
+			allContent.WriteString(line + "\n")
 		}
-
-		allContent.WriteString(line + "\n")
 	}
 
 	result := allContent.String()
 	if !strings.HasSuffix(content, "\n") {
 		result = strings.TrimSuffix(result, "\n")
 	}
-	return result, nil
+
+	t, err := t.Parse(result)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, nil)
+	if err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
 }

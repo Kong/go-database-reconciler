@@ -77,8 +77,7 @@ func Test_renderTemplateIgnoresComments(t *testing.T) {
 	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!
   # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 
-	expectedOutput := `Hello, my_value!
-  # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
+	expectedOutput := `Hello, my_value!`
 	mockEnvVars := false
 
 	os.Setenv("DECK_MY_VARIABLE", "my_value")
