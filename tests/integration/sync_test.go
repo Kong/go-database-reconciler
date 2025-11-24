@@ -9582,3 +9582,60 @@ func Test_Sync_PluginConfig_Nested_Arrays(t *testing.T) {
 	// resync with no error
 	require.NoError(t, sync(kongFile))
 }
+
+func Test_Sync_Services_TLS_Sans(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.10.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name        string
+		initialFile string
+		updateFile  string
+	}{
+		{
+			name:        "create a service with TLS SANs",
+			initialFile: "testdata/sync/046-service-tls-sans/kong.yaml",
+		},
+		{
+			name:        "update an existing service with TLS SANs - protocol https",
+			initialFile: "testdata/sync/046-service-tls-sans/no-tls-https.yaml",
+			updateFile:  "testdata/sync/046-service-tls-sans/kong.yaml",
+		},
+		{
+			name:        "update an existing service with TLS SANs - protocol http",
+			initialFile: "testdata/sync/046-service-tls-sans/no-tls-http.yaml",
+			updateFile:  "testdata/sync/046-service-tls-sans/kong.yaml",
+		},
+		{
+			name:        "remove TLS SANs from existing service",
+			initialFile: "testdata/sync/046-service-tls-sans/kong.yaml",
+			updateFile:  "testdata/sync/046-service-tls-sans/no-tls-https.yaml",
+		},
+		{
+			name:        "remove TLS SANs from existing service and change protocol to http",
+			initialFile: "testdata/sync/046-service-tls-sans/kong.yaml",
+			updateFile:  "testdata/sync/046-service-tls-sans/no-tls-http.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			require.NoError(t, sync(tc.initialFile))
+			// resync with no error
+			require.NoError(t, sync(tc.initialFile))
+
+			if tc.updateFile == "" {
+				return
+			}
+			// update
+			require.NoError(t, sync(tc.updateFile))
+			// resync with no error
+			require.NoError(t, sync(tc.updateFile))
+		})
+	}
+}

@@ -672,6 +672,44 @@ func Test_stateBuilder_services(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "process a service with tls_sans",
+			fields: fields{
+				targetContent: &Content{
+					Info: &Info{
+						Defaults: kongDefaults,
+					},
+					Services: []FService{
+						{
+							Service: kong.Service{
+								Name:     kong.String("foo"),
+								Protocol: kong.String("https"),
+								TLSSANs: &kong.SANs{
+									DNSNames: kong.StringSlice("example.com"),
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				Services: []*kong.Service{
+					{
+						ID:             kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:           kong.String("foo"),
+						Protocol:       kong.String("https"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
+						Tags:           kong.StringSlice("tag1"),
+						TLSSANs: &kong.SANs{
+							DNSNames: kong.StringSlice("example.com"),
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
