@@ -1312,6 +1312,12 @@ func (b *stateBuilder) ingestService(s *FService) error {
 	}
 
 	b.defaulter.MustSet(&s.Service)
+	if s.Service.TLSSANs != nil && reflect.DeepEqual(*s.Service.TLSSANs, kong.SANs{}) {
+		// Defaulter sets an empty SANs struct if none are provided.
+		// We need to nil it out to avoid validation errors when protocol is not secure.
+		s.Service.TLSSANs = nil
+	}
+
 	if svc != nil {
 		s.Service.CreatedAt = svc.CreatedAt
 	}
