@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/tidwall/gjson"
 )
 
 // pluginCRUD implements crud.Actions interface.
@@ -209,7 +211,10 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
 	}
 
-	if !currentPlugin.EqualWithOpts(pluginWithDefaults, false, true, false) {
+	jsonb, _ := json.Marshal(&schema)
+	gjsonSchema := gjson.ParseBytes(jsonb)
+
+	if !currentPlugin.EqualWithOpts(pluginWithDefaults, false, true, false, gjsonSchema) {
 		return &crud.Event{
 			Op:     crud.Update,
 			Kind:   d.kind,
