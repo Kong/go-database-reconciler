@@ -1,7 +1,9 @@
 package file
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -185,4 +187,148 @@ Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 	}
 
 	os.Unsetenv("DECK_MY_VARIABLE")
+}
+
+func Benchmark_renderTemplateOriginalImplementation(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplateOriginalImplementation(contentStr, false)
+	}
+}
+
+func Benchmark_renderTemplateConcurrentImplementation(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplateConcurrentImplementation(contentStr, false)
+	}
+}
+func Benchmark_renderTemplateNewImplementation(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplate(contentStr, false)
+	}
+}
+
+func Benchmark_renderTemplateConcurrentMutexImplementation(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplateConcurrentMutexImplementation(contentStr, false)
+	}
+}
+
+func Benchmark_renderTemplateLineByLineExec(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplateLineByLineExec(contentStr, false)
+	}
 }

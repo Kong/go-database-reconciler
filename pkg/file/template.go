@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 
 	"golang.org/x/sync/errgroup"
@@ -207,6 +208,177 @@ func renderTemplateConcurrentImplementation(content string, mockEnvVars bool) (s
 	}
 	result := strings.Join(output, "\n")
 
+	if !strings.HasSuffix(content, "\n") {
+		result = strings.TrimSuffix(result, "\n")
+	}
+	return result, nil
+}
+
+func renderTemplateOriginalImplementation(content string, mockEnvVars bool) (string, error) {
+	var templateFuncs template.FuncMap
+	if mockEnvVars {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVarMocked,
+			"toBool":  toBoolMocked,
+			"toInt":   toIntMocked,
+			"toFloat": toFloatMocked,
+			"indent":  indent,
+		}
+	} else {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVar,
+			"toBool":  toBool,
+			"toInt":   toInt,
+			"toFloat": toFloat,
+			"indent":  indent,
+		}
+	}
+	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
+
+	t, err := t.Parse(content)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, nil)
+	if err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
+}
+
+func renderTemplateConcurrentMutexImplementation(content string, mockEnvVars bool) (string, error) {
+	workers := 2
+
+	var templateFuncs template.FuncMap
+	if mockEnvVars {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVarMocked,
+			"toBool":  toBoolMocked,
+			"toInt":   toIntMocked,
+			"toFloat": toFloatMocked,
+			"indent":  indent,
+		}
+	} else {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVar,
+			"toBool":  toBool,
+			"toInt":   toInt,
+			"toFloat": toFloat,
+			"indent":  indent,
+		}
+	}
+	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
+
+	lines := strings.Split(content, "\n")
+	output := make([]string, len(lines))
+
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var firstErr error
+
+	lineIndex := 0
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				mu.Lock()
+				if firstErr != nil {
+					mu.Unlock()
+					return
+				}
+				if lineIndex >= len(lines) {
+					mu.Unlock()
+					return
+				}
+				i := lineIndex
+				line := lines[lineIndex]
+				lineIndex++
+				mu.Unlock()
+
+				processedLine, err := processLine(line, t)
+				if err != nil {
+					mu.Lock()
+					if firstErr == nil {
+						firstErr = err
+					}
+					mu.Unlock()
+					return
+				}
+
+				mu.Lock()
+				output[i] = processedLine
+				mu.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+	if firstErr != nil {
+		return "", firstErr
+	}
+
+	result := strings.Join(output, "\n")
+	if !strings.HasSuffix(content, "\n") {
+		result = strings.TrimSuffix(result, "\n")
+	}
+	return result, nil
+}
+
+func renderTemplateLineByLineExec(content string, mockEnvVars bool) (string, error) {
+	var templateFuncs template.FuncMap
+	if mockEnvVars {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVarMocked,
+			"toBool":  toBoolMocked,
+			"toInt":   toIntMocked,
+			"toFloat": toFloatMocked,
+			"indent":  indent,
+		}
+	} else {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVar,
+			"toBool":  toBool,
+			"toInt":   toInt,
+			"toFloat": toFloat,
+			"indent":  indent,
+		}
+	}
+	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
+
+	// Parse content line by line
+	var allContent bytes.Buffer
+	lines := strings.Split(content, "\n")
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		if !strings.HasPrefix(strings.TrimSpace(line), "#") {
+			var buffer bytes.Buffer
+			lineTemplate, err := t.Clone()
+			if err != nil {
+				return "", err
+			}
+
+			lineTemplate, err = lineTemplate.Parse(line)
+			if err != nil {
+				return "", err
+			}
+
+			// Clear the buffer before executing the template
+			buffer.Reset()
+
+			err = lineTemplate.Execute(&buffer, nil)
+			if err != nil {
+				return "", err
+			}
+
+			line = buffer.String()
+		}
+
+		allContent.WriteString(line + "\n")
+	}
+
+	result := allContent.String()
 	if !strings.HasSuffix(content, "\n") {
 		result = strings.TrimSuffix(result, "\n")
 	}
