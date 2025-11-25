@@ -96,7 +96,22 @@ func renderTemplate(content string, mockEnvVars bool) (string, error) {
 	}
 	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
 
-	t, err := t.Parse(content)
+	// Parse content line by line, and ignore lines that start with #
+	var allContent bytes.Buffer
+	lines := strings.Split(content, "\n")
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		if !strings.HasPrefix(strings.TrimSpace(line), "#") {
+			allContent.WriteString(line + "\n")
+		}
+	}
+
+	result := allContent.String()
+	if !strings.HasSuffix(content, "\n") {
+		result = strings.TrimSuffix(result, "\n")
+	}
+
+	t, err := t.Parse(result)
 	if err != nil {
 		return "", err
 	}
