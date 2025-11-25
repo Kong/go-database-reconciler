@@ -1183,6 +1183,10 @@
           },
           "type": "array"
         },
+        "tls_sans": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/TLSSans"
+        },
         "tls_verify": {
           "type": "boolean"
         },
@@ -2097,6 +2101,24 @@
         },
         "failover": {
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "TLSSans": {
+      "properties": {
+        "dnsnames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "uris": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

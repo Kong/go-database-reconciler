@@ -13,6 +13,7 @@ require (
 	github.com/alecthomas/jsonschema v0.0.0-20191017121752-4bb6e3fae4f2
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/ettle/strcase v0.2.0
 	github.com/fatih/color v1.18.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-querystring v1.1.0
@@ -21,11 +22,12 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.51.1
-	github.com/kong/go-kong v0.69.0
+	github.com/kong/go-kong v0.70.0
 	github.com/samber/lo v1.50.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.0.1
 	github.com/stretchr/testify v1.10.0
+	github.com/tidwall/gjson v1.18.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.15.0
 	golang.org/x/term v0.32.0
@@ -51,7 +53,6 @@ require (
 	github.com/dprotaso/go-yit v0.0.0-20240618133044-5a0af90af097 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.0 // indirect
 	github.com/ericlagergren/decimal v0.0.0-20240411145413-00de7ca16731 // indirect
-	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
@@ -110,7 +111,6 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spf13/viper v1.20.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
