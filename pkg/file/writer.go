@@ -878,10 +878,11 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 					utils.ZeroOutID(plugin, plugin.Name, config.WithID)
 					utils.ZeroOutID(plugin.ConsumerGroup, plugin.ConsumerGroup.Name, config.WithID)
 					group.Plugins = append(group.Plugins, &kong.ConsumerGroupPlugin{
-						ID:     plugin.ID,
-						Name:   plugin.Name,
-						Config: plugin.Config,
-						Tags:   plugin.Tags,
+						ID:       plugin.ID,
+						Name:     plugin.Name,
+						Config:   plugin.Config,
+						Tags:     plugin.Tags,
+						Partials: plugin.Partials,
 					})
 				}
 			}
