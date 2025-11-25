@@ -96,7 +96,7 @@ func Test_renderTemplateIgnoresComments(t *testing.T) {
 func Test_renderTemplateErrorWhenNotSet(t *testing.T) {
 	content := `
 Hello, ${{ env "DECK_MY_VARIABLE" }}!
-Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
+Also, ${{ env "DECK_NOT_SET_ERRORS" }}!`
 
 	mockEnvVars := false
 
