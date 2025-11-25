@@ -390,6 +390,12 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "partials": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,
