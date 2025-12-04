@@ -323,13 +323,14 @@ func (sc *Syncer) diff() error {
 		operations = append(operations, sc.delete)
 	}
 
+	errs := []error{}
 	for _, operation := range operations {
 		err := operation()
 		if err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func (sc *Syncer) deleteDuplicates() error {
@@ -523,6 +524,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 type Do func(a crud.Event) (crud.Arg, error)
 
 func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
+	errs := []error{}
 	for event := range sc.eventChan {
 		// Stop if program is terminated
 		select {
@@ -534,10 +536,11 @@ func (sc *Syncer) eventLoop(ctx context.Context, d Do) error {
 		err := sc.handleEvent(ctx, d, event)
 		sc.eventCompleted()
 		if err != nil {
-			return err
+			// Do not return error prematurely to prevent delete events lost when create/update event fails.
+			errs = append(errs, err)
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func (sc *Syncer) handleEvent(ctx context.Context, d Do, event crud.Event) error {
