@@ -54,6 +54,10 @@ type EntityChanges struct {
 	Creating []EntityState `json:"creating"`
 	Updating []EntityState `json:"updating"`
 	Deleting []EntityState `json:"deleting"`
+
+	DroppedCreations []EntityState `json:"dropped_creations,omitempty"`
+	DroppedUpdates   []EntityState `json:"dropped_updates,omitempty"`
+	DroppedDeletions []EntityState `json:"dropped_deletions,omitempty"`
 }
 
 // ------------------------------------------------------
@@ -126,6 +130,8 @@ type Syncer struct {
 	errChan    chan error
 	stopChan   chan struct{}
 	resultChan chan EntityAction
+
+	droppedEvents []crud.Event
 
 	inFlightOps int32
 
@@ -431,6 +437,7 @@ func (sc *Syncer) queueEvent(e crud.Event) error {
 		return nil
 	case <-sc.stopChan:
 		atomic.AddInt32(&sc.inFlightOps, -1)
+		sc.droppedEvents = append(sc.droppedEvents, e)
 		return errEnqueueFailed
 	}
 }
@@ -466,7 +473,7 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	// run rabbit run
 	// start the consumers
 	wg.Add(parallelism)
-	for i := 0; i < parallelism; i++ {
+	for range parallelism {
 		go func() {
 			err := sc.eventLoop(ctx, action)
 			if err != nil {
@@ -854,5 +861,45 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		return result, nil
 	})
+	for event := range sc.eventChan {
+		// Add events remaining in the event queue but not dispatched to the runners to the dropped events.
+		sc.droppedEvents = append(sc.droppedEvents, event)
+	}
+	// Output of dropped events due to errors.
+	for _, e := range sc.droppedEvents {
+		// Convert event to the EntityState in the output.
+		c := e.Obj.(state.ConsoleString)
+		objDiff := map[string]interface{}{
+			"old": e.OldObj,
+			"new": e.Obj,
+		}
+		item := EntityState{
+			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this is the current (only) place Body is
+			// set in an EntityState.
+			Body: objDiff,
+			Name: c.Console(),
+			Kind: string(e.Kind),
+		}
+		switch e.Op {
+		case crud.Create:
+			if isJSONOut {
+				output.DroppedCreations = append(output.DroppedCreations, item)
+			} else {
+				sc.createPrintln("Dropped creation", e.Kind, c.Console())
+			}
+		case crud.Update:
+			if isJSONOut {
+				output.DroppedUpdates = append(output.DroppedUpdates, item)
+			} else {
+				sc.updatePrintln("Dropped update", e.Kind, c.Console())
+			}
+		case crud.Delete:
+			if isJSONOut {
+				output.DroppedDeletions = append(output.DroppedDeletions, item)
+			} else {
+				sc.deletePrintln("Dropped deletion", e.Kind, c.Console())
+			}
+		}
+	}
 	return stats, errs, output
 }
