@@ -711,11 +711,6 @@ func compareMaps(fieldMap, defaultMap reflect.Value) interface{} {
 			continue // Skip unexported fields
 		}
 
-		if fieldVal.IsZero() && !defaultVal.IsZero() {
-			newMap[key.String()] = fieldVal.Interface()
-			continue
-		}
-
 		fieldVal = reflect.ValueOf(fieldVal.Interface())
 		defaultVal = reflect.ValueOf(defaultVal.Interface())
 

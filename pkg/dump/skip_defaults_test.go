@@ -647,22 +647,6 @@ func TestCompareMaps(t *testing.T) {
 			},
 			expected: map[string]interface{}{},
 		},
-		{
-			name: "field has zero value for non-zero/not-defined defaults",
-			fieldMap: map[string]interface{}{
-				"host":       nil,
-				"jwk_arrays": []interface{}{},
-				"name":       "test",
-			},
-			defaultMap: map[string]interface{}{
-				"host": "localhost",
-			},
-			expected: map[string]interface{}{
-				"host":       nil,
-				"name":       "test",
-				"jwk_arrays": []interface{}{},
-			},
-		},
 	}
 
 	for _, tt := range tests {
