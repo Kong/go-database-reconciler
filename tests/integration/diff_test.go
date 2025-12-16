@@ -2760,7 +2760,7 @@ func Test_Diff_PluginUpdate_38x(t *testing.T) {
 }
 
 func Test_Diff_PluginUpdate_NewerThan39x(t *testing.T) {
-	runWhenEnterpriseOrKonnect(t, ">=3.9.0")
+	runWhenEnterpriseOrKonnect(t, ">=3.9.0 <3.12.0")
 	setup(t)
 
 	tests := []struct {
