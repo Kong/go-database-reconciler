@@ -505,19 +505,31 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		}
 
 		state.Upstreams = upstreams
-		targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
-		if err != nil {
-			return fmt.Errorf("targets: %w", err)
+		if config.KonnectControlPlane == "" {
+			targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+			state.Targets = targets
 		}
-
-		targets, err = excludeKonnectManagedEntities(targets)
-		if err != nil {
-			return fmt.Errorf("targets: %w", err)
-		}
-
-		state.Targets = targets
 		return nil
 	})
+
+	if config.KonnectControlPlane != "" {
+		group.Go(func() error {
+			targets, err := GetAllTargetsFromKonnect(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+
+			targets, err = excludeKonnectManagedEntities(targets)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+			state.Targets = targets
+			return nil
+		})
+	}
 
 	group.Go(func() error {
 		vaults, err := GetAllVaults(ctx, client, config.SelectorTags)
@@ -1245,6 +1257,30 @@ func GetAllTargets(ctx context.Context, client *kong.Client,
 			}
 			opt = nextopt
 		}
+	}
+
+	return targets, nil
+}
+
+// GetAllTargetsFromKonnect queries Konnect for *all* Targets across *all* upstreams using a
+// Konnect-only `/targets` endpoint.
+func GetAllTargetsFromKonnect(ctx context.Context, client *kong.Client, tags []string) ([]*kong.Target, error) {
+	var targets []*kong.Target
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.Targets.ListAllTargets(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		targets = append(targets, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
 	}
 
 	return targets, nil
