@@ -248,9 +248,10 @@ func (b *stateBuilder) ingestConsumerGroupScopedPlugins(cg FConsumerGroupObject)
 		plugin.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 		plugins = append(plugins, FPlugin{
 			Plugin: kong.Plugin{
-				ID:     plugin.ID,
-				Name:   plugin.Name,
-				Config: plugin.Config,
+				ID:           plugin.ID,
+				Name:         plugin.Name,
+				Config:       plugin.Config,
+				InstanceName: plugin.InstanceName,
 				ConsumerGroup: &kong.ConsumerGroup{
 					ID: cg.ID,
 				},
