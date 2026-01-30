@@ -4443,7 +4443,8 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 							Consumers: nil,
 							Plugins: []*kong.ConsumerGroupPlugin{
 								{
-									Name: kong.String("rate-limiting-advanced"),
+									Name:         kong.String("rate-limiting-advanced"),
+									InstanceName: kong.String("custom-instance-name"),
 									Config: kong.Configuration{
 										"limit":       []any{float64(100)},
 										"window_size": []any{float64(60)},
@@ -4518,8 +4519,9 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 						Consumers: nil,
 						Plugins: []*kong.ConsumerGroupPlugin{
 							{
-								ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-								Name: kong.String("rate-limiting-advanced"),
+								ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+								Name:         kong.String("rate-limiting-advanced"),
+								InstanceName: kong.String("custom-instance-name"),
 								Config: kong.Configuration{
 									"limit":       []any{float64(100)},
 									"window_size": []any{float64(60)},
@@ -5594,6 +5596,103 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 			assert.Len(t, cgConsumers, 1)
 			assert.Equal(t, tt.args.cgID, cgConsumers[0].ConsumerGroup.ID)
 			assert.Equal(t, got.ID, cgConsumers[0].Consumer.ID)
+		})
+	}
+}
+
+func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
+	assert := assert.New(t)
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    *utils.KongRawState
+		wantErr bool
+	}{
+		{
+			name: "consumergroup plugin with instance_name set",
+			fields: fields{
+				targetContent: &Content{
+					Info: &Info{
+						Defaults: kongDefaults,
+					},
+					ConsumerGroups: []FConsumerGroupObject{
+						{
+							ConsumerGroup: kong.ConsumerGroup{
+								Name: kong.String("foo-group"),
+							},
+							Consumers: nil,
+							Plugins: []*kong.ConsumerGroupPlugin{
+								{
+									ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+									Name:         kong.String("rate-limiting-advanced"),
+									InstanceName: kong.String("custom-instance-name"),
+									Config: kong.Configuration{
+										"limit":       []any{float64(100)},
+										"window_size": []any{float64(60)},
+										"window_type": string("fixed"),
+									},
+								},
+							},
+						},
+					},
+				},
+				currentState: existingServiceState(),
+			},
+			want: &utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: kong.String("foo-group"),
+						},
+						Consumers: nil,
+					},
+				},
+				Plugins: []*kong.Plugin{
+					{
+						ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:         kong.String("rate-limiting-advanced"),
+						InstanceName: kong.String("custom-instance-name"),
+						Config: kong.Configuration{
+							"limit":       []any{float64(100)},
+							"window_size": []any{float64(60)},
+							"window_type": string("fixed"),
+						},
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							//Name: kong.String("foo-group"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(_ *testing.T) {
+			ctx := context.Background()
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+				kongVersion:   kong340Version,
+			}
+			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+			b.defaulter = d
+			_, _, err := b.build()
+
+			if tt.wantErr {
+				require.Error(t, err, "build error was expected")
+				assert.ErrorContains(err, utils.ErrorConsumerGroupUpgrade.Error())
+				return
+			}
+
+			assert.Equal(tt.want, b.rawState)
 		})
 	}
 }
