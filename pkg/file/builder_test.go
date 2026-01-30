@@ -5665,7 +5665,6 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 						},
 						ConsumerGroup: &kong.ConsumerGroup{
 							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							//Name: kong.String("foo-group"),
 						},
 					},
 				},
