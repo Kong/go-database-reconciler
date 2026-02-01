@@ -425,6 +425,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 							"namespace":               string("gold"),
 							"path":                    nil,
 							"redis": map[string]any{
+								"cloud_authentication":     nil,
 								"cluster_addresses":        nil,
 								"cluster_max_redirections": float64(5),
 								"cluster_nodes":            nil,
