@@ -375,7 +375,7 @@ func Test_Apply_Consumer_Group_Consumer(t *testing.T) {
 }
 
 func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.0.0")
+	runWhen(t, "enterprise", ">=3.10.0")
 	setup(t)
 	client, err := getTestClient()
 	require.NoError(t, err)
