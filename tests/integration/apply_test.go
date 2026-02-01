@@ -425,7 +425,6 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 							"namespace":               string("gold"),
 							"path":                    nil,
 							"redis": map[string]any{
-								"cloud_authentication":     nil,
 								"cluster_addresses":        nil,
 								"cluster_max_redirections": float64(5),
 								"cluster_nodes":            nil,
@@ -455,7 +454,6 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 							"retry_after_jitter_max": float64(1),
 							"strategy":               string("local"),
 							"sync_rate":              nil,
-							"throttling":             nil,
 							"window_size":            []any{float64(60)},
 							"window_type":            string("sliding"),
 						},
