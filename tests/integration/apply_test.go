@@ -31,7 +31,7 @@ var (
 				"hide_client_headers":     bool(false),
 				"identifier":              string("consumer"),
 				"limit":                   []any{float64(7)},
-				"namespace":               string("gold"),
+				"namespace":               string("silver"),
 				"path":                    nil,
 				"redis": map[string]any{
 					"cluster_addresses":   nil,
