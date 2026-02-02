@@ -57,7 +57,7 @@ var (
 				},
 				"retry_after_jitter_max": float64(1),
 				"strategy":               string("local"),
-				"sync_rate":              float64(-1),
+				"sync_rate":              nil,
 				"window_size":            []any{float64(60)},
 				"window_type":            string("sliding"),
 			},
@@ -82,7 +82,7 @@ var (
 				"header_name":             nil,
 				"hide_client_headers":     bool(false),
 				"identifier":              string("consumer"),
-				"limit":                   []any{float64(10)},
+				"limit":                   []any{float64(7)},
 				"namespace":               string("gold"),
 				"path":                    nil,
 				"redis": map[string]any{
@@ -134,7 +134,7 @@ var (
 				"header_name":             nil,
 				"hide_client_headers":     bool(false),
 				"identifier":              string("consumer"),
-				"limit":                   []any{float64(10)},
+				"limit":                   []any{float64(7)},
 				"namespace":               string("gold"),
 				"path":                    nil,
 				"redis": map[string]any{
@@ -190,7 +190,7 @@ var (
 				"header_name":             nil,
 				"hide_client_headers":     bool(false),
 				"identifier":              string("consumer"),
-				"limit":                   []any{float64(10)},
+				"limit":                   []any{float64(7)},
 				"namespace":               string("gold"),
 				"path":                    nil,
 				"redis": map[string]any{
@@ -718,7 +718,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 		initialStateFile string
 		updateStateFile  string
 		expectedState    utils.KongRawState
-		runWhen          func(t *testing.T)
+		runWhenVersion   string
 	}{
 		{
 			name:             "plugin addition to consumer group",
@@ -734,7 +734,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 				},
 				Plugins: consumerGroupInstanceNamePlugins,
 			},
-			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.4.0 <3.5.0") },
+			runWhenVersion: ">=3.4.0 <3.5.0",
 		},
 		{
 			name:             "plugin addition to consumer group",
@@ -750,7 +750,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 				},
 				Plugins: consumerGroupInstanceNamePlugins35x,
 			},
-			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.5.0 <3.6.0") },
+			runWhenVersion: ">=3.5.0 <3.6.0",
 		},
 		{
 			name:             "plugin addition to consumer group",
@@ -766,7 +766,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 				},
 				Plugins: consumerGroupInstanceNamePlugins37x,
 			},
-			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.7.0 <3.8.0") },
+			runWhenVersion: ">=3.7.0 <3.8.0",
 		},
 		{
 			name:             "plugin addition to consumer group",
@@ -782,7 +782,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 				},
 				Plugins: consumerGroupInstanceNamePlugins38x,
 			},
-			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.8.0 <3.9.0") },
+			runWhenVersion: ">=3.8.0 <3.9.0",
 		},
 		{
 			name:             "plugin addition to consumer group",
@@ -814,13 +814,14 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 				},
 				Plugins: consumerGroupInstanceNamePlugins310x,
 			},
-			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.10.0") },
+			runWhenVersion: ">=3.10.0",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			mustResetKongState(ctx, t, client, deckDump.Config{})
+			runWhenEnterpriseOrKonnect(t, tc.runWhenVersion)
 			err := sync(tc.initialStateFile)
 			require.NoError(t, err)
 
