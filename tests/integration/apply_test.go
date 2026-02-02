@@ -375,7 +375,7 @@ func Test_Apply_Consumer_Group_Consumer(t *testing.T) {
 }
 
 func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.10.0")
+	runWhen(t, "enterprise", ">=3.4.0")
 	setup(t)
 	client, err := getTestClient()
 	require.NoError(t, err)
@@ -400,67 +400,23 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 						},
 					},
 				},
-				Plugins: []*kong.Plugin{
-					{
-						Name:         kong.String("rate-limiting-advanced"),
-						InstanceName: kong.String("default-instance"),
-						Enabled:      kong.Bool(true),
-						Protocols:    []*string{kong.String("http"), kong.String("https"), kong.String("grpc"), kong.String("grpcs")},
-						ConsumerGroup: &kong.ConsumerGroup{
-							ID: kong.String("521a90ad-36cb-4e31-a5db-1d979aee40d1"),
-						},
-						Config: kong.Configuration{
-							"compound_identifier":     nil,
-							"consumer_groups":         nil,
-							"lock_dictionary_name":    string("kong_locks"),
-							"dictionary_name":         string("kong_rate_limiting_counters"),
-							"disable_penalty":         bool(false),
-							"enforce_consumer_groups": bool(false),
-							"error_code":              float64(429),
-							"error_message":           string("API rate limit exceeded"),
-							"header_name":             nil,
-							"hide_client_headers":     bool(false),
-							"identifier":              string("consumer"),
-							"limit":                   []any{float64(7)},
-							"namespace":               string("gold"),
-							"path":                    nil,
-							"redis": map[string]any{
-								"cloud_authentication":     nil,
-								"cluster_addresses":        nil,
-								"cluster_max_redirections": float64(5),
-								"cluster_nodes":            nil,
-								"connect_timeout":          float64(2000),
-								"database":                 float64(0),
-								"connection_is_proxied":    bool(false),
-								"host":                     string("127.0.0.1"),
-								"keepalive_backlog":        nil,
-								"keepalive_pool_size":      float64(256),
-								"password":                 nil,
-								"port":                     float64(6379),
-								"read_timeout":             float64(2000),
-								"redis_proxy_type":         nil,
-								"send_timeout":             float64(2000),
-								"sentinel_addresses":       nil,
-								"sentinel_master":          nil,
-								"sentinel_password":        nil,
-								"sentinel_nodes":           nil,
-								"sentinel_role":            nil,
-								"sentinel_username":        nil,
-								"server_name":              nil,
-								"ssl":                      false,
-								"ssl_verify":               false,
-								"timeout":                  float64(2000),
-								"username":                 nil,
-							},
-							"retry_after_jitter_max": float64(1),
-							"strategy":               string("local"),
-							"sync_rate":              nil,
-							"throttling":             nil,
-							"window_size":            []any{float64(60)},
-							"window_type":            string("sliding"),
-						},
+				Plugins: []*kong.Plugin{{
+					Name:         kong.String("rate-limiting-advanced"),
+					InstanceName: kong.String("default-instance"),
+					Config: kong.Configuration{
+						"add":         map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+						"append":      map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+						"http_method": string("GET"),
+						"remove":      map[string]any{"body": []any{}, "headers": []any{string("test-header")}, "querystring": []any{}},
+						"rename":      map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}},
+						"replace":     map[string]any{"body": []any{}, "headers": []any{}, "querystring": []any{}, "uri": nil},
 					},
-				},
+					ConsumerGroup: &kong.ConsumerGroup{
+						ID: kong.String("58076db2-28b6-423b-ba39-a79719301700"),
+					},
+					Enabled:   kong.Bool(true),
+					Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+				}},
 			},
 		},
 	}
