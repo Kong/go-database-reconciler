@@ -375,7 +375,6 @@ func Test_Apply_Consumer_Group_Consumer(t *testing.T) {
 }
 
 func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.4.0")
 	setup(t)
 	client, err := getTestClient()
 	require.NoError(t, err)
@@ -400,66 +399,89 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 						},
 					},
 				},
-				Plugins: []*kong.Plugin{
+				Plugins: consumerGroupScopedPlugins,
+			},
+			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.4.0 <3.5.0") },
+		},
+		{
+			name:             "plugin addition to consumer group",
+			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
+			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
 					{
-						Name:         kong.String("rate-limiting-advanced"),
-						InstanceName: kong.String("default-instance"),
-						Enabled:      kong.Bool(true),
-						Protocols:    []*string{kong.String("http"), kong.String("https"), kong.String("grpc"), kong.String("grpcs")},
 						ConsumerGroup: &kong.ConsumerGroup{
-							ID: kong.String("521a90ad-36cb-4e31-a5db-1d979aee40d1"),
-						},
-						Config: kong.Configuration{
-							"compound_identifier":     nil,
-							"consumer_groups":         nil,
-							"lock_dictionary_name":    string("kong_locks"),
-							"dictionary_name":         string("kong_rate_limiting_counters"),
-							"disable_penalty":         bool(false),
-							"enforce_consumer_groups": bool(false),
-							"error_code":              float64(429),
-							"error_message":           string("API rate limit exceeded"),
-							"header_name":             nil,
-							"hide_client_headers":     bool(false),
-							"identifier":              string("consumer"),
-							"limit":                   []any{float64(7)},
-							"namespace":               string("gold"),
-							"path":                    nil,
-							"redis": map[string]any{
-								"cluster_addresses":        nil,
-								"cluster_max_redirections": float64(5),
-								"cluster_nodes":            nil,
-								"connect_timeout":          float64(2000),
-								"database":                 float64(0),
-								"connection_is_proxied":    bool(false),
-								"host":                     string("127.0.0.1"),
-								"keepalive_backlog":        nil,
-								"keepalive_pool_size":      float64(256),
-								"password":                 nil,
-								"port":                     float64(6379),
-								"read_timeout":             float64(2000),
-								"redis_proxy_type":         nil,
-								"send_timeout":             float64(2000),
-								"sentinel_addresses":       nil,
-								"sentinel_master":          nil,
-								"sentinel_password":        nil,
-								"sentinel_nodes":           nil,
-								"sentinel_role":            nil,
-								"sentinel_username":        nil,
-								"server_name":              nil,
-								"ssl":                      false,
-								"ssl_verify":               false,
-								"timeout":                  float64(2000),
-								"username":                 nil,
-							},
-							"retry_after_jitter_max": float64(1),
-							"strategy":               string("local"),
-							"sync_rate":              nil,
-							"window_size":            []any{float64(60)},
-							"window_type":            string("sliding"),
+							Name: kong.String("silver"),
 						},
 					},
 				},
+				Plugins: consumerGroupScopedPlugins35x,
 			},
+			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.5.0 <3.6.0") },
+		},
+		{
+			name:             "plugin addition to consumer group",
+			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
+			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("silver"),
+						},
+					},
+				},
+				Plugins: consumerGroupScopedPlugins37x,
+			},
+			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.7.0 <3.8.0") },
+		},
+		{
+			name:             "plugin addition to consumer group",
+			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
+			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("silver"),
+						},
+					},
+				},
+				Plugins: consumerGroupScopedPlugins38x,
+			},
+			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.8.0 <3.9.0") },
+		},
+		{
+			name:             "plugin addition to consumer group",
+			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
+			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("silver"),
+						},
+					},
+				},
+				Plugins: consumerGroupScopedPlugins390x,
+			},
+			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.9.0 <3.10.0") },
+		},
+		{
+			name:             "plugin addition to consumer group",
+			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
+			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("silver"),
+						},
+					},
+				},
+				Plugins: consumerGroupScopedPlugins310x,
+			},
+			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.10.0") },
 		},
 	}
 
