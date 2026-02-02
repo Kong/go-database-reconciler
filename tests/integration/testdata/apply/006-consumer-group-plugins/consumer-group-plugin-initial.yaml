@@ -3,11 +3,9 @@ consumer_groups:
   - name: silver
     plugins:
       - config:
-          namespace: gold
-          limit:
-            - 7
-          retry_after_jitter_max: 1
-          window_size:
-            - 60
-          window_type: sliding
-        name: rate-limiting-advanced
+          allow:
+            - 10.0.0.0
+          deny: null
+          message: null
+          status: null
+        name: ip-restriction

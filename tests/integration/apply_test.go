@@ -718,7 +718,7 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 		initialStateFile string
 		updateStateFile  string
 		expectedState    utils.KongRawState
-		runWhenVersion   string
+		runWhen          func(t *testing.T)
 	}{
 		{
 			name:             "plugin addition to consumer group",
@@ -732,96 +732,30 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 						},
 					},
 				},
-				Plugins: consumerGroupInstanceNamePlugins,
-			},
-			runWhenVersion: ">=3.4.0 <3.5.0",
-		},
-		{
-			name:             "plugin addition to consumer group",
-			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
-			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
-			expectedState: utils.KongRawState{
-				ConsumerGroups: []*kong.ConsumerGroupObject{
+				Plugins: []*kong.Plugin{
 					{
+						Name:         kong.String("ip-restriction"),
+						InstanceName: kong.String("default-instance"),
 						ConsumerGroup: &kong.ConsumerGroup{
-							Name: kong.String("silver"),
+							ID: kong.String("521a90ad-36cb-4e31-a5db-1d979aee40d1"),
 						},
+						Config: kong.Configuration{
+							"allow":   []any{string("10.0.0.0")},
+							"deny":    nil,
+							"message": nil,
+							"status":  nil,
+						},
+						Enabled:   kong.Bool(true),
+						Protocols: kong.StringSlice("grpc", "http", "https", "tcp", "tls", "grpcs"),
 					},
 				},
-				Plugins: consumerGroupInstanceNamePlugins35x,
 			},
-			runWhenVersion: ">=3.5.0 <3.6.0",
-		},
-		{
-			name:             "plugin addition to consumer group",
-			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
-			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
-			expectedState: utils.KongRawState{
-				ConsumerGroups: []*kong.ConsumerGroupObject{
-					{
-						ConsumerGroup: &kong.ConsumerGroup{
-							Name: kong.String("silver"),
-						},
-					},
-				},
-				Plugins: consumerGroupInstanceNamePlugins37x,
-			},
-			runWhenVersion: ">=3.7.0 <3.8.0",
-		},
-		{
-			name:             "plugin addition to consumer group",
-			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
-			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
-			expectedState: utils.KongRawState{
-				ConsumerGroups: []*kong.ConsumerGroupObject{
-					{
-						ConsumerGroup: &kong.ConsumerGroup{
-							Name: kong.String("silver"),
-						},
-					},
-				},
-				Plugins: consumerGroupInstanceNamePlugins38x,
-			},
-			runWhenVersion: ">=3.8.0 <3.9.0",
-		},
-		{
-			name:             "plugin addition to consumer group",
-			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
-			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
-			expectedState: utils.KongRawState{
-				ConsumerGroups: []*kong.ConsumerGroupObject{
-					{
-						ConsumerGroup: &kong.ConsumerGroup{
-							Name: kong.String("silver"),
-						},
-					},
-				},
-				Plugins: consumerGroupInstanceNamePlugins390x,
-			},
-			runWhen: func(t *testing.T) { runWhen(t, "enterprise", ">=3.9.0 <3.10.0") },
-		},
-		{
-			name:             "plugin addition to consumer group",
-			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
-			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
-			expectedState: utils.KongRawState{
-				ConsumerGroups: []*kong.ConsumerGroupObject{
-					{
-						ConsumerGroup: &kong.ConsumerGroup{
-							Name: kong.String("silver"),
-						},
-					},
-				},
-				Plugins: consumerGroupInstanceNamePlugins310x,
-			},
-			runWhenVersion: ">=3.10.0",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			mustResetKongState(ctx, t, client, deckDump.Config{})
-			runWhenEnterpriseOrKonnect(t, tc.runWhenVersion)
 			err := sync(tc.initialStateFile)
 			require.NoError(t, err)
 
