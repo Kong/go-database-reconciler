@@ -337,7 +337,7 @@ var (
 	consumerGroupInstanceNamePlugins390x = []*kong.Plugin{
 		{
 			Name:         kong.String("rate-limiting-advanced"),
-			InstanceName: &kong.String{"default-instance"},
+			InstanceName: kong.String("default-instance"),
 			ConsumerGroup: &kong.ConsumerGroup{
 				ID: kong.String("77e6691d-67c0-446a-9401-27be2b141aae"),
 			},
@@ -394,7 +394,8 @@ var (
 		}}
 	consumerGroupInstanceNamePlugins310x = []*kong.Plugin{
 		{
-			Name: kong.String("rate-limiting-advanced"),
+			Name:         kong.String("rate-limiting-advanced"),
+			InstanceName: kong.String("default-instance"),
 			ConsumerGroup: &kong.ConsumerGroup{
 				ID: kong.String("77e6691d-67c0-446a-9401-27be2b141aae"),
 			},
