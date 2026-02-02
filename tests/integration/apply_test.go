@@ -4,61 +4,6 @@ package integration
 
 import "github.com/kong/go-kong/kong"
 
-var (
-	consumerGroupScopedPlugins34x = []*kong.Plugin{
-		{
-			Name:         kong.String("rate-limiting-advanced"),
-			InstanceName: kong.String("default-instance"),
-			ConsumerGroup: &kong.ConsumerGroup{
-				ID: kong.String("77e6691d-67c0-446a-9401-27be2b141aae"),
-			},
-			Config: kong.Configuration{
-				"consumer_groups":         nil,
-				"dictionary_name":         string("kong_rate_limiting_counters"),
-				"disable_penalty":         bool(false),
-				"enforce_consumer_groups": bool(false),
-				"error_code":              float64(429),
-				"error_message":           string("API rate limit exceeded"),
-				"header_name":             nil,
-				"hide_client_headers":     bool(false),
-				"identifier":              string("consumer"),
-				"limit":                   []any{float64(10)},
-				"namespace":               string("gold"),
-				"path":                    nil,
-				"redis": map[string]any{
-					"cluster_addresses":   nil,
-					"connect_timeout":     nil,
-					"database":            float64(0),
-					"host":                nil,
-					"keepalive_backlog":   nil,
-					"keepalive_pool_size": float64(30),
-					"password":            nil,
-					"port":                nil,
-					"read_timeout":        nil,
-					"send_timeout":        nil,
-					"sentinel_addresses":  nil,
-					"sentinel_master":     nil,
-					"sentinel_password":   nil,
-					"sentinel_role":       nil,
-					"sentinel_username":   nil,
-					"server_name":         nil,
-					"ssl":                 false,
-					"ssl_verify":          false,
-					"timeout":             float64(2000),
-					"username":            nil,
-				},
-				"retry_after_jitter_max": float64(1),
-				"strategy":               string("local"),
-				"sync_rate":              float64(-1),
-				"window_size":            []any{float64(60)},
-				"window_type":            string("sliding"),
-			},
-			Enabled:   kong.Bool(true),
-			Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
-		},
-	}
-)
-
 func Test_Apply_Custom_Entities(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.0.0")
 	setup(t)
