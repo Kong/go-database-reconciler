@@ -2,7 +2,15 @@
 
 package integration
 
-import "github.com/kong/go-kong/kong"
+import (
+	"context"
+	"testing"
+
+	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/utils"
+	"github.com/kong/go-kong/kong"
+	"github.com/stretchr/testify/require"
+)
 
 func Test_Apply_Custom_Entities(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.0.0")
