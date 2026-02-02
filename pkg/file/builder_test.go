@@ -29,7 +29,10 @@ var (
 	kong340Version  = semver.MustParse("3.4.0")
 	kong360Version  = semver.MustParse("3.6.0")
 	kong370Version  = semver.MustParse("3.7.0")
+	kong380Version  = semver.MustParse("3.8.0")
+	kong390Version  = semver.MustParse("3.9.0")
 	kong3100Version = semver.MustParse("3.10.0")
+	kong3110Version = semver.MustParse("3.11.0")
 )
 
 var kongDefaults = KongDefaults{
@@ -4443,8 +4446,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 							Consumers: nil,
 							Plugins: []*kong.ConsumerGroupPlugin{
 								{
-									Name:         kong.String("rate-limiting-advanced"),
-									InstanceName: kong.String("custom-instance-name"),
+									Name: kong.String("rate-limiting-advanced"),
 									Config: kong.Configuration{
 										"limit":       []any{float64(100)},
 										"window_size": []any{float64(60)},
@@ -4519,9 +4521,8 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 						Consumers: nil,
 						Plugins: []*kong.ConsumerGroupPlugin{
 							{
-								ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-								Name:         kong.String("rate-limiting-advanced"),
-								InstanceName: kong.String("custom-instance-name"),
+								ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+								Name: kong.String("rate-limiting-advanced"),
 								Config: kong.Configuration{
 									"limit":       []any{float64(100)},
 									"window_size": []any{float64(60)},
@@ -5602,16 +5603,14 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 
 func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 	assert := assert.New(t)
-	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
 		currentState  *state.KongState
 		targetContent *Content
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		want    *utils.KongRawState
-		wantErr bool
+		name   string
+		fields fields
+		want   *utils.KongRawState
 	}{
 		{
 			name: "consumergroup plugin with instance_name set",
@@ -5628,7 +5627,6 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 							Consumers: nil,
 							Plugins: []*kong.ConsumerGroupPlugin{
 								{
-									ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
 									Name:         kong.String("rate-limiting-advanced"),
 									InstanceName: kong.String("custom-instance-name"),
 									Config: kong.Configuration{
@@ -5669,29 +5667,37 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 					},
 				},
 			},
-			wantErr: false,
 		},
 	}
 
+	// Define versions to test against
+	kongVersions := []semver.Version{
+		kong340Version,
+		kong370Version,
+		kong380Version,
+		kong390Version,
+		kong3100Version,
+		kong3110Version,
+	}
+
 	for _, tt := range tests {
-		t.Run(tt.name, func(_ *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			b := &stateBuilder{
-				targetContent: tt.fields.targetContent,
-				currentState:  tt.fields.currentState,
-				kongVersion:   kong340Version,
+			for _, version := range kongVersions {
+				t.Run(version.String(), func(t *testing.T) {
+					testRand = rand.New(rand.NewSource(42))
+					b := &stateBuilder{
+						targetContent: tt.fields.targetContent,
+						currentState:  tt.fields.currentState,
+						kongVersion:   version,
+					}
+					d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+					b.defaulter = d
+					_, _, err := b.build()
+					require.NoError(t, err, "build error is not nil")
+					assert.Equal(tt.want, b.rawState)
+				})
 			}
-			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
-			b.defaulter = d
-			_, _, err := b.build()
-
-			if tt.wantErr {
-				require.Error(t, err, "build error was expected")
-				assert.ErrorContains(err, utils.ErrorConsumerGroupUpgrade.Error())
-				return
-			}
-
-			assert.Equal(tt.want, b.rawState)
 		})
 	}
 }

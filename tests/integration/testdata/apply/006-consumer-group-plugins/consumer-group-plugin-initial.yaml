@@ -10,5 +10,4 @@ consumer_groups:
           window_size:
             - 60
           window_type: sliding
-        instance_name: default-instance
         name: rate-limiting-advanced

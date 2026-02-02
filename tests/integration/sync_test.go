@@ -3976,6 +3976,8 @@ func Test_Sync_PluginsOnConsumerGroupsWithTagsFrom_3_4_0(t *testing.T) {
 
 func Test_Sync_PluginsOnConsumerGroupsWithInstanceNameFrom_3_4_0(t *testing.T) {
 	// setup stage
+	runWhenEnterpriseOrKonnect(t, ">=3.4.0")
+	setup(t)
 	client, err := getTestClient()
 	if err != nil {
 		t.Fatal(err.Error())
@@ -3988,7 +3990,7 @@ func Test_Sync_PluginsOnConsumerGroupsWithInstanceNameFrom_3_4_0(t *testing.T) {
 	}{
 		{
 			name:     "create plugins on consumer-groups",
-			kongFile: "testdata/sync/xxx-plugins-on-entities/kong-cg-plugin-instance-name.yaml",
+			kongFile: "testdata/sync/025-consumer-groups-scoped-plugins/kong-cg-plugin-instance-name.yaml",
 			expectedState: utils.KongRawState{
 				ConsumerGroups: []*kong.ConsumerGroupObject{
 					{
@@ -4004,9 +4006,6 @@ func Test_Sync_PluginsOnConsumerGroupsWithInstanceNameFrom_3_4_0(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			runWhenEnterpriseOrKonnect(t, ">=3.4.0")
-			setup(t)
-
 			sync(tc.kongFile)
 			testKongState(t, client, false, tc.expectedState, nil)
 		})

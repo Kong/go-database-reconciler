@@ -3,43 +3,10 @@ consumer_groups:
   - name: silver
     plugins:
       - config:
-          consumer_groups: null
-          dictionary_name: kong_rate_limiting_counters
-          disable_penalty: false
-          enforce_consumer_groups: false
-          error_code: 429
-          error_message: API rate limit exceeded
-          header_name: null
-          hide_client_headers: false
-          identifier: consumer
+          namespace: gold
           limit:
             - 7
-          namespace: gold
-          path: null
-          redis:
-            cluster_addresses: null
-            connect_timeout: 2000
-            database: 0
-            host: 127.0.0.1
-            keepalive_backlog: null
-            keepalive_pool_size: 256
-            password: null
-            port: 6379
-            read_timeout: 2000
-            send_timeout: 2000
-            sentinel_addresses: null
-            sentinel_master: null
-            sentinel_password: null
-            sentinel_role: null
-            sentinel_username: null
-            server_name: null
-            ssl: false
-            ssl_verify: false
-            timeout: 2000
-            username: null
           retry_after_jitter_max: 1
-          strategy: local
-          sync_rate: null
           window_size:
             - 60
           window_type: sliding
