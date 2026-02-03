@@ -29,7 +29,10 @@ var (
 	kong340Version  = semver.MustParse("3.4.0")
 	kong360Version  = semver.MustParse("3.6.0")
 	kong370Version  = semver.MustParse("3.7.0")
+	kong380Version  = semver.MustParse("3.8.0")
+	kong390Version  = semver.MustParse("3.9.0")
 	kong3100Version = semver.MustParse("3.10.0")
+	kong3110Version = semver.MustParse("3.11.0")
 )
 
 var kongDefaults = KongDefaults{
@@ -5594,6 +5597,107 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 			assert.Len(t, cgConsumers, 1)
 			assert.Equal(t, tt.args.cgID, cgConsumers[0].ConsumerGroup.ID)
 			assert.Equal(t, got.ID, cgConsumers[0].Consumer.ID)
+		})
+	}
+}
+
+func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
+	assert := assert.New(t)
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "consumergroup plugin with instance_name set",
+			fields: fields{
+				targetContent: &Content{
+					Info: &Info{
+						Defaults: kongDefaults,
+					},
+					ConsumerGroups: []FConsumerGroupObject{
+						{
+							ConsumerGroup: kong.ConsumerGroup{
+								Name: kong.String("foo-group"),
+							},
+							Consumers: nil,
+							Plugins: []*kong.ConsumerGroupPlugin{
+								{
+									Name:         kong.String("rate-limiting-advanced"),
+									InstanceName: kong.String("custom-instance-name"),
+									Config: kong.Configuration{
+										"limit":       []any{float64(100)},
+										"window_size": []any{float64(60)},
+										"window_type": string("fixed"),
+									},
+								},
+							},
+						},
+					},
+				},
+				currentState: existingServiceState(),
+			},
+			want: &utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: kong.String("foo-group"),
+						},
+						Consumers: nil,
+					},
+				},
+				Plugins: []*kong.Plugin{
+					{
+						ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:         kong.String("rate-limiting-advanced"),
+						InstanceName: kong.String("custom-instance-name"),
+						Config: kong.Configuration{
+							"limit":       []any{float64(100)},
+							"window_size": []any{float64(60)},
+							"window_type": string("fixed"),
+						},
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Define versions to test against
+	kongVersions := []semver.Version{
+		kong340Version,
+		kong370Version,
+		kong380Version,
+		kong390Version,
+		kong3100Version,
+		kong3110Version,
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			for _, version := range kongVersions {
+				t.Run(version.String(), func(t *testing.T) {
+					testRand = rand.New(rand.NewSource(42))
+					b := &stateBuilder{
+						targetContent: tt.fields.targetContent,
+						currentState:  tt.fields.currentState,
+						kongVersion:   version,
+					}
+					d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+					b.defaulter = d
+					_, _, err := b.build()
+					require.NoError(t, err, "build error is not nil")
+					assert.Equal(tt.want, b.rawState)
+				})
+			}
 		})
 	}
 }
