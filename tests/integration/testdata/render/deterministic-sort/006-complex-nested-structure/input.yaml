@@ -1,0 +1,182 @@
+_format_version: "3.0"
+# Complex nested structure test - converted from TestDeterministicOutput_ComplexNestedStructure
+# Tests multiple services, routes, plugins, consumers with all credential types,
+# upstreams with targets, and certificates with SNIs.
+# All entities are in non-alphabetical order (zulu, mike, alpha or similar)
+# and should be output in alphabetical order.
+
+services:
+# Services in reverse alphabetical order
+- id: svc-zulu-service
+  name: zulu-service
+  host: zulu-service.example.com
+  routes:
+  - id: route-gamma-route
+    name: gamma-route
+    paths:
+    - /gamma
+- id: svc-mike-service
+  name: mike-service
+  host: mike-service.example.com
+  routes:
+  # Routes in non-alphabetical order
+  - id: route-beta-route
+    name: beta-route
+    paths:
+    - /beta
+  - id: route-delta-route
+    name: delta-route
+    paths:
+    - /delta
+- id: svc-alpha-service
+  name: alpha-service
+  host: alpha-service.example.com
+  # Routes for alpha-service in non-alphabetical order
+  routes:
+  - id: route-zulu-route
+    name: zulu-route
+    paths:
+    - /zulu
+  - id: route-alpha-route
+    name: alpha-route
+    paths:
+    - /alpha
+    # Plugins for alpha-route in non-alphabetical order
+    plugins:
+    - id: plugin-route-alpha-route-rate-limiting
+      name: rate-limiting
+      config:
+        minute: 100
+    - id: plugin-route-alpha-route-cors
+      name: cors
+      config:
+        origins:
+        - "*"
+    - id: plugin-route-alpha-route-acl
+      name: acl
+      config:
+        allow:
+        - group1
+  - id: route-mike-route
+    name: mike-route
+    paths:
+    - /mike
+  # Plugins for alpha-service in non-alphabetical order
+  plugins:
+  - id: plugin-svc-alpha-service-key-auth
+    name: key-auth
+    config:
+      key_names:
+      - apikey
+  - id: plugin-svc-alpha-service-basic-auth
+    name: basic-auth
+    config: {}
+  - id: plugin-svc-alpha-service-jwt
+    name: jwt
+    config: {}
+
+consumers:
+# Consumers in reverse alphabetical order
+- id: consumer-zulu-consumer
+  username: zulu-consumer
+- id: consumer-mike-consumer
+  username: mike-consumer
+- id: consumer-alpha-consumer
+  username: alpha-consumer
+  # All credential types for alpha-consumer in non-alphabetical order
+  keyauth_credentials:
+  - id: keyauth-zulu-key
+    key: zulu-key
+  - id: keyauth-alpha-key
+    key: alpha-key
+  - id: keyauth-mike-key
+    key: mike-key
+  basicauth_credentials:
+  - id: basicauth-zulu-user
+    username: zulu-user
+    password: pass1
+  - id: basicauth-alpha-user
+    username: alpha-user
+    password: pass2
+  - id: basicauth-mike-user
+    username: mike-user
+    password: pass3
+  jwt_secrets:
+  - id: jwt-zulu-jwt
+    key: zulu-jwt
+    algorithm: HS256
+    secret: jwt-secret1
+  - id: jwt-alpha-jwt
+    key: alpha-jwt
+    algorithm: HS256
+    secret: jwt-secret2
+  - id: jwt-mike-jwt
+    key: mike-jwt
+    algorithm: HS256
+    secret: jwt-secret3
+  hmacauth_credentials:
+  - id: hmac-zulu-hmac
+    username: zulu-hmac
+    secret: secret1
+  - id: hmac-alpha-hmac
+    username: alpha-hmac
+    secret: secret2
+  - id: hmac-mike-hmac
+    username: mike-hmac
+    secret: secret3
+  oauth2_credentials:
+  - id: oauth-zulu-oauth
+    name: zulu-oauth-app
+    client_id: zulu-oauth
+    client_secret: secret1
+  - id: oauth-alpha-oauth
+    name: alpha-oauth-app
+    client_id: alpha-oauth
+    client_secret: secret2
+  - id: oauth-mike-oauth
+    name: mike-oauth-app
+    client_id: mike-oauth
+    client_secret: secret3
+  acls:
+  - id: acl-zulu-acl
+    group: zulu-acl
+  - id: acl-alpha-acl
+    group: alpha-acl
+  - id: acl-mike-acl
+    group: mike-acl
+
+upstreams:
+# Upstreams in reverse alphabetical order
+- id: upstream-zulu-upstream
+  name: zulu-upstream
+- id: upstream-mike-upstream
+  name: mike-upstream
+- id: upstream-alpha-upstream
+  name: alpha-upstream
+  # Targets for alpha-upstream in non-alphabetical order
+  targets:
+  - id: target-zulu.local:8080
+    target: zulu.local:8080
+  - id: target-alpha.local:8080
+    target: alpha.local:8080
+  - id: target-mike.local:8080
+    target: mike.local:8080
+
+certificates:
+- id: cert-1
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    cert-content
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    key-content
+    -----END RSA PRIVATE KEY-----
+  # SNIs in reverse alphabetical order
+  snis:
+  - id: sni-zulu.example.com
+    name: zulu.example.com
+  - id: sni-alpha.example.com
+    name: alpha.example.com
+  - id: sni-mike.example.com
+    name: mike.example.com
