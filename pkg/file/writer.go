@@ -34,6 +34,53 @@ func compareOrder(obj1, obj2 sortable) bool {
 	return strings.Compare(obj1.sortKey(), obj2.sortKey()) < 0
 }
 
+// compareCredential compares two credentials by primary key, falling back to ID.
+// Both primary and id parameters are pointers that may be nil.
+func compareCredential(primary1, primary2, id1, id2 *string) bool {
+	p1, p2 := "", ""
+	if primary1 != nil {
+		p1 = *primary1
+	}
+	if primary2 != nil {
+		p2 = *primary2
+	}
+	if p1 != p2 {
+		return strings.Compare(p1, p2) < 0
+	}
+	// Fall back to ID comparison
+	i1, i2 := "", ""
+	if id1 != nil {
+		i1 = *id1
+	}
+	if id2 != nil {
+		i2 = *id2
+	}
+	return strings.Compare(i1, i2) < 0
+}
+
+// compareConsumerGroupPlugin compares two consumer group plugins by name, falling back to ID.
+func compareConsumerGroupPlugin(p1, p2 *kong.ConsumerGroupPlugin) bool {
+	n1, n2 := "", ""
+	if p1.Name != nil {
+		n1 = *p1.Name
+	}
+	if p2.Name != nil {
+		n2 = *p2.Name
+	}
+	if n1 != n2 {
+		return strings.Compare(n1, n2) < 0
+	}
+	// Fall back to ID comparison
+	i1, i2 := "", ""
+	if p1.ID != nil {
+		i1 = *p1.ID
+	}
+	if p2.ID != nil {
+		i2 = *p2.ID
+	}
+	return strings.Compare(i1, i2) < 0
+}
+
 func getFormatVersion(kongVersion string) (string, error) {
 	parsedKongVersion, err := utils.ParseKongVersion(kongVersion)
 	if err != nil {
@@ -733,6 +780,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			k.Consumer = nil
 			c.KeyAuths = append(c.KeyAuths, &k.KeyAuth)
 		}
+		sort.SliceStable(c.KeyAuths, func(i, j int) bool {
+			return compareCredential(c.KeyAuths[i].Key, c.KeyAuths[j].Key,
+				c.KeyAuths[i].ID, c.KeyAuths[j].ID)
+		})
 		hmacAuth, err := kongState.HMACAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -743,6 +794,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.HMACAuths = append(c.HMACAuths, &k.HMACAuth)
 		}
+		sort.SliceStable(c.HMACAuths, func(i, j int) bool {
+			return compareCredential(c.HMACAuths[i].Username, c.HMACAuths[j].Username,
+				c.HMACAuths[i].ID, c.HMACAuths[j].ID)
+		})
 		jwtSecrets, err := kongState.JWTAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -753,6 +808,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.JWTAuths = append(c.JWTAuths, &k.JWTAuth)
 		}
+		sort.SliceStable(c.JWTAuths, func(i, j int) bool {
+			return compareCredential(c.JWTAuths[i].Key, c.JWTAuths[j].Key,
+				c.JWTAuths[i].ID, c.JWTAuths[j].ID)
+		})
 		basicAuths, err := kongState.BasicAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -763,6 +822,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.BasicAuths = append(c.BasicAuths, &k.BasicAuth)
 		}
+		sort.SliceStable(c.BasicAuths, func(i, j int) bool {
+			return compareCredential(c.BasicAuths[i].Username, c.BasicAuths[j].Username,
+				c.BasicAuths[i].ID, c.BasicAuths[j].ID)
+		})
 		oauth2Creds, err := kongState.Oauth2Creds.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -773,6 +836,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.Oauth2Creds = append(c.Oauth2Creds, &k.Oauth2Credential)
 		}
+		sort.SliceStable(c.Oauth2Creds, func(i, j int) bool {
+			return compareCredential(c.Oauth2Creds[i].ClientID, c.Oauth2Creds[j].ClientID,
+				c.Oauth2Creds[i].ID, c.Oauth2Creds[j].ID)
+		})
 		aclGroups, err := kongState.ACLGroups.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -783,6 +850,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.ACLGroups = append(c.ACLGroups, &k.ACLGroup)
 		}
+		sort.SliceStable(c.ACLGroups, func(i, j int) bool {
+			return compareCredential(c.ACLGroups[i].Group, c.ACLGroups[j].Group,
+				c.ACLGroups[i].ID, c.ACLGroups[j].ID)
+		})
 		mtlsAuths, err := kongState.MTLSAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -792,6 +863,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			k.Consumer = nil
 			c.MTLSAuths = append(c.MTLSAuths, &k.MTLSAuth)
 		}
+		sort.SliceStable(c.MTLSAuths, func(i, j int) bool {
+			return compareCredential(c.MTLSAuths[i].SubjectName, c.MTLSAuths[j].SubjectName,
+				c.MTLSAuths[i].ID, c.MTLSAuths[j].ID)
+		})
 		// populate groups
 		for _, cg := range consumerGroups {
 			cg := *cg
@@ -806,6 +881,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(&cg)
 			c.Groups = append(c.Groups, cg.DeepCopy())
 		}
+		sort.SliceStable(c.Groups, func(i, j int) bool {
+			return compareCredential(c.Groups[i].Name, c.Groups[j].Name,
+				c.Groups[i].ID, c.Groups[j].ID)
+		})
 		sort.SliceStable(c.Plugins, func(i, j int) bool {
 			return compareOrder(c.Plugins[i], c.Plugins[j])
 		})
@@ -829,6 +908,16 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			r.EndpointPermissions = append(
 				r.EndpointPermissions, &FRBACEndpointPermission{RBACEndpointPermission: ep.RBACEndpointPermission})
 		}
+		sort.SliceStable(r.EndpointPermissions, func(i, j int) bool {
+			e1, e2 := "", ""
+			if r.EndpointPermissions[i].Endpoint != nil {
+				e1 = *r.EndpointPermissions[i].Endpoint
+			}
+			if r.EndpointPermissions[j].Endpoint != nil {
+				e2 = *r.EndpointPermissions[j].Endpoint
+			}
+			return strings.Compare(e1, e2) < 0
+		})
 		utils.ZeroOutID(&r, r.Name, config.WithID)
 		utils.ZeroOutTimestamps(&r)
 		file.RBACRoles = append(file.RBACRoles, r)
@@ -888,6 +977,10 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 				}
 			}
 		}
+
+		sort.SliceStable(group.Plugins, func(i, j int) bool {
+			return compareConsumerGroupPlugin(group.Plugins[i], group.Plugins[j])
+		})
 
 		utils.ZeroOutID(&group, group.Name, config.WithID)
 		utils.ZeroOutTimestamps(&group)
