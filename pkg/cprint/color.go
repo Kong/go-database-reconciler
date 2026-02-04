@@ -42,7 +42,9 @@ func conditionalPrintlnCustomWriter(fn func(io.Writer, ...interface{}), w io.Wri
 	fn(w, a...)
 }
 
-func conditionalPrintfCustomWriter(fn func(io.Writer, string, ...interface{}), w io.Writer, format string, a ...interface{}) {
+func conditionalPrintfCustomWriter(
+	fn func(io.Writer, string, ...interface{}), w io.Writer, format string, a ...interface{},
+) {
 	if DisableOutput {
 		return
 	}

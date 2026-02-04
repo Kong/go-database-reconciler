@@ -226,7 +226,7 @@ func TestStdErrOutputWithJSONMode(t *testing.T) {
 		})
 
 		// Verify JSON on stdout is not corrupted by stderr output or color codes
-		assert.Equal(t, `{"changes": {"creating": []}}`, stdout,
+		assert.JSONEq(t, `{"changes": {"creating": []}}`, stdout,
 			"stdout should contain valid JSON without color codes")
 		assert.NotContains(t, stdout, "warning",
 			"stdout should not contain warning messages")
@@ -254,7 +254,7 @@ func TestStdErrOutputWithJSONMode(t *testing.T) {
 		})
 
 		// Stdout should only have JSON without color codes
-		assert.Equal(t, `{"status": "ok"}`, stdout,
+		assert.JSONEq(t, `{"status": "ok"}`, stdout,
 			"stdout should only contain JSON output without color codes")
 
 		// Stderr should have all warnings
