@@ -93,7 +93,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Basic Auth credentials
 	group.Go(func() error {
-		err := processStateEntities(state.BasicAuths, schemaFetcher, "basicauth_credential")
+		err := processStateEntities(state.BasicAuths, schemaFetcher, "basicauth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from basic auths: %w", err)
 		}
