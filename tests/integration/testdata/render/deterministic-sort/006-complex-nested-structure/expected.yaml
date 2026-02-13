@@ -1,0 +1,395 @@
+_format_version: "3.0"
+certificates:
+- cert: |
+    -----BEGIN CERTIFICATE-----
+    cert-content
+    -----END CERTIFICATE-----
+  id: cert-1
+  key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    key-content
+    -----END RSA PRIVATE KEY-----
+  snis:
+  - id: sni-alpha.example.com
+    name: alpha.example.com
+  - id: sni-mike.example.com
+    name: mike.example.com
+  - id: sni-zulu.example.com
+    name: zulu.example.com
+consumers:
+- acls:
+  - group: alpha-acl
+    id: acl-alpha-acl
+  - group: mike-acl
+    id: acl-mike-acl
+  - group: zulu-acl
+    id: acl-zulu-acl
+  basicauth_credentials:
+  - id: basicauth-alpha-user
+    password: pass2
+    username: alpha-user
+  - id: basicauth-mike-user
+    password: pass3
+    username: mike-user
+  - id: basicauth-zulu-user
+    password: pass1
+    username: zulu-user
+  hmacauth_credentials:
+  - id: hmac-alpha-hmac
+    secret: secret2
+    username: alpha-hmac
+  - id: hmac-mike-hmac
+    secret: secret3
+    username: mike-hmac
+  - id: hmac-zulu-hmac
+    secret: secret1
+    username: zulu-hmac
+  id: consumer-alpha-consumer
+  jwt_secrets:
+  - algorithm: HS256
+    id: jwt-alpha-jwt
+    key: alpha-jwt
+    secret: jwt-secret2
+  - algorithm: HS256
+    id: jwt-mike-jwt
+    key: mike-jwt
+    secret: jwt-secret3
+  - algorithm: HS256
+    id: jwt-zulu-jwt
+    key: zulu-jwt
+    secret: jwt-secret1
+  keyauth_credentials:
+  - id: keyauth-alpha-key
+    key: alpha-key
+  - id: keyauth-mike-key
+    key: mike-key
+  - id: keyauth-zulu-key
+    key: zulu-key
+  oauth2_credentials:
+  - client_id: alpha-oauth
+    client_secret: secret2
+    id: oauth-alpha-oauth
+    name: alpha-oauth-app
+  - client_id: mike-oauth
+    client_secret: secret3
+    id: oauth-mike-oauth
+    name: mike-oauth-app
+  - client_id: zulu-oauth
+    client_secret: secret1
+    id: oauth-zulu-oauth
+    name: zulu-oauth-app
+  username: alpha-consumer
+- id: consumer-mike-consumer
+  username: mike-consumer
+- id: consumer-zulu-consumer
+  username: zulu-consumer
+services:
+- connect_timeout: 60000
+  host: alpha-service.example.com
+  id: svc-alpha-service
+  name: alpha-service
+  plugins:
+  - id: plugin-svc-alpha-service-basic-auth
+    name: basic-auth
+  - id: plugin-svc-alpha-service-jwt
+    name: jwt
+  - config:
+      key_names:
+      - apikey
+    id: plugin-svc-alpha-service-key-auth
+    name: key-auth
+  protocol: http
+  read_timeout: 60000
+  routes:
+  - id: route-alpha-route
+    name: alpha-route
+    paths:
+    - /alpha
+    plugins:
+    - config:
+        allow:
+        - group1
+      id: plugin-route-alpha-route-acl
+      name: acl
+    - config:
+        origins:
+        - '*'
+      id: plugin-route-alpha-route-cors
+      name: cors
+    - config:
+        minute: 100
+      id: plugin-route-alpha-route-rate-limiting
+      name: rate-limiting
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  - id: route-mike-route
+    name: mike-route
+    paths:
+    - /mike
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  - id: route-zulu-route
+    name: zulu-route
+    paths:
+    - /zulu
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  host: mike-service.example.com
+  id: svc-mike-service
+  name: mike-service
+  protocol: http
+  read_timeout: 60000
+  routes:
+  - id: route-beta-route
+    name: beta-route
+    paths:
+    - /beta
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  - id: route-delta-route
+    name: delta-route
+    paths:
+    - /delta
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  host: zulu-service.example.com
+  id: svc-zulu-service
+  name: zulu-service
+  protocol: http
+  read_timeout: 60000
+  routes:
+  - id: route-gamma-route
+    name: gamma-route
+    paths:
+    - /gamma
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  write_timeout: 60000
+upstreams:
+- hash_fallback: none
+  hash_on: none
+  hash_on_cookie_path: /
+  healthchecks:
+    active:
+      concurrency: 10
+      healthy:
+        http_statuses:
+        - 200
+        - 302
+        interval: 0
+        successes: 0
+      http_path: /
+      timeout: 1
+      type: http
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 404
+        - 500
+        - 501
+        - 502
+        - 503
+        - 504
+        - 505
+        interval: 0
+        tcp_failures: 0
+        timeouts: 0
+    passive:
+      healthy:
+        http_statuses:
+        - 200
+        - 201
+        - 202
+        - 203
+        - 204
+        - 205
+        - 206
+        - 207
+        - 208
+        - 226
+        - 300
+        - 301
+        - 302
+        - 303
+        - 304
+        - 305
+        - 306
+        - 307
+        - 308
+        successes: 0
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 500
+        - 503
+        tcp_failures: 0
+        timeouts: 0
+  id: upstream-alpha-upstream
+  name: alpha-upstream
+  slots: 10000
+  targets:
+  - id: target-alpha.local:8080
+    target: alpha.local:8080
+    weight: 100
+  - id: target-mike.local:8080
+    target: mike.local:8080
+    weight: 100
+  - id: target-zulu.local:8080
+    target: zulu.local:8080
+    weight: 100
+- hash_fallback: none
+  hash_on: none
+  hash_on_cookie_path: /
+  healthchecks:
+    active:
+      concurrency: 10
+      healthy:
+        http_statuses:
+        - 200
+        - 302
+        interval: 0
+        successes: 0
+      http_path: /
+      timeout: 1
+      type: http
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 404
+        - 500
+        - 501
+        - 502
+        - 503
+        - 504
+        - 505
+        interval: 0
+        tcp_failures: 0
+        timeouts: 0
+    passive:
+      healthy:
+        http_statuses:
+        - 200
+        - 201
+        - 202
+        - 203
+        - 204
+        - 205
+        - 206
+        - 207
+        - 208
+        - 226
+        - 300
+        - 301
+        - 302
+        - 303
+        - 304
+        - 305
+        - 306
+        - 307
+        - 308
+        successes: 0
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 500
+        - 503
+        tcp_failures: 0
+        timeouts: 0
+  id: upstream-mike-upstream
+  name: mike-upstream
+  slots: 10000
+- hash_fallback: none
+  hash_on: none
+  hash_on_cookie_path: /
+  healthchecks:
+    active:
+      concurrency: 10
+      healthy:
+        http_statuses:
+        - 200
+        - 302
+        interval: 0
+        successes: 0
+      http_path: /
+      timeout: 1
+      type: http
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 404
+        - 500
+        - 501
+        - 502
+        - 503
+        - 504
+        - 505
+        interval: 0
+        tcp_failures: 0
+        timeouts: 0
+    passive:
+      healthy:
+        http_statuses:
+        - 200
+        - 201
+        - 202
+        - 203
+        - 204
+        - 205
+        - 206
+        - 207
+        - 208
+        - 226
+        - 300
+        - 301
+        - 302
+        - 303
+        - 304
+        - 305
+        - 306
+        - 307
+        - 308
+        successes: 0
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 500
+        - 503
+        tcp_failures: 0
+        timeouts: 0
+  id: upstream-zulu-upstream
+  name: zulu-upstream
+  slots: 10000
