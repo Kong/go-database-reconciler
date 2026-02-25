@@ -58,7 +58,8 @@ type Config struct {
 	LookUpSelectorTagsPartials       []string
 
 	// KonnectControlPlane
-	KonnectControlPlane string
+	KonnectControlPlane   string
+	KonnectControlPlaneID string
 
 	// IsConsumerGroupScopedPluginSupported
 	IsConsumerGroupScopedPluginSupported bool
@@ -119,7 +120,7 @@ func validateConfig(config Config) error {
 }
 
 func isKongVersion34Plus(ctx context.Context, client *kong.Client, config Config) (bool, error) {
-	if config.KonnectControlPlane != "" {
+	if config.KonnectControlPlane != "" || config.KonnectControlPlaneID != "" {
 		return false, nil
 	}
 
@@ -291,7 +292,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 	})
 
 	// OAuth2 credentials are not supported in Konnect.
-	if config.KonnectControlPlane == "" {
+	if config.KonnectControlPlane == "" && config.KonnectControlPlaneID == "" {
 		group.Go(func() error {
 			oauth2Creds, err := GetAllOauth2Creds(ctx, client, config.SelectorTags)
 			if err != nil {

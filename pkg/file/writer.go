@@ -25,6 +25,7 @@ type WriteConfig struct {
 	FileFormat                       Format
 	WithID                           bool
 	ControlPlaneName                 string
+	ControlPlaneID                   string
 	KongVersion                      string
 	IsConsumerGroupPolicyOverrideSet bool
 	SanitizeContent                  bool
@@ -121,9 +122,10 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, fmt.Errorf("get format version: %w", err)
 	}
 	file.FormatVersion = formatVersion
-	if config.ControlPlaneName != "" {
+	if config.ControlPlaneName != "" || config.ControlPlaneID != "" {
 		file.Konnect = &Konnect{
 			ControlPlaneName: config.ControlPlaneName,
+			ControlPlaneID:   config.ControlPlaneID,
 		}
 	}
 
