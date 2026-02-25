@@ -5,6 +5,10 @@ test-all: lint test
 test:
 	go test -race -count=1 ./...
 
+.PHONY: bench
+bench:
+	go test -bench=. -benchmem -count=1 ./...
+
 .PHONY: lint
 lint:
 	golangci-lint run -v ./...
