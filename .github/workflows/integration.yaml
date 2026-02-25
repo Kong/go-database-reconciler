@@ -18,12 +18,6 @@ jobs:
     strategy:
       matrix:
         kong_image:
-        - 'kong:2.8'
-        - 'kong:3.4'
-        - 'kong:3.5'
-        - 'kong:3.6'
-        - 'kong:3.7'
-        - 'kong:3.8'
         - 'kong:3.9'
         - 'kong/kong:master'
     env:
