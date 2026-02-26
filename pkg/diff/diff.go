@@ -190,6 +190,11 @@ type SyncerOpts struct {
 
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	NoDeletes bool
+
+	// SchemaRegistry is an optional shared schema registry. When provided,
+	// it is reused for schema fetching and caching. When nil, a new
+	// registry is created internally.
+	SchemaRegistry *schema.Registry
 }
 
 // NewSyncer constructs a Syncer.
@@ -236,7 +241,11 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
 
-	s.schemaRegistry = schema.NewRegistry(context.Background(), opts.KongClient, opts.IsKonnect)
+	if opts.SchemaRegistry != nil {
+		s.schemaRegistry = opts.SchemaRegistry
+	} else {
+		s.schemaRegistry = schema.NewRegistry(context.Background(), opts.KongClient, opts.IsKonnect)
+	}
 
 	return s, nil
 }
