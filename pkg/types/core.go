@@ -7,6 +7,7 @@ import (
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-kong/kong"
 )
@@ -250,7 +251,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				kongClient:   opts.KongClient,
-				schemasCache: NewSchemaCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+				schemasCache: schema.NewCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
 					return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
 				}),
 			},
@@ -621,7 +622,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 				client:       opts.KongClient,
-				schemasCache: NewSchemaCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
+				schemasCache: schema.NewCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
 					return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
 				}),
 			},

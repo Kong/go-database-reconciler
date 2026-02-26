@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -93,7 +94,7 @@ type pluginDiffer struct {
 	currentState, targetState *state.KongState
 	kongClient                *kong.Client
 
-	schemasCache *SchemaCache
+	schemasCache *schema.Cache
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
