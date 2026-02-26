@@ -39,19 +39,19 @@ type PartialEntity struct {
 }
 
 func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
-	// Create a schema fetcher with a mock client that won't be used
-	schemaFetcher := &SchemaFetcher{}
+	// A nil registry is fine here because processStateEntities short-circuits on empty slices.
+	var registry *schema_pkg.Registry
 	entities := []*TestEntity{}
-	err := processStateEntities(entities, schemaFetcher, "test")
+	err := processStateEntities(entities, registry, "test")
 	if err != nil {
 		t.Errorf("Expected no error for empty entities, got %v", err)
 	}
 }
 
 func TestRemoveDefaultsFromEntity_NonPointer(t *testing.T) {
-	schemaFetcher := &SchemaFetcher{}
+	var registry *schema_pkg.Registry
 	entity := TestEntity{Name: kong.String("test")}
-	err := removeDefaultsFromEntity(entity, "test", schemaFetcher)
+	err := removeDefaultsFromEntity(entity, "test", registry)
 	if err == nil {
 		t.Error("Expected error for non-pointer entity, got nil")
 	}
