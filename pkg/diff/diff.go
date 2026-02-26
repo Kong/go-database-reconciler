@@ -13,6 +13,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/crud"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/types"
 	"github.com/kong/go-database-reconciler/pkg/utils"
@@ -159,12 +160,9 @@ type Syncer struct {
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	noDeletes bool
 
-	// These caches store the schemas of a plugin and partials, respectively.
-	// Schema retrieval is often required in the diffing process, for filling in defaults and auto fields
-	// present in plugins or partials.
-	// Thus, caching the schemas avoids unnecessary repeated requests to Kong.
-	pluginSchemasCache  *types.SchemaCache
-	partialSchemasCache *types.SchemaCache
+	// schemaRegistry is the central schema manager used for fetching and caching
+	// all entity schemas (plugins, partials, vaults, generic entities).
+	schemaRegistry *schema.Registry
 }
 
 type SyncerOpts struct {
@@ -192,6 +190,11 @@ type SyncerOpts struct {
 
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	NoDeletes bool
+
+	// SchemaRegistry is an optional shared schema registry. When provided,
+	// it is reused for schema fetching and caching. When nil, a new
+	// registry is created internally.
+	SchemaRegistry *schema.Registry
 }
 
 // NewSyncer constructs a Syncer.
@@ -238,17 +241,11 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	}
 	s.resultChan = make(chan EntityAction, eventBuffer)
 
-	s.pluginSchemasCache = types.NewSchemaCache(func(ctx context.Context,
-		pluginName string,
-	) (map[string]interface{}, error) {
-		return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
-	})
-
-	s.partialSchemasCache = types.NewSchemaCache(func(ctx context.Context,
-		partialType string,
-	) (map[string]interface{}, error) {
-		return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
-	})
+	if opts.SchemaRegistry != nil {
+		s.schemaRegistry = opts.SchemaRegistry
+	} else {
+		s.schemaRegistry = schema.NewRegistry(context.Background(), opts.KongClient, opts.IsKonnect)
+	}
 
 	return s, nil
 }
@@ -668,7 +665,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = pluginCopy
 
 			if workspaceExists {
-				schema, err := sc.pluginSchemasCache.Get(ctx, *pluginCopy.Plugin.Name)
+				schema, err := sc.schemaRegistry.GetPluginSchema(*pluginCopy.Plugin.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -724,7 +721,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = partialCopy
 
 			if workspaceExists {
-				schema, err := sc.partialSchemasCache.Get(ctx, *partialCopy.Partial.Type)
+				schema, err := sc.schemaRegistry.GetPartialSchema(*partialCopy.Partial.Type)
 				if err != nil {
 					return nil, err
 				}

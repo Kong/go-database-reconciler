@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/blang/semver/v4"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/kong/go-kong/kong/custom"
@@ -82,6 +83,11 @@ type Config struct {
 
 	// This flag is set to remove default values while dumping entities.
 	SkipDefaults bool
+
+	// SchemaRegistry is an optional shared schema registry. When provided,
+	// it is reused for schema fetching and caching (e.g. during SkipDefaults
+	// processing). When nil, a new registry is created internally.
+	SchemaRegistry *schema.Registry
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -730,14 +736,13 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 
 	if config.SkipDefaults {
 		isKonnect := config.KonnectControlPlane != ""
-		schemaFetcher := NewSchemaFetcher(ctx, client, isKonnect)
-
-		if schemaFetcher == nil {
-			return nil, fmt.Errorf("schemaFetcher is nil")
+		registry := config.SchemaRegistry
+		if registry == nil {
+			registry = schema.NewRegistry(ctx, client, isKonnect)
 		}
 
 		group, newCtx := errgroup.WithContext(ctx)
-		removeDefaultsFromState(newCtx, group, &state, schemaFetcher)
+		removeDefaultsFromState(newCtx, group, &state, registry)
 		err := group.Wait()
 		if err != nil {
 			return nil, err
