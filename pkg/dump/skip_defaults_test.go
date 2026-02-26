@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	schema_pkg "github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-kong/kong"
 	"github.com/tidwall/gjson"
 )
@@ -366,7 +367,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			schema := gjson.Parse(tt.schemaJSON)
 			defaultFields := make(map[string]interface{})
-			result := parseSchemaForDefaults(schema, defaultFields)
+			result := schema_pkg.ParseSchemaForDefaults(schema, defaultFields)
 
 			if !reflect.DeepEqual(result, tt.expectedFields) {
 				t.Errorf("parseSchemaForDefaults() = %v, expected %v", result, tt.expectedFields)

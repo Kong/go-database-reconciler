@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -73,7 +74,7 @@ type partialDiffer struct {
 	currentState, targetState *state.KongState
 	client                    *kong.Client
 
-	schemasCache *SchemaCache
+	schemasCache *schema.Cache
 }
 
 // Deletes generates a memdb CRUD DELETE event for Partials
