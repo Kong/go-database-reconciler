@@ -345,7 +345,7 @@ func TestServicePackageGetAll(t *testing.T) {
 	allServices, err := collection.GetAll()
 
 	require.NoError(t, err)
-	assert.Equal(len(services), len(allServices))
+	assert.Len(allServices, len(services))
 }
 
 // Regression test
@@ -377,7 +377,7 @@ func TestServicePackagesGetAllMemoryReference(t *testing.T) {
 
 	allServices, err := collection.GetAll()
 	require.NoError(t, err)
-	assert.Equal(len(services), len(allServices))
+	assert.Len(allServices, len(services))
 
 	allServices[0].Description = kong.String("new-service1-desc")
 	allServices[1].Description = kong.String("new-service2-desc")
