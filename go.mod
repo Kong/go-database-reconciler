@@ -32,7 +32,7 @@ require (
 	golang.org/x/sync v0.15.0
 	golang.org/x/term v0.32.0
 	k8s.io/code-generator v0.33.3
-	sigs.k8s.io/yaml v1.5.0
+	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
