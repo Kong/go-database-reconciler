@@ -93,9 +93,8 @@ type pluginDiffer struct {
 
 	currentState, targetState *state.KongState
 	kongClient                *kong.Client
-
-	schemasCache *schema.Cache
-	skipSchemaDefaults bool
+	schemasCache              *schema.Cache
+	skipSchemaDefaults        bool
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
