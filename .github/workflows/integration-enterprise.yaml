@@ -41,7 +41,7 @@ jobs:
         with:
           username: ${{secrets.DOCKER_ORG_NAME}}
           password: ${{secrets.DOCKER_ORG_TOKEN}}
-      - uses: Kong/kong-license@c4decf08584f84ff8fe8e7cd3c463e0192f6111b
+      - uses: Kong/kong-license@bfa1c17600a68d879042f44a9ec3fb5b60f4fad5
         id: license
         with:
           op-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
