@@ -6,9 +6,11 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -84,6 +86,8 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.isPartialApply = dumpConfig.IsPartialApply
 	builder.isConsumerGroupPolicyOverrideSet = dumpConfig.IsConsumerGroupPolicyOverrideSet
 	builder.skipHashForBasicAuth = dumpConfig.SkipHashForBasicAuth
+	builder.skipDefaults = dumpConfig.SkipDefaults
+	builder.schemaRegistry = dumpConfig.SchemaRegistry
 
 	if len(dumpConfig.SelectorTags) > 0 {
 		builder.selectTags = dumpConfig.SelectorTags
@@ -117,6 +121,20 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	if err != nil {
 		return nil, fmt.Errorf("building state: %w", err)
 	}
+
+	if builder.skipDefaults {
+		if builder.schemaRegistry == nil {
+			builder.schemaRegistry = schema.NewRegistry(ctx, builder.client, builder.isKonnect)
+		}
+
+		group, newCtx := errgroup.WithContext(ctx)
+		dump.RemoveDefaultsFromState(newCtx, group, state, builder.schemaRegistry)
+		err := group.Wait()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return state, nil
 }
 

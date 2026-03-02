@@ -742,7 +742,7 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 		}
 
 		group, newCtx := errgroup.WithContext(ctx)
-		removeDefaultsFromState(newCtx, group, &state, registry)
+		RemoveDefaultsFromState(newCtx, group, &state, registry)
 		err := group.Wait()
 		if err != nil {
 			return nil, err
