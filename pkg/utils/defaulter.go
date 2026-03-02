@@ -391,11 +391,11 @@ func NewNoOpDefaulter() *NoOpDefaulter {
 }
 
 // Set does nothing and returns nil.
-func (d *NoOpDefaulter) Set(arg interface{}) error {
+func (d *NoOpDefaulter) Set(_ interface{}) error {
 	return nil
 }
 
 // MustSet does nothing.
-func (d *NoOpDefaulter) MustSet(arg interface{}) {
+func (d *NoOpDefaulter) MustSet(_ interface{}) {
 	// No-op
 }

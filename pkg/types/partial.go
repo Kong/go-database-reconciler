@@ -73,9 +73,8 @@ type partialDiffer struct {
 
 	currentState, targetState *state.KongState
 	client                    *kong.Client
-
-	schemasCache *schema.Cache
-	skipSchemaDefaults bool
+	schemasCache              *schema.Cache
+	skipSchemaDefaults        bool
 }
 
 // Deletes generates a memdb CRUD DELETE event for Partials
