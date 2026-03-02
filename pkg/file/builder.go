@@ -12,6 +12,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -31,7 +32,7 @@ type stateBuilder struct {
 	rawState        *utils.KongRawState
 	konnectRawState *utils.KonnectRawState
 	currentState    *state.KongState
-	defaulter       *utils.Defaulter
+	defaulter       utils.DefaulterInterface
 	kongVersion     semver.Version
 
 	selectTags               []string
@@ -41,13 +42,14 @@ type stateBuilder struct {
 	lookupTagsServices       []string
 	lookupTagsPartials       []string
 	skipCACerts              bool
+	skipDefaults             bool
 	includeLicenses          bool
 	intermediate             *state.KongState
 
 	client *kong.Client
 	ctx    context.Context
 
-	schemasCache map[string]map[string]interface{}
+	schemaRegistry *schema.Registry
 
 	disableDynamicDefaults bool
 
@@ -86,7 +88,6 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	var err error
 	b.rawState = &utils.KongRawState{}
 	b.konnectRawState = &utils.KonnectRawState{}
-	b.schemasCache = make(map[string]map[string]interface{})
 	b.consumerIDsInRawState = make(map[string]bool)
 
 	b.intermediate, err = state.NewKongState()
@@ -94,11 +95,16 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 		return nil, nil, err
 	}
 
-	defaulter, err := defaulter(b.ctx, b.client, b.targetContent, b.disableDynamicDefaults, b.isKonnect)
-	if err != nil {
-		return nil, nil, err
+	if !b.skipDefaults {
+		defaulter, err := defaulter(b.ctx, b.client, b.targetContent, b.disableDynamicDefaults, b.isKonnect)
+		if err != nil {
+			return nil, nil, err
+		}
+		b.defaulter = defaulter
+	} else {
+		// Use no-op defaulter instead of nil to avoid nil checks
+		b.defaulter = utils.NewNoOpDefaulter()
 	}
-	b.defaulter = defaulter
 
 	if utils.Kong300Version.LTE(b.kongVersion) {
 		b.checkRoutePaths = true
@@ -1923,6 +1929,11 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		utils.MustMergeTags(&p, b.selectTags)
 		if plugin != nil {
 			p.Plugin.CreatedAt = plugin.CreatedAt
+			// Backfill the auto-generated 'path' field on partial links from the
+			// current state when the user did not specify one. Kong auto-populates
+			// this field based on the partial type (e.g. "config.redis" for redis-ee),
+			// and omitting it from the target causes a spurious diff.
+			fillPartialPaths(p.Partials, plugin.Partials)
 		}
 		b.rawState.Plugins = append(b.rawState.Plugins, &p.Plugin)
 	}
@@ -2057,6 +2068,33 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 	}
 
 	return pluginPartials
+}
+
+// fillPartialPaths copies the auto-generated Path from corresponding current-state
+// partial links into target partial links that have no Path set by the user.
+// Matching is done by partial ID.
+func fillPartialPaths(target, current []*kong.PartialLink) {
+	if len(target) == 0 || len(current) == 0 {
+		return
+	}
+	// Index current partial links by partial ID for O(1) lookup.
+	currentByID := make(map[string]*kong.PartialLink, len(current))
+	for _, c := range current {
+		if c.Partial != nil && !utils.Empty(c.Partial.ID) {
+			currentByID[*c.Partial.ID] = c
+		}
+	}
+	for _, t := range target {
+		if t.Path != nil {
+			continue // user explicitly set the path
+		}
+		if t.Partial == nil || utils.Empty(t.Partial.ID) {
+			continue
+		}
+		if cur, ok := currentByID[*t.Partial.ID]; ok && cur.Path != nil {
+			t.Path = kong.String(*cur.Path)
+		}
+	}
 }
 
 func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {

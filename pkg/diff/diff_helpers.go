@@ -59,7 +59,7 @@ func prettyPrintJSONString(JSONString string) (string, error) {
 	return string(bytes), nil
 }
 
-func getDiff(a, b interface{}) (string, error) {
+func getDiff(a, b interface{}, defaults ...map[string]interface{}) (string, error) {
 	aJSON, err := json.Marshal(a)
 	if err != nil {
 		return "", err
@@ -72,6 +72,15 @@ func getDiff(a, b interface{}) (string, error) {
 	// remove timestamps from JSON data without modifying the original data
 	aJSON = removeTimestamps(aJSON)
 	bJSON = removeTimestamps(bJSON)
+
+	// When defaults are provided, fill missing fields in 'a' (old/current) that
+	// are present in 'b' (new/target) with their schema default values.
+	// This ensures the diff shows modifications (e.g. "-https") instead of
+	// additions (e.g. "+protocols [http]") when a user changes a field away
+	// from its default value and defaults have been stripped from both states.
+	if len(defaults) > 0 && defaults[0] != nil {
+		aJSON, bJSON = fillMissingDefaults(aJSON, bJSON, defaults[0])
+	}
 
 	d, err := differ.Compare(aJSON, bJSON)
 	if err != nil {
@@ -87,6 +96,59 @@ func getDiff(a, b interface{}) (string, error) {
 		formatter.AsciiFormatterConfig{})
 	diffString, err := formatter.Format(d)
 	return diffString, err
+}
+
+// fillMissingDefaults injects schema default values into both oldJSON and newJSON
+// for fields that are present in one but absent in the other. This produces correct
+// modification diffs when both states have had their defaults stripped.
+func fillMissingDefaults(oldJSON, newJSON []byte, defaults map[string]interface{}) ([]byte, []byte) {
+	var oldMap, newMap map[string]interface{}
+	if err := json.Unmarshal(oldJSON, &oldMap); err != nil {
+		return oldJSON, newJSON
+	}
+	if err := json.Unmarshal(newJSON, &newMap); err != nil {
+		return oldJSON, newJSON
+	}
+
+	oldChanged := false
+	newChanged := false
+
+	// Fill missing fields in oldMap when they exist in newMap
+	for key, newVal := range newMap {
+		if _, existsInOld := oldMap[key]; !existsInOld && newVal != nil {
+			if defVal, hasDefault := defaults[key]; hasDefault {
+				oldMap[key] = defVal
+				oldChanged = true
+			}
+		}
+	}
+
+	// Fill missing fields in newMap when they exist in oldMap
+	for key, oldVal := range oldMap {
+		if _, existsInNew := newMap[key]; !existsInNew && oldVal != nil {
+			if defVal, hasDefault := defaults[key]; hasDefault {
+				newMap[key] = defVal
+				newChanged = true
+			}
+		}
+	}
+
+	resultOld := oldJSON
+	resultNew := newJSON
+
+	if oldChanged {
+		if result, err := json.Marshal(oldMap); err == nil {
+			resultOld = result
+		}
+	}
+
+	if newChanged {
+		if result, err := json.Marshal(newMap); err == nil {
+			resultNew = result
+		}
+	}
+
+	return resultOld, resultNew
 }
 
 func removeTimestamps(jsonData []byte) []byte {

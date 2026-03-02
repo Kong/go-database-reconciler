@@ -96,3 +96,24 @@ func (r *Registry) GetPartialSchema(partialType string) (map[string]interface{},
 func (r *Registry) GetVaultSchema(vaultType string) (map[string]interface{}, error) {
 	return r.vaultCache.Get(r.ctx, vaultType)
 }
+
+// GetDefaults fetches the schema for the given entity type and identifier,
+// parses it for default values, and returns them as a nested map. Results are
+// cached by a key derived from entityType and identifier.
+//
+// For most entities entityType and identifier are the same (e.g. "services").
+// For plugins, partials, and vaults, identifier is the specific name/type
+// (e.g. "rate-limiting").
+func (r *Registry) GetDefaults(entityType, identifier string) (map[string]interface{}, error) {
+	entitySchema, err := r.GetSchema(entityType, identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	cacheKey := entityType
+	if entityType != identifier {
+		cacheKey = entityType + "::" + identifier
+	}
+
+	return GetDefaultsFromSchema(entitySchema, cacheKey)
+}

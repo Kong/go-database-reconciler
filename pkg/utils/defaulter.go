@@ -11,6 +11,12 @@ import (
 	"github.com/kong/go-kong/kong"
 )
 
+// DefaulterInterface defines the interface for defaulters.
+type DefaulterInterface interface {
+	Set(arg interface{}) error
+	MustSet(arg interface{})
+}
+
 // Defaulter registers types and fills in struct fields with
 // default values.
 type Defaulter struct {
@@ -373,4 +379,23 @@ func (d *Defaulter) populateStaticDefaultsForKonnect() error {
 	}
 
 	return nil
+}
+
+// NoOpDefaulter is a defaulter that does nothing.
+// Used when defaults should be skipped (skipDefaults = true).
+type NoOpDefaulter struct{}
+
+// NewNoOpDefaulter creates a new no-op defaulter.
+func NewNoOpDefaulter() *NoOpDefaulter {
+	return &NoOpDefaulter{}
+}
+
+// Set does nothing and returns nil.
+func (d *NoOpDefaulter) Set(arg interface{}) error {
+	return nil
+}
+
+// MustSet does nothing.
+func (d *NoOpDefaulter) MustSet(arg interface{}) {
+	// No-op
 }

@@ -11,7 +11,9 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
+// RemoveDefaultsFromState strips default values from entities in the given state
+// using the schema fetcher to look up each entity's schema.
+func RemoveDefaultsFromState(ctx context.Context, group *errgroup.Group,
 	state *utils.KongRawState, registry *schema_pkg.Registry,
 ) {
 	// Consumer Groups
