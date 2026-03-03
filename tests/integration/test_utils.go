@@ -15,7 +15,6 @@ import (
 	"github.com/acarl005/stripansi"
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
-	"github.com/ghodss/yaml"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/kong/deck/cmd"
@@ -26,6 +25,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
 )
 
 func getKongAddress() string {
