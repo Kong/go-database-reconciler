@@ -22,7 +22,9 @@ import (
 	"github.com/ssgelm/cookiejarparser"
 )
 
-var clientTimeout time.Duration
+const defaultHTTPClientTimeout = 30 * time.Second
+
+var clientTimeout = defaultHTTPClientTimeout
 
 // KongRawState contains all of Kong Data
 type KongRawState struct {
@@ -225,14 +227,21 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
-	clientTimeout = time.Duration(opt.Timeout) * time.Second
+	timeout := time.Duration(opt.Timeout) * time.Second
+	clientTimeout = timeout
 	c := opt.HTTPClient
 	if c == nil {
-		c = HTTPClient()
+		c = httpClient(timeout)
 	}
-	defaultTransport := http.DefaultTransport.(*http.Transport)
-	defaultTransport.TLSClientConfig = tlsConfig
-	c.Transport = defaultTransport
+
+	c.Transport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: timeout,
+		}).DialContext,
+		TLSHandshakeTimeout: timeout,
+		Proxy:               http.ProxyFromEnvironment,
+		TLSClientConfig:     tlsConfig,
+	}
 	address := CleanAddress(opt.Address)
 
 	headers, err := parseHeaders(opt.Headers)
@@ -326,11 +335,12 @@ func GetKonnectClient(httpClient *http.Client, config KonnectConfig) (*konnect.C
 		if err != nil {
 			return nil, fmt.Errorf("failed to load TLS config: %w", err)
 		}
-		defaultTransport := http.DefaultTransport.(*http.Transport)
-		defaultTransport.TLSClientConfig = tlsConfig
-		defaultTransport.Proxy = http.ProxyFromEnvironment
-		httpClient = http.DefaultClient
-		httpClient.Transport = defaultTransport
+		httpClient = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: tlsConfig,
+				Proxy:           http.ProxyFromEnvironment,
+			},
+		}
 	}
 	headers, err := parseHeaders(config.Headers)
 	if err != nil {
@@ -359,35 +369,35 @@ func CleanAddress(address string) string {
 // HTTPClient returns a new Go stdlib's net/http.Client with
 // sane default timeouts.
 func HTTPClient() *http.Client {
+	return httpClient(clientTimeout)
+}
+
+func httpClient(timeout time.Duration) *http.Client {
 	return &http.Client{
-		Timeout: clientTimeout,
+		Timeout: timeout,
 		Transport: &http.Transport{
 			DialContext: (&net.Dialer{
-				Timeout: clientTimeout,
+				Timeout: timeout,
 			}).DialContext,
-			TLSHandshakeTimeout: clientTimeout,
+			TLSHandshakeTimeout: timeout,
 			Proxy:               http.ProxyFromEnvironment,
 		},
 	}
 }
 
 func HTTPClientWithTLSConfig(opt TLSConfig) (*http.Client, error) {
-	httpClient := &http.Client{
+	tlsConfig, err := getTLSConfig(opt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load TLS config: %w", err)
+	}
+
+	return &http.Client{
 		Timeout: clientTimeout,
 		Transport: &http.Transport{
 			DialContext:         (&net.Dialer{Timeout: clientTimeout}).DialContext,
 			TLSHandshakeTimeout: clientTimeout,
 			Proxy:               http.ProxyFromEnvironment,
+			TLSClientConfig:     tlsConfig,
 		},
-	}
-
-	tlsConfig, err := getTLSConfig(opt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load TLS config: %w", err)
-	}
-	defaultTransport := http.DefaultTransport.(*http.Transport)
-	defaultTransport.TLSClientConfig = tlsConfig
-	defaultTransport.Proxy = http.ProxyFromEnvironment
-	httpClient.Transport = defaultTransport
-	return httpClient, nil
+	}, nil
 }
