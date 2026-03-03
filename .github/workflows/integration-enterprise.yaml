@@ -18,6 +18,7 @@ jobs:
     strategy:
       matrix:
         kong_image:
+        - 'kong/kong-gateway:2.8'
         - 'kong/kong-gateway:3.4'
         - 'kong/kong-gateway:3.10'
         - 'kong/kong-gateway:3.11'
