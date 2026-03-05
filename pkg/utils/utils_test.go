@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"testing"
@@ -285,6 +287,24 @@ func Test_ParseKongVersion(t *testing.T) {
 				t.Errorf("ParseKongVersion() = %v, want %v", got.String(), tt.want.String())
 			}
 		})
+	}
+}
+
+func BenchmarkRemoveDuplicates(b *testing.B) {
+	const count = 1000
+
+	base := make([]string, count)
+	for i := range base {
+		n := rand.Intn(count)
+		base[i] = fmt.Sprintf("item-%d", n)
+	}
+
+	s := make([]string, len(base))
+	b.ResetTimer()
+	for b.Loop() {
+		clear(s)
+		copy(s, base)
+		RemoveDuplicates(&s)
 	}
 }
 

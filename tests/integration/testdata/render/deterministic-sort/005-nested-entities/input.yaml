@@ -1,0 +1,184 @@
+_format_version: "3.0"
+# Test case for nested entity sorting
+# All nested entities are added in reverse alphabetical order (zulu, mike, alpha)
+# and should be output in alphabetical order (alpha, mike, zulu)
+
+services:
+- id: svc-1
+  name: test-service
+  host: test.example.com
+  # Routes nested under service - in reverse order
+  routes:
+  - id: route-zulu
+    name: zulu-route
+    paths:
+    - /zulu
+  - id: route-mike
+    name: mike-route
+    paths:
+    - /mike
+  - id: route-alpha
+    name: alpha-route
+    paths:
+    - /alpha
+    # Plugins nested under route - in reverse order
+    plugins:
+    - id: plugin-route-response-transformer
+      name: response-transformer
+      config:
+        add:
+          headers:
+          - "X-Test: true"
+    - id: plugin-route-key-auth
+      name: key-auth
+      config:
+        key_names:
+        - apikey
+    - id: plugin-route-bot-detection
+      name: bot-detection
+      config: {}
+  # Plugins nested under service - in reverse order
+  plugins:
+  - id: plugin-svc-rate-limiting
+    name: rate-limiting
+    config:
+      minute: 100
+  - id: plugin-svc-cors
+    name: cors
+    config:
+      origins:
+      - "*"
+  - id: plugin-svc-acl
+    name: acl
+    config:
+      allow:
+      - group1
+
+upstreams:
+- id: upstream-1
+  name: test-upstream
+  # Targets nested under upstream - in reverse order
+  targets:
+  - id: target-zulu
+    target: zulu.local:8080
+  - id: target-mike
+    target: mike.local:8080
+  - id: target-alpha
+    target: alpha.local:8080
+
+consumers:
+- id: consumer-1
+  username: test-consumer
+  # All credential types nested under consumer - in reverse order
+  keyauth_credentials:
+  - id: keyauth-zulu
+    key: zulu-key
+  - id: keyauth-mike
+    key: mike-key
+  - id: keyauth-alpha
+    key: alpha-key
+  basicauth_credentials:
+  - id: basicauth-zulu
+    username: zulu-user
+    password: pass1
+  - id: basicauth-mike
+    username: mike-user
+    password: pass2
+  - id: basicauth-alpha
+    username: alpha-user
+    password: pass3
+  hmacauth_credentials:
+  - id: hmacauth-zulu
+    username: zulu-hmac
+    secret: secret1
+  - id: hmacauth-mike
+    username: mike-hmac
+    secret: secret2
+  - id: hmacauth-alpha
+    username: alpha-hmac
+    secret: secret3
+  jwt_secrets:
+  - id: jwt-zulu
+    key: zulu-jwt
+    algorithm: HS256
+    secret: jwt-secret1
+  - id: jwt-mike
+    key: mike-jwt
+    algorithm: HS256
+    secret: jwt-secret2
+  - id: jwt-alpha
+    key: alpha-jwt
+    algorithm: HS256
+    secret: jwt-secret3
+  oauth2_credentials:
+  - id: oauth2-zulu
+    name: zulu-oauth
+    client_id: zulu-client
+    client_secret: secret1
+  - id: oauth2-mike
+    name: mike-oauth
+    client_id: mike-client
+    client_secret: secret2
+  - id: oauth2-alpha
+    name: alpha-oauth
+    client_id: alpha-client
+    client_secret: secret3
+  acls:
+  - id: acl-zulu
+    group: zulu-group
+  - id: acl-mike
+    group: mike-group
+  - id: acl-alpha
+    group: alpha-group
+  # Consumer group memberships - in reverse order
+  groups:
+  - name: zulu-cg
+  - name: mike-cg
+  - name: alpha-cg
+
+consumer_groups:
+# Consumer groups themselves - in reverse order
+- id: cg-zulu
+  name: zulu-cg
+  # Plugins nested under consumer group - in reverse order
+  plugins:
+  - id: plugin-cg-rate-limiting-advanced
+    name: rate-limiting-advanced
+    config:
+      limit:
+      - 100
+      window_size:
+      - 60
+  - id: plugin-cg-key-auth
+    name: key-auth
+    config:
+      key_names:
+      - apikey
+  - id: plugin-cg-acl
+    name: acl
+    config:
+      allow:
+      - group1
+- id: cg-mike
+  name: mike-cg
+- id: cg-alpha
+  name: alpha-cg
+
+certificates:
+- id: cert-1
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    test-cert
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    test-key
+    -----END RSA PRIVATE KEY-----
+  # SNIs nested under certificate - in reverse order
+  snis:
+  - id: sni-zulu
+    name: zulu.example.com
+  - id: sni-mike
+    name: mike.example.com
+  - id: sni-alpha
+    name: alpha.example.com

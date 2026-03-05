@@ -1,0 +1,29 @@
+_format_version: "3.0"
+partials:
+- config:
+    host: example.service
+    port: 6379
+    timeout: 3000
+  id: e289455d-d2c3-4008-82d0-0b69e274385a
+  name: redis-svc
+  tags:
+  - redis-svc
+  type: redis-ce
+
+services:
+- host: httpbin.konghq.com
+  name: httpbin-1
+  path: /anything
+  tags: 
+  - example
+  # nested-plugin with partial reference
+  plugins:
+  - config:
+      hour: 30
+    name: rate-limiting
+    tags: 
+    - example
+    partials:
+    - name:  redis-svc
+  port: 443
+  protocol: https

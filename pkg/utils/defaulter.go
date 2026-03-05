@@ -11,13 +11,6 @@ import (
 	"github.com/kong/go-kong/kong"
 )
 
-var kongToKonnectEntitiesMap = map[string]string{
-	"services":  "service",
-	"routes":    "route",
-	"upstreams": "upstream",
-	"targets":   "target",
-}
-
 // Defaulter registers types and fills in struct fields with
 // default values.
 type Defaulter struct {
@@ -202,7 +195,7 @@ func (d *Defaulter) getEntitySchema(entityType string) (map[string]interface{}, 
 	)
 	endpoint := fmt.Sprintf("/schemas/%s", entityType)
 	if d.isKonnect {
-		entityType, ok = kongToKonnectEntitiesMap[entityType]
+		entityType, ok = KongToKonnectEntitiesMap[entityType]
 		// if no mapping is found, then the schema cannot be fetched
 		// from Konnet and we should proceed without defaults.
 		if !ok {

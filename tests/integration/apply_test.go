@@ -373,3 +373,64 @@ func Test_Apply_Consumer_Group_Consumer(t *testing.T) {
 		})
 	}
 }
+
+func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.6.0")
+	setup(t)
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name             string
+		initialStateFile string
+		updateStateFile  string
+		expectedState    utils.KongRawState
+		runWhen          func(t *testing.T)
+	}{
+		{
+			name:             "plugin addition to consumer group",
+			initialStateFile: "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-initial.yaml",
+			updateStateFile:  "testdata/apply/006-consumer-group-plugins/consumer-group-plugin-final.yaml",
+			expectedState: utils.KongRawState{
+				ConsumerGroups: []*kong.ConsumerGroupObject{
+					{
+						ConsumerGroup: &kong.ConsumerGroup{
+							Name: kong.String("silver"),
+						},
+					},
+				},
+				Plugins: []*kong.Plugin{
+					{
+						Name:         kong.String("ip-restriction"),
+						InstanceName: kong.String("default-instance"),
+						ConsumerGroup: &kong.ConsumerGroup{
+							ID: kong.String("521a90ad-36cb-4e31-a5db-1d979aee40d1"),
+						},
+						Config: kong.Configuration{
+							"allow":   []any{string("10.0.0.0")},
+							"deny":    nil,
+							"message": nil,
+							"status":  nil,
+						},
+						Enabled:   kong.Bool(true),
+						Protocols: kong.StringSlice("grpc", "http", "https", "tcp", "tls", "grpcs"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			err := sync(tc.initialStateFile)
+			require.NoError(t, err)
+
+			err = apply(tc.updateStateFile)
+			require.NoError(t, err)
+
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}

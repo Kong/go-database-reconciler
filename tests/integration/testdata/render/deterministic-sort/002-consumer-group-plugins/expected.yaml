@@ -1,0 +1,17 @@
+_format_version: "3.0"
+consumer_groups:
+- name: test-group
+  plugins:
+  - config:
+      allow:
+      - group1
+    name: acl
+  - config:
+      hide_credentials: true
+    name: basic-auth
+  - config:
+      limit:
+      - 10
+      window_size:
+      - 60
+    name: rate-limiting-advanced
