@@ -233,7 +233,7 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 	timeout := time.Duration(opt.Timeout) * time.Second
 	c := opt.HTTPClient
 	if c == nil {
-		c = HTTPClient(HTTPClientOptions{
+		c = HTTPClientWithOpts(HTTPClientOptions{
 			Timeout: timeout,
 		})
 	}
@@ -370,9 +370,15 @@ func CleanAddress(address string) string {
 	return re.ReplaceAllString(address, "")
 }
 
-// HTTPClient returns a new Go stdlib's net/http.Client with
+// HTTPClientWithOpts returns a new Go stdlib's net/http.Client with
+// timeout = 30s
+func HTTPClient() *http.Client {
+	return HTTPClientWithOpts(HTTPClientOptions{})
+}
+
+// HTTPClientWithOpts returns a new Go stdlib's net/http.Client with
 // the provided options.
-func HTTPClient(opts HTTPClientOptions) *http.Client {
+func HTTPClientWithOpts(opts HTTPClientOptions) *http.Client {
 	timeout := opts.Timeout
 	if timeout == 0 {
 		timeout = defaultHTTPClientTimeout
