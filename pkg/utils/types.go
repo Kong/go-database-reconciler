@@ -24,8 +24,6 @@ import (
 
 const defaultHTTPClientTimeout = 30 * time.Second
 
-var clientTimeout = defaultHTTPClientTimeout
-
 // KongRawState contains all of Kong Data
 type KongRawState struct {
 	Services []*kong.Service
@@ -233,7 +231,6 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 	}
 
 	timeout := time.Duration(opt.Timeout) * time.Second
-	clientTimeout = timeout
 	c := opt.HTTPClient
 	if c == nil {
 		c = httpClient(timeout)
@@ -374,13 +371,18 @@ func CleanAddress(address string) string {
 // HTTPClient returns a new Go stdlib's net/http.Client with
 // the provided options.
 func HTTPClient(opts HTTPClientOptions) *http.Client {
+	timeout := opts.Timeout
+	if timeout == 0 {
+		timeout = defaultHTTPClientTimeout
+	}
+
 	return &http.Client{
-		Timeout: opts.Timeout,
+		Timeout: timeout,
 		Transport: &http.Transport{
 			DialContext: (&net.Dialer{
-				Timeout: opts.Timeout,
+				Timeout: timeout,
 			}).DialContext,
-			TLSHandshakeTimeout: opts.Timeout,
+			TLSHandshakeTimeout: timeout,
 			Proxy:               http.ProxyFromEnvironment,
 		},
 	}
@@ -399,17 +401,21 @@ func httpClient(timeout time.Duration) *http.Client {
 	}
 }
 
-func HTTPClientWithTLSConfig(opt TLSConfig) (*http.Client, error) {
+func HTTPClientWithTLSConfig(opt TLSConfig, httpOpts HTTPClientOptions) (*http.Client, error) {
 	tlsConfig, err := getTLSConfig(opt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
+	timeout := httpOpts.Timeout
+	if timeout == 0 {
+		timeout = defaultHTTPClientTimeout
+	}
 
 	return &http.Client{
-		Timeout: clientTimeout,
+		Timeout: timeout,
 		Transport: &http.Transport{
-			DialContext:         (&net.Dialer{Timeout: clientTimeout}).DialContext,
-			TLSHandshakeTimeout: clientTimeout,
+			DialContext:         (&net.Dialer{Timeout: timeout}).DialContext,
+			TLSHandshakeTimeout: timeout,
 			Proxy:               http.ProxyFromEnvironment,
 			TLSClientConfig:     tlsConfig,
 		},
