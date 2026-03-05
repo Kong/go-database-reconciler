@@ -77,6 +77,11 @@ type ErrArray struct {
 	Errors []error
 }
 
+// HTTPClientOptions holds options for creating an HTTP client.
+type HTTPClientOptions struct {
+	Timeout time.Duration
+}
+
 // Error returns a pretty string of errors present.
 func (e ErrArray) Error() string {
 	if len(e.Errors) == 0 {
@@ -367,9 +372,18 @@ func CleanAddress(address string) string {
 }
 
 // HTTPClient returns a new Go stdlib's net/http.Client with
-// sane default timeouts.
-func HTTPClient() *http.Client {
-	return httpClient(clientTimeout)
+// the provided options.
+func HTTPClient(opts HTTPClientOptions) *http.Client {
+	return &http.Client{
+		Timeout: opts.Timeout,
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout: opts.Timeout,
+			}).DialContext,
+			TLSHandshakeTimeout: opts.Timeout,
+			Proxy:               http.ProxyFromEnvironment,
+		},
+	}
 }
 
 func httpClient(timeout time.Duration) *http.Client {
