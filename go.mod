@@ -2,7 +2,7 @@ module github.com/kong/go-database-reconciler
 
 go 1.24.6
 
-toolchain go1.24.7
+toolchain go1.26.0
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
@@ -15,6 +15,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/ettle/strcase v0.2.0
 	github.com/fatih/color v1.18.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.6.0
@@ -55,7 +56,6 @@ require (
 	github.com/ericlagergren/decimal v0.0.0-20240411145413-00de7ca16731 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
