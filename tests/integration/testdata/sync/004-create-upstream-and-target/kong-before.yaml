@@ -1,0 +1,6 @@
+upstreams:
+- name: upstream1
+  algorithm: least-connections
+  targets:
+  - target: 198.51.100.11:80
+    weight: 42

@@ -1,0 +1,11 @@
+_format_version: "3.0"
+consumers:
+- username: test-consumer
+  groups:
+  - name: zebra-group
+  - name: alpha-group
+  - name: beta-group
+consumer_groups:
+- name: alpha-group
+- name: beta-group
+- name: zebra-group

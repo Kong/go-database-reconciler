@@ -1,0 +1,6 @@
+_format_version: "3.0"
+upstreams:
+  - name: upstream1
+    targets:
+      - target: 198.51.100.11:80
+        failover: true

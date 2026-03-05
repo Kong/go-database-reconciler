@@ -71,6 +71,17 @@ type Config struct {
 	// If IsConsumerGroupPolicyOverrideSet is true, we let users create
 	// policy-based overrides for RLA plugin
 	IsConsumerGroupPolicyOverrideSet bool
+
+	// This flag is specifically used for the `deck gateway dump` command.
+	// If true, the content of the entities is sanitized at deck level.
+	// We require it here to signal the Writer about the sanitization, so
+	// that referential integrity can be handled properly via IDs.
+	SanitizeContent bool
+
+	SkipHashForBasicAuth bool
+
+	// This flag is set to remove default values while dumping entities.
+	SkipDefaults bool
 }
 
 func deduplicate(stringSlice []string) []string {
@@ -194,6 +205,7 @@ func getConsumerGroupsConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.ConsumerGroups = consumerGroups
 		return nil
 	})
@@ -226,6 +238,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.Consumers = consumers
 		return nil
 	})
@@ -235,6 +248,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("key-auths: %w", err)
 		}
+
 		state.KeyAuths = keyAuths
 		return nil
 	})
@@ -244,6 +258,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("hmac-auths: %w", err)
 		}
+
 		state.HMACAuths = hmacAuths
 		return nil
 	})
@@ -253,6 +268,7 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("jwts: %w", err)
 		}
+
 		state.JWTAuths = jwtAuths
 		return nil
 	})
@@ -262,7 +278,15 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		if err != nil {
 			return fmt.Errorf("basic-auths: %w", err)
 		}
-		state.BasicAuths = basicAuths
+
+		var options []*kong.BasicAuthOptions
+		for _, basicAuth := range basicAuths {
+			option := &kong.BasicAuthOptions{
+				BasicAuth: *basicAuth,
+			}
+			options = append(options, option)
+		}
+		state.BasicAuths = options
 		return nil
 	})
 
@@ -339,6 +363,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.Services = services
 		return nil
 	})
@@ -373,6 +398,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 				}
 			}
 		}
+
 		state.Routes = routes
 		return nil
 	})
@@ -389,6 +415,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			plugins = excludeConsumersPlugins(plugins)
 			plugins = excludeConsumerGroupsPlugins(plugins)
 		}
+
 		state.Plugins = plugins
 		return nil
 	})
@@ -478,19 +505,31 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		}
 
 		state.Upstreams = upstreams
-		targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
-		if err != nil {
-			return fmt.Errorf("targets: %w", err)
+		if config.KonnectControlPlane == "" {
+			targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+			state.Targets = targets
 		}
-
-		targets, err = excludeKonnectManagedEntities(targets)
-		if err != nil {
-			return fmt.Errorf("targets: %w", err)
-		}
-
-		state.Targets = targets
 		return nil
 	})
+
+	if config.KonnectControlPlane != "" {
+		group.Go(func() error {
+			targets, err := GetAllTargetsFromKonnect(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+
+			targets, err = excludeKonnectManagedEntities(targets)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+			state.Targets = targets
+			return nil
+		})
+	}
 
 	group.Go(func() error {
 		vaults, err := GetAllVaults(ctx, client, config.SelectorTags)
@@ -669,24 +708,40 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 		return nil, err
 	}
 
-	group, ctx := errgroup.WithContext(ctx)
+	group, newCtx := errgroup.WithContext(ctx)
 
 	// dump only rbac resources
 	if config.RBACResourcesOnly {
-		getEnterpriseRBACConfiguration(ctx, group, client, &state)
+		getEnterpriseRBACConfiguration(newCtx, group, client, &state)
 	} else {
 		// regular case
-		getProxyConfiguration(ctx, group, client, config, &state)
+		getProxyConfiguration(newCtx, group, client, config, &state)
 
 		if !config.SkipConsumers {
-			getConsumerGroupsConfiguration(ctx, group, client, config, &state)
-			getConsumerConfiguration(ctx, group, client, config, &state)
+			getConsumerGroupsConfiguration(newCtx, group, client, config, &state)
+			getConsumerConfiguration(newCtx, group, client, config, &state)
 		}
 	}
 
 	err := group.Wait()
 	if err != nil {
 		return nil, err
+	}
+
+	if config.SkipDefaults {
+		isKonnect := config.KonnectControlPlane != ""
+		schemaFetcher := NewSchemaFetcher(ctx, client, isKonnect)
+
+		if schemaFetcher == nil {
+			return nil, fmt.Errorf("schemaFetcher is nil")
+		}
+
+		group, newCtx := errgroup.WithContext(ctx)
+		removeDefaultsFromState(newCtx, group, &state, schemaFetcher)
+		err := group.Wait()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &state, nil
@@ -971,9 +1026,6 @@ func GetAllConsumers(ctx context.Context,
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
 		consumers = append(consumers, s...)
 		if nextopt == nil {
 			break
@@ -1205,6 +1257,30 @@ func GetAllTargets(ctx context.Context, client *kong.Client,
 			}
 			opt = nextopt
 		}
+	}
+
+	return targets, nil
+}
+
+// GetAllTargetsFromKonnect queries Konnect for *all* Targets across *all* upstreams using a
+// Konnect-only `/targets` endpoint.
+func GetAllTargetsFromKonnect(ctx context.Context, client *kong.Client, tags []string) ([]*kong.Target, error) {
+	var targets []*kong.Target
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.Targets.ListAllTargets(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		targets = append(targets, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
 	}
 
 	return targets, nil

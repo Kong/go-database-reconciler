@@ -1,0 +1,320 @@
+_format_version: "3.0"
+consumers:
+- username: alpha-consumer
+- username: beta-consumer
+- username: zebra-consumer
+plugins:
+- config:
+    hide_credentials: false
+  name: basic-auth
+- config:
+    key_names:
+    - apikey
+  name: key-auth
+- config:
+    minute: 100
+  name: rate-limiting
+routes:
+- name: standalone-alpha-route
+  paths:
+  - /standalone/alpha
+  preserve_host: false
+  protocols:
+  - http
+  - https
+  regex_priority: 0
+  strip_path: true
+- name: standalone-beta-route
+  paths:
+  - /standalone/beta
+  preserve_host: false
+  protocols:
+  - http
+  - https
+  regex_priority: 0
+  strip_path: true
+- name: standalone-zebra-route
+  paths:
+  - /standalone/zebra
+  preserve_host: false
+  protocols:
+  - http
+  - https
+  regex_priority: 0
+  strip_path: true
+services:
+- connect_timeout: 60000
+  host: alpha.example.com
+  name: alpha-service
+  protocol: http
+  read_timeout: 60000
+  routes:
+  - name: alpha-route-1
+    paths:
+    - /alpha/1
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  - name: alpha-route-2
+    paths:
+    - /alpha/2
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  host: beta.example.com
+  name: beta-service
+  protocol: http
+  read_timeout: 60000
+  routes:
+  - name: beta-route
+    paths:
+    - /beta
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  host: zebra.example.com
+  name: zebra-service
+  protocol: http
+  read_timeout: 60000
+  routes:
+  - name: zebra-route-1
+    paths:
+    - /zebra/1
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  - name: zebra-route-2
+    paths:
+    - /zebra/2
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  - name: zebra-route-3
+    paths:
+    - /zebra/3
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: true
+  write_timeout: 60000
+upstreams:
+- hash_fallback: none
+  hash_on: none
+  hash_on_cookie_path: /
+  healthchecks:
+    active:
+      concurrency: 10
+      healthy:
+        http_statuses:
+        - 200
+        - 302
+        interval: 0
+        successes: 0
+      http_path: /
+      timeout: 1
+      type: http
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 404
+        - 500
+        - 501
+        - 502
+        - 503
+        - 504
+        - 505
+        interval: 0
+        tcp_failures: 0
+        timeouts: 0
+    passive:
+      healthy:
+        http_statuses:
+        - 200
+        - 201
+        - 202
+        - 203
+        - 204
+        - 205
+        - 206
+        - 207
+        - 208
+        - 226
+        - 300
+        - 301
+        - 302
+        - 303
+        - 304
+        - 305
+        - 306
+        - 307
+        - 308
+        successes: 0
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 500
+        - 503
+        tcp_failures: 0
+        timeouts: 0
+  name: alpha-upstream
+  slots: 10000
+  targets:
+  - target: target1.example.com:80
+    weight: 100
+- hash_fallback: none
+  hash_on: none
+  hash_on_cookie_path: /
+  healthchecks:
+    active:
+      concurrency: 10
+      healthy:
+        http_statuses:
+        - 200
+        - 302
+        interval: 0
+        successes: 0
+      http_path: /
+      timeout: 1
+      type: http
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 404
+        - 500
+        - 501
+        - 502
+        - 503
+        - 504
+        - 505
+        interval: 0
+        tcp_failures: 0
+        timeouts: 0
+    passive:
+      healthy:
+        http_statuses:
+        - 200
+        - 201
+        - 202
+        - 203
+        - 204
+        - 205
+        - 206
+        - 207
+        - 208
+        - 226
+        - 300
+        - 301
+        - 302
+        - 303
+        - 304
+        - 305
+        - 306
+        - 307
+        - 308
+        successes: 0
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 500
+        - 503
+        tcp_failures: 0
+        timeouts: 0
+  name: beta-upstream
+  slots: 10000
+  targets:
+  - target: target2.example.com:80
+    weight: 100
+- hash_fallback: none
+  hash_on: none
+  hash_on_cookie_path: /
+  healthchecks:
+    active:
+      concurrency: 10
+      healthy:
+        http_statuses:
+        - 200
+        - 302
+        interval: 0
+        successes: 0
+      http_path: /
+      timeout: 1
+      type: http
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 404
+        - 500
+        - 501
+        - 502
+        - 503
+        - 504
+        - 505
+        interval: 0
+        tcp_failures: 0
+        timeouts: 0
+    passive:
+      healthy:
+        http_statuses:
+        - 200
+        - 201
+        - 202
+        - 203
+        - 204
+        - 205
+        - 206
+        - 207
+        - 208
+        - 226
+        - 300
+        - 301
+        - 302
+        - 303
+        - 304
+        - 305
+        - 306
+        - 307
+        - 308
+        successes: 0
+      unhealthy:
+        http_failures: 0
+        http_statuses:
+        - 429
+        - 500
+        - 503
+        tcp_failures: 0
+        timeouts: 0
+  name: zebra-upstream
+  slots: 10000
+  targets:
+  - target: alpha1.example.com:80
+    weight: 100
+  - target: beta1.example.com:80
+    weight: 100
+  - target: zebra1.example.com:80
+    weight: 100

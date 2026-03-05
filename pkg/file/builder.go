@@ -65,6 +65,10 @@ type stateBuilder struct {
 
 	isConsumerGroupPolicyOverrideSet bool
 
+	skipHashForBasicAuth bool
+	// Track consumer IDs to avoid duplicates in rawState
+	consumerIDsInRawState map[string]bool
+
 	err error
 }
 
@@ -83,6 +87,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.rawState = &utils.KongRawState{}
 	b.konnectRawState = &utils.KonnectRawState{}
 	b.schemasCache = make(map[string]map[string]interface{})
+	b.consumerIDsInRawState = make(map[string]bool)
 
 	b.intermediate, err = state.NewKongState()
 	if err != nil {
@@ -243,13 +248,15 @@ func (b *stateBuilder) ingestConsumerGroupScopedPlugins(cg FConsumerGroupObject)
 		plugin.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 		plugins = append(plugins, FPlugin{
 			Plugin: kong.Plugin{
-				ID:     plugin.ID,
-				Name:   plugin.Name,
-				Config: plugin.Config,
+				ID:           plugin.ID,
+				Name:         plugin.Name,
+				Config:       plugin.Config,
+				InstanceName: plugin.InstanceName,
 				ConsumerGroup: &kong.ConsumerGroup{
 					ID: cg.ID,
 				},
-				Tags: plugin.Tags,
+				Partials: plugin.Partials,
+				Tags:     plugin.Tags,
 			},
 			ConfigSource: plugin.ConfigSource,
 		})
@@ -599,6 +606,24 @@ func (b *stateBuilder) caCertificates() {
 	}
 }
 
+// addConsumerToRawState adds a consumer to rawState only if it hasn't been added before
+// This is to ensure that one consumer is not added multiple times in the rawState,
+// as it is a basic appending with no checks. This leads to fewer errors during state
+// processing.
+func (b *stateBuilder) addConsumerToRawState(consumer *kong.Consumer) {
+	if consumer == nil || consumer.ID == nil {
+		return
+	}
+
+	consumerID := *consumer.ID
+	if b.consumerIDsInRawState[consumerID] {
+		return
+	}
+
+	b.consumerIDsInRawState[consumerID] = true
+	b.rawState.Consumers = append(b.rawState.Consumers, consumer)
+}
+
 func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (*kong.Consumer, error) {
 	var (
 		consumer *state.Consumer
@@ -615,6 +640,8 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 			}
 		}
 		sort.Strings(stringTCTags)
+
+		// checking if consumer is pulled via default_lookup_tags for consumers
 		if reflect.DeepEqual(stringTCTags, b.lookupTagsConsumers) && !utils.Empty(tc.ID) {
 			if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
 				(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
@@ -624,6 +651,47 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 					CustomID: tc.CustomID,
 					Tags:     tc.Tags,
 				}, nil
+			}
+		}
+
+		// checking if consumer is pulled via default_lookup_tags for consumers-groups
+		// if groups is not nil, then only we check for the tag match with groups
+		// if the group tags match with lookup tags for consumer-groups, the consumer is
+		// likely to be already pulled into the state, and we don't want to create it again.
+		if tc.Groups != nil && !utils.Empty(tc.ID) {
+			for _, group := range tc.Groups {
+				groupTags := make([]string, len(group.Tags))
+				for i, tag := range group.Tags {
+					if tag != nil {
+						groupTags[i] = *tag
+					}
+				}
+
+				sort.Strings(groupTags)
+				sort.Strings(b.lookupTagsConsumerGroups)
+				if reflect.DeepEqual(groupTags, b.lookupTagsConsumerGroups) && !utils.Empty(tc.ID) {
+					if (tc.Username != nil && c.Username != nil && *tc.Username == *c.Username) ||
+						(tc.CustomID != nil && c.CustomID != nil && *tc.CustomID == *c.CustomID) {
+						// ingesting as consumerGroupConsumer in the intermediate state
+						// so that it is not created again while processing consumers
+						err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
+							ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
+								ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
+								Consumer:      &c.Consumer,
+							},
+						})
+						if err != nil {
+							return nil, err
+						}
+
+						return &kong.Consumer{
+							ID:       tc.ID,
+							Username: tc.Username,
+							CustomID: tc.CustomID,
+							Tags:     tc.Tags,
+						}, nil
+					}
+				}
 			}
 		}
 	}
@@ -650,11 +718,12 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 		c.Consumer.CreatedAt = consumer.CreatedAt
 	}
 
-	b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
+	b.addConsumerToRawState(&c.Consumer)
 	err = b.intermediate.Consumers.AddIgnoringDuplicates(state.Consumer{Consumer: c.Consumer})
 	if err != nil {
 		return nil, err
 	}
+
 	err = b.intermediate.ConsumerGroupConsumers.AddIgnoringDuplicates(state.ConsumerGroupConsumer{
 		ConsumerGroupConsumer: kong.ConsumerGroupConsumer{
 			ConsumerGroup: &kong.ConsumerGroup{ID: cgID},
@@ -691,7 +760,6 @@ func (b *stateBuilder) consumers() {
 	}
 
 	for _, c := range b.targetContent.Consumers {
-
 		var (
 			consumer *state.Consumer
 			err      error
@@ -753,16 +821,37 @@ func (b *stateBuilder) consumers() {
 			}
 		}
 		if !consumerAlreadyAdded {
-			b.rawState.Consumers = append(b.rawState.Consumers, &c.Consumer)
+			b.addConsumerToRawState(&c.Consumer)
 			err = b.intermediate.Consumers.AddIgnoringDuplicates(state.Consumer{Consumer: c.Consumer})
 			if err != nil {
 				b.err = err
 				return
 			}
-			// ingest consumer into consumer group
-			if err := b.ingestIntoConsumerGroup(c); err != nil {
+		}
+
+		for _, group := range c.Groups {
+			var groupIdentifier string
+			if group.ID != nil {
+				groupIdentifier = *group.ID
+			} else if group.Name != nil {
+				cg, err := b.intermediate.ConsumerGroups.Get(*group.Name)
+				if err != nil {
+					b.err = err
+					return
+				}
+				groupIdentifier = *cg.ID
+			}
+			consumerExistsInGroup, err := b.intermediate.ConsumerGroupConsumers.Get(*c.ID, groupIdentifier)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
 				b.err = err
 				return
+			}
+			if consumerExistsInGroup == nil {
+				// ingest consumer into consumer group
+				if err := b.ingestIntoConsumerGroup(c, group); err != nil {
+					b.err = err
+					return
+				}
 			}
 		}
 
@@ -791,10 +880,12 @@ func (b *stateBuilder) consumers() {
 			return
 		}
 
-		var basicAuths []kong.BasicAuth
+		var basicAuths []kong.BasicAuthOptions
 		for _, cred := range c.BasicAuths {
 			cred.Consumer = utils.GetConsumerReference(c.Consumer)
-			basicAuths = append(basicAuths, *cred)
+			basicAuths = append(basicAuths, kong.BasicAuthOptions{
+				BasicAuth: *cred,
+			})
 		}
 		if err := b.ingestBasicAuths(basicAuths); err != nil {
 			b.err = err
@@ -851,8 +942,8 @@ func (b *stateBuilder) consumers() {
 	}
 }
 
-func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
-	for _, group := range consumer.Groups {
+func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer, consumerGroup *kong.ConsumerGroup) error {
+	ingest := func(group *kong.ConsumerGroup) error {
 		found := false
 		for _, cg := range b.rawState.ConsumerGroups {
 			if group.ID != nil && *cg.ConsumerGroup.ID == *group.ID {
@@ -878,8 +969,17 @@ func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
 				"consumer-group '%s' not found for consumer '%s'", groupIdentifier, *consumer.ID,
 			)
 		}
+
+		return nil
 	}
-	return nil
+
+	if consumerGroup == nil {
+		for _, group := range consumer.Groups {
+			return ingest(group)
+		}
+	}
+
+	return ingest(consumerGroup)
 }
 
 func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
@@ -905,7 +1005,7 @@ func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
 	return nil
 }
 
-func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuth) error {
+func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuthOptions) error {
 	for _, cred := range creds {
 		existingCred, err := b.currentState.BasicAuths.Get(*cred.Username)
 		if utils.Empty(cred.ID) {
@@ -923,6 +1023,10 @@ func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuth) error {
 		if existingCred != nil {
 			cred.CreatedAt = existingCred.CreatedAt
 		}
+		if b.skipHashForBasicAuth {
+			cred.SkipHash = kong.Bool(true)
+		}
+
 		b.rawState.BasicAuths = append(b.rawState.BasicAuths, &cred)
 	}
 	return nil
@@ -1210,6 +1314,12 @@ func (b *stateBuilder) ingestService(s *FService) error {
 	}
 
 	b.defaulter.MustSet(&s.Service)
+	if s.Service.TLSSANs != nil && reflect.DeepEqual(*s.Service.TLSSANs, kong.SANs{}) {
+		// Defaulter sets an empty SANs struct if none are provided.
+		// We need to nil it out to avoid validation errors when protocol is not secure.
+		s.Service.TLSSANs = nil
+	}
+
 	if svc != nil {
 		s.Service.CreatedAt = svc.CreatedAt
 	}

@@ -385,9 +385,18 @@
         "name": {
           "type": "string"
         },
+        "instance_name": {
+          "type": "string"
+        },
         "tags": {
           "items": {
             "type": "string"
+          },
+          "type": "array"
+        },
+        "partials": {
+          "items": {
+            "type": "object"
           },
           "type": "array"
         }
@@ -1183,6 +1192,10 @@
           },
           "type": "array"
         },
+        "tls_sans": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/TLSSans"
+        },
         "tls_verify": {
           "type": "boolean"
         },
@@ -1290,6 +1303,9 @@
         },
         "weight": {
           "type": "integer"
+        },
+        "failover": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -1532,6 +1548,9 @@
           "type": "array"
         },
         "consumer_group_policy_overrides": {
+          "type": "boolean"
+        },
+        "skip_hash_for_basic_auth": {
           "type": "boolean"
         }
       },
@@ -2088,6 +2107,27 @@
         },
         "weight": {
           "type": "integer"
+        },
+        "failover": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "TLSSans": {
+      "properties": {
+        "dnsnames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "uris": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

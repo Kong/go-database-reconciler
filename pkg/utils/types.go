@@ -50,7 +50,7 @@ type KongRawState struct {
 	KeyAuths    []*kong.KeyAuth
 	HMACAuths   []*kong.HMACAuth
 	JWTAuths    []*kong.JWTAuth
-	BasicAuths  []*kong.BasicAuth
+	BasicAuths  []*kong.BasicAuthOptions
 	ACLGroups   []*kong.ACLGroup
 	Oauth2Creds []*kong.Oauth2Credential
 	MTLSAuths   []*kong.MTLSAuth

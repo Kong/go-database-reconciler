@@ -56,21 +56,22 @@ func (s *targetCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.Arg, err
 // Update updates a Target in Kong.
 // The arg should be of type crud.Event, containing the target to be updated,
 // else the function will panic.
-// It returns a the updated *state.Target.
+// It returns the updated *state.Target.
 func (s *targetCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	target := targetFromStruct(event)
-	// Targets in Kong cannot be updated
-	err := s.client.Targets.Delete(ctx, target.Upstream.ID, target.ID)
+
+	updatedTarget, err := s.client.Targets.Update(
+		ctx,
+		target.Upstream.ID,
+		target.ID,
+		&target.Target,
+	)
 	if err != nil {
 		return nil, err
 	}
-	createdTarget, err := s.client.Targets.Create(ctx,
-		target.Upstream.ID, &target.Target)
-	if err != nil {
-		return nil, err
-	}
-	return &state.Target{Target: *createdTarget}, nil
+
+	return &state.Target{Target: *updatedTarget}, nil
 }
 
 type targetDiffer struct {

@@ -1,0 +1,21 @@
+_format_version: "3.0"
+partials:
+- config:
+    host: example.common
+    port: 6379
+    timeout: 2000
+  id: 834f4f71-11d8-495d-b646-a70832385548
+  name: my-redis-config
+  tags:
+  - redis-common
+  type: redis-ce
+# global plugin with partial reference
+plugins:
+- config:
+    second: 100
+  name: rate-limiting
+  partials:
+  - name: my-redis-config
+    path: config.redis
+  tags:
+  - example

@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -26,10 +27,58 @@ type WriteConfig struct {
 	ControlPlaneName                 string
 	KongVersion                      string
 	IsConsumerGroupPolicyOverrideSet bool
+	SanitizeContent                  bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
 	return strings.Compare(obj1.sortKey(), obj2.sortKey()) < 0
+}
+
+// compareCredential compares two credentials by primary key, falling back to ID.
+// Both primary and id parameters are pointers that may be nil.
+func compareCredential(primary1, primary2, id1, id2 *string) bool {
+	p1, p2 := "", ""
+	if primary1 != nil {
+		p1 = *primary1
+	}
+	if primary2 != nil {
+		p2 = *primary2
+	}
+	if p1 != p2 {
+		return strings.Compare(p1, p2) < 0
+	}
+	// Fall back to ID comparison
+	i1, i2 := "", ""
+	if id1 != nil {
+		i1 = *id1
+	}
+	if id2 != nil {
+		i2 = *id2
+	}
+	return strings.Compare(i1, i2) < 0
+}
+
+// compareConsumerGroupPlugin compares two consumer group plugins by name, falling back to ID.
+func compareConsumerGroupPlugin(p1, p2 *kong.ConsumerGroupPlugin) bool {
+	n1, n2 := "", ""
+	if p1.Name != nil {
+		n1 = *p1.Name
+	}
+	if p2.Name != nil {
+		n2 = *p2.Name
+	}
+	if n1 != n2 {
+		return strings.Compare(n1, n2) < 0
+	}
+	// Fall back to ID comparison
+	i1, i2 := "", ""
+	if p1.ID != nil {
+		i1 = *p1.ID
+	}
+	if p2.ID != nil {
+		i2 = *p2.ID
+	}
+	return strings.Compare(i1, i2) < 0
 }
 
 func getFormatVersion(kongVersion string) (string, error) {
@@ -42,6 +91,22 @@ func getFormatVersion(kongVersion string) (string, error) {
 		formatVersion = "3.0"
 	}
 	return formatVersion, nil
+}
+
+func exportIDsWithBasicAuth(kongState *state.KongState) bool {
+	basicAuths, err := kongState.BasicAuths.GetAll()
+	if err != nil {
+		return false
+	}
+
+	exportIDs := len(basicAuths) > 0
+
+	if exportIDs {
+		const idsWarning = "Warning: basic-auth credentials detected, IDs will be exported"
+		cprint.UpdatePrintlnStdErr(idsWarning)
+	}
+
+	return exportIDs
 }
 
 // KongStateToFile generates a state object to file.Content.
@@ -77,6 +142,10 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		} else {
 			file.Info.ConsumerGroupPolicyOverrides = true
 		}
+	}
+
+	if exportIDsWithBasicAuth(kongState) {
+		config.WithID = true
 	}
 
 	err = populateServices(kongState, file, config)
@@ -458,7 +527,12 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get consumer %s for plugin %s [%s]: %w", cID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(consumer.Username) {
+			// If config.SanitizeContent is true, we wish to use IDs instead of usernames or names.
+			// This is because Plugins use string references to Consumers, Services, etc. rather than objects.
+			// Check file/types.go#foo (shadow type for Plugin) for how we embed string references.
+			// Since the marshaling and unmarshaling of the Plugin uses "ID" field for embedding,
+			// if we overwrite it with name/username, referential integrity will be lost.
+			if !utils.Empty(consumer.Username) && !config.SanitizeContent {
 				cID = *consumer.Username
 			}
 			p.Consumer.ID = &cID
@@ -470,7 +544,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get service %s for plugin %s [%s]: %w", sID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(service.Name) {
+			if !utils.Empty(service.Name) && !config.SanitizeContent {
 				sID = *service.Name
 			}
 			p.Service.ID = &sID
@@ -482,7 +556,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get route %s for plugin %s [%s]: %w", rID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(route.Name) {
+			if !utils.Empty(route.Name) && !config.SanitizeContent {
 				rID = *route.Name
 			}
 			p.Route.ID = &rID
@@ -494,7 +568,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get consumer-group %s for plugin %s [%s]: %w", cgID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(cg.Name) {
+			if !utils.Empty(cg.Name) && !config.SanitizeContent {
 				cgID = *cg.Name
 			}
 			p.ConsumerGroup.ID = &cgID
@@ -513,7 +587,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 }
 
 func populateFilterChains(kongState *state.KongState, file *Content,
-	_ WriteConfig,
+	config WriteConfig,
 ) error {
 	filterChains, err := kongState.FilterChains.GetAll()
 	if err != nil {
@@ -529,7 +603,12 @@ func populateFilterChains(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get service %s for filter chain %s [%s]: %w", sID, *f.Name, *f.ID, err)
 			}
-			if !utils.Empty(service.Name) {
+			// If config.SanitizeContent is true, we wish to use IDs instead of names.
+			// This is because Plugins use string references to Services, Routes, etc. rather than objects.
+			// Check file/types.go#SerializableFilterChain for how we embed string references.
+			// Since the marshaling and unmarshaling of the Plugin uses "ID" field for embedding,
+			// if we overwrite it with name/username, referential integrity will be lost.
+			if !utils.Empty(service.Name) && !config.SanitizeContent {
 				sID = *service.Name
 			}
 			f.Service.ID = &sID
@@ -541,7 +620,7 @@ func populateFilterChains(kongState *state.KongState, file *Content,
 			if err != nil {
 				return fmt.Errorf("unable to get route %s for filter chain %s [%s]: %w", rID, *f.Name, *f.ID, err)
 			}
-			if !utils.Empty(route.Name) {
+			if !utils.Empty(route.Name) && !config.SanitizeContent {
 				rID = *route.Name
 			}
 			f.Route.ID = &rID
@@ -701,6 +780,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			k.Consumer = nil
 			c.KeyAuths = append(c.KeyAuths, &k.KeyAuth)
 		}
+		sort.SliceStable(c.KeyAuths, func(i, j int) bool {
+			return compareCredential(c.KeyAuths[i].Key, c.KeyAuths[j].Key,
+				c.KeyAuths[i].ID, c.KeyAuths[j].ID)
+		})
 		hmacAuth, err := kongState.HMACAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -711,6 +794,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.HMACAuths = append(c.HMACAuths, &k.HMACAuth)
 		}
+		sort.SliceStable(c.HMACAuths, func(i, j int) bool {
+			return compareCredential(c.HMACAuths[i].Username, c.HMACAuths[j].Username,
+				c.HMACAuths[i].ID, c.HMACAuths[j].ID)
+		})
 		jwtSecrets, err := kongState.JWTAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -721,6 +808,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.JWTAuths = append(c.JWTAuths, &k.JWTAuth)
 		}
+		sort.SliceStable(c.JWTAuths, func(i, j int) bool {
+			return compareCredential(c.JWTAuths[i].Key, c.JWTAuths[j].Key,
+				c.JWTAuths[i].ID, c.JWTAuths[j].ID)
+		})
 		basicAuths, err := kongState.BasicAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -731,6 +822,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.BasicAuths = append(c.BasicAuths, &k.BasicAuth)
 		}
+		sort.SliceStable(c.BasicAuths, func(i, j int) bool {
+			return compareCredential(c.BasicAuths[i].Username, c.BasicAuths[j].Username,
+				c.BasicAuths[i].ID, c.BasicAuths[j].ID)
+		})
 		oauth2Creds, err := kongState.Oauth2Creds.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -741,6 +836,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.Oauth2Creds = append(c.Oauth2Creds, &k.Oauth2Credential)
 		}
+		sort.SliceStable(c.Oauth2Creds, func(i, j int) bool {
+			return compareCredential(c.Oauth2Creds[i].ClientID, c.Oauth2Creds[j].ClientID,
+				c.Oauth2Creds[i].ID, c.Oauth2Creds[j].ID)
+		})
 		aclGroups, err := kongState.ACLGroups.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -751,6 +850,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(k)
 			c.ACLGroups = append(c.ACLGroups, &k.ACLGroup)
 		}
+		sort.SliceStable(c.ACLGroups, func(i, j int) bool {
+			return compareCredential(c.ACLGroups[i].Group, c.ACLGroups[j].Group,
+				c.ACLGroups[i].ID, c.ACLGroups[j].ID)
+		})
 		mtlsAuths, err := kongState.MTLSAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err
@@ -760,6 +863,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			k.Consumer = nil
 			c.MTLSAuths = append(c.MTLSAuths, &k.MTLSAuth)
 		}
+		sort.SliceStable(c.MTLSAuths, func(i, j int) bool {
+			return compareCredential(c.MTLSAuths[i].SubjectName, c.MTLSAuths[j].SubjectName,
+				c.MTLSAuths[i].ID, c.MTLSAuths[j].ID)
+		})
 		// populate groups
 		for _, cg := range consumerGroups {
 			cg := *cg
@@ -774,6 +881,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			utils.ZeroOutTimestamps(&cg)
 			c.Groups = append(c.Groups, cg.DeepCopy())
 		}
+		sort.SliceStable(c.Groups, func(i, j int) bool {
+			return compareCredential(c.Groups[i].Name, c.Groups[j].Name,
+				c.Groups[i].ID, c.Groups[j].ID)
+		})
 		sort.SliceStable(c.Plugins, func(i, j int) bool {
 			return compareOrder(c.Plugins[i], c.Plugins[j])
 		})
@@ -797,6 +908,16 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			r.EndpointPermissions = append(
 				r.EndpointPermissions, &FRBACEndpointPermission{RBACEndpointPermission: ep.RBACEndpointPermission})
 		}
+		sort.SliceStable(r.EndpointPermissions, func(i, j int) bool {
+			e1, e2 := "", ""
+			if r.EndpointPermissions[i].Endpoint != nil {
+				e1 = *r.EndpointPermissions[i].Endpoint
+			}
+			if r.EndpointPermissions[j].Endpoint != nil {
+				e2 = *r.EndpointPermissions[j].Endpoint
+			}
+			return strings.Compare(e1, e2) < 0
+		})
 		utils.ZeroOutID(&r, r.Name, config.WithID)
 		utils.ZeroOutTimestamps(&r)
 		file.RBACRoles = append(file.RBACRoles, r)
@@ -846,14 +967,20 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 					utils.ZeroOutID(plugin, plugin.Name, config.WithID)
 					utils.ZeroOutID(plugin.ConsumerGroup, plugin.ConsumerGroup.Name, config.WithID)
 					group.Plugins = append(group.Plugins, &kong.ConsumerGroupPlugin{
-						ID:     plugin.ID,
-						Name:   plugin.Name,
-						Config: plugin.Config,
-						Tags:   plugin.Tags,
+						ID:           plugin.ID,
+						Name:         plugin.Name,
+						InstanceName: plugin.InstanceName,
+						Config:       plugin.Config,
+						Tags:         plugin.Tags,
+						Partials:     plugin.Partials,
 					})
 				}
 			}
 		}
+
+		sort.SliceStable(group.Plugins, func(i, j int) bool {
+			return compareConsumerGroupPlugin(group.Plugins[i], group.Plugins[j])
+		})
 
 		utils.ZeroOutID(&group, group.Name, config.WithID)
 		utils.ZeroOutTimestamps(&group)
