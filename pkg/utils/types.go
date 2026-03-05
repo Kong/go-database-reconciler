@@ -233,7 +233,9 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 	timeout := time.Duration(opt.Timeout) * time.Second
 	c := opt.HTTPClient
 	if c == nil {
-		c = httpClient(timeout)
+		c = HTTPClient(HTTPClientOptions{
+			Timeout: timeout,
+		})
 	}
 
 	c.Transport = &http.Transport{
@@ -376,19 +378,6 @@ func HTTPClient(opts HTTPClientOptions) *http.Client {
 		timeout = defaultHTTPClientTimeout
 	}
 
-	return &http.Client{
-		Timeout: timeout,
-		Transport: &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout: timeout,
-			}).DialContext,
-			TLSHandshakeTimeout: timeout,
-			Proxy:               http.ProxyFromEnvironment,
-		},
-	}
-}
-
-func httpClient(timeout time.Duration) *http.Client {
 	return &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
