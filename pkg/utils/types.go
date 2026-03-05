@@ -77,7 +77,8 @@ type ErrArray struct {
 
 // HTTPClientOptions holds options for creating an HTTP client.
 type HTTPClientOptions struct {
-	Timeout time.Duration
+	Timeout   time.Duration
+	TLSConfig TLSConfig
 }
 
 // Error returns a pretty string of errors present.
@@ -233,9 +234,12 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 	timeout := time.Duration(opt.Timeout) * time.Second
 	c := opt.HTTPClient
 	if c == nil {
-		c = HTTPClientWithOpts(HTTPClientOptions{
+		c, err = HTTPClientWithOpts(HTTPClientOptions{
 			Timeout: timeout,
 		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HTTP client: %w", err)
+		}
 	}
 
 	c.Transport = &http.Transport{
@@ -373,15 +377,33 @@ func CleanAddress(address string) string {
 // HTTPClientWithOpts returns a new Go stdlib's net/http.Client with
 // timeout = 30s
 func HTTPClient() *http.Client {
-	return HTTPClientWithOpts(HTTPClientOptions{})
+	return &http.Client{
+		Timeout: defaultHTTPClientTimeout,
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout: defaultHTTPClientTimeout,
+			}).DialContext,
+			TLSHandshakeTimeout: defaultHTTPClientTimeout,
+			Proxy:               http.ProxyFromEnvironment,
+		},
+	}
 }
 
 // HTTPClientWithOpts returns a new Go stdlib's net/http.Client with
 // the provided options.
-func HTTPClientWithOpts(opts HTTPClientOptions) *http.Client {
+func HTTPClientWithOpts(opts HTTPClientOptions) (*http.Client, error) {
 	timeout := opts.Timeout
 	if timeout == 0 {
 		timeout = defaultHTTPClientTimeout
+	}
+
+	var tlsConfig *tls.Config
+	var err error
+	if opts.TLSConfig != (TLSConfig{}) {
+		tlsConfig, err = getTLSConfig(opts.TLSConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load TLS config: %w", err)
+		}
 	}
 
 	return &http.Client{
@@ -392,27 +414,15 @@ func HTTPClientWithOpts(opts HTTPClientOptions) *http.Client {
 			}).DialContext,
 			TLSHandshakeTimeout: timeout,
 			Proxy:               http.ProxyFromEnvironment,
-		},
-	}
-}
-
-func HTTPClientWithTLSConfig(opt TLSConfig, httpOpts HTTPClientOptions) (*http.Client, error) {
-	tlsConfig, err := getTLSConfig(opt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load TLS config: %w", err)
-	}
-	timeout := httpOpts.Timeout
-	if timeout == 0 {
-		timeout = defaultHTTPClientTimeout
-	}
-
-	return &http.Client{
-		Timeout: timeout,
-		Transport: &http.Transport{
-			DialContext:         (&net.Dialer{Timeout: timeout}).DialContext,
-			TLSHandshakeTimeout: timeout,
-			Proxy:               http.ProxyFromEnvironment,
 			TLSClientConfig:     tlsConfig,
 		},
 	}, nil
+}
+
+// HTTPClientWithTLSConfig returns a new Go stdlib's net/http.Client
+// with the provided TLS configuration and a default timeout = 30s.
+func HTTPClientWithTLSConfig(opt TLSConfig) (*http.Client, error) {
+	return HTTPClientWithOpts(HTTPClientOptions{
+		TLSConfig: opt,
+	})
 }
