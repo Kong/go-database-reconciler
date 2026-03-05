@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.55.3-0.20260305095130-cc06b2e3dbd8
+	github.com/kong/deck v1.55.3-0.20260305145631-ff8120b5b83f
 	github.com/kong/go-kong v0.72.1
 	github.com/samber/lo v1.50.0
 	github.com/shirou/gopsutil/v3 v3.24.5
