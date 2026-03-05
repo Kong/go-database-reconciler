@@ -385,10 +385,7 @@ func parseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 	}
 	defaultRecordValue := schema.Get("default")
 
-	isObject := false
-	if schemaFields.IsObject() {
-		isObject = true
-	}
+	isObject := schemaFields.IsObject()
 
 	schemaFields.ForEach(func(key, value gjson.Result) bool {
 		fname := ""

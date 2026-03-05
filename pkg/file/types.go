@@ -80,11 +80,11 @@ func copyToSerializableFilterChain(f FFilterChain) SerializableFilterChain {
 	if f.Enabled != nil {
 		sf.Enabled = f.Enabled
 	}
-	if f.FilterChain.Route != nil {
-		sf.Route = *f.FilterChain.Route.ID
+	if f.Route != nil {
+		sf.Route = *f.Route.ID
 	}
-	if f.FilterChain.Service != nil {
-		sf.Service = *f.FilterChain.Service.ID
+	if f.Service != nil {
+		sf.Service = *f.Service.ID
 	}
 	if f.Filters != nil {
 		sf.Filters = []*SerializableFilter{}
@@ -556,17 +556,17 @@ func copyToFoo(p FPlugin) foo {
 	if p.ConfigSource != nil {
 		f.ConfigSource = p.ConfigSource
 	}
-	if p.Plugin.Consumer != nil {
-		f.Consumer = *p.Plugin.Consumer.ID
+	if p.Consumer != nil {
+		f.Consumer = *p.Consumer.ID
 	}
-	if p.Plugin.Route != nil {
-		f.Route = *p.Plugin.Route.ID
+	if p.Route != nil {
+		f.Route = *p.Route.ID
 	}
-	if p.Plugin.Service != nil {
-		f.Service = *p.Plugin.Service.ID
+	if p.Service != nil {
+		f.Service = *p.Service.ID
 	}
-	if p.Plugin.ConsumerGroup != nil {
-		f.ConsumerGroup = *p.Plugin.ConsumerGroup.ID
+	if p.ConsumerGroup != nil {
+		f.ConsumerGroup = *p.ConsumerGroup.ID
 	}
 	if p.Partials != nil {
 		f.Partials = p.Partials

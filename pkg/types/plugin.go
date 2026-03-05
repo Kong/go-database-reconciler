@@ -20,17 +20,17 @@ type pluginCRUD struct {
 
 // kong and konnect APIs only require IDs for referenced entities.
 func stripPluginReferencesName(plugin *state.Plugin) {
-	if plugin.Plugin.Service != nil && plugin.Plugin.Service.Name != nil {
-		plugin.Plugin.Service.Name = nil
+	if plugin.Service != nil && plugin.Service.Name != nil {
+		plugin.Service.Name = nil
 	}
-	if plugin.Plugin.Route != nil && plugin.Plugin.Route.Name != nil {
-		plugin.Plugin.Route.Name = nil
+	if plugin.Route != nil && plugin.Route.Name != nil {
+		plugin.Route.Name = nil
 	}
-	if plugin.Plugin.Consumer != nil && plugin.Plugin.Consumer.Username != nil {
-		plugin.Plugin.Consumer.Username = nil
+	if plugin.Consumer != nil && plugin.Consumer.Username != nil {
+		plugin.Consumer.Username = nil
 	}
-	if plugin.Plugin.ConsumerGroup != nil && plugin.Plugin.ConsumerGroup.Name != nil {
-		plugin.Plugin.ConsumerGroup.Name = nil
+	if plugin.ConsumerGroup != nil && plugin.ConsumerGroup.Name != nil {
+		plugin.ConsumerGroup.Name = nil
 	}
 }
 

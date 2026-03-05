@@ -270,7 +270,7 @@ func (b *stateBuilder) addConsumerGroupPlugins(
 	for _, plugin := range cg.Plugins {
 		if utils.Empty(plugin.ID) {
 			current, err := b.currentState.ConsumerGroupPlugins.Get(
-				*plugin.Name, *cg.ConsumerGroup.ID,
+				*plugin.Name, *cg.ID,
 			)
 			if errors.Is(err, state.ErrNotFound) {
 				plugin.ID = uuid()
@@ -326,7 +326,7 @@ func (b *stateBuilder) partials() {
 		}
 
 		if partial != nil {
-			p.Partial.CreatedAt = partial.CreatedAt
+			p.CreatedAt = partial.CreatedAt
 		}
 
 		err = b.intermediate.Partials.AddIgnoringDuplicates(state.Partial{Partial: p.Partial})
@@ -598,7 +598,7 @@ func (b *stateBuilder) caCertificates() {
 		}
 		utils.MustMergeTags(&c.CACertificate, b.selectTags)
 		if cert != nil {
-			c.CACertificate.CreatedAt = cert.CreatedAt
+			c.CreatedAt = cert.CreatedAt
 		}
 
 		b.rawState.CACertificates = append(b.rawState.CACertificates,
@@ -715,7 +715,7 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 	}
 	utils.MustMergeTags(&c.Consumer, b.selectTags)
 	if consumer != nil {
-		c.Consumer.CreatedAt = consumer.CreatedAt
+		c.CreatedAt = consumer.CreatedAt
 	}
 
 	b.addConsumerToRawState(&c.Consumer)
@@ -800,7 +800,7 @@ func (b *stateBuilder) consumers() {
 		}
 
 		if consumer != nil {
-			c.Consumer.CreatedAt = consumer.CreatedAt
+			c.CreatedAt = consumer.CreatedAt
 		}
 
 		// check if consumer was already added in the consumer groups section.
@@ -1314,14 +1314,14 @@ func (b *stateBuilder) ingestService(s *FService) error {
 	}
 
 	b.defaulter.MustSet(&s.Service)
-	if s.Service.TLSSANs != nil && reflect.DeepEqual(*s.Service.TLSSANs, kong.SANs{}) {
+	if s.TLSSANs != nil && reflect.DeepEqual(*s.TLSSANs, kong.SANs{}) {
 		// Defaulter sets an empty SANs struct if none are provided.
 		// We need to nil it out to avoid validation errors when protocol is not secure.
-		s.Service.TLSSANs = nil
+		s.TLSSANs = nil
 	}
 
 	if svc != nil {
-		s.Service.CreatedAt = svc.CreatedAt
+		s.CreatedAt = svc.CreatedAt
 	}
 	b.rawState.Services = append(b.rawState.Services, &s.Service)
 	err = b.intermediate.Services.AddIgnoringDuplicates(state.Service{Service: s.Service})
@@ -1404,10 +1404,10 @@ func (b *stateBuilder) routes() {
 		for _, r := range allRoutes {
 			if utils.HasPathsWithRegex300AndAbove(r.Route) {
 				var unsupportedPaths []string
-				for _, p := range r.Route.Paths {
+				for _, p := range r.Paths {
 					unsupportedPaths = append(unsupportedPaths, *p)
 				}
-				unsupportedRoutes = append(unsupportedRoutes, *r.Route.ID+"\n paths:"+strings.Join(unsupportedPaths, "\n       "))
+				unsupportedRoutes = append(unsupportedRoutes, *r.ID+"\n paths:"+strings.Join(unsupportedPaths, "\n       "))
 			}
 		}
 		if len(unsupportedRoutes) > 0 {
@@ -1446,7 +1446,7 @@ func (b *stateBuilder) vaults() {
 		}
 		utils.MustMergeTags(&v.Vault, b.selectTags)
 		if vault != nil {
-			v.Vault.CreatedAt = vault.CreatedAt
+			v.CreatedAt = vault.CreatedAt
 		}
 
 		b.rawState.Vaults = append(b.rawState.Vaults, &v.Vault)
@@ -1487,7 +1487,7 @@ func (b *stateBuilder) rbacRoles() {
 			}
 		}
 		if role != nil {
-			r.RBACRole.CreatedAt = role.CreatedAt
+			r.CreatedAt = role.CreatedAt
 		}
 		b.rawState.RBACRoles = append(b.rawState.RBACRoles, &r.RBACRole)
 		// rbac endpoint permissions for the role
@@ -1582,7 +1582,7 @@ func (b *stateBuilder) upstreams() {
 		utils.MustMergeTags(&u.Upstream, b.selectTags)
 		b.defaulter.MustSet(&u.Upstream)
 		if ups != nil {
-			u.Upstream.CreatedAt = ups.CreatedAt
+			u.CreatedAt = ups.CreatedAt
 		}
 
 		b.rawState.Upstreams = append(b.rawState.Upstreams, &u.Upstream)
@@ -1819,13 +1819,13 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	if err != nil {
 		return err
 	}
-	r.Route.StripPath = stripPath
+	r.StripPath = stripPath
 
-	hasExpression := r.Route.Expression != nil
+	hasExpression := r.Expression != nil
 
 	b.defaulter.MustSet(&r.Route)
 	if route != nil {
-		r.Route.CreatedAt = route.CreatedAt
+		r.CreatedAt = route.CreatedAt
 	}
 
 	// Kong Gateway supports different schemas for different router versions.
@@ -1842,17 +1842,17 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 	// Here we make sure that only the fields that are supported for a given
 	// router version are set in the route configuration.
 	if hasExpression && (b.removePathHandlingFromExpressionRoute || b.removeRegexPriorityFromExpressionRoute) {
-		if r.Route.PathHandling != nil {
-			r.Route.PathHandling = nil
+		if r.PathHandling != nil {
+			r.PathHandling = nil
 		}
-		if r.Route.RegexPriority != nil {
-			r.Route.RegexPriority = nil
+		if r.RegexPriority != nil {
+			r.RegexPriority = nil
 		}
 	}
 
 	if hasExpression {
-		if r.Route.Priority == nil {
-			r.Route.Priority = kong.Uint64(0)
+		if r.Priority == nil {
+			r.Priority = kong.Uint64(0)
 		}
 	}
 
@@ -1922,7 +1922,7 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		}
 		utils.MustMergeTags(&p, b.selectTags)
 		if plugin != nil {
-			p.Plugin.CreatedAt = plugin.CreatedAt
+			p.CreatedAt = plugin.CreatedAt
 		}
 		b.rawState.Plugins = append(b.rawState.Plugins, &p.Plugin)
 	}
@@ -2030,10 +2030,10 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 		}
 
 		var findID *string
-		if !utils.Empty(partial.Partial.ID) {
-			findID = partial.Partial.ID
-		} else if !utils.Empty(partial.Partial.Name) {
-			findID = partial.Partial.Name
+		if !utils.Empty(partial.ID) {
+			findID = partial.ID
+		} else if !utils.Empty(partial.Name) {
+			findID = partial.Name
 		}
 
 		if utils.Empty(findID) {
@@ -2044,7 +2044,7 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 		pt, err := b.intermediate.Partials.Get(*findID)
 		if errors.Is(err, state.ErrNotFound) {
 			b.err = fmt.Errorf("partial %v for plugin %v: %w",
-				partial.Partial.FriendlyName(), *plugin.Name, err)
+				partial.FriendlyName(), *plugin.Name, err)
 			return nil
 		} else if err != nil {
 			b.err = err
@@ -2073,7 +2073,7 @@ func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
 			}
 		}
 		if filterChain != nil {
-			f.FilterChain.CreatedAt = filterChain.CreatedAt
+			f.CreatedAt = filterChain.CreatedAt
 		}
 		utils.MustMergeTags(&f, b.selectTags)
 		b.rawState.FilterChains = append(b.rawState.FilterChains, &f.FilterChain)

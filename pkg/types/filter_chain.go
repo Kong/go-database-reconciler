@@ -17,11 +17,11 @@ type filterChainCRUD struct {
 
 // kong and konnect APIs only require IDs for referenced entities.
 func stripFilterChainReferencesName(filterChain *state.FilterChain) {
-	if filterChain.FilterChain.Service != nil && filterChain.FilterChain.Service.Name != nil {
-		filterChain.FilterChain.Service.Name = nil
+	if filterChain.Service != nil && filterChain.Service.Name != nil {
+		filterChain.Service.Name = nil
 	}
-	if filterChain.FilterChain.Route != nil && filterChain.FilterChain.Route.Name != nil {
-		filterChain.FilterChain.Route.Name = nil
+	if filterChain.Route != nil && filterChain.Route.Name != nil {
+		filterChain.Route.Name = nil
 	}
 }
 

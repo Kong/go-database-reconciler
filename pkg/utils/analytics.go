@@ -49,7 +49,7 @@ func formatStats(stats map[string]string) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("<14>")
 	for k, v := range stats {
-		buffer.WriteString(fmt.Sprintf("%s=%s;", k, v))
+		fmt.Fprintf(&buffer, "%s=%s;", k, v)
 	}
 	return buffer.String()
 }

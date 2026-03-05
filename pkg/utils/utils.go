@@ -258,11 +258,11 @@ func FindLinkedPartials(ctx context.Context, kongClient *kong.Client, plugin *ko
 
 	var linkedPartialConfig []*kong.Partial
 	for _, p := range plugin.Partials {
-		if p.Partial == nil || p.Partial.ID == nil {
+		if p.Partial == nil || p.ID == nil {
 			continue
 		}
 
-		partial, err := kongClient.Partials.Get(ctx, p.Partial.ID)
+		partial, err := kongClient.Partials.Get(ctx, p.ID)
 		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
 			continue
 		}

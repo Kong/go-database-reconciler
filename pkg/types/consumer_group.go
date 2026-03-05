@@ -56,9 +56,9 @@ func (s *consumerGroupCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.A
 
 	var err error
 	if s.isKonnect {
-		err = konnect.DeleteConsumerGroup(ctx, s.client, consumerGroup.ConsumerGroup.ID)
+		err = konnect.DeleteConsumerGroup(ctx, s.client, consumerGroup.ID)
 	} else {
-		err = s.client.ConsumerGroups.Delete(ctx, consumerGroup.ConsumerGroup.ID)
+		err = s.client.ConsumerGroups.Delete(ctx, consumerGroup.ID)
 	}
 	if err != nil {
 		return nil, err

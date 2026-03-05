@@ -103,7 +103,7 @@ func (d *targetDiffer) Deletes(handler func(crud.Event) error) error {
 
 func (d *targetDiffer) deleteTarget(target *state.Target) (*crud.Event, error) {
 	_, err := d.targetState.Targets.Get(*target.Upstream.ID,
-		*target.Target.ID)
+		*target.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{
 			Op:   crud.Delete,
@@ -142,7 +142,7 @@ func (d *targetDiffer) CreateAndUpdates(handler func(crud.Event) error) error {
 func (d *targetDiffer) createUpdateTarget(target *state.Target) (*crud.Event, error) {
 	target = &state.Target{Target: *target.DeepCopy()}
 	currentTarget, err := d.currentState.Targets.Get(*target.Upstream.ID,
-		*target.Target.ID)
+		*target.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		// target not present, create it
 
