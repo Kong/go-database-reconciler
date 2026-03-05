@@ -333,8 +333,8 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		if p.Partials != nil {
 			var pluginPartials []*kong.PartialLink
 			for _, partial := range p.Partials {
-				if partial.Partial != nil && !utils.Empty(partial.Partial.ID) {
-					ok, pt, _ := ensurePartial(kongState, *partial.Partial.ID)
+				if partial.Partial != nil && !utils.Empty(partial.ID) {
+					ok, pt, _ := ensurePartial(kongState, *partial.ID)
 					if ok {
 						pluginPartials = append(pluginPartials, &kong.PartialLink{
 							Partial: pt,
@@ -348,7 +348,7 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 						// So we print a warning and include the partial reference as-is.
 						partialNotFoundWarning := fmt.Sprintf("Warning: partial %v referenced in plugin %v not found in state.\n"+
 							"Ensure valid `default_lookup_tags` are set before syncing.",
-							partial.Partial.FriendlyName(), p.FriendlyName())
+							partial.FriendlyName(), p.FriendlyName())
 						cprint.UpdatePrintlnStdErr(partialNotFoundWarning)
 						pluginPartials = append(pluginPartials, &kong.PartialLink{
 							Partial: partial.Partial,

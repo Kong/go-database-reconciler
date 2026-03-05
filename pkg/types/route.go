@@ -17,8 +17,8 @@ type routeCRUD struct {
 
 // kong and konnect APIs only require IDs for referenced entities.
 func stripRouteReferencesName(route *state.Route) {
-	if route.Route.Service != nil && route.Route.Service.Name != nil {
-		route.Route.Service.Name = nil
+	if route.Service != nil && route.Service.Name != nil {
+		route.Service.Name = nil
 	}
 }
 

@@ -16,8 +16,8 @@ type keyCRUD struct {
 }
 
 func stripKeySetReferencesName(key *state.Key) {
-	if key.Key.Set != nil && key.Key.Set.Name != nil {
-		key.Key.Set.Name = nil
+	if key.Set != nil && key.Set.Name != nil {
+		key.Set.Name = nil
 	}
 }
 

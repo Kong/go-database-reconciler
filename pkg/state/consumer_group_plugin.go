@@ -75,10 +75,10 @@ type ConsumerGroupPluginsCollection collection
 // Add adds a consumerGroupPlugin to the collection.
 func (k *ConsumerGroupPluginsCollection) Add(plugin ConsumerGroupPlugin) error {
 	var nameOrID string
-	if plugin.ConsumerGroupPlugin.ID != nil {
-		nameOrID = *plugin.ConsumerGroupPlugin.ID
+	if plugin.ID != nil {
+		nameOrID = *plugin.ID
 	} else {
-		nameOrID = *plugin.ConsumerGroupPlugin.Name
+		nameOrID = *plugin.Name
 	}
 
 	if err := validatePluginGroup(&plugin); err != nil {
@@ -150,7 +150,7 @@ func (k *ConsumerGroupPluginsCollection) Get(
 
 // Update udpates an existing consumerGroupPlugin.
 func (k *ConsumerGroupPluginsCollection) Update(plugin ConsumerGroupPlugin) error {
-	if utils.Empty(plugin.ConsumerGroupPlugin.ID) {
+	if utils.Empty(plugin.ID) {
 		return errIDRequired
 	}
 
@@ -162,7 +162,7 @@ func (k *ConsumerGroupPluginsCollection) Update(plugin ConsumerGroupPlugin) erro
 	defer txn.Abort()
 
 	res, err := txn.First(consumerGroupPluginTableName, "id",
-		*plugin.ConsumerGroupPlugin.ID, *plugin.ConsumerGroup.ID)
+		*plugin.ID, *plugin.ConsumerGroup.ID)
 	if err != nil {
 		return err
 	}

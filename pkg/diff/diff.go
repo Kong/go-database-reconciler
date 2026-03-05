@@ -668,7 +668,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = pluginCopy
 
 			if workspaceExists {
-				schema, err := sc.pluginSchemasCache.Get(ctx, *pluginCopy.Plugin.Name)
+				schema, err := sc.pluginSchemasCache.Get(ctx, *pluginCopy.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -724,7 +724,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = partialCopy
 
 			if workspaceExists {
-				schema, err := sc.partialSchemasCache.Get(ctx, *partialCopy.Partial.Type)
+				schema, err := sc.partialSchemasCache.Get(ctx, *partialCopy.Type)
 				if err != nil {
 					return nil, err
 				}
