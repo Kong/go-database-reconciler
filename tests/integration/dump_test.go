@@ -103,7 +103,13 @@ func Test_Dump_SelectTags_Post_38x(t *testing.T) {
 			name:           "dump with select-tags >=3.11.0",
 			stateFile:      "testdata/dump/001-entities-with-tags/kong.yaml",
 			expectedFile:   "testdata/dump/001-entities-with-tags/expected311.yaml",
-			runWhenVersion: ">=3.11.0",
+			runWhenVersion: ">=3.11.0 <3.12.0",
+		},
+		{
+			name:           "dump with select-tags >=3.12.0",
+			stateFile:      "testdata/dump/001-entities-with-tags/kong.yaml",
+			expectedFile:   "testdata/dump/001-entities-with-tags/expected312.yaml",
+			runWhenVersion: ">=3.12.0",
 		},
 	}
 	for _, tc := range tests {
@@ -196,7 +202,14 @@ func Test_Dump_SkipConsumers(t *testing.T) {
 			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
 			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-310.yaml",
 			skipConsumers: false,
-			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.10.0") },
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.10.0 <3.12.0") },
+		},
+		{
+			name:          "3.12.0 dump with no skip-consumers",
+			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
+			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-312.yaml",
+			skipConsumers: false,
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.12.0") },
 		},
 	}
 	for _, tc := range tests {
@@ -475,6 +488,41 @@ func Test_Dump_PluginWithPartials_Select_Tags(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, expected, stdout)
 			assert.Equal(t, tc.expectedWarning, stderr)
+		})
+	}
+}
+
+func Test_Dump_Services_TLS_Sans(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.10.0")
+
+	tests := []struct {
+		name         string
+		stateFile    string
+		expectedFile string
+	}{
+		{
+			name:         "dump services with TLS SANs",
+			stateFile:    "testdata/sync/046-service-tls-sans/kong.yaml",
+			expectedFile: "testdata/dump/007-services-tls-sans/kong.yaml",
+		},
+		{
+			name:         "dump services with https but no TLS SANs",
+			stateFile:    "testdata/sync/046-service-tls-sans/no-tls-https.yaml",
+			expectedFile: "testdata/dump/007-services-tls-sans/no-tls-https.yaml",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			setup(t)
+			require.NoError(t, sync(tc.stateFile))
+
+			output, err := dump("-o", "-", "--with-id")
+			require.NoError(t, err)
+
+			expected, err := readFile(tc.expectedFile)
+			require.NoError(t, err)
+			assert.Equal(t, expected, output)
 		})
 	}
 }

@@ -1,0 +1,64 @@
+_format_version: "3.0"
+consumers:
+- acls:
+  - group: alpha-group
+    id: 1cf77494-4bf8-49e8-a841-aa5553a77eea
+  - group: beta-group
+    id: 21abe74e-0d94-451f-836e-4d02040c5602
+  - group: zebra-group
+    id: 9841bc1b-ddb6-4166-8ad7-b8127fb40dff
+  basicauth_credentials:
+  - id: 3e0352ca-8d20-4268-93ec-94d99708cc85
+    password: pass2
+    username: alpha-basic
+  - id: 8fbd9e15-924e-4415-a530-2b2ae8ac2684
+    password: pass3
+    username: beta-basic
+  - id: 9b16fdbe-3edf-4580-ada8-48c671c772fe
+    password: pass1
+    username: zebra-basic
+  hmacauth_credentials:
+  - id: acd5263f-0f3f-440f-9f34-1db89c0b630b
+    secret: secret-alpha
+    username: alpha-hmac
+  - id: 62ca54b6-379c-4b0d-bf8e-cd85eab6d2d4
+    secret: secret-beta
+    username: beta-hmac
+  - id: e5ce0fd1-32da-4275-b389-ea4015d88866
+    secret: secret-zebra
+    username: zebra-hmac
+  id: f7190c04-965b-483f-9e71-8f92c4f2156d
+  jwt_secrets:
+  - algorithm: HS256
+    id: afa3ac05-2a2d-42db-b8bd-5897dd16b589
+    key: alpha-jwt
+    secret: jwt-secret-alpha
+  - algorithm: HS256
+    id: 10d4b6ca-7484-45ea-9835-3dbfb8ae9921
+    key: beta-jwt
+    secret: jwt-secret-beta
+  - algorithm: HS256
+    id: 01ac306b-c7e1-4ff3-9cb4-06043d8bc530
+    key: zebra-jwt
+    secret: jwt-secret-zebra
+  keyauth_credentials:
+  - id: beab2674-07b5-4014-a4b5-9c73497d1023
+    key: alpha-key
+  - id: cc39cade-8109-48aa-ae70-be918586e0b0
+    key: beta-key
+  - id: bf385911-3c7d-4871-a5c5-8b7ad9b0cfad
+    key: zebra-key
+  oauth2_credentials:
+  - client_id: alpha-client
+    client_secret: secret2
+    id: a83ba3f2-1d2e-42e0-b65a-14b9a0427060
+    name: alpha-oauth
+  - client_id: beta-client
+    client_secret: secret3
+    id: 9f40f096-2acd-4c3e-b3f0-7050f588366f
+    name: beta-oauth
+  - client_id: zebra-client
+    client_secret: secret1
+    id: 0a51a7af-d249-48ff-9f2f-0c6ec8d041e9
+    name: zebra-oauth
+  username: test-consumer

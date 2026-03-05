@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -239,6 +240,7 @@ type service struct {
 	UpdatedAt         *int            `json:"updated_at,omitempty" yaml:"updated_at,omitempty"`
 	WriteTimeout      *int            `json:"write_timeout,omitempty" yaml:"write_timeout,omitempty"`
 	Tags              []*string       `json:"tags,omitempty" yaml:"tags,omitempty"`
+	TLSSANs           *kong.SANs      `json:"tls_sans,omitempty" yaml:"tls_sans,omitempty"`
 	TLSVerify         *bool           `json:"tls_verify,omitempty" yaml:"tls_verify,omitempty"`
 	TLSVerifyDepth    *int            `json:"tls_verify_depth,omitempty" yaml:"tls_verify_depth,omitempty"`
 	CACertificates    []*string       `json:"ca_certificates,omitempty" yaml:"ca_certificates,omitempty"`
@@ -256,6 +258,9 @@ func copyToService(fService FService) service {
 	if fService.ClientCertificate != nil &&
 		!utils.Empty(fService.ClientCertificate.ID) {
 		s.ClientCertificate = kong.String(*fService.ClientCertificate.ID)
+	}
+	if fService.TLSSANs != nil && !reflect.DeepEqual(*fService.TLSSANs, kong.SANs{}) {
+		s.TLSSANs = fService.TLSSANs
 	}
 	s.CACertificates = fService.CACertificates
 	s.TLSVerify = fService.TLSVerify
@@ -343,6 +348,9 @@ func copyFromService(service service, fService *FService) error {
 	}
 	if service.Path != nil {
 		fService.Path = service.Path
+	}
+	if service.TLSSANs != nil && !reflect.DeepEqual(*service.TLSSANs, kong.SANs{}) {
+		fService.TLSSANs = service.TLSSANs
 	}
 	fService.ReadTimeout = service.ReadTimeout
 	fService.Retries = service.Retries

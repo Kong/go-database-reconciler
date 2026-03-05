@@ -42,6 +42,17 @@ func conditionalPrintlnCustomWriter(fn func(io.Writer, ...interface{}), w io.Wri
 	fn(w, a...)
 }
 
+func conditionalPrintfCustomWriter(
+	fn func(io.Writer, string, ...interface{}), w io.Writer, format string, a ...interface{},
+) {
+	if DisableOutput {
+		return
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	fn(w, format, a...)
+}
+
 var (
 	createPrintf = color.New(color.FgGreen).PrintfFunc()
 	deletePrintf = color.New(color.FgRed).PrintfFunc()
@@ -67,6 +78,7 @@ var (
 	updatePrintln  = color.New(color.FgYellow).PrintlnFunc()
 	bluePrintln    = color.New(color.BgBlue).PrintlnFunc()
 	updateFprintln = color.New(color.FgYellow).FprintlnFunc()
+	updateFprintf  = color.New(color.FgYellow).FprintfFunc()
 
 	// CreatePrintln is fmt.Println with red as foreground color.
 	CreatePrintln = func(a ...interface{}) {
@@ -91,5 +103,11 @@ var (
 	// It prints to stderr, instead of stdout
 	UpdatePrintlnStdErr = func(a ...interface{}) {
 		conditionalPrintlnCustomWriter(updateFprintln, os.Stderr, a...)
+	}
+
+	// UpdatePrintfStdErr is fmt.Printf with yellow as foreground color.
+	// It prints to stderr, instead of stdout
+	UpdatePrintfStdErr = func(format string, a ...interface{}) {
+		conditionalPrintfCustomWriter(updateFprintf, os.Stderr, format, a...)
 	}
 )

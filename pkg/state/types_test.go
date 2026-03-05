@@ -1,6 +1,7 @@
 package state
 
 import (
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/kong/go-kong/kong"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 // getTags returns a slice of test tags. If reversed is true, the tags are backwards!
@@ -300,56 +302,51 @@ func TestPluginEqual(t *testing.T) {
 	p2.Name = kong.String("baz")
 
 	assert.False(p1.Equal(&p2))
-	assert.False(p1.EqualWithOpts(&p2, false, false, false))
+	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
 	p2.Name = kong.String("bar")
 	assert.True(p1.Equal(&p2))
-	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 	p1.Tags = getTags(true)
 	p2.Tags = getTags(false)
-	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
 	// Verify that plugins are equal even if protocols are out of order
 	p1.Protocols = getProtocols(true)
 	p2.Protocols = getProtocols(false)
-	assert.True(p1.EqualWithOpts(&p2, false, false, false))
+	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
 	p1.ID = kong.String("fuu")
-	assert.False(p1.EqualWithOpts(&p2, false, false, false))
-	assert.True(p1.EqualWithOpts(&p2, true, false, false))
-
+	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
+	assert.True(p1.EqualWithOpts(&p2, true, false, false, gjson.Result{}))
 	timestamp := 1
 	p2.CreatedAt = &timestamp
-	assert.False(p1.EqualWithOpts(&p2, false, false, false))
-	assert.False(p1.EqualWithOpts(&p2, false, true, false))
-
+	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
+	assert.False(p1.EqualWithOpts(&p2, false, true, false, gjson.Result{}))
 	p1.Service = &kong.Service{ID: kong.String("1")}
 	p2.Service = &kong.Service{ID: kong.String("2")}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
-	assert.True(p1.EqualWithOpts(&p2, true, true, true))
-
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
+	assert.True(p1.EqualWithOpts(&p2, true, true, true, gjson.Result{}))
 	p1.Service = &kong.Service{ID: kong.String("2")}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{"foo": "bar"}
 	p2.Config = kong.Configuration{"foo": "bar"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
-
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 	p2.Config = kong.Configuration{"foo": "baz"}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{"foo": []interface{}{"b", "a", "c"}, "bar": "baz"}
 	p2.Config = kong.Configuration{"foo": []interface{}{"a", "b", "c"}, "bar": "baz"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
+	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
-
-	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "baz"}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{"foo": []interface{}{"a", "c", "b"}, "bar": "bar"}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{
 		"foo": []interface{}{"b", "a", "c"},
@@ -365,7 +362,7 @@ func TestPluginEqual(t *testing.T) {
 			"key1": []interface{}{"a", "b", "c"},
 		},
 	}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false))
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{
 		"foo": []interface{}{"a", "c", "c"},
@@ -374,7 +371,7 @@ func TestPluginEqual(t *testing.T) {
 			"key1": []interface{}{"a", "b", "c"},
 		},
 	}
-	assert.False(p1.EqualWithOpts(&p2, true, true, false))
+	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 }
 
 func TestConsumerEqual(t *testing.T) {
@@ -699,7 +696,7 @@ func TestSortNestedArrays(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := sortNestedArrays(tt.input)
+			result := sortNestedArraysBasedOnSchema(tt.input, gjson.Result{})
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("expected %v, got %v", tt.expected, result)
 			}
@@ -722,8 +719,8 @@ func TestDeepEqualWithSorting(t *testing.T) {
 		},
 	}
 
-	sortedMap1 := sortNestedArrays(map1)
-	sortedMap2 := sortNestedArrays(map2)
+	sortedMap1 := sortNestedArraysBasedOnSchema(map1, gjson.Result{})
+	sortedMap2 := sortNestedArraysBasedOnSchema(map2, gjson.Result{})
 
 	if !reflect.DeepEqual(sortedMap1, sortedMap2) {
 		t.Errorf("expected maps to be equal, but they are not")
@@ -790,5 +787,164 @@ func TestPluginConsole(t *testing.T) {
 			actual := p1.Console()
 			assert.Equal(t, tt.expected, actual)
 		})
+	}
+}
+
+func TestSortNestedArraysBasedOnSchema(t *testing.T) {
+	// Load a custom plugin schema with a variety of field types
+	filePath := "./fixtures/test-plugin-config.json"
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		t.Fatalf("failed to open file: %v", err)
+	}
+
+	gjsonRes := gjson.ParseBytes(fileBytes)
+	configSchema := gjsonRes.Get("fields.#(config).config")
+
+	// Create a plugin config with all field types from the schema
+	originalPluginConfig := kong.Configuration{
+		"primitive_str": "test-value",
+		"record_of_array_of_str": map[string]interface{}{
+			"headers": []interface{}{
+				"header-z",
+				"header-a",
+				"header-m",
+			},
+		},
+		"map_type": map[string]interface{}{
+			"key": "value",
+		},
+		"array_of_record": []interface{}{
+			map[string]interface{}{
+				"host": "host2.example.com",
+				"port": float64(6380),
+			},
+			map[string]interface{}{
+				"host": "host1.example.com",
+				"port": float64(6379),
+			},
+		},
+		"nested_array_of_array_of_str": []interface{}{
+			[]interface{}{"z", "a", "m"},
+			[]interface{}{"b", "y", "c"},
+		},
+		"nested_array_of_set_of_str": []interface{}{
+			[]interface{}{"z", "a", "m"},
+			[]interface{}{"b", "y", "c"},
+		},
+		"nested_set_of_array_of_str": []interface{}{
+			[]interface{}{"z", "a", "m"},
+			[]interface{}{"b", "y", "c"},
+		},
+		"nested_set_of_set_of_str": []interface{}{
+			[]interface{}{"z", "a", "m"},
+			[]interface{}{"b", "y", "c"},
+		},
+		"nested_array_of_record_of_array": []interface{}{
+			[]interface{}{
+				map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}},
+				map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}},
+			},
+		},
+		"nested_array_of_record_of_set": []interface{}{
+			[]interface{}{
+				map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}},
+				map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}},
+			},
+		},
+		"nested_set_of_record_of_set": []interface{}{
+			[]interface{}{
+				map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}},
+				map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}},
+			},
+		},
+		"shorthand_record_of_set_array": map[string]interface{}{
+			"set_hosts": []interface{}{
+				"example.com",
+				"abcgefgh.com",
+				"zzz.com",
+			},
+			"array_hosts": []interface{}{
+				"example.com",
+				"abcgefgh.com",
+				"zzz.com",
+			},
+		},
+	}
+	expectedPluginConfig := kong.Configuration{
+		"primitive_str": "test-value",
+		"record_of_array_of_str": map[string]interface{}{
+			"headers": []interface{}{ // not sorted
+				"header-z",
+				"header-a",
+				"header-m",
+			},
+		},
+		"map_type": map[string]interface{}{
+			"key": "value",
+		},
+		"array_of_record": []interface{}{ // not sorted
+			map[string]interface{}{
+				"host": "host2.example.com",
+				"port": float64(6380),
+			},
+			map[string]interface{}{
+				"host": "host1.example.com",
+				"port": float64(6379),
+			},
+		},
+		"nested_array_of_array_of_str": []interface{}{ // not sorted
+			[]interface{}{"z", "a", "m"}, // not sorted
+			[]interface{}{"b", "y", "c"}, // not sorted
+		},
+		"nested_array_of_set_of_str": []interface{}{ // not sorted
+			[]interface{}{"a", "m", "z"}, // sorted
+			[]interface{}{"b", "c", "y"}, // sorted
+		},
+		"nested_set_of_array_of_str": []interface{}{ // sorted
+			[]interface{}{"b", "y", "c"}, // not sorted
+			[]interface{}{"z", "a", "m"}, // not sorted
+		},
+		"nested_set_of_set_of_str": []interface{}{ // sorted
+			[]interface{}{"a", "m", "z"}, // sorted
+			[]interface{}{"b", "c", "y"}, // sorted
+		},
+		"nested_array_of_record_of_array": []interface{}{
+			[]interface{}{ // not sorted
+				map[string]interface{}{"ports": []interface{}{float64(9096), float64(9091), float64(9092)}}, // not sorted
+				map[string]interface{}{"ports": []interface{}{float64(8086), float64(8081), float64(8082)}}, // not sorted
+			},
+		},
+		"nested_array_of_record_of_set": []interface{}{
+			[]interface{}{ // not sorted
+				map[string]interface{}{"ports": []interface{}{float64(9091), float64(9092), float64(9096)}}, // sorted
+				map[string]interface{}{"ports": []interface{}{float64(8081), float64(8082), float64(8086)}}, // sorted
+			},
+		},
+		"nested_set_of_record_of_set": []interface{}{
+			[]interface{}{ // sorted
+				map[string]interface{}{"ports": []interface{}{float64(8081), float64(8082), float64(8086)}}, // sorted
+				map[string]interface{}{"ports": []interface{}{float64(9091), float64(9092), float64(9096)}}, // sorted
+			},
+		},
+		"shorthand_record_of_set_array": map[string]interface{}{
+			"set_hosts": []interface{}{ // sorted
+				"abcgefgh.com",
+				"example.com",
+				"zzz.com",
+			},
+			"array_hosts": []interface{}{ // not sorted
+				"example.com",
+				"abcgefgh.com",
+				"zzz.com",
+			},
+		},
+	}
+
+	// Sort the cloned config
+	var sortedConfig kong.Configuration = sortNestedArraysBasedOnSchema(originalPluginConfig, configSchema)
+
+	if !reflect.DeepEqual(sortedConfig, expectedPluginConfig) {
+		t.Errorf("expected %v, got %v", expectedPluginConfig, sortedConfig)
 	}
 }

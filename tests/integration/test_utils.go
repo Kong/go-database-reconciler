@@ -15,6 +15,7 @@ import (
 	"github.com/acarl005/stripansi"
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
+	"github.com/ghodss/yaml"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/kong/deck/cmd"
@@ -1387,4 +1388,45 @@ var DefaultConfigFactory39x = configFactory{
 			"verify_signature":                       true,
 		}
 	},
+}
+
+// renderYAMLFile reads a YAML file, converts it to state, and then
+// renders it back to YAML using KongStateToContent which applies sorting.
+func renderYAMLFile(t *testing.T, inputPath string) string {
+	t.Helper()
+	ctx := context.Background()
+
+	// Read and parse the input file
+	content, err := file.GetContentFromFiles([]string{inputPath}, false)
+	require.NoError(t, err, "Failed to read input file: %s", inputPath)
+
+	// Create an empty current state
+	currentState, err := state.NewKongState()
+	require.NoError(t, err, "Failed to create empty KongState")
+
+	// Use a version that supports all features
+	kongVersion := semver.MustParse("3.0.0")
+
+	// Get the raw state from the content
+	rawState, err := file.Get(ctx, content, file.RenderConfig{
+		CurrentState: currentState,
+		KongVersion:  kongVersion,
+	}, deckDump.Config{}, nil)
+	require.NoError(t, err, "Failed to get raw state from content")
+
+	// Convert raw state to KongState
+	kongState, err := state.Get(rawState)
+	require.NoError(t, err, "Failed to convert raw state to KongState")
+
+	// Convert KongState back to Content (this applies sorting)
+	renderedContent, err := file.KongStateToContent(kongState, file.WriteConfig{
+		KongVersion: "3.0.0",
+	})
+	require.NoError(t, err, "Failed to convert KongState to Content")
+
+	// Marshal to YAML
+	output, err := yaml.Marshal(renderedContent)
+	require.NoError(t, err, "Failed to marshal content to YAML")
+
+	return string(output)
 }

@@ -1,0 +1,66 @@
+_format_version: "3.0"
+services:
+- name: zebra-service
+  host: zebra.example.com
+  routes:
+  - name: zebra-route-3
+    paths:
+    - /zebra/3
+  - name: zebra-route-1
+    paths:
+    - /zebra/1
+  - name: zebra-route-2
+    paths:
+    - /zebra/2
+- name: alpha-service
+  host: alpha.example.com
+  routes:
+  - name: alpha-route-2
+    paths:
+    - /alpha/2
+  - name: alpha-route-1
+    paths:
+    - /alpha/1
+- name: beta-service
+  host: beta.example.com
+  routes:
+  - name: beta-route
+    paths:
+    - /beta
+routes:
+- name: standalone-zebra-route
+  paths:
+  - /standalone/zebra
+- name: standalone-alpha-route
+  paths:
+  - /standalone/alpha
+- name: standalone-beta-route
+  paths:
+  - /standalone/beta
+upstreams:
+- name: zebra-upstream
+  targets:
+  - target: zebra1.example.com:80
+  - target: alpha1.example.com:80
+  - target: beta1.example.com:80
+- name: alpha-upstream
+  targets:
+  - target: target1.example.com:80
+- name: beta-upstream
+  targets:
+  - target: target2.example.com:80
+consumers:
+- username: zebra-consumer
+- username: alpha-consumer
+- username: beta-consumer
+plugins:
+- name: rate-limiting
+  config:
+    minute: 100
+- name: key-auth
+  config:
+    key_names:
+    - apikey
+- name: basic-auth
+  config:
+    hide_credentials: false
