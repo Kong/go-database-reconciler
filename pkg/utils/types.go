@@ -377,10 +377,6 @@ func CleanAddress(address string) string {
 // HTTPClientWithOpts returns a new Go stdlib's net/http.Client with
 // timeout = 30s
 func HTTPClient() *http.Client {
-	return httpClient(clientTimeout)
-}
-
-func httpClient(timeout time.Duration) *http.Client {
 	return &http.Client{
 		Timeout: defaultHTTPClientTimeout,
 		Transport: &http.Transport{
