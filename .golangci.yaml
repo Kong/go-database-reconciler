@@ -91,7 +91,7 @@ linters:
       # Exclude gosec G101 for static entity maps (false positive on entity type names)
       - linters:
           - gosec
-        path: (pkg/state/.*|pkg/utils/.*)\.go
+        path: (pkg/state/.*|pkg/utils/.*|pkg/schema/fetchers.*)\.go
         text: G101
       - linters:
           - gosec
