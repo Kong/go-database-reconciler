@@ -124,7 +124,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 
 	if builder.skipDefaults {
 		if builder.schemaRegistry == nil {
-			builder.schemaRegistry = schema.NewRegistry(ctx, builder.client, builder.isKonnect)
+			builder.schemaRegistry = schema.NewRegistry(builder.client, builder.isKonnect)
 		}
 
 		group, newCtx := errgroup.WithContext(ctx)

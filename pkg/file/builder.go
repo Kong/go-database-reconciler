@@ -2080,18 +2080,18 @@ func fillPartialPaths(target, current []*kong.PartialLink) {
 	// Index current partial links by partial ID for O(1) lookup.
 	currentByID := make(map[string]*kong.PartialLink, len(current))
 	for _, c := range current {
-		if c.Partial != nil && !utils.Empty(c.Partial.ID) {
-			currentByID[*c.Partial.ID] = c
+		if c.Partial != nil && !utils.Empty(c.ID) {
+			currentByID[*c.ID] = c
 		}
 	}
 	for _, t := range target {
 		if t.Path != nil {
 			continue // user explicitly set the path
 		}
-		if t.Partial == nil || utils.Empty(t.Partial.ID) {
+		if t.Partial == nil || utils.Empty(t.ID) {
 			continue
 		}
-		if cur, ok := currentByID[*t.Partial.ID]; ok && cur.Path != nil {
+		if cur, ok := currentByID[*t.ID]; ok && cur.Path != nil {
 			t.Path = kong.String(*cur.Path)
 		}
 	}

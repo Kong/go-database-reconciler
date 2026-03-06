@@ -642,7 +642,7 @@ var entityKindToSchemaName = map[crud.Kind]string{
 // getEntityDefaults fetches the schema for the given entity kind and returns
 // the parsed default fields. Returns nil if the schema cannot be fetched or
 // the entity kind is not mapped.
-func (sc *Syncer) getEntityDefaults(e crud.Event) map[string]interface{} {
+func (sc *Syncer) getEntityDefaults(ctx context.Context, e crud.Event) map[string]interface{} {
 	entityType, ok := entityKindToSchemaName[e.Kind]
 	if !ok {
 		return nil
@@ -672,7 +672,7 @@ func (sc *Syncer) getEntityDefaults(e crud.Event) map[string]interface{} {
 		identifier = *vault.Name
 	}
 
-	defaults, err := sc.schemaRegistry.GetDefaults(entityType, identifier)
+	defaults, err := sc.schemaRegistry.GetDefaults(ctx, entityType, identifier)
 	if err != nil {
 		return nil
 	}
@@ -843,7 +843,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		case crud.Update:
 			var entityDefaults map[string]interface{}
 			if sc.skipSchemaDefaults {
-				entityDefaults = sc.getEntityDefaults(e)
+				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
 			diffString, err := generateDiffString(e, false, sc.noMaskValues, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity

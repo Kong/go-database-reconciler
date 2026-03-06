@@ -102,8 +102,8 @@ func (r *Registry) GetVaultSchema(ctx context.Context, vaultType string) (map[st
 // For most entities entityType and identifier are the same (e.g. "services").
 // For plugins, partials, and vaults, identifier is the specific name/type
 // (e.g. "rate-limiting").
-func (r *Registry) GetDefaults(entityType, identifier string) (map[string]interface{}, error) {
-	entitySchema, err := r.GetSchema(entityType, identifier)
+func (r *Registry) GetDefaults(ctx context.Context, entityType, identifier string) (map[string]interface{}, error) {
+	entitySchema, err := r.GetSchema(ctx, entityType, identifier)
 	if err != nil {
 		return nil, err
 	}
