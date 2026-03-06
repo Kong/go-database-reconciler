@@ -160,6 +160,9 @@ type Syncer struct {
 	// Prevents the Syncer from performing any Delete operations. Default is false (will delete).
 	noDeletes bool
 
+	// skipSchemaDefaults prevents schema-based default filling for plugins and partials.
+	skipSchemaDefaults bool
+
 	// schemaRegistry is the central schema manager used for fetching and caching
 	// all entity schemas (plugins, partials, vaults, generic entities).
 	schemaRegistry *schema.Registry
@@ -195,6 +198,9 @@ type SyncerOpts struct {
 	// it is reused for schema fetching and caching. When nil, a new
 	// registry is created internally.
 	SchemaRegistry *schema.Registry
+
+	// SkipSchemaDefaults prevents schema-based default filling for plugins and partials.
+	SkipSchemaDefaults bool
 }
 
 // NewSyncer constructs a Syncer.
@@ -219,6 +225,7 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 
 		enableEntityActions: opts.EnableEntityActions,
 		noDeletes:           opts.NoDeletes,
+		skipSchemaDefaults:  opts.SkipSchemaDefaults,
 	}
 
 	if opts.IsKonnect {
@@ -263,7 +270,8 @@ func (sc *Syncer) init() error {
 		KongClient:    sc.kongClient,
 		KonnectClient: sc.konnectClient,
 
-		IsKonnect: sc.isKonnect,
+		IsKonnect:          sc.isKonnect,
+		SkipSchemaDefaults: sc.skipSchemaDefaults,
 	}
 
 	entities := []types.EntityType{
@@ -583,7 +591,9 @@ type Stats struct {
 }
 
 // Generete Diff output for 'sync' and 'diff' commands
-func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string, error) {
+func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
+	defaults ...map[string]interface{},
+) (string, error) {
 	var diffString string
 	var err error
 	if oldObj, ok := e.OldObj.(*state.Document); ok {
@@ -594,9 +604,9 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 		}
 	} else {
 		if !isDelete {
-			diffString, err = getDiff(e.OldObj, e.Obj)
+			diffString, err = getDiff(e.OldObj, e.Obj, defaults...)
 		} else {
-			diffString, err = getDiff(e.Obj, e.OldObj)
+			diffString, err = getDiff(e.Obj, e.OldObj, defaults...)
 		}
 	}
 	if err != nil {
@@ -606,6 +616,67 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool) (string,
 		diffString = MaskEnvVarValue(diffString)
 	}
 	return diffString, err
+}
+
+// entityKindToSchemaName maps entity kinds (as used in crud.Event.Kind) to
+// the schema endpoint names used by Kong's /schemas/{name} API.
+var entityKindToSchemaName = map[crud.Kind]string{
+	crud.Kind(types.Route):         "routes",
+	crud.Kind(types.Service):       "services",
+	crud.Kind(types.Upstream):      "upstreams",
+	crud.Kind(types.Target):        "targets",
+	crud.Kind(types.Consumer):      "consumers",
+	crud.Kind(types.ConsumerGroup): "consumer_groups",
+	crud.Kind(types.Certificate):   "certificates",
+	crud.Kind(types.CACertificate): "ca_certificates",
+	crud.Kind(types.SNI):           "snis",
+	crud.Kind(types.Plugin):        "plugins",
+	crud.Kind(types.Vault):         "vaults",
+	crud.Kind(types.Key):           "keys",
+	crud.Kind(types.KeySet):        "key_sets",
+	crud.Kind(types.FilterChain):   "filter_chains",
+	crud.Kind(types.License):       "licenses",
+	crud.Kind(types.Partial):       "partials",
+}
+
+// getEntityDefaults fetches the schema for the given entity kind and returns
+// the parsed default fields. Returns nil if the schema cannot be fetched or
+// the entity kind is not mapped.
+func (sc *Syncer) getEntityDefaults(ctx context.Context, e crud.Event) map[string]interface{} {
+	entityType, ok := entityKindToSchemaName[e.Kind]
+	if !ok {
+		return nil
+	}
+
+	// Most entities use a single schema per type. Plugins, partials, and vaults
+	// have per-instance schemas, so we extract the specific name/type.
+	identifier := entityType
+	switch entityType {
+	case "plugins":
+		plugin, ok := e.Obj.(*state.Plugin)
+		if !ok || plugin.Name == nil {
+			return nil
+		}
+		identifier = *plugin.Name
+	case "partials":
+		partial, ok := e.Obj.(*state.Partial)
+		if !ok || partial.Type == nil {
+			return nil
+		}
+		identifier = *partial.Type
+	case "vaults":
+		vault, ok := e.Obj.(*state.Vault)
+		if !ok || vault.Name == nil {
+			return nil
+		}
+		identifier = *vault.Name
+	}
+
+	defaults, err := sc.schemaRegistry.GetDefaults(ctx, entityType, identifier)
+	if err != nil {
+		return nil
+	}
+	return defaults
 }
 
 // Solve generates a diff and walks the graph.
@@ -770,7 +841,11 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				}
 			}
 		case crud.Update:
-			diffString, err := generateDiffString(e, false, sc.noMaskValues)
+			var entityDefaults map[string]interface{}
+			if sc.skipSchemaDefaults {
+				entityDefaults = sc.getEntityDefaults(ctx, e)
+			}
+			diffString, err := generateDiffString(e, false, sc.noMaskValues, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
 			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
 			// prints and JSON blob building will be moved to the deck client.

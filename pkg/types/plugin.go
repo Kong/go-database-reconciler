@@ -93,8 +93,8 @@ type pluginDiffer struct {
 
 	currentState, targetState *state.KongState
 	kongClient                *kong.Client
-
-	schemasCache *schema.Cache
+	schemasCache              *schema.Cache
+	skipSchemaDefaults        bool
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
@@ -188,28 +188,31 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	}
 	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
 
-	linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
-	if err != nil {
-		return nil, err
-	}
+	// Skip schema-based default filling if configured to do so
+	if !d.skipSchemaDefaults {
+		linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
+		if err != nil {
+			return nil, err
+		}
 
-	err = kong.FillPluginsDefaultsWithPartials(&pluginWithDefaults.Plugin, schema, linkedPartialConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
-	}
+		err = kong.FillPluginsDefaultsWithPartials(&pluginWithDefaults.Plugin, schema, linkedPartialConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
+		}
 
-	linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
-	if err != nil {
-		return nil, err
-	}
+		linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
+		if err != nil {
+			return nil, err
+		}
 
-	err = kong.FillPluginWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
-	if err != nil {
-		return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
-	}
+		err = kong.FillPluginWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
+		if err != nil {
+			return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
+		}
 
-	if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
-		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+		if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
+			return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+		}
 	}
 
 	jsonb, _ := json.Marshal(&schema)
