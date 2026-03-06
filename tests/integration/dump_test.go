@@ -209,7 +209,14 @@ func Test_Dump_SkipConsumers(t *testing.T) {
 			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
 			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-312.yaml",
 			skipConsumers: false,
-			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.12.0") },
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.12.0 <3.13.0") },
+		},
+		{
+			name:          "3.13.0 dump with no skip-consumers",
+			stateFile:     "testdata/dump/002-skip-consumers/kong34.yaml",
+			expectedFile:  "testdata/dump/002-skip-consumers/expected-no-skip-313.yaml",
+			skipConsumers: false,
+			runWhen:       func(t *testing.T) { runWhen(t, "enterprise", ">=3.13.0") },
 		},
 	}
 	for _, tc := range tests {
