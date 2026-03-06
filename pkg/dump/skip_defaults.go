@@ -268,7 +268,12 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 	})
 }
 
-func processStateEntities[T any](ctx context.Context, entities []T, registry *schema_pkg.Registry, entityType string) error {
+func processStateEntities[T any](
+	ctx context.Context,
+	entities []T,
+	registry *schema_pkg.Registry,
+	entityType string,
+) error {
 	if len(entities) == 0 {
 		return nil
 	}
@@ -283,7 +288,12 @@ func processStateEntities[T any](ctx context.Context, entities []T, registry *sc
 	return nil
 }
 
-func removeDefaultsFromEntity(ctx context.Context, entity interface{}, entityType string, registry *schema_pkg.Registry) error {
+func removeDefaultsFromEntity(
+	ctx context.Context,
+	entity interface{},
+	entityType string,
+	registry *schema_pkg.Registry,
+) error {
 	ptr := reflect.ValueOf(entity)
 	if ptr.Kind() != reflect.Ptr {
 		return fmt.Errorf("entity is not a pointer")
