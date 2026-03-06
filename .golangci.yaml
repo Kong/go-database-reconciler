@@ -16,6 +16,7 @@ linters:
     - nakedret
     - nilerr
     - nolintlint
+    - prealloc
     - predeclared
     - revive
     - staticcheck
@@ -115,6 +116,12 @@ linters:
       - linters:
           - gomodguard
         path: tests/integration/
+      - linters:
+          - prealloc
+        path: .*_test\.go
+      - linters:
+          - prealloc
+        path: tests/
     paths:
       - third_party$
       - builtin$
