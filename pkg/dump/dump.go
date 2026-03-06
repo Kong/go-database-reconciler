@@ -738,7 +738,7 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 		isKonnect := config.KonnectControlPlane != ""
 		registry := config.SchemaRegistry
 		if registry == nil {
-			registry = schema.NewRegistry(ctx, client, isKonnect)
+			registry = schema.NewRegistry(client, isKonnect)
 		}
 
 		group, newCtx := errgroup.WithContext(ctx)

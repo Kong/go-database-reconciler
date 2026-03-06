@@ -25,17 +25,17 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 			consumers := cg.Consumers
 			plugins := cg.Plugins
 
-			err := processStateEntities([]interface{}{consumerGroup}, registry, "consumer_groups")
+			err := processStateEntities(ctx, []interface{}{consumerGroup}, registry, "consumer_groups")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from consumer_groups: %w", err)
 			}
 
-			err = processStateEntities(consumers, registry, "consumers")
+			err = processStateEntities(ctx, consumers, registry, "consumers")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from consumers: %w", err)
 			}
 
-			err = processStateEntities(plugins, registry, "plugins")
+			err = processStateEntities(ctx, plugins, registry, "plugins")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from plugins: %w", err)
 			}
@@ -50,7 +50,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		err := processStateEntities(state.Consumers, registry, "consumers")
+		err := processStateEntities(ctx, state.Consumers, registry, "consumers")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from consumers: %w", err)
 		}
@@ -59,7 +59,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Key Auth credentials
 	group.Go(func() error {
-		err := processStateEntities(state.KeyAuths, registry, "keyauth_credentials")
+		err := processStateEntities(ctx, state.KeyAuths, registry, "keyauth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from key auths: %w", err)
 		}
@@ -68,7 +68,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// HMAC Auth credentials
 	group.Go(func() error {
-		err := processStateEntities(state.HMACAuths, registry, "hmacauth_credentials")
+		err := processStateEntities(ctx, state.HMACAuths, registry, "hmacauth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from hmac auths: %w", err)
 		}
@@ -77,7 +77,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// JWT Auth credentials
 	group.Go(func() error {
-		err := processStateEntities(state.JWTAuths, registry, "jwt_secrets")
+		err := processStateEntities(ctx, state.JWTAuths, registry, "jwt_secrets")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from jwt auths: %w", err)
 		}
@@ -86,7 +86,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Basic Auth credentials
 	group.Go(func() error {
-		err := processStateEntities(state.BasicAuths, registry, "basicauth_credentials")
+		err := processStateEntities(ctx, state.BasicAuths, registry, "basicauth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from basic auths: %w", err)
 		}
@@ -95,7 +95,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// OAuth2 credentials
 	group.Go(func() error {
-		err := processStateEntities(state.Oauth2Creds, registry, "oauth2_credentials")
+		err := processStateEntities(ctx, state.Oauth2Creds, registry, "oauth2_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from oauth2 creds: %w", err)
 		}
@@ -104,7 +104,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// ACL Groups
 	group.Go(func() error {
-		err := processStateEntities(state.ACLGroups, registry, "acls")
+		err := processStateEntities(ctx, state.ACLGroups, registry, "acls")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from acl groups: %w", err)
 		}
@@ -113,7 +113,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// mTLS Auth credentials
 	group.Go(func() error {
-		err := processStateEntities(state.MTLSAuths, registry, "mtls_auth_credentials")
+		err := processStateEntities(ctx, state.MTLSAuths, registry, "mtls_auth_credentials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from mtls auths: %w", err)
 		}
@@ -125,7 +125,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		err := processStateEntities(state.Services, registry, "services")
+		err := processStateEntities(ctx, state.Services, registry, "services")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from services: %w", err)
 		}
@@ -134,7 +134,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Routes
 	group.Go(func() error {
-		err := processStateEntities(state.Routes, registry, "routes")
+		err := processStateEntities(ctx, state.Routes, registry, "routes")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from routes: %w", err)
 		}
@@ -143,7 +143,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Plugins
 	group.Go(func() error {
-		err := processStateEntities(state.Plugins, registry, "plugins")
+		err := processStateEntities(ctx, state.Plugins, registry, "plugins")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from plugins: %w", err)
 		}
@@ -152,7 +152,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Filter Chains
 	group.Go(func() error {
-		err := processStateEntities(state.FilterChains, registry, "filter_chains")
+		err := processStateEntities(ctx, state.FilterChains, registry, "filter_chains")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from filter chains: %w", err)
 		}
@@ -161,7 +161,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Certificates
 	group.Go(func() error {
-		err := processStateEntities(state.Certificates, registry, "certificates")
+		err := processStateEntities(ctx, state.Certificates, registry, "certificates")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from certificates: %w", err)
 		}
@@ -170,7 +170,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// CA Certificates
 	group.Go(func() error {
-		err := processStateEntities(state.CACertificates, registry, "ca_certificates")
+		err := processStateEntities(ctx, state.CACertificates, registry, "ca_certificates")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from ca certificates: %w", err)
 		}
@@ -179,7 +179,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// SNIs
 	group.Go(func() error {
-		err := processStateEntities(state.SNIs, registry, "snis")
+		err := processStateEntities(ctx, state.SNIs, registry, "snis")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from snis: %w", err)
 		}
@@ -188,7 +188,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Upstreams
 	group.Go(func() error {
-		err := processStateEntities(state.Upstreams, registry, "upstreams")
+		err := processStateEntities(ctx, state.Upstreams, registry, "upstreams")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from upstreams: %w", err)
 		}
@@ -197,7 +197,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Targets
 	group.Go(func() error {
-		err := processStateEntities(state.Targets, registry, "targets")
+		err := processStateEntities(ctx, state.Targets, registry, "targets")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from targets: %w", err)
 		}
@@ -206,7 +206,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Vaults
 	group.Go(func() error {
-		err := processStateEntities(state.Vaults, registry, "vaults")
+		err := processStateEntities(ctx, state.Vaults, registry, "vaults")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from vaults: %w", err)
 		}
@@ -215,7 +215,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Partials
 	group.Go(func() error {
-		err := processStateEntities(state.Partials, registry, "partials")
+		err := processStateEntities(ctx, state.Partials, registry, "partials")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from partials: %w", err)
 		}
@@ -224,7 +224,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Keys
 	group.Go(func() error {
-		err := processStateEntities(state.Keys, registry, "keys")
+		err := processStateEntities(ctx, state.Keys, registry, "keys")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from keys: %w", err)
 		}
@@ -233,7 +233,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Key Sets
 	group.Go(func() error {
-		err := processStateEntities(state.KeySets, registry, "key_sets")
+		err := processStateEntities(ctx, state.KeySets, registry, "key_sets")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from key sets: %w", err)
 		}
@@ -242,7 +242,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// Licenses
 	group.Go(func() error {
-		err := processStateEntities(state.Licenses, registry, "licenses")
+		err := processStateEntities(ctx, state.Licenses, registry, "licenses")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from licenses: %w", err)
 		}
@@ -251,7 +251,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// RBAC Roles
 	group.Go(func() error {
-		err := processStateEntities(state.RBACRoles, registry, "rbac_roles")
+		err := processStateEntities(ctx, state.RBACRoles, registry, "rbac_roles")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from rbac roles: %w", err)
 		}
@@ -260,7 +260,7 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 
 	// RBAC Endpoint Permissions
 	group.Go(func() error {
-		err := processStateEntities(state.RBACEndpointPermissions, registry, "rbac_endpoint_permissions")
+		err := processStateEntities(ctx, state.RBACEndpointPermissions, registry, "rbac_endpoint_permissions")
 		if err != nil {
 			return fmt.Errorf("error removing defaults from rbac endpoint permissions: %w", err)
 		}
@@ -268,13 +268,13 @@ func removeDefaultsFromState(ctx context.Context, group *errgroup.Group,
 	})
 }
 
-func processStateEntities[T any](entities []T, registry *schema_pkg.Registry, entityType string) error {
+func processStateEntities[T any](ctx context.Context, entities []T, registry *schema_pkg.Registry, entityType string) error {
 	if len(entities) == 0 {
 		return nil
 	}
 
 	for _, e := range entities {
-		err := removeDefaultsFromEntity(e, entityType, registry)
+		err := removeDefaultsFromEntity(ctx, e, entityType, registry)
 		if err != nil {
 			return err
 		}
@@ -283,7 +283,7 @@ func processStateEntities[T any](entities []T, registry *schema_pkg.Registry, en
 	return nil
 }
 
-func removeDefaultsFromEntity(entity interface{}, entityType string, registry *schema_pkg.Registry) error {
+func removeDefaultsFromEntity(ctx context.Context, entity interface{}, entityType string, registry *schema_pkg.Registry) error {
 	ptr := reflect.ValueOf(entity)
 	if ptr.Kind() != reflect.Ptr {
 		return fmt.Errorf("entity is not a pointer")
@@ -296,7 +296,7 @@ func removeDefaultsFromEntity(entity interface{}, entityType string, registry *s
 		return fmt.Errorf("error getting entity identifier for schema fetching: %w", err)
 	}
 
-	schema, err := registry.GetSchema(entityType, entityIdentifier)
+	schema, err := registry.GetSchema(ctx, entityType, entityIdentifier)
 	if err != nil {
 		return fmt.Errorf("error fetching schema for entity %s of type %s: %w", entityIdentifier, entityType, err)
 	}

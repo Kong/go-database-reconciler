@@ -1,6 +1,7 @@
 package dump
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -42,7 +43,7 @@ func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
 	// A nil registry is fine here because processStateEntities short-circuits on empty slices.
 	var registry *schema_pkg.Registry
 	entities := []*TestEntity{}
-	err := processStateEntities(entities, registry, "test")
+	err := processStateEntities(context.Background(), entities, registry, "test")
 	if err != nil {
 		t.Errorf("Expected no error for empty entities, got %v", err)
 	}
@@ -51,7 +52,7 @@ func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
 func TestRemoveDefaultsFromEntity_NonPointer(t *testing.T) {
 	var registry *schema_pkg.Registry
 	entity := TestEntity{Name: kong.String("test")}
-	err := removeDefaultsFromEntity(entity, "test", registry)
+	err := removeDefaultsFromEntity(context.Background(), entity, "test", registry)
 	if err == nil {
 		t.Error("Expected error for non-pointer entity, got nil")
 	}

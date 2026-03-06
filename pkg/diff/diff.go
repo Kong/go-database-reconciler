@@ -244,7 +244,7 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 	if opts.SchemaRegistry != nil {
 		s.schemaRegistry = opts.SchemaRegistry
 	} else {
-		s.schemaRegistry = schema.NewRegistry(context.Background(), opts.KongClient, opts.IsKonnect)
+		s.schemaRegistry = schema.NewRegistry(opts.KongClient, opts.IsKonnect)
 	}
 
 	return s, nil
@@ -665,7 +665,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = pluginCopy
 
 			if workspaceExists {
-				schema, err := sc.schemaRegistry.GetPluginSchema(*pluginCopy.Plugin.Name)
+				schema, err := sc.schemaRegistry.GetPluginSchema(ctx, *pluginCopy.Plugin.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -721,7 +721,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = partialCopy
 
 			if workspaceExists {
-				schema, err := sc.schemaRegistry.GetPartialSchema(*partialCopy.Partial.Type)
+				schema, err := sc.schemaRegistry.GetPartialSchema(ctx, *partialCopy.Partial.Type)
 				if err != nil {
 					return nil, err
 				}

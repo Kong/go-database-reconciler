@@ -15,7 +15,6 @@ import (
 // schema access (dump, diff, defaulter, etc.) to avoid duplicate caches and
 // redundant API calls.
 type Registry struct {
-	ctx       context.Context
 	client    *kong.Client
 	isKonnect bool
 
@@ -28,9 +27,8 @@ type Registry struct {
 // NewRegistry creates a new Registry backed by the given Kong client.
 // All four caches are initialised with the appropriate fetcher functions for
 // either Gateway or Konnect, determined by isKonnect.
-func NewRegistry(ctx context.Context, client *kong.Client, isKonnect bool) *Registry {
+func NewRegistry(client *kong.Client, isKonnect bool) *Registry {
 	r := &Registry{
-		ctx:       ctx,
 		client:    client,
 		isKonnect: isKonnect,
 	}
@@ -55,44 +53,44 @@ func NewRegistry(ctx context.Context, client *kong.Client, isKonnect bool) *Regi
 // For most entities, entityType doubles as the cache key (e.g. "services").
 // For plugins, partials, and vaults the identifier is the specific name/type
 // (e.g. "rate-limiting", "aws") because each has its own schema.
-func (r *Registry) GetSchema(entityType, identifier string) (kong.Schema, error) {
+func (r *Registry) GetSchema(ctx context.Context, entityType, identifier string) (kong.Schema, error) {
 	if r.client == nil {
 		return kong.Schema{}, fmt.Errorf("kong client is not initialized")
 	}
 
 	switch entityType {
 	case "plugins":
-		return r.pluginCache.Get(r.ctx, identifier)
+		return r.pluginCache.Get(ctx, identifier)
 	case "partials":
-		return r.partialCache.Get(r.ctx, identifier)
+		return r.partialCache.Get(ctx, identifier)
 	case "vaults":
-		return r.vaultCache.Get(r.ctx, identifier)
+		return r.vaultCache.Get(ctx, identifier)
 	default:
-		return r.entityCache.Get(r.ctx, entityType)
+		return r.entityCache.Get(ctx, entityType)
 	}
 }
 
 // GetEntitySchema is a convenience method that fetches the schema for a generic
 // entity type (services, routes, upstreams, etc.). It is equivalent to
-// GetSchema(entityType, entityType).
-func (r *Registry) GetEntitySchema(entityType string) (kong.Schema, error) {
-	return r.GetSchema(entityType, entityType)
+// GetSchema(ctx, entityType, entityType).
+func (r *Registry) GetEntitySchema(ctx context.Context, entityType string) (kong.Schema, error) {
+	return r.GetSchema(ctx, entityType, entityType)
 }
 
 // GetPluginSchema is a convenience method that fetches the schema for a plugin
 // by its name (e.g. "rate-limiting").
-func (r *Registry) GetPluginSchema(pluginName string) (map[string]interface{}, error) {
-	return r.pluginCache.Get(r.ctx, pluginName)
+func (r *Registry) GetPluginSchema(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+	return r.pluginCache.Get(ctx, pluginName)
 }
 
 // GetPartialSchema is a convenience method that fetches the schema for a partial
 // by its type.
-func (r *Registry) GetPartialSchema(partialType string) (map[string]interface{}, error) {
-	return r.partialCache.Get(r.ctx, partialType)
+func (r *Registry) GetPartialSchema(ctx context.Context, partialType string) (map[string]interface{}, error) {
+	return r.partialCache.Get(ctx, partialType)
 }
 
 // GetVaultSchema is a convenience method that fetches the schema for a vault
 // by its type (e.g. "aws", "hcv").
-func (r *Registry) GetVaultSchema(vaultType string) (map[string]interface{}, error) {
-	return r.vaultCache.Get(r.ctx, vaultType)
+func (r *Registry) GetVaultSchema(ctx context.Context, vaultType string) (map[string]interface{}, error) {
+	return r.vaultCache.Get(ctx, vaultType)
 }
