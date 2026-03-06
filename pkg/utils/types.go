@@ -96,8 +96,7 @@ func (e ErrArray) Error() string {
 }
 
 func (e ErrArray) ErrorList() []string {
-	errList := []string{}
-
+	errList := make([]string, 0, len(e.Errors))
 	for _, err := range e.Errors {
 		errList = append(errList, err.Error())
 	}

@@ -88,9 +88,7 @@ func (k *ConsumerGroupPluginsCollection) Add(plugin ConsumerGroupPlugin) error {
 	txn := k.db.Txn(true)
 	defer txn.Abort()
 
-	var searchBy []string
-	searchBy = append(searchBy, nameOrID, *plugin.ConsumerGroup.ID)
-	_, err := getConsumerGroupPlugin(txn, *plugin.ConsumerGroup.ID, searchBy...)
+	_, err := getConsumerGroupPlugin(txn, *plugin.ConsumerGroup.ID, nameOrID, *plugin.ConsumerGroup.ID)
 	if err == nil {
 		return fmt.Errorf("inserting consumerGroupPlugin %v: %w", plugin.Console(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {

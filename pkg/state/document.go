@@ -61,10 +61,7 @@ func (k *DocumentsCollection) Add(document Document) error {
 	txn := k.db.Txn(true)
 	defer txn.Abort()
 
-	var searchBy []string
-	searchBy = append(searchBy, *document.ID)
-	searchBy = append(searchBy, *document.Path)
-	_, err := getDocument(txn, document.ParentKey(), searchBy...)
+	_, err := getDocument(txn, document.ParentKey(), *document.ID, *document.Path)
 	if err == nil {
 		return fmt.Errorf("inserting document %v: %w", document.Console(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {

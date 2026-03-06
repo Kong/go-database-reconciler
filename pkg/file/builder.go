@@ -249,7 +249,7 @@ func (b *stateBuilder) keySets() {
 }
 
 func (b *stateBuilder) ingestConsumerGroupScopedPlugins(cg FConsumerGroupObject) error {
-	var plugins []FPlugin
+	plugins := make([]FPlugin, 0, len(cg.Plugins))
 	for _, plugin := range cg.Plugins {
 		plugin.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 		plugins = append(plugins, FPlugin{
