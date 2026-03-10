@@ -1,40 +1,21 @@
 package types
 
 import (
-	"context"
-	"sync"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 )
 
-type SchemaFetcher func(ctx context.Context, identifier string) (map[string]interface{}, error)
+// We are keeping this file as deck relies on types.SchemaCache.
+// We can remove this once we update deck to use the new schema.Cache directly.
+// Otherwise, test builds would fail.
 
-type SchemaCache struct {
-	schemaFetcher SchemaFetcher
-	cache         map[string]map[string]interface{}
-	cacheMutex    sync.RWMutex
-}
+// SchemaFetcher is the function signature for fetching a schema by identifier.
+// Deprecated: Use schema.Fetcher instead.
+type SchemaFetcher = schema.Fetcher
 
-func NewSchemaCache(fetcher SchemaFetcher) *SchemaCache {
-	return &SchemaCache{
-		schemaFetcher: fetcher,
-		cache:         make(map[string]map[string]interface{}),
-	}
-}
+// SchemaCache is a thread-safe cache for schemas keyed by identifier.
+// Deprecated: Use schema.Cache instead.
+type SchemaCache = schema.Cache
 
-func (sc *SchemaCache) Get(ctx context.Context, identifier string) (map[string]interface{}, error) {
-	sc.cacheMutex.RLock()
-	if schema, ok := sc.cache[identifier]; ok {
-		sc.cacheMutex.RUnlock()
-		return schema, nil
-	}
-	sc.cacheMutex.RUnlock()
-
-	schema, err := sc.schemaFetcher(ctx, identifier)
-	if err != nil {
-		return nil, err
-	}
-
-	sc.cacheMutex.Lock()
-	sc.cache[identifier] = schema
-	sc.cacheMutex.Unlock()
-	return schema, nil
-}
+// NewSchemaCache creates a new SchemaCache with the given fetcher.
+// Deprecated: Use schema.NewCache instead.
+var NewSchemaCache = schema.NewCache

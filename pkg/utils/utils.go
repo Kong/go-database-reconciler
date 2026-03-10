@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/blang/semver/v4"
@@ -108,25 +109,13 @@ func CallGetAll(obj interface{}) (reflect.Value, error) {
 	return result, nil
 }
 
-func alreadyInSlice(elem string, slice []string) bool {
-	for _, s := range slice {
-		if s == elem {
-			return true
-		}
-	}
-	return false
-}
-
 // RemoveDuplicates removes duplicated elements from a slice.
 func RemoveDuplicates(slice *[]string) {
-	newSlice := []string{}
-	for _, s := range *slice {
-		if alreadyInSlice(s, newSlice) {
-			continue
-		}
-		newSlice = append(newSlice, s)
+	if slice == nil {
+		return
 	}
-	*slice = newSlice
+	slices.Sort(*slice)
+	*slice = slices.Compact(*slice)
 }
 
 func WorkspaceExists(ctx context.Context, client *kong.Client) (bool, error) {
@@ -269,11 +258,11 @@ func FindLinkedPartials(ctx context.Context, kongClient *kong.Client, plugin *ko
 
 	var linkedPartialConfig []*kong.Partial
 	for _, p := range plugin.Partials {
-		if p.Partial == nil || p.Partial.ID == nil {
+		if p.Partial == nil || p.ID == nil {
 			continue
 		}
 
-		partial, err := kongClient.Partials.Get(ctx, p.Partial.ID)
+		partial, err := kongClient.Partials.Get(ctx, p.ID)
 		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
 			continue
 		}

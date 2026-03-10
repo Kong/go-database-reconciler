@@ -947,7 +947,7 @@ func populateConsumerGroups(kongState *state.KongState, file *Content,
 				if plugin.ConsumerGroup != nil && *plugin.ConsumerGroup.ID == *cg.ID {
 					utils.ZeroOutID(plugin, plugin.Name, config.WithID)
 					utils.ZeroOutID(plugin.ConsumerGroup, plugin.ConsumerGroup.Name, config.WithID)
-					utils.ZeroOutTimestamps(plugin.ConsumerGroupPlugin.ConsumerGroup)
+					utils.ZeroOutTimestamps(plugin.ConsumerGroup)
 					utils.ZeroOutField(&plugin.ConsumerGroupPlugin, "ConsumerGroup")
 					group.Plugins = append(group.Plugins, &plugin.ConsumerGroupPlugin)
 				}

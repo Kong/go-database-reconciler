@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -20,17 +21,17 @@ type pluginCRUD struct {
 
 // kong and konnect APIs only require IDs for referenced entities.
 func stripPluginReferencesName(plugin *state.Plugin) {
-	if plugin.Plugin.Service != nil && plugin.Plugin.Service.Name != nil {
-		plugin.Plugin.Service.Name = nil
+	if plugin.Service != nil && plugin.Service.Name != nil {
+		plugin.Service.Name = nil
 	}
-	if plugin.Plugin.Route != nil && plugin.Plugin.Route.Name != nil {
-		plugin.Plugin.Route.Name = nil
+	if plugin.Route != nil && plugin.Route.Name != nil {
+		plugin.Route.Name = nil
 	}
-	if plugin.Plugin.Consumer != nil && plugin.Plugin.Consumer.Username != nil {
-		plugin.Plugin.Consumer.Username = nil
+	if plugin.Consumer != nil && plugin.Consumer.Username != nil {
+		plugin.Consumer.Username = nil
 	}
-	if plugin.Plugin.ConsumerGroup != nil && plugin.Plugin.ConsumerGroup.Name != nil {
-		plugin.Plugin.ConsumerGroup.Name = nil
+	if plugin.ConsumerGroup != nil && plugin.ConsumerGroup.Name != nil {
+		plugin.ConsumerGroup.Name = nil
 	}
 }
 
@@ -92,8 +93,8 @@ type pluginDiffer struct {
 
 	currentState, targetState *state.KongState
 	kongClient                *kong.Client
-
-	schemasCache *SchemaCache
+	schemasCache              *schema.Cache
+	skipSchemaDefaults        bool
 }
 
 func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
@@ -187,28 +188,31 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	}
 	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
 
-	linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
-	if err != nil {
-		return nil, err
-	}
+	// Skip schema-based default filling if configured to do so
+	if !d.skipSchemaDefaults {
+		linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
+		if err != nil {
+			return nil, err
+		}
 
-	err = kong.FillPluginsDefaultsWithPartials(&pluginWithDefaults.Plugin, schema, linkedPartialConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
-	}
+		err = kong.FillPluginsDefaultsWithPartials(&pluginWithDefaults.Plugin, schema, linkedPartialConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
+		}
 
-	linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
-	if err != nil {
-		return nil, err
-	}
+		linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
+		if err != nil {
+			return nil, err
+		}
 
-	err = kong.FillPluginWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
-	if err != nil {
-		return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
-	}
+		err = kong.FillPluginWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
+		if err != nil {
+			return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
+		}
 
-	if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
-		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+		if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
+			return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+		}
 	}
 
 	jsonb, _ := json.Marshal(&schema)

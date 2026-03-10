@@ -63,10 +63,7 @@ func (k *RBACEndpointPermissionsCollection) Add(rbacEndpointPermission RBACEndpo
 	txn := k.db.Txn(true)
 	defer txn.Abort()
 
-	var searchBy []string
-	searchBy = append(searchBy, rbacEndpointPermission.FriendlyName())
-
-	_, err := getRBACEndpointPermission(txn, searchBy...)
+	_, err := getRBACEndpointPermission(txn, rbacEndpointPermission.FriendlyName())
 	if err == nil {
 		return fmt.Errorf("inserting rbacEndpointPermission %v: %w", rbacEndpointPermission.Console(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {

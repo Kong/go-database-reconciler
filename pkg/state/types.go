@@ -99,8 +99,8 @@ func (s1 *Service) Equal(s2 *Service) bool {
 func (s1 *Service) EqualWithOpts(s2 *Service,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	s1Copy := s1.Service.DeepCopy()
-	s2Copy := s2.Service.DeepCopy()
+	s1Copy := s1.DeepCopy()
+	s2Copy := s2.DeepCopy()
 
 	if len(s1Copy.Tags) == 0 {
 		s1Copy.Tags = nil
@@ -169,8 +169,8 @@ func (r1 *Route) Equal(r2 *Route) bool {
 func (r1 *Route) EqualWithOpts(r2 *Route, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	r1Copy := r1.Route.DeepCopy()
-	r2Copy := r2.Route.DeepCopy()
+	r1Copy := r1.DeepCopy()
+	r2Copy := r2.DeepCopy()
 
 	if len(r1Copy.Tags) == 0 {
 		r1Copy.Tags = nil
@@ -239,8 +239,8 @@ func (u1 *Upstream) Equal(u2 *Upstream) bool {
 func (u1 *Upstream) EqualWithOpts(u2 *Upstream,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	u1Copy := u1.Upstream.DeepCopy()
-	u2Copy := u2.Upstream.DeepCopy()
+	u1Copy := u1.DeepCopy()
+	u2Copy := u2.DeepCopy()
 
 	if len(u1Copy.Tags) == 0 {
 		u1Copy.Tags = nil
@@ -300,8 +300,8 @@ func (t1 *Target) Equal(t2 *Target) bool {
 func (t1 *Target) EqualWithOpts(t2 *Target, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	t1Copy := t1.Target.DeepCopy()
-	t2Copy := t2.Target.DeepCopy()
+	t1Copy := t1.DeepCopy()
+	t2Copy := t2.DeepCopy()
 
 	if len(t1Copy.Tags) == 0 {
 		t1Copy.Tags = nil
@@ -361,8 +361,8 @@ func (c1 *Certificate) Equal(c2 *Certificate) bool {
 func (c1 *Certificate) EqualWithOpts(c2 *Certificate,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	c1Copy := c1.Certificate.DeepCopy()
-	c2Copy := c2.Certificate.DeepCopy()
+	c1Copy := c1.DeepCopy()
+	c2Copy := c2.DeepCopy()
 
 	if len(c1Copy.Tags) == 0 {
 		c1Copy.Tags = nil
@@ -418,8 +418,8 @@ func (s1 *SNI) Console() string {
 func (s1 *SNI) EqualWithOpts(s2 *SNI, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	s1Copy := s1.SNI.DeepCopy()
-	s2Copy := s2.SNI.DeepCopy()
+	s1Copy := s1.DeepCopy()
+	s2Copy := s2.DeepCopy()
 
 	if len(s1Copy.Tags) == 0 {
 		s1Copy.Tags = nil
@@ -477,8 +477,8 @@ func (p1 *FilterChain) Console() string {
 func (p1 *FilterChain) EqualWithOpts(p2 *FilterChain, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	p1Copy := p1.FilterChain.DeepCopy()
-	p2Copy := p2.FilterChain.DeepCopy()
+	p1Copy := p1.DeepCopy()
+	p2Copy := p2.DeepCopy()
 
 	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
 	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
@@ -575,8 +575,8 @@ func (p1 *Plugin) Equal(p2 *Plugin) bool {
 func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 	ignoreTS, ignoreForeign bool, schema gjson.Result,
 ) bool {
-	p1Copy := p1.Plugin.DeepCopy()
-	p2Copy := p2.Plugin.DeepCopy()
+	p1Copy := p1.DeepCopy()
+	p2Copy := p2.DeepCopy()
 
 	if len(p1Copy.Tags) == 0 {
 		p1Copy.Tags = nil
@@ -789,8 +789,8 @@ func (c1 *Consumer) Equal(c2 *Consumer) bool {
 func (c1 *Consumer) EqualWithOpts(c2 *Consumer,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	c1Copy := c1.Consumer.DeepCopy()
-	c2Copy := c2.Consumer.DeepCopy()
+	c1Copy := c1.DeepCopy()
+	c2Copy := c2.DeepCopy()
 
 	if len(c1Copy.Tags) == 0 {
 		c1Copy.Tags = nil
@@ -879,16 +879,16 @@ type ConsumerGroup struct {
 
 // Identifier returns the endpoint key name or ID.
 func (c1 *ConsumerGroup) Identifier() string {
-	if c1.ConsumerGroup.Name != nil {
-		return *c1.ConsumerGroup.Name
+	if c1.Name != nil {
+		return *c1.Name
 	}
-	return *c1.ConsumerGroup.ID
+	return *c1.ID
 }
 
 // Console returns an entity's identity in a human
 // readable string.
 func (c1 *ConsumerGroup) Console() string {
-	return c1.ConsumerGroup.FriendlyName()
+	return c1.FriendlyName()
 }
 
 // Equal returns true if c1 and c2 are equal.
@@ -902,8 +902,8 @@ func (c1 *ConsumerGroup) Equal(c2 *ConsumerGroup) bool {
 func (c1 *ConsumerGroup) EqualWithOpts(c2 *ConsumerGroup,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	u1Copy := c1.ConsumerGroup.DeepCopy()
-	u2Copy := c2.ConsumerGroup.DeepCopy()
+	u1Copy := c1.DeepCopy()
+	u2Copy := c2.DeepCopy()
 
 	if ignoreID {
 		u1Copy.ID = nil
@@ -945,10 +945,10 @@ func (c1 *ConsumerGroupConsumer) Identifier() string {
 // Console returns an entity's identity in a human
 // readable string.
 func (c1 *ConsumerGroupConsumer) Console() string {
-	if c1.ConsumerGroupConsumer.Consumer.Username != nil {
-		return *c1.ConsumerGroupConsumer.Consumer.Username
+	if c1.Consumer.Username != nil {
+		return *c1.Consumer.Username
 	}
-	return *c1.ConsumerGroupConsumer.Consumer.CustomID
+	return *c1.Consumer.CustomID
 }
 
 // Equal returns true if c1 and c2 are equal.
@@ -962,8 +962,8 @@ func (c1 *ConsumerGroupConsumer) Equal(c2 *ConsumerGroupConsumer) bool {
 func (c1 *ConsumerGroupConsumer) EqualWithOpts(c2 *ConsumerGroupConsumer,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	c1Copy := c1.ConsumerGroupConsumer.DeepCopy()
-	c2Copy := c2.ConsumerGroupConsumer.DeepCopy()
+	c1Copy := c1.DeepCopy()
+	c2Copy := c2.DeepCopy()
 	if ignoreID {
 		c1Copy.Consumer.ID = nil
 		c2Copy.Consumer.ID = nil
@@ -1102,8 +1102,8 @@ func (k1 *KeyAuth) Equal(k2 *KeyAuth) bool {
 func (k1 *KeyAuth) EqualWithOpts(k2 *KeyAuth, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	k1Copy := k1.KeyAuth.DeepCopy()
-	k2Copy := k2.KeyAuth.DeepCopy()
+	k1Copy := k1.DeepCopy()
+	k2Copy := k2.DeepCopy()
 
 	if len(k1Copy.Tags) == 0 {
 		k1Copy.Tags = nil
@@ -1187,8 +1187,8 @@ func (h1 *HMACAuth) Equal(h2 *HMACAuth) bool {
 func (h1 *HMACAuth) EqualWithOpts(h2 *HMACAuth, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	h1Copy := h1.HMACAuth.DeepCopy()
-	h2Copy := h2.HMACAuth.DeepCopy()
+	h1Copy := h1.DeepCopy()
+	h2Copy := h2.DeepCopy()
 
 	if len(h1Copy.Tags) == 0 {
 		h1Copy.Tags = nil
@@ -1272,8 +1272,8 @@ func (j1 *JWTAuth) Equal(j2 *JWTAuth) bool {
 func (j1 *JWTAuth) EqualWithOpts(j2 *JWTAuth, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	j1Copy := j1.JWTAuth.DeepCopy()
-	j2Copy := j2.JWTAuth.DeepCopy()
+	j1Copy := j1.DeepCopy()
+	j2Copy := j2.DeepCopy()
 
 	if len(j1Copy.Tags) == 0 {
 		j1Copy.Tags = nil
@@ -1358,8 +1358,8 @@ func (b1 *BasicAuth) Equal(b2 *BasicAuth) bool {
 func (b1 *BasicAuth) EqualWithOpts(b2 *BasicAuth, ignoreID,
 	ignoreTS, ignorePassword, ignoreForeign bool,
 ) bool {
-	b1Copy := b1.BasicAuth.DeepCopy()
-	b2Copy := b2.BasicAuth.DeepCopy()
+	b1Copy := b1.DeepCopy()
+	b2Copy := b2.DeepCopy()
 
 	if len(b1Copy.Tags) == 0 {
 		b1Copy.Tags = nil
@@ -1447,8 +1447,8 @@ func (b1 *ACLGroup) Equal(b2 *ACLGroup) bool {
 func (b1 *ACLGroup) EqualWithOpts(b2 *ACLGroup, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	b1Copy := b1.ACLGroup.DeepCopy()
-	b2Copy := b2.ACLGroup.DeepCopy()
+	b1Copy := b1.DeepCopy()
+	b2Copy := b2.DeepCopy()
 
 	if len(b1Copy.Tags) == 0 {
 		b1Copy.Tags = nil
@@ -1514,8 +1514,8 @@ func (c1 *CACertificate) Equal(c2 *CACertificate) bool {
 func (c1 *CACertificate) EqualWithOpts(c2 *CACertificate,
 	ignoreID bool, ignoreTS bool,
 ) bool {
-	c1Copy := c1.CACertificate.DeepCopy()
-	c2Copy := c2.CACertificate.DeepCopy()
+	c1Copy := c1.DeepCopy()
+	c2Copy := c2.DeepCopy()
 
 	if len(c1Copy.Tags) == 0 {
 		c1Copy.Tags = nil
@@ -1566,8 +1566,8 @@ func (k1 *Oauth2Credential) Equal(k2 *Oauth2Credential) bool {
 func (k1 *Oauth2Credential) EqualWithOpts(k2 *Oauth2Credential, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	k1Copy := k1.Oauth2Credential.DeepCopy()
-	k2Copy := k2.Oauth2Credential.DeepCopy()
+	k1Copy := k1.DeepCopy()
+	k2Copy := k2.DeepCopy()
 
 	if len(k1Copy.Tags) == 0 {
 		k1Copy.Tags = nil
@@ -1651,8 +1651,8 @@ func (b1 *MTLSAuth) Equal(b2 *MTLSAuth) bool {
 func (b1 *MTLSAuth) EqualWithOpts(b2 *MTLSAuth, ignoreID,
 	ignoreTS, ignoreForeign bool,
 ) bool {
-	b1Copy := b1.MTLSAuth.DeepCopy()
-	b2Copy := b2.MTLSAuth.DeepCopy()
+	b1Copy := b1.DeepCopy()
+	b2Copy := b2.DeepCopy()
 
 	if len(b1Copy.Tags) == 0 {
 		b1Copy.Tags = nil
@@ -1718,8 +1718,8 @@ func (r1 *RBACRole) Equal(r2 *RBACRole) bool {
 func (r1 *RBACRole) EqualWithOpts(r2 *RBACRole, ignoreID,
 	ignoreTS, _ bool,
 ) bool {
-	r1Copy := r1.RBACRole.DeepCopy()
-	r2Copy := r2.RBACRole.DeepCopy()
+	r1Copy := r1.DeepCopy()
+	r2Copy := r2.DeepCopy()
 
 	if ignoreID {
 		r1Copy.ID = nil
@@ -1767,8 +1767,8 @@ func (r1 *RBACEndpointPermission) Equal(r2 *RBACEndpointPermission) bool {
 func (r1 *RBACEndpointPermission) EqualWithOpts(r2 *RBACEndpointPermission, ignoreID,
 	ignoreTS, _ bool,
 ) bool {
-	r1Copy := r1.RBACEndpointPermission.DeepCopy()
-	r2Copy := r2.RBACEndpointPermission.DeepCopy()
+	r1Copy := r1.DeepCopy()
+	r2Copy := r2.DeepCopy()
 
 	if ignoreID {
 		r1Copy.Endpoint = nil
@@ -1847,8 +1847,8 @@ func (v1 *Vault) Equal(v2 *Vault) bool {
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
 func (v1 *Vault) EqualWithOpts(v2 *Vault, ignoreID, ignoreTS bool) bool {
-	v1Copy := v1.Vault.DeepCopy()
-	v2Copy := v2.Vault.DeepCopy()
+	v1Copy := v1.DeepCopy()
+	v2Copy := v2.DeepCopy()
 
 	if len(v1Copy.Tags) == 0 {
 		v1Copy.Tags = nil
@@ -1904,8 +1904,8 @@ func (l *License) Equal(l2 *License) bool {
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
 func (l *License) EqualWithOpts(l2 *License, ignoreID, ignoreTS bool) bool {
-	l1Copy := l.License.DeepCopy()
-	l2Copy := l2.License.DeepCopy()
+	l1Copy := l.DeepCopy()
+	l2Copy := l2.DeepCopy()
 
 	if ignoreID {
 		l1Copy.ID = nil
@@ -1961,8 +1961,8 @@ func (d *DegraphqlRoute) Equal(d2 *DegraphqlRoute) bool {
 // EqualWithOpts returns true if degraphql route d and d2 are equal.
 // If ignoreID is set to true, IDs will be ignored while comparison.
 func (d *DegraphqlRoute) EqualWithOpts(d2 *DegraphqlRoute, ignoreID bool) bool {
-	d1Copy := d.DegraphqlRoute.DeepCopy()
-	d2Copy := d2.DegraphqlRoute.DeepCopy()
+	d1Copy := d.DeepCopy()
+	d2Copy := d2.DeepCopy()
 
 	if ignoreID {
 		d1Copy.ID = nil
@@ -2002,8 +2002,8 @@ func (p *Partial) Equal(p2 *Partial) bool {
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
 func (p *Partial) EqualWithOpts(p2 *Partial, ignoreID, ignoreTS bool) bool {
-	p1Copy := p.Partial.DeepCopy()
-	p2Copy := p2.Partial.DeepCopy()
+	p1Copy := p.DeepCopy()
+	p2Copy := p2.DeepCopy()
 
 	if ignoreID {
 		p1Copy.ID = nil
@@ -2063,8 +2063,8 @@ func (k1 *Key) Equal(k2 *Key) bool {
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
 func (k1 *Key) EqualWithOpts(k2 *Key, ignoreID, ignoreTS bool) bool {
-	k1Copy := k1.Key.DeepCopy()
-	k2Copy := k2.Key.DeepCopy()
+	k1Copy := k1.DeepCopy()
+	k2Copy := k2.DeepCopy()
 	if len(k1Copy.Tags) == 0 {
 		k1Copy.Tags = nil
 	}
@@ -2120,8 +2120,8 @@ func (ks1 *KeySet) Equal(ks2 *KeySet) bool {
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
 func (ks1 *KeySet) EqualWithOpts(ks2 *KeySet, ignoreID, ignoreTS bool) bool {
-	ks1Copy := ks1.KeySet.DeepCopy()
-	ks2Copy := ks2.KeySet.DeepCopy()
+	ks1Copy := ks1.DeepCopy()
+	ks2Copy := ks2.DeepCopy()
 	if len(ks1Copy.Tags) == 0 {
 		ks1Copy.Tags = nil
 	}

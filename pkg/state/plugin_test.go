@@ -615,7 +615,7 @@ func TestPluginGetAll(t *testing.T) {
 
 	allPlugins, err := collection.GetAll()
 	require.NoError(t, err)
-	assert.Equal(len(plugins), len(allPlugins))
+	assert.Len(allPlugins, len(plugins))
 
 	allPlugins, err = collection.GetAllByName("")
 	require.Error(t, err)

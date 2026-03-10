@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
@@ -72,8 +73,8 @@ type partialDiffer struct {
 
 	currentState, targetState *state.KongState
 	client                    *kong.Client
-
-	schemasCache *SchemaCache
+	schemasCache              *schema.Cache
+	skipSchemaDefaults        bool
 }
 
 // Deletes generates a memdb CRUD DELETE event for Partials
@@ -169,14 +170,18 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 	// found, check if update needed
 	// before checking the diff, fill in the defaults
 	currentPartial = &state.Partial{Partial: *currentPartial.DeepCopy()}
-	schema, err := d.schemasCache.Get(context.TODO(), *partial.Type)
-	if err != nil {
-		return nil, fmt.Errorf("failed getting schema for partial: %w", err)
-	}
 	partialWithDefaults := &state.Partial{Partial: *partial.DeepCopy()}
-	err = kong.FillPartialDefaults(&partialWithDefaults.Partial, schema)
-	if err != nil {
-		return nil, fmt.Errorf("failed processing default fields for partial: %w", err)
+
+	// Skip schema-based default filling if configured to do so
+	if !d.skipSchemaDefaults {
+		schema, err := d.schemasCache.Get(context.TODO(), *partial.Type)
+		if err != nil {
+			return nil, fmt.Errorf("failed getting schema for partial: %w", err)
+		}
+		err = kong.FillPartialDefaults(&partialWithDefaults.Partial, schema)
+		if err != nil {
+			return nil, fmt.Errorf("failed processing default fields for partial: %w", err)
+		}
 	}
 
 	if !currentPartial.EqualWithOpts(partialWithDefaults, false, true) {

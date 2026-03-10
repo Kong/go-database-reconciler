@@ -3,13 +3,19 @@ package utils
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"reflect"
 	"strings"
 
 	"dario.cat/mergo"
+	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-kong/kong"
 )
+
+// DefaulterInterface defines the interface for defaulters.
+type DefaulterInterface interface {
+	Set(arg interface{}) error
+	MustSet(arg interface{})
+}
 
 // Defaulter registers types and fills in struct fields with
 // default values.
@@ -189,34 +195,7 @@ func (d *Defaulter) MustSet(arg interface{}) {
 }
 
 func (d *Defaulter) getEntitySchema(entityType string) (map[string]interface{}, error) {
-	var (
-		schema map[string]interface{}
-		ok     bool
-	)
-	endpoint := fmt.Sprintf("/schemas/%s", entityType)
-	if d.isKonnect {
-		entityType, ok = KongToKonnectEntitiesMap[entityType]
-		// if no mapping is found, then the schema cannot be fetched
-		// from Konnet and we should proceed without defaults.
-		if !ok {
-			return schema, nil
-		}
-		endpoint = fmt.Sprintf("/v1/schemas/json/%s", entityType)
-	}
-	req, err := d.client.NewRequest(http.MethodGet, endpoint, nil, nil)
-	if err != nil {
-		return schema, err
-	}
-	resp, err := d.client.Do(d.ctx, req, &schema)
-	if resp == nil {
-		return schema, fmt.Errorf("invalid HTTP response: %w", err)
-	}
-	// in case the schema is not found - like in case of EE features,
-	// no error should be returned.
-	if resp.StatusCode == http.StatusNotFound {
-		return schema, nil
-	}
-	return schema, err
+	return schema.FetchEntitySchema(d.ctx, d.client, d.isKonnect, entityType)
 }
 
 func (d *Defaulter) addEntityDefaults(entityType string, entity interface{}) error {
@@ -400,4 +379,23 @@ func (d *Defaulter) populateStaticDefaultsForKonnect() error {
 	}
 
 	return nil
+}
+
+// NoOpDefaulter is a defaulter that does nothing.
+// Used when defaults should be skipped (skipDefaults = true).
+type NoOpDefaulter struct{}
+
+// NewNoOpDefaulter creates a new no-op defaulter.
+func NewNoOpDefaulter() *NoOpDefaulter {
+	return &NoOpDefaulter{}
+}
+
+// Set does nothing and returns nil.
+func (d *NoOpDefaulter) Set(_ interface{}) error {
+	return nil
+}
+
+// MustSet does nothing.
+func (d *NoOpDefaulter) MustSet(_ interface{}) {
+	// No-op
 }

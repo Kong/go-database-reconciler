@@ -37,8 +37,8 @@ func (d1 *Document) Equal(d2 *Document) bool {
 func (d1 *Document) EqualWithOpts(d2 *Document,
 	ignoreID, _, ignoreForeign bool,
 ) bool {
-	d1Copy := d1.Document.ShallowCopy()
-	d2Copy := d2.Document.ShallowCopy()
+	d1Copy := d1.ShallowCopy()
+	d2Copy := d2.ShallowCopy()
 
 	if ignoreID {
 		d1Copy.ID = nil
@@ -83,8 +83,8 @@ func (s1 *ServicePackage) Equal(s2 *ServicePackage) bool {
 func (s1 *ServicePackage) EqualWithOpts(s2 *ServicePackage,
 	ignoreID bool, _ bool,
 ) bool {
-	s1Copy := s1.ServicePackage.DeepCopy()
-	s2Copy := s2.ServicePackage.DeepCopy()
+	s1Copy := s1.DeepCopy()
+	s2Copy := s2.DeepCopy()
 
 	if ignoreID {
 		s1Copy.ID = nil
@@ -126,8 +126,8 @@ func (s1 *ServiceVersion) Equal(s2 *ServiceVersion) bool {
 func (s1 *ServiceVersion) EqualWithOpts(s2 *ServiceVersion,
 	ignoreID, _, ignoreForeign bool,
 ) bool {
-	s1Copy := s1.ServiceVersion.DeepCopy()
-	s2Copy := s2.ServiceVersion.DeepCopy()
+	s1Copy := s1.DeepCopy()
+	s2Copy := s2.DeepCopy()
 
 	if ignoreID {
 		s1Copy.ID = nil
