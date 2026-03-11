@@ -716,14 +716,13 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 	errs := sc.Run(ctx, parallelism, func(e crud.Event) (crud.Arg, error) {
 		var err error
 		var result crud.Arg
+		var workspaceExists bool
 
 		// This variable holds the original event with the unchanged configuration
 		// Below the configuration in `e` may be modified. This is done solely for
 		// the purpose of displaying a correct diff and should not affect the
 		// configuration that is sent to Kong.
 		eventForKong := e
-
-		workspaceExists := false
 
 		if sc.isKonnect {
 			workspaceExists, err = utils.KonnectWorkspaceExists(ctx, sc.kongClient)

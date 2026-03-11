@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	//"sync"
+	"sync"
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/schema"
@@ -339,40 +339,40 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 	client *kong.Client, config Config, state *utils.KongRawState,
 ) {
-	//group.Go(func() error {
-	//	services, err := GetAllServices(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("services: %w", err)
-	//	}
-	//
-	//	services, err = excludeKonnectManagedEntities(services)
-	//	if err != nil {
-	//		return fmt.Errorf("services: %w", err)
-	//	}
-	//
-	//	if config.LookUpSelectorTagsServices != nil {
-	//		globalServices, err := GetAllServices(ctx, client, config.LookUpSelectorTagsServices)
-	//		if err != nil {
-	//			return fmt.Errorf("error retrieving global services: %w", err)
-	//		}
-	//		// if globalServices are not present, add them.
-	//		for _, globalService := range globalServices {
-	//			found := false
-	//			for _, service := range services {
-	//				if *globalService.ID == *service.ID {
-	//					found = true
-	//					break
-	//				}
-	//			}
-	//			if !found {
-	//				services = append(services, globalService)
-	//			}
-	//		}
-	//	}
-	//
-	//	state.Services = services
-	//	return nil
-	//})
+	group.Go(func() error {
+		services, err := GetAllServices(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("services: %w", err)
+		}
+
+		services, err = excludeKonnectManagedEntities(services)
+		if err != nil {
+			return fmt.Errorf("services: %w", err)
+		}
+
+		if config.LookUpSelectorTagsServices != nil {
+			globalServices, err := GetAllServices(ctx, client, config.LookUpSelectorTagsServices)
+			if err != nil {
+				return fmt.Errorf("error retrieving global services: %w", err)
+			}
+			// if globalServices are not present, add them.
+			for _, globalService := range globalServices {
+				found := false
+				for _, service := range services {
+					if *globalService.ID == *service.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					services = append(services, globalService)
+				}
+			}
+		}
+
+		state.Services = services
+		return nil
+	})
 
 	group.Go(func() error {
 		routes, err := GetAllRoutes(ctx, client, config.SelectorTags)
@@ -409,267 +409,267 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
-	//group.Go(func() error {
-	//	plugins, err := GetAllPlugins(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("plugins: %w", err)
-	//	}
-	//
-	//	plugins = excludeKonnectManagedPlugins(plugins)
-	//
-	//	if config.SkipConsumers {
-	//		plugins = excludeConsumersPlugins(plugins)
-	//		plugins = excludeConsumerGroupsPlugins(plugins)
-	//	}
-	//
-	//	state.Plugins = plugins
-	//	return nil
-	//})
+	group.Go(func() error {
+		plugins, err := GetAllPlugins(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("plugins: %w", err)
+		}
 
-	//group.Go(func() error {
-	//	state.FilterChains = make([]*kong.FilterChain, 0)
-	//	filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		var kongErr *kong.APIError
-	//		if errors.As(err, &kongErr) {
-	//			// GET /filter-chains returns:
-	//			//   -> 200 on success
-	//			//   -> 404 if Kong version < 3.4
-	//			//   -> 400 if Kong version >= 3.4 but wasm is not enabled
-	//			if kongErr.Code() == http.StatusNotFound || kongErr.Code() == http.StatusBadRequest {
-	//				return nil
-	//			}
-	//		}
-	//		return fmt.Errorf("filter chains: %w", err)
-	//	}
-	//
-	//	filterChains, err = excludeKonnectManagedEntities(filterChains)
-	//	if err != nil {
-	//		return fmt.Errorf("filter chains: %w", err)
-	//	}
-	//
-	//	state.FilterChains = filterChains
-	//	return nil
-	//})
+		plugins = excludeKonnectManagedPlugins(plugins)
 
-	//group.Go(func() error {
-	//	certificates, err := GetAllCertificates(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("certificates: %w", err)
-	//	}
-	//
-	//	certificates, err = excludeKonnectManagedEntities(certificates)
-	//	if err != nil {
-	//		return fmt.Errorf("certificates: %w", err)
-	//	}
-	//
-	//	state.Certificates = certificates
-	//	return nil
-	//})
+		if config.SkipConsumers {
+			plugins = excludeConsumersPlugins(plugins)
+			plugins = excludeConsumerGroupsPlugins(plugins)
+		}
 
-	//if !config.SkipCACerts {
-	//	group.Go(func() error {
-	//		caCerts, err := GetAllCACertificates(ctx, client, config.SelectorTags)
-	//		if err != nil {
-	//			return fmt.Errorf("ca-certificates: %w", err)
-	//		}
-	//
-	//		caCerts, err = excludeKonnectManagedEntities(caCerts)
-	//		if err != nil {
-	//			return fmt.Errorf("ca-certificates: %w", err)
-	//		}
-	//
-	//		state.CACertificates = caCerts
-	//		return nil
-	//	})
-	//}
+		state.Plugins = plugins
+		return nil
+	})
 
-	//group.Go(func() error {
-	//	snis, err := GetAllSNIs(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("snis: %w", err)
-	//	}
-	//
-	//	snis, err = excludeKonnectManagedEntities(snis)
-	//	if err != nil {
-	//		return fmt.Errorf("snis: %w", err)
-	//	}
-	//
-	//	state.SNIs = snis
-	//	return nil
-	//})
+	group.Go(func() error {
+		state.FilterChains = make([]*kong.FilterChain, 0)
+		filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
+		if err != nil {
+			var kongErr *kong.APIError
+			if errors.As(err, &kongErr) {
+				// GET /filter-chains returns:
+				//   -> 200 on success
+				//   -> 404 if Kong version < 3.4
+				//   -> 400 if Kong version >= 3.4 but wasm is not enabled
+				if kongErr.Code() == http.StatusNotFound || kongErr.Code() == http.StatusBadRequest {
+					return nil
+				}
+			}
+			return fmt.Errorf("filter chains: %w", err)
+		}
 
-	//group.Go(func() error {
-	//	upstreams, err := GetAllUpstreams(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("upstreams: %w", err)
-	//	}
-	//
-	//	upstreams, err = excludeKonnectManagedEntities(upstreams)
-	//	if err != nil {
-	//		return fmt.Errorf("upstreams: %w", err)
-	//	}
-	//
-	//	state.Upstreams = upstreams
-	//	if config.KonnectControlPlane == "" {
-	//		targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
-	//		if err != nil {
-	//			return fmt.Errorf("targets: %w", err)
-	//		}
-	//		state.Targets = targets
-	//	}
-	//	return nil
-	//})
+		filterChains, err = excludeKonnectManagedEntities(filterChains)
+		if err != nil {
+			return fmt.Errorf("filter chains: %w", err)
+		}
 
-	//if config.KonnectControlPlane != "" {
-	//	group.Go(func() error {
-	//		targets, err := GetAllTargetsFromKonnect(ctx, client, config.SelectorTags)
-	//		if err != nil {
-	//			return fmt.Errorf("targets: %w", err)
-	//		}
-	//
-	//		targets, err = excludeKonnectManagedEntities(targets)
-	//		if err != nil {
-	//			return fmt.Errorf("targets: %w", err)
-	//		}
-	//		state.Targets = targets
-	//		return nil
-	//	})
-	//}
+		state.FilterChains = filterChains
+		return nil
+	})
 
-	//group.Go(func() error {
-	//	vaults, err := GetAllVaults(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("vaults: %w", err)
-	//	}
-	//
-	//	vaults, err = excludeKonnectManagedEntities(vaults)
-	//	if err != nil {
-	//		return fmt.Errorf("vaults: %w", err)
-	//	}
-	//
-	//	state.Vaults = vaults
-	//	return nil
-	//})
+	group.Go(func() error {
+		certificates, err := GetAllCertificates(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("certificates: %w", err)
+		}
 
-	//group.Go(func() error {
-	//	partials, err := GetAllPartials(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("partials: %w", err)
-	//	}
-	//
-	//	partials, err = excludeKonnectManagedEntities(partials)
-	//	if err != nil {
-	//		return fmt.Errorf("partials: %w", err)
-	//	}
-	//
-	//	if config.LookUpSelectorTagsPartials != nil {
-	//		globalPartials, err := GetAllPartials(ctx, client, config.LookUpSelectorTagsPartials)
-	//		if err != nil {
-	//			return fmt.Errorf("error retrieving global partials: %w", err)
-	//		}
-	//		// if globalPartials are not present, add them.
-	//		for _, globalPartial := range globalPartials {
-	//			found := false
-	//			for _, partial := range partials {
-	//				if *globalPartial.ID == *partial.ID {
-	//					found = true
-	//					break
-	//				}
-	//			}
-	//			if !found {
-	//				partials = append(partials, globalPartial)
-	//			}
-	//		}
-	//	}
-	//
-	//	state.Partials = partials
-	//	return nil
-	//})
+		certificates, err = excludeKonnectManagedEntities(certificates)
+		if err != nil {
+			return fmt.Errorf("certificates: %w", err)
+		}
 
-	//group.Go(func() error {
-	//	keys, err := GetAllKeys(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("keys: %w", err)
-	//	}
-	//
-	//	keys, err = excludeKonnectManagedEntities(keys)
-	//	if err != nil {
-	//		return fmt.Errorf("keys: %w", err)
-	//	}
-	//
-	//	state.Keys = keys
-	//	return nil
-	//})
+		state.Certificates = certificates
+		return nil
+	})
 
-	//group.Go(func() error {
-	//	keySets, err := GetAllKeySets(ctx, client, config.SelectorTags)
-	//	if err != nil {
-	//		return fmt.Errorf("key-sets: %w", err)
-	//	}
-	//
-	//	keySets, err = excludeKonnectManagedEntities(keySets)
-	//	if err != nil {
-	//		return fmt.Errorf("key-sets: %w", err)
-	//	}
-	//
-	//	state.KeySets = keySets
-	//	return nil
-	//})
+	if !config.SkipCACerts {
+		group.Go(func() error {
+			caCerts, err := GetAllCACertificates(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("ca-certificates: %w", err)
+			}
 
-	//if config.IncludeLicenses {
-	//	group.Go(func() error {
-	//		licenses, err := GetAllLicenses(ctx, client, config.SelectorTags)
-	//		if err != nil {
-	//			return fmt.Errorf("licenses: %w", err)
-	//		}
-	//
-	//		licenses, err = excludeKonnectManagedEntities(licenses)
-	//		if err != nil {
-	//			return fmt.Errorf("licenses: %w", err)
-	//		}
-	//
-	//		state.Licenses = licenses
-	//		return nil
-	//	})
-	//}
+			caCerts, err = excludeKonnectManagedEntities(caCerts)
+			if err != nil {
+				return fmt.Errorf("ca-certificates: %w", err)
+			}
+
+			state.CACertificates = caCerts
+			return nil
+		})
+	}
+
+	group.Go(func() error {
+		snis, err := GetAllSNIs(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("snis: %w", err)
+		}
+
+		snis, err = excludeKonnectManagedEntities(snis)
+		if err != nil {
+			return fmt.Errorf("snis: %w", err)
+		}
+
+		state.SNIs = snis
+		return nil
+	})
+
+	group.Go(func() error {
+		upstreams, err := GetAllUpstreams(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("upstreams: %w", err)
+		}
+
+		upstreams, err = excludeKonnectManagedEntities(upstreams)
+		if err != nil {
+			return fmt.Errorf("upstreams: %w", err)
+		}
+
+		state.Upstreams = upstreams
+		if config.KonnectControlPlane == "" {
+			targets, err := GetAllTargets(ctx, client, upstreams, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+			state.Targets = targets
+		}
+		return nil
+	})
+
+	if config.KonnectControlPlane != "" {
+		group.Go(func() error {
+			targets, err := GetAllTargetsFromKonnect(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+
+			targets, err = excludeKonnectManagedEntities(targets)
+			if err != nil {
+				return fmt.Errorf("targets: %w", err)
+			}
+			state.Targets = targets
+			return nil
+		})
+	}
+
+	group.Go(func() error {
+		vaults, err := GetAllVaults(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("vaults: %w", err)
+		}
+
+		vaults, err = excludeKonnectManagedEntities(vaults)
+		if err != nil {
+			return fmt.Errorf("vaults: %w", err)
+		}
+
+		state.Vaults = vaults
+		return nil
+	})
+
+	group.Go(func() error {
+		partials, err := GetAllPartials(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("partials: %w", err)
+		}
+
+		partials, err = excludeKonnectManagedEntities(partials)
+		if err != nil {
+			return fmt.Errorf("partials: %w", err)
+		}
+
+		if config.LookUpSelectorTagsPartials != nil {
+			globalPartials, err := GetAllPartials(ctx, client, config.LookUpSelectorTagsPartials)
+			if err != nil {
+				return fmt.Errorf("error retrieving global partials: %w", err)
+			}
+			// if globalPartials are not present, add them.
+			for _, globalPartial := range globalPartials {
+				found := false
+				for _, partial := range partials {
+					if *globalPartial.ID == *partial.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					partials = append(partials, globalPartial)
+				}
+			}
+		}
+
+		state.Partials = partials
+		return nil
+	})
+
+	group.Go(func() error {
+		keys, err := GetAllKeys(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("keys: %w", err)
+		}
+
+		keys, err = excludeKonnectManagedEntities(keys)
+		if err != nil {
+			return fmt.Errorf("keys: %w", err)
+		}
+
+		state.Keys = keys
+		return nil
+	})
+
+	group.Go(func() error {
+		keySets, err := GetAllKeySets(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("key-sets: %w", err)
+		}
+
+		keySets, err = excludeKonnectManagedEntities(keySets)
+		if err != nil {
+			return fmt.Errorf("key-sets: %w", err)
+		}
+
+		state.KeySets = keySets
+		return nil
+	})
+
+	if config.IncludeLicenses {
+		group.Go(func() error {
+			licenses, err := GetAllLicenses(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("licenses: %w", err)
+			}
+
+			licenses, err = excludeKonnectManagedEntities(licenses)
+			if err != nil {
+				return fmt.Errorf("licenses: %w", err)
+			}
+
+			state.Licenses = licenses
+			return nil
+		})
+	}
 
 	// If SkipCustomEntitiesWithSelectorTags is true and SelectorTags is not empty,
 	// we want to skip custom entities. This is because custom entities don't support
 	// tagging and including them in the state results in errors while attempting a
 	// deck sync or apply.
-	//var skipCustomEntities bool
-	//if config.SkipCustomEntitiesWithSelectorTags && len(config.SelectorTags) > 0 {
-	//	skipCustomEntities = true
-	//}
+	var skipCustomEntities bool
+	if config.SkipCustomEntitiesWithSelectorTags && len(config.SelectorTags) > 0 {
+		skipCustomEntities = true
+	}
 
-	//if !skipCustomEntities && len(config.CustomEntityTypes) > 0 {
-	//	// Get custom entities with types given in config.CustomEntityTypes.
-	//	customEntityLock := sync.Mutex{}
-	//	for _, entityType := range config.CustomEntityTypes {
-	//		t := entityType
-	//		group.Go(func() error {
-	//			// Register entity type.
-	//			// Because client writes an unprotected map to register entity types, we need to use mutex to protect it.
-	//			customEntityLock.Lock()
-	//			err := tryRegisterEntityType(client, custom.Type(t))
-	//			customEntityLock.Unlock()
-	//			if err != nil {
-	//				return fmt.Errorf("custom entity %s: %w", t, err)
-	//			}
-	//			// Fetch all entities with the given type.
-	//			entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
-	//			if err != nil {
-	//				return fmt.Errorf("custom entity %s: %w", t, err)
-	//			}
-	//			// Add custom entities to rawstate.
-	//			customEntityLock.Lock()
-	//			state.CustomEntities = append(state.CustomEntities, entities...)
-	//			customEntityLock.Unlock()
-	//			return nil
-	//		})
-	//	}
-	//}
+	if !skipCustomEntities && len(config.CustomEntityTypes) > 0 {
+		// Get custom entities with types given in config.CustomEntityTypes.
+		customEntityLock := sync.Mutex{}
+		for _, entityType := range config.CustomEntityTypes {
+			t := entityType
+			group.Go(func() error {
+				// Register entity type.
+				// Because client writes an unprotected map to register entity types, we need to use mutex to protect it.
+				customEntityLock.Lock()
+				err := tryRegisterEntityType(client, custom.Type(t))
+				customEntityLock.Unlock()
+				if err != nil {
+					return fmt.Errorf("custom entity %s: %w", t, err)
+				}
+				// Fetch all entities with the given type.
+				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
+				if err != nil {
+					return fmt.Errorf("custom entity %s: %w", t, err)
+				}
+				// Add custom entities to rawstate.
+				customEntityLock.Lock()
+				state.CustomEntities = append(state.CustomEntities, entities...)
+				customEntityLock.Unlock()
+				return nil
+			})
+		}
+	}
 }
 
 func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
@@ -723,10 +723,10 @@ func Get(ctx context.Context, client *kong.Client, config Config) (*utils.KongRa
 		// regular case
 		getProxyConfiguration(newCtx, group, client, config, &state)
 
-		//if !config.SkipConsumers {
-		//	getConsumerGroupsConfiguration(newCtx, group, client, config, &state)
-		//	getConsumerConfiguration(newCtx, group, client, config, &state)
-		//}
+		if !config.SkipConsumers {
+			getConsumerGroupsConfiguration(newCtx, group, client, config, &state)
+			getConsumerConfiguration(newCtx, group, client, config, &state)
+		}
 	}
 
 	err := group.Wait()

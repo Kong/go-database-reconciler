@@ -49,7 +49,13 @@ func equalArray(want, have []*string) bool {
 	if len(want) != len(have) {
 		return false
 	}
-	for i := 0; i < len(want); i++ {
+	for i := range want {
+		if want[i] == nil && have[i] == nil {
+			continue
+		}
+		if want[i] == nil || have[i] == nil {
+			return false
+		}
 		if *want[i] != *have[i] {
 			return false
 		}

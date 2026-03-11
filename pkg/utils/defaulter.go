@@ -277,7 +277,8 @@ func getKongDefaulterWithClient(ctx context.Context, opts DefaulterOpts) (*Defau
 // 2. values set in the {_info: defaults:} object in the state file
 // 3. hardcoded defaults under utils/constants.go (Konnect-only)
 func GetDefaulter(ctx context.Context, opts DefaulterOpts) (*Defaulter, error) {
-	exists, err := false, error(nil)
+	var exists bool
+	var err error
 	if opts.IsKonnect {
 		exists, err = KonnectWorkspaceExists(ctx, opts.Client)
 		if err != nil {
