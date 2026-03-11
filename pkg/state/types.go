@@ -1972,6 +1972,55 @@ func (d *DegraphqlRoute) EqualWithOpts(d2 *DegraphqlRoute, ignoreID bool) bool {
 	return reflect.DeepEqual(d1Copy, d2Copy)
 }
 
+// GraphqlRateLimitingCostDecoration represents a graphql rate limiting cost decoration in Kong.
+type GraphqlRateLimitingCostDecoration struct {
+	kong.GraphqlRateLimitingCostDecoration `yaml:",inline"`
+	Meta
+}
+
+// GetCustomEntityID returns the ID of the GraphqlRateLimitingCostDecoration.
+func (g *GraphqlRateLimitingCostDecoration) GetCustomEntityID() string {
+	if g.ID == nil {
+		return ""
+	}
+	return *g.ID
+}
+
+// GetCustomEntityType returns the GraphqlRateLimitingCostDecoration Type.
+func (g *GraphqlRateLimitingCostDecoration) GetCustomEntityType() string {
+	return "graphql_ratelimiting_cost_decorations"
+}
+
+// Console returns the string to identify the GraphqlRateLimitingCostDecoration.
+func (g *GraphqlRateLimitingCostDecoration) Console() string {
+	if g.TypePath != nil {
+		return *g.TypePath
+	}
+	if g.ID != nil {
+		return *g.ID
+	}
+	return ""
+}
+
+// Equal returns true if GraphqlRateLimitingCostDecoration g and g2 are equal.
+func (g *GraphqlRateLimitingCostDecoration) Equal(g2 *GraphqlRateLimitingCostDecoration) bool {
+	return g.EqualWithOpts(g2, false)
+}
+
+// EqualWithOpts returns true if GraphqlRateLimitingCostDecoration g and g2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+func (g *GraphqlRateLimitingCostDecoration) EqualWithOpts(g2 *GraphqlRateLimitingCostDecoration, ignoreID bool) bool {
+	g1Copy := g.DeepCopy()
+	g2Copy := g2.DeepCopy()
+
+	if ignoreID {
+		g1Copy.ID = nil
+		g2Copy.ID = nil
+	}
+
+	return reflect.DeepEqual(g1Copy, g2Copy)
+}
+
 // Partial represents a partial in Kong.
 // It adds some helper methods along with Meta to the original Partial object.
 type Partial struct {

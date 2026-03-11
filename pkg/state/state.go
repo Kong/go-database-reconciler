@@ -33,16 +33,17 @@ type KongState struct {
 	Keys                   *KeysCollection
 	KeySets                *KeySetsCollection
 
-	KeyAuths                *KeyAuthsCollection
-	HMACAuths               *HMACAuthsCollection
-	JWTAuths                *JWTAuthsCollection
-	BasicAuths              *BasicAuthsCollection
-	ACLGroups               *ACLGroupsCollection
-	Oauth2Creds             *Oauth2CredsCollection
-	MTLSAuths               *MTLSAuthsCollection
-	DegraphqlRoutes         *DegraphqlRoutesCollection
-	RBACRoles               *RBACRolesCollection
-	RBACEndpointPermissions *RBACEndpointPermissionsCollection
+	KeyAuths                           *KeyAuthsCollection
+	HMACAuths                          *HMACAuthsCollection
+	JWTAuths                           *JWTAuthsCollection
+	BasicAuths                         *BasicAuthsCollection
+	ACLGroups                          *ACLGroupsCollection
+	Oauth2Creds                        *Oauth2CredsCollection
+	MTLSAuths                          *MTLSAuthsCollection
+	DegraphqlRoutes                    *DegraphqlRoutesCollection
+	GraphqlRateLimitingCostDecorations *GraphqlRateLimitingCostDecorationsCollection
+	RBACRoles                          *RBACRolesCollection
+	RBACEndpointPermissions            *RBACEndpointPermissionsCollection
 
 	// konnect-specific entities
 	ServicePackages *ServicePackagesCollection
@@ -60,6 +61,7 @@ func NewKongState() (*KongState, error) {
 	oauth2CredsTemp := newOauth2CredsCollection(collection{})
 	mtlsAuthTemp := newMTLSAuthsCollection(collection{})
 	degraphqlRouteTemp := newDegraphqlRoutesCollection(collection{})
+	graphqlRateLimitingCostDecorationTemp := newGraphqlRateLimitingCostDecorationsCollection(collection{})
 
 	schema := &memdb.DBSchema{
 		Tables: map[string]*memdb.TableSchema{
@@ -84,7 +86,8 @@ func NewKongState() (*KongState, error) {
 			keyTableName:                    keyTableSchema,
 			keySetTableName:                 keySetTableSchema,
 
-			degraphqlRouteTemp.TableName(): degraphqlRouteTemp.Schema(),
+			degraphqlRouteTemp.TableName():                    degraphqlRouteTemp.Schema(),
+			graphqlRateLimitingCostDecorationTemp.TableName(): graphqlRateLimitingCostDecorationTemp.Schema(),
 
 			keyAuthTemp.TableName():     keyAuthTemp.Schema(),
 			hmacAuthTemp.TableName():    hmacAuthTemp.Schema(),
@@ -133,6 +136,7 @@ func NewKongState() (*KongState, error) {
 	state.KeySets = (*KeySetsCollection)(&state.common)
 
 	state.DegraphqlRoutes = newDegraphqlRoutesCollection(state.common)
+	state.GraphqlRateLimitingCostDecorations = newGraphqlRateLimitingCostDecorationsCollection(state.common)
 
 	state.KeyAuths = newKeyAuthsCollection(state.common)
 	state.HMACAuths = newHMACAuthsCollection(state.common)

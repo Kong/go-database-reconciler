@@ -676,9 +676,18 @@ func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
 	if client.Lookup(typ) != nil {
 		return nil
 	}
+
+	// Determine the CRUD path based on entity type
+	crudPath := "/" + string(typ)
+
+	// Special case for graphql_ratelimiting_cost_decorations which uses a different API path
+	if typ == "graphql_ratelimiting_cost_decorations" {
+		crudPath = "/graphql-rate-limiting-advanced/costs"
+	}
+
 	return client.Register(typ, &custom.EntityCRUDDefinition{
 		Name:       typ,
-		CRUDPath:   "/" + string(typ),
+		CRUDPath:   crudPath,
 		PrimaryKey: "id",
 	})
 }

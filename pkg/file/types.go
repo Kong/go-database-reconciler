@@ -32,7 +32,8 @@ const (
 )
 
 const (
-	degraphqlRoutesType = "degraphql_routes"
+	degraphqlRoutesType                    = "degraphql_routes"
+	graphqlRateLimitingCostDecorationsType = "graphql_ratelimiting_cost_decorations"
 )
 
 // FFilterChain represents a Kong FilterChain.
@@ -966,6 +967,13 @@ func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
 			return err
 		}
 		return copyToFCustomEntity(entity, f)
+	case graphqlRateLimitingCostDecorationsType:
+		var entity map[string]interface{}
+		err := json.Unmarshal(b, &entity)
+		if err != nil {
+			return err
+		}
+		return copyToGraphqlRateLimitingCostDecorationEntity(entity, f)
 	default:
 		return fmt.Errorf("unknown entity type: %s", temp["type"])
 	}
@@ -981,6 +989,12 @@ func (f *FCustomEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			return err
 		}
 		return copyFromDegraphqlRoute(entity, f)
+	case graphqlRateLimitingCostDecorationsType:
+		var entity GraphqlRateLimitingCostDecoration
+		if err := unmarshal(&entity); err != nil {
+			return err
+		}
+		return copyFromGraphqlRateLimitingCostDecoration(entity, f)
 	default:
 		return fmt.Errorf("unknown entity type: %s", *f.Type)
 	}
@@ -997,6 +1011,19 @@ func (f FCustomEntity) sortKey() string {
 // +k8s:deepcopy-gen=true
 type DegraphqlRoute struct {
 	kong.DegraphqlRoute
+}
+
+// +k8s:deepcopy-gen=true
+type GraphqlRateLimitingCostDecoration struct {
+	kong.GraphqlRateLimitingCostDecoration
+}
+
+// sortKey is used for sorting.
+func (g GraphqlRateLimitingCostDecoration) sortKey() string {
+	if g.ID != nil {
+		return *g.ID
+	}
+	return ""
 }
 
 func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) error {
@@ -1094,6 +1121,123 @@ func (d DegraphqlRoute) sortKey() string {
 		return *d.ID
 	}
 	return ""
+}
+
+func copyFromGraphqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, fcEntity *FCustomEntity) error {
+	fcEntity.Type = kong.String(graphqlRateLimitingCostDecorationsType)
+
+	if g.ID != nil {
+		fcEntity.ID = g.ID
+	}
+
+	fcEntity.Fields = make(map[string]interface{})
+
+	if g.TypePath != nil {
+		fcEntity.Fields["type_path"] = *g.TypePath
+	}
+
+	if g.AddConstant != nil {
+		fcEntity.Fields["add_constant"] = *g.AddConstant
+	}
+
+	if g.MulConstant != nil {
+		fcEntity.Fields["mul_constant"] = *g.MulConstant
+	}
+
+	if g.AddArguments != nil {
+		addArgs := make([]interface{}, len(g.AddArguments))
+		for i, arg := range g.AddArguments {
+			if arg != nil {
+				addArgs[i] = *arg
+			}
+		}
+		fcEntity.Fields["add_arguments"] = addArgs
+	}
+
+	if g.MulArguments != nil {
+		mulArgs := make([]interface{}, len(g.MulArguments))
+		for i, arg := range g.MulArguments {
+			if arg != nil {
+				mulArgs[i] = *arg
+			}
+		}
+		fcEntity.Fields["mul_arguments"] = mulArgs
+	}
+
+	return nil
+}
+
+func copyToGraphqlRateLimitingCostDecorationEntity(data map[string]interface{}, fcEntity *FCustomEntity) error {
+	fcEntity.Type = kong.String(graphqlRateLimitingCostDecorationsType)
+
+	if data["id"] != nil {
+		fcEntity.ID = kong.String(data["id"].(string))
+	}
+
+	fcEntity.Fields = make(map[string]interface{})
+
+	f, ok := data["fields"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("fields field should be a map")
+	}
+
+	if f["type_path"] != nil {
+		typePath, ok := f["type_path"].(string)
+		if !ok {
+			return fmt.Errorf("type_path field should be a string")
+		}
+		fcEntity.Fields["type_path"] = kong.String(typePath)
+	}
+
+	if f["add_constant"] != nil {
+		addConstant, ok := f["add_constant"].(float64)
+		if !ok {
+			return fmt.Errorf("add_constant field should be a number")
+		}
+		fcEntity.Fields["add_constant"] = kong.Float64(addConstant)
+	}
+
+	if f["mul_constant"] != nil {
+		mulConstant, ok := f["mul_constant"].(float64)
+		if !ok {
+			return fmt.Errorf("mul_constant field should be a number")
+		}
+		fcEntity.Fields["mul_constant"] = kong.Float64(mulConstant)
+	}
+
+	if f["add_arguments"] != nil {
+		argsArray, ok := f["add_arguments"].([]interface{})
+		if !ok {
+			return fmt.Errorf("add_arguments field should be an array")
+		}
+		args := make([]*string, len(argsArray))
+		for i, arg := range argsArray {
+			argStr, ok := arg.(string)
+			if !ok {
+				return fmt.Errorf("add_arguments elements should be strings")
+			}
+			args[i] = kong.String(argStr)
+		}
+		fcEntity.Fields["add_arguments"] = args
+	}
+
+	if f["mul_arguments"] != nil {
+		argsArray, ok := f["mul_arguments"].([]interface{})
+		if !ok {
+			return fmt.Errorf("mul_arguments field should be an array")
+		}
+		args := make([]*string, len(argsArray))
+		for i, arg := range argsArray {
+			argStr, ok := arg.(string)
+			if !ok {
+				return fmt.Errorf("mul_arguments elements should be strings")
+			}
+			args[i] = kong.String(argStr)
+		}
+		fcEntity.Fields["mul_arguments"] = args
+	}
+
+	return nil
 }
 
 // +k8s:deepcopy-gen=true

@@ -416,6 +416,213 @@ func Test_Dump_CustomEntities(t *testing.T) {
 	require.Equal(t, "query{ name }", query)
 }
 
+func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	// Clean up any existing decorations before starting the test
+	existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAll(context.Background())
+	require.NoError(t, err)
+	for _, d := range existingDecorations {
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), d.ID)
+	}
+
+	// Create a graphql_ratelimiting_cost_decoration using the dedicated client
+	decoration, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		TypePath:     kong.String("Query.users"),
+		AddConstant:  kong.Float64(1.5),
+		MulConstant:  kong.Float64(2.0),
+		AddArguments: kong.StringSlice("limit"),
+		MulArguments: kong.StringSlice("first", "last"),
+	})
+	require.NoError(t, err, "Should create graphql_ratelimiting_cost_decoration successfully")
+	t.Logf("Created graphql_ratelimiting_cost_decoration %s with type_path %s", *decoration.ID, *decoration.TypePath)
+
+	// Clean up after the test
+	t.Cleanup(func() {
+		err := client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), decoration.ID)
+		require.NoError(t, err, "should delete graphql_ratelimiting_cost_decoration in cleanup")
+	})
+
+	// Call dump.Get with custom entities
+	rawState, err := deckDump.Get(context.Background(), client, deckDump.Config{
+		CustomEntityTypes: []string{"graphql_ratelimiting_cost_decorations"},
+	})
+	require.NoError(t, err, "Should dump from Kong successfully")
+	require.Len(t, rawState.CustomEntities, 1, "Dumped raw state should contain 1 custom entity")
+
+	// Check entity type
+	typ := rawState.CustomEntities[0].Type()
+	require.Equal(t, custom.Type("graphql_ratelimiting_cost_decorations"), typ,
+		"Entity should have type graphql_ratelimiting_cost_decorations")
+
+	// Check fields of the entity
+	obj := rawState.CustomEntities[0].Object()
+
+	typePath, ok := obj["type_path"].(string)
+	require.Truef(t, ok, "'type_path' field should have type 'string' but actual '%T'", obj["type_path"])
+	require.Equal(t, "Query.users", typePath)
+
+	addConstant, ok := obj["add_constant"].(float64)
+	require.Truef(t, ok, "'add_constant' field should have type 'float64' but actual '%T'", obj["add_constant"])
+	require.Equal(t, 1.5, addConstant)
+
+	mulConstant, ok := obj["mul_constant"].(float64)
+	require.Truef(t, ok, "'mul_constant' field should have type 'float64' but actual '%T'", obj["mul_constant"])
+	require.Equal(t, 2.0, mulConstant)
+}
+
+func Test_Dump_GraphqlRateLimitingCostDecorations_Multiple(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	// Clean up any existing decorations before starting the test
+	existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAll(context.Background())
+	require.NoError(t, err)
+	for _, d := range existingDecorations {
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), d.ID)
+	}
+
+	// Create multiple graphql_ratelimiting_cost_decorations
+	decoration1, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		TypePath:    kong.String("Query.users"),
+		AddConstant: kong.Float64(1.0),
+	})
+	require.NoError(t, err, "Should create first decoration successfully")
+
+	decoration2, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		TypePath:    kong.String("Query.posts"),
+		AddConstant: kong.Float64(2.0),
+	})
+	require.NoError(t, err, "Should create second decoration successfully")
+
+	decoration3, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		TypePath:     kong.String("Mutation.createUser"),
+		MulConstant:  kong.Float64(3.0),
+		MulArguments: kong.StringSlice("count"),
+	})
+	require.NoError(t, err, "Should create third decoration successfully")
+
+	// Clean up after the test
+	t.Cleanup(func() {
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), decoration1.ID)
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), decoration2.ID)
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), decoration3.ID)
+	})
+
+	// Call dump.Get with custom entities
+	rawState, err := deckDump.Get(context.Background(), client, deckDump.Config{
+		CustomEntityTypes: []string{"graphql_ratelimiting_cost_decorations"},
+	})
+	require.NoError(t, err, "Should dump from Kong successfully")
+	require.Len(t, rawState.CustomEntities, 3, "Dumped raw state should contain 3 custom entities")
+
+	// Verify all entities have the correct type
+	for _, entity := range rawState.CustomEntities {
+		require.Equal(t, custom.Type("graphql_ratelimiting_cost_decorations"), entity.Type())
+	}
+
+	// Collect all type_paths from dumped entities
+	typePaths := make(map[string]bool)
+	for _, entity := range rawState.CustomEntities {
+		obj := entity.Object()
+		typePath, ok := obj["type_path"].(string)
+		require.True(t, ok, "type_path should be a string")
+		typePaths[typePath] = true
+	}
+
+	// Verify all expected type_paths are present
+	require.True(t, typePaths["Query.users"], "Should contain Query.users")
+	require.True(t, typePaths["Query.posts"], "Should contain Query.posts")
+	require.True(t, typePaths["Mutation.createUser"], "Should contain Mutation.createUser")
+}
+
+func Test_Dump_GraphqlRateLimitingCostDecorations_EmptyWhenNoneExist(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	// Clean up ALL existing decorations
+	existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAll(context.Background())
+	require.NoError(t, err)
+	for _, d := range existingDecorations {
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), d.ID)
+	}
+
+	// Dump when no decorations exist
+	rawState, err := deckDump.Get(context.Background(), client, deckDump.Config{
+		CustomEntityTypes: []string{"graphql_ratelimiting_cost_decorations"},
+	})
+	require.NoError(t, err, "Should dump successfully even when no decorations exist")
+	require.Len(t, rawState.CustomEntities, 0, "Should have no custom entities when none exist")
+}
+
+func Test_Dump_GraphqlRateLimitingCostDecorations_MixedWithOtherCustomEntities(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	// Clean up any existing decorations
+	existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAll(context.Background())
+	require.NoError(t, err)
+	for _, d := range existingDecorations {
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), d.ID)
+	}
+
+	// Create a decoration
+	decoration, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		TypePath:    kong.String("Query.mixed"),
+		AddConstant: kong.Float64(1.0),
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), decoration.ID)
+	})
+
+	// Dump with multiple custom entity types (both valid)
+	rawState, err := deckDump.Get(context.Background(), client, deckDump.Config{
+		CustomEntityTypes: []string{"graphql_ratelimiting_cost_decorations", "degraphql_routes"},
+	})
+	require.NoError(t, err, "Should dump successfully with multiple custom entity types")
+
+	// Should have at least our decoration
+	found := false
+	for _, entity := range rawState.CustomEntities {
+		if entity.Type() == "graphql_ratelimiting_cost_decorations" {
+			obj := entity.Object()
+			if obj["type_path"] == "Query.mixed" {
+				found = true
+				break
+			}
+		}
+	}
+	require.True(t, found, "Should find our graphql_ratelimiting_cost_decoration in mixed dump")
+}
+
+func Test_Dump_GraphqlRateLimitingCostDecorations_DeleteNonExistent(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	// Try to delete a non-existent decoration - should return error
+	nonExistentID := "00000000-0000-0000-0000-000000000000"
+	err = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), kong.String(nonExistentID))
+	require.Error(t, err, "Should return error when deleting non-existent decoration")
+}
+
 func Test_Dump_KeysAndKeySets(t *testing.T) {
 	runWhen(t, "kong", ">=3.1.0")
 	setup(t)
