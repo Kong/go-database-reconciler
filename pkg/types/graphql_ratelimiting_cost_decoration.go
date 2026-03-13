@@ -31,7 +31,8 @@ func (s *graphqlRateLimitingCostDecorationCRUD) Create(ctx context.Context, arg 
 	event := crud.EventFromArg(arg[0])
 	decoration := graphqlRateLimitingCostDecorationFromStruct(event)
 
-	createdDecoration, err := s.client.GraphqlRateLimitingCostDecorations.CreateWithID(ctx, &decoration.GraphqlRateLimitingCostDecoration)
+	createdDecoration, err := s.client.GraphqlRateLimitingCostDecorations.CreateWithID(ctx,
+		&decoration.GraphqlRateLimitingCostDecoration)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,8 @@ func (s *graphqlRateLimitingCostDecorationCRUD) Update(ctx context.Context, arg 
 	event := crud.EventFromArg(arg[0])
 	decoration := graphqlRateLimitingCostDecorationFromStruct(event)
 
-	updatedDecoration, err := s.client.GraphqlRateLimitingCostDecorations.Update(ctx, &decoration.GraphqlRateLimitingCostDecoration)
+	updatedDecoration, err := s.client.GraphqlRateLimitingCostDecorations.Update(ctx,
+		&decoration.GraphqlRateLimitingCostDecoration)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +117,8 @@ func (d *graphqlRateLimitingCostDecorationDiffer) deleteDecoration(
 			return nil, nil
 		}
 		if !errors.Is(err, state.ErrNotFound) {
-			return nil, fmt.Errorf("looking up graphql ratelimiting cost decoration by type_path %q: %w", *decoration.TypePath, err)
+			return nil, fmt.Errorf("looking up graphql ratelimiting cost decoration by type_path %q: %w",
+				*decoration.TypePath, err)
 		}
 	}
 

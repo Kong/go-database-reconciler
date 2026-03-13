@@ -29,7 +29,9 @@ func newGraphqlRateLimitingCostDecorationsCollection(common collection) *Graphql
 	}
 }
 
-func getGraphqlRateLimitingCostDecorationByTypePath(txn *memdb.Txn, typePath string) (*GraphqlRateLimitingCostDecoration, error) {
+func getGraphqlRateLimitingCostDecorationByTypePath(txn *memdb.Txn,
+	typePath string,
+) (*GraphqlRateLimitingCostDecoration, error) {
 	res, err := txn.First(graphqlRateLimitingCostDecorationEntityType, "typePath", typePath)
 	if err != nil {
 		return nil, err
@@ -47,7 +49,9 @@ func getGraphqlRateLimitingCostDecorationByTypePath(txn *memdb.Txn, typePath str
 
 // GetByTypePath gets a graphql ratelimiting cost decoration with
 // the same type_path from the collection.
-func (k *GraphqlRateLimitingCostDecorationsCollection) GetByTypePath(typePath string) (*GraphqlRateLimitingCostDecoration, error) {
+func (k *GraphqlRateLimitingCostDecorationsCollection) GetByTypePath(
+	typePath string,
+) (*GraphqlRateLimitingCostDecoration, error) {
 	if typePath == "" {
 		return nil, fmt.Errorf("typePath cannot be empty string")
 	}

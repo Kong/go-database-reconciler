@@ -534,15 +534,18 @@ type graphqlRateLimitingCostDecorationPostAction struct {
 }
 
 func (crud *graphqlRateLimitingCostDecorationPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.GraphqlRateLimitingCostDecorations.Add(*args[0].(*state.GraphqlRateLimitingCostDecoration))
+	return nil,
+		crud.currentState.GraphqlRateLimitingCostDecorations.Add(*args[0].(*state.GraphqlRateLimitingCostDecoration))
 }
 
 func (crud *graphqlRateLimitingCostDecorationPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.GraphqlRateLimitingCostDecorations.Delete(*((args[0].(*state.GraphqlRateLimitingCostDecoration)).ID))
+	return nil, crud.currentState.GraphqlRateLimitingCostDecorations.Delete(
+		*((args[0].(*state.GraphqlRateLimitingCostDecoration)).ID))
 }
 
 func (crud *graphqlRateLimitingCostDecorationPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.GraphqlRateLimitingCostDecorations.Update(*args[0].(*state.GraphqlRateLimitingCostDecoration))
+	return nil,
+		crud.currentState.GraphqlRateLimitingCostDecorations.Update(*args[0].(*state.GraphqlRateLimitingCostDecoration))
 }
 
 type partialPostAction struct {

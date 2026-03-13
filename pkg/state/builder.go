@@ -456,7 +456,7 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		case "graphql_ratelimiting_cost_decorations":
 			entity := c.Object()
 
-			decoration, err := buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState, entity)
+			decoration, err := buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity)
 			if err != nil {
 				return fmt.Errorf("building graphql ratelimiting cost decoration from custom entity: %w", err)
 			}
@@ -607,8 +607,7 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 	return degraphqlRoute, nil
 }
 
-func buildGraphqlRateLimitingCostDecorationFromCustomEntity(
-	kongState *KongState, entity map[string]interface{},
+func buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity map[string]interface{},
 ) (GraphqlRateLimitingCostDecoration, error) {
 	var decoration GraphqlRateLimitingCostDecoration
 

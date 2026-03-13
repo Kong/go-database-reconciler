@@ -2290,7 +2290,8 @@ func (b *stateBuilder) ingestGraphqlRateLimitingCostDecoration(entity FCustomEnt
 }
 
 func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
-	fcEntity FCustomEntity) (GraphqlRateLimitingCostDecoration, error) {
+	fcEntity FCustomEntity,
+) (GraphqlRateLimitingCostDecoration, error) {
 	decoration := GraphqlRateLimitingCostDecoration{}
 
 	if fcEntity.ID != nil {
