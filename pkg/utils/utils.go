@@ -45,6 +45,7 @@ var UpgradeMessage = "Please upgrade your configuration to account for 3.0\n" +
 	"of the updated configuration file before applying\n" +
 	"the configuration in production. Incorrect changes will result in\n" +
 	"unintended traffic routing by Kong Gateway.\n\n" +
+
 	"For more information about this and related changes,\n" +
 	"please visit: https://docs.konghq.com/deck/latest/3.0-upgrade\n\n"
 
