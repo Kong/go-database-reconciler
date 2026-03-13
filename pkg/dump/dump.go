@@ -683,7 +683,8 @@ func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
 	// Determine the CRUD path based on entity type
 	crudPath := "/" + string(typ)
 
-	// Special case for graphql_ratelimiting_cost_decorations which uses a different API path
+	// Special case: Kong exposes this API at /graphql-rate-limiting-advanced/costs,
+	// not at /graphql_ratelimiting_cost_decorations (the entity type name).
 	if typ == "graphql_ratelimiting_cost_decorations" {
 		crudPath = "/graphql-rate-limiting-advanced/costs"
 	}
