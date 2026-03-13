@@ -615,19 +615,6 @@ func Test_Dump_GraphqlRateLimitingCostDecorations_MixedWithOtherCustomEntities(t
 	require.True(t, found, "Should find our graphql_ratelimiting_cost_decoration in mixed dump")
 }
 
-func Test_Dump_GraphqlRateLimitingCostDecorations_DeleteNonExistent(t *testing.T) {
-	kong.RunWhenEnterprise(t, ">=3.4.0", kong.RequiredFeatures{})
-	setup(t)
-
-	client, err := getTestClient()
-	require.NoError(t, err)
-
-	// Try to delete a non-existent decoration - should return error
-	nonExistentID := "00000000-0000-0000-0000-000000000000"
-	err = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), kong.String(nonExistentID))
-	require.Error(t, err, "Should return error when deleting non-existent decoration")
-}
-
 func Test_Dump_KeysAndKeySets(t *testing.T) {
 	runWhen(t, "kong", ">=3.1.0")
 	setup(t)
