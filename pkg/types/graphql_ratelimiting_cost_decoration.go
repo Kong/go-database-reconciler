@@ -31,16 +31,7 @@ func (s *graphqlRateLimitingCostDecorationCRUD) Create(ctx context.Context, arg 
 	event := crud.EventFromArg(arg[0])
 	decoration := graphqlRateLimitingCostDecorationFromStruct(event)
 
-	// Kong API doesn't accept ID on create for cost decorations
-	decorationCopy := &kong.GraphqlRateLimitingCostDecoration{
-		TypePath:     decoration.TypePath,
-		AddConstant:  decoration.AddConstant,
-		MulConstant:  decoration.MulConstant,
-		AddArguments: decoration.AddArguments,
-		MulArguments: decoration.MulArguments,
-	}
-
-	createdDecoration, err := s.client.GraphqlRateLimitingCostDecorations.Create(ctx, decorationCopy)
+	createdDecoration, err := s.client.GraphqlRateLimitingCostDecorations.CreateWithID(ctx, &decoration.GraphqlRateLimitingCostDecoration)
 	if err != nil {
 		return nil, err
 	}

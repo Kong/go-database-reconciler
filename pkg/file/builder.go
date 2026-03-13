@@ -2289,7 +2289,8 @@ func (b *stateBuilder) ingestGraphqlRateLimitingCostDecoration(entity FCustomEnt
 	)
 }
 
-func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(fcEntity FCustomEntity) (GraphqlRateLimitingCostDecoration, error) {
+func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
+	fcEntity FCustomEntity) (GraphqlRateLimitingCostDecoration, error) {
 	decoration := GraphqlRateLimitingCostDecoration{}
 
 	if fcEntity.ID != nil {
@@ -2297,7 +2298,16 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(fcEntity FCustomE
 	}
 
 	if fcEntity.Fields == nil {
-		return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("fields are required for graphql_ratelimiting_cost_decorations")
+		return GraphqlRateLimitingCostDecoration{},
+			fmt.Errorf("fields are required for graphql_ratelimiting_cost_decorations")
+	}
+
+	if fcEntity.Fields["id"] != nil {
+		if id, ok := fcEntity.Fields["id"].(*string); ok {
+			decoration.ID = id
+		} else if id, ok := fcEntity.Fields["id"].(string); ok {
+			decoration.ID = kong.String(id)
+		}
 	}
 
 	if fcEntity.Fields["type_path"] != nil {
@@ -2357,7 +2367,8 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(fcEntity FCustomE
 	}
 
 	if decoration.TypePath == nil {
-		return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("type_path is required for graphql_ratelimiting_cost_decorations")
+		return GraphqlRateLimitingCostDecoration{},
+			fmt.Errorf("type_path is required for graphql_ratelimiting_cost_decorations")
 	}
 
 	return decoration, nil

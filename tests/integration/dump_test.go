@@ -431,7 +431,8 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 	}
 
 	// Create a graphql_ratelimiting_cost_decoration using the dedicated client
-	decoration, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+	decoration, err := client.GraphqlRateLimitingCostDecorations.CreateWithID(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		ID:           kong.String("d5308258-3c34-4f28-94f9-52e3a8a6c4b1"),
 		TypePath:     kong.String("Query.users"),
 		AddConstant:  kong.Float64(1.5),
 		MulConstant:  kong.Float64(2.0),
@@ -476,7 +477,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 }
 
 func Test_Dump_GraphqlRateLimitingCostDecorations_Multiple(t *testing.T) {
-	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	kong.RunWhenEnterprise(t, ">=3.4.0", kong.RequiredFeatures{})
 	setup(t)
 
 	client, err := getTestClient()
@@ -490,19 +491,22 @@ func Test_Dump_GraphqlRateLimitingCostDecorations_Multiple(t *testing.T) {
 	}
 
 	// Create multiple graphql_ratelimiting_cost_decorations
-	decoration1, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+	decoration1, err := client.GraphqlRateLimitingCostDecorations.CreateWithID(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		ID:          kong.String("a1b2c3d4-1111-2222-3333-444455556666"),
 		TypePath:    kong.String("Query.users"),
 		AddConstant: kong.Float64(1.0),
 	})
 	require.NoError(t, err, "Should create first decoration successfully")
 
-	decoration2, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+	decoration2, err := client.GraphqlRateLimitingCostDecorations.CreateWithID(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		ID:          kong.String("a1b2c3d4-2222-3333-4444-555566667777"),
 		TypePath:    kong.String("Query.posts"),
 		AddConstant: kong.Float64(2.0),
 	})
 	require.NoError(t, err, "Should create second decoration successfully")
 
-	decoration3, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+	decoration3, err := client.GraphqlRateLimitingCostDecorations.CreateWithID(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		ID:           kong.String("a1b2c3d4-3333-4444-5555-666677778888"),
 		TypePath:     kong.String("Mutation.createUser"),
 		MulConstant:  kong.Float64(3.0),
 		MulArguments: kong.StringSlice("count"),
@@ -544,7 +548,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations_Multiple(t *testing.T) {
 }
 
 func Test_Dump_GraphqlRateLimitingCostDecorations_EmptyWhenNoneExist(t *testing.T) {
-	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	kong.RunWhenEnterprise(t, ">=3.4.0", kong.RequiredFeatures{})
 	setup(t)
 
 	client, err := getTestClient()
@@ -566,7 +570,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations_EmptyWhenNoneExist(t *testing.
 }
 
 func Test_Dump_GraphqlRateLimitingCostDecorations_MixedWithOtherCustomEntities(t *testing.T) {
-	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	kong.RunWhenEnterprise(t, ">=3.4.0", kong.RequiredFeatures{})
 	setup(t)
 
 	client, err := getTestClient()
@@ -580,7 +584,8 @@ func Test_Dump_GraphqlRateLimitingCostDecorations_MixedWithOtherCustomEntities(t
 	}
 
 	// Create a decoration
-	decoration, err := client.GraphqlRateLimitingCostDecorations.Create(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+	decoration, err := client.GraphqlRateLimitingCostDecorations.CreateWithID(context.Background(), &kong.GraphqlRateLimitingCostDecoration{
+		ID:          kong.String("b2c3d4e5-4444-5555-6666-777788889999"),
 		TypePath:    kong.String("Query.mixed"),
 		AddConstant: kong.Float64(1.0),
 	})
@@ -611,7 +616,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations_MixedWithOtherCustomEntities(t
 }
 
 func Test_Dump_GraphqlRateLimitingCostDecorations_DeleteNonExistent(t *testing.T) {
-	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	kong.RunWhenEnterprise(t, ">=3.4.0", kong.RequiredFeatures{})
 	setup(t)
 
 	client, err := getTestClient()
