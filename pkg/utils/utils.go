@@ -129,6 +129,17 @@ func WorkspaceExists(ctx context.Context, client *kong.Client) (bool, error) {
 	return client.Workspaces.Exists(ctx, &workspace)
 }
 
+func KonnectWorkspaceExists(ctx context.Context, client *kong.Client) (bool, error) {
+	if client == nil {
+		return false, nil
+	}
+	workspace := client.Workspace()
+	if workspace == "" {
+		return true, nil
+	}
+	return client.Workspaces.ExistsByName(ctx, &workspace)
+}
+
 // These GetFooReference functions return stripped copies (ID and Name only) of Kong resource
 // structs. We use these within KongRawState structs to indicate entity relationships.
 // While state files indicate relationships by nesting (A collection of services is

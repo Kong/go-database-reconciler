@@ -277,10 +277,20 @@ func getKongDefaulterWithClient(ctx context.Context, opts DefaulterOpts) (*Defau
 // 2. values set in the {_info: defaults:} object in the state file
 // 3. hardcoded defaults under utils/constants.go (Konnect-only)
 func GetDefaulter(ctx context.Context, opts DefaulterOpts) (*Defaulter, error) {
-	exists, err := WorkspaceExists(ctx, opts.Client)
-	if err != nil {
-		return nil, fmt.Errorf("ensure workspace exists: %w", err)
+	var exists bool
+	var err error
+	if opts.IsKonnect {
+		exists, err = KonnectWorkspaceExists(ctx, opts.Client)
+		if err != nil {
+			return nil, fmt.Errorf("ensure konnect workspace exists: %w", err)
+		}
+	} else {
+		exists, err = WorkspaceExists(ctx, opts.Client)
+		if err != nil {
+			return nil, fmt.Errorf("ensure kong workspace exists: %w", err)
+		}
 	}
+
 	if opts.Client != nil && !opts.DisableDynamicDefaults && exists {
 		return getKongDefaulterWithClient(ctx, opts)
 	}
