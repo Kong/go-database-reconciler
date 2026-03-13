@@ -726,14 +726,11 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		if sc.isKonnect {
 			workspaceExists, err = utils.KonnectWorkspaceExists(ctx, sc.kongClient)
-			if err != nil {
-				return nil, err
-			}
 		} else {
 			workspaceExists, err = utils.WorkspaceExists(ctx, sc.kongClient)
-			if err != nil {
-				return nil, err
-			}
+		}
+		if err != nil {
+			return nil, err
 		}
 
 		// If the event is for a plugin, inject defaults in the plugin's config
