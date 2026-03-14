@@ -135,6 +135,9 @@ const (
 
 	DegraphqlRoute EntityType = "degraphql_routes"
 
+	// GraphqlRateLimitingCostDecoration identifies a GraphqlRateLimitingCostDecoration in Kong.
+	GraphqlRateLimitingCostDecoration EntityType = "graphql_ratelimiting_cost_decorations"
+
 	// Partial identifies a Partial in Kong.
 	Partial EntityType = "partial"
 
@@ -168,6 +171,8 @@ var AllTypes = []EntityType{
 	FilterChain,
 
 	DegraphqlRoute,
+
+	GraphqlRateLimitingCostDecoration,
 
 	Partial,
 
@@ -608,6 +613,21 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &degraphqlRouteDiffer{
 				kind:         entityTypeToKind(DegraphqlRoute),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case GraphqlRateLimitingCostDecoration:
+		return entityImpl{
+			typ: GraphqlRateLimitingCostDecoration,
+			crudActions: &graphqlRateLimitingCostDecorationCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &graphqlRateLimitingCostDecorationPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &graphqlRateLimitingCostDecorationDiffer{
+				kind:         entityTypeToKind(GraphqlRateLimitingCostDecoration),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

@@ -208,6 +208,11 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, err
 	}
 
+	err = populateGraphqlRateLimitingCostDecorations(kongState, file)
+	if err != nil {
+		return nil, err
+	}
+
 	err = populatePartials(kongState, file)
 	if err != nil {
 		return nil, err
@@ -1022,6 +1027,32 @@ func populateDegraphqlRoutes(kongState *state.KongState, file *Content) error {
 
 		err := copyFromDegraphqlRoute(DegraphqlRoute{
 			DegraphqlRoute: d.DegraphqlRoute,
+		}, &f)
+		if err != nil {
+			return err
+		}
+		utils.ZeroOutTimestamps(&f)
+
+		file.CustomEntities = append(file.CustomEntities, f)
+	}
+	sort.SliceStable(file.CustomEntities, func(i, j int) bool {
+		return compareOrder(file.CustomEntities[i], file.CustomEntities[j])
+	})
+
+	return nil
+}
+
+func populateGraphqlRateLimitingCostDecorations(kongState *state.KongState, file *Content) error {
+	decorations, err := kongState.GraphqlRateLimitingCostDecorations.GetAll()
+	if err != nil {
+		return err
+	}
+
+	for _, d := range decorations {
+		f := FCustomEntity{}
+
+		err := copyFromGraphqlRateLimitingCostDecoration(GraphqlRateLimitingCostDecoration{
+			GraphqlRateLimitingCostDecoration: d.GraphqlRateLimitingCostDecoration,
 		}, &f)
 		if err != nil {
 			return err

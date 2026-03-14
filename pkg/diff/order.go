@@ -25,6 +25,7 @@ L3      +---------------------------> Service <---+  +-> Route               |
 L4      +----------> Document   <---------+          +-> Plugins / <---------+
                                                          FilterChains
 														 CustomEntities - DegraphqlRoute
+														               - GraphqlRateLimitingCostDecoration
 */
 
 // dependencyOrder defines the order in which entities will be synced by decK.
@@ -69,6 +70,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.FilterChain,
 		types.Document,
 		types.DegraphqlRoute,
+		types.GraphqlRateLimitingCostDecoration,
 	},
 }
 

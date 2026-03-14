@@ -644,19 +644,22 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 	}
 
 	if !skipCustomEntities && len(config.CustomEntityTypes) > 0 {
-		// Get custom entities with types given in config.CustomEntityTypes.
+		// Register all entity types first (sequentially) to avoid data race on the registry map.
+		// The registry is not thread-safe, so we must complete all registrations before
+		// starting concurrent fetch operations that call Lookup().
+		for _, entityType := range config.CustomEntityTypes {
+			if err := tryRegisterEntityType(client, custom.Type(entityType)); err != nil {
+				group.Go(func() error {
+					return fmt.Errorf("custom entity %s: %w", entityType, err)
+				})
+				continue
+			}
+		}
+
 		customEntityLock := sync.Mutex{}
 		for _, entityType := range config.CustomEntityTypes {
 			t := entityType
 			group.Go(func() error {
-				// Register entity type.
-				// Because client writes an unprotected map to register entity types, we need to use mutex to protect it.
-				customEntityLock.Lock()
-				err := tryRegisterEntityType(client, custom.Type(t))
-				customEntityLock.Unlock()
-				if err != nil {
-					return fmt.Errorf("custom entity %s: %w", t, err)
-				}
 				// Fetch all entities with the given type.
 				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
 				if err != nil {
@@ -676,9 +679,19 @@ func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
 	if client.Lookup(typ) != nil {
 		return nil
 	}
+
+	// Determine the CRUD path based on entity type
+	crudPath := "/" + string(typ)
+
+	// Special case: Kong exposes this API at /graphql-rate-limiting-advanced/costs,
+	// not at /graphql_ratelimiting_cost_decorations (the entity type name).
+	if typ == "graphql_ratelimiting_cost_decorations" {
+		crudPath = "/graphql-rate-limiting-advanced/costs"
+	}
+
 	return client.Register(typ, &custom.EntityCRUDDefinition{
 		Name:       typ,
-		CRUDPath:   "/" + string(typ),
+		CRUDPath:   crudPath,
 		PrimaryKey: "id",
 	})
 }

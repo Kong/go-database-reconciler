@@ -298,6 +298,8 @@ func (sc *Syncer) init() error {
 
 		types.DegraphqlRoute,
 
+		types.GraphqlRateLimitingCostDecoration,
+
 		types.Partial,
 
 		types.Key, types.KeySet,
