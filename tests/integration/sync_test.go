@@ -9415,7 +9415,7 @@ func Test_Sync_GraphqlRateLimitingCostDecorations(t *testing.T) {
 		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
 		require.NoError(t, err)
 
-		targetState := stateFromFile(ctx, t, "testdata/sync/038-graphql-ratelimiting-cost-decorations/kong.yaml", client, dumpConfig)
+		targetState := stateFromFile(ctx, t, "testdata/sync/047-graphql-ratelimiting-cost-decorations/kong.yaml", client, dumpConfig)
 		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
 			CurrentState: currentState,
 			TargetState:  targetState,
@@ -9444,7 +9444,7 @@ func Test_Sync_GraphqlRateLimitingCostDecorations(t *testing.T) {
 		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
 		require.NoError(t, err)
 
-		targetState := stateFromFile(ctx, t, "testdata/sync/038-graphql-ratelimiting-cost-decorations/kong-all-fields.yaml", client, dumpConfig)
+		targetState := stateFromFile(ctx, t, "testdata/sync/047-graphql-ratelimiting-cost-decorations/kong-all-fields.yaml", client, dumpConfig)
 		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
 			CurrentState: currentState,
 			TargetState:  targetState,
@@ -9476,7 +9476,7 @@ func Test_Sync_GraphqlRateLimitingCostDecorations(t *testing.T) {
 	})
 
 	t.Run("create graphql ratelimiting cost decoration - fails if type_path is missing", func(t *testing.T) {
-		err := sync("testdata/sync/038-graphql-ratelimiting-cost-decorations/kong-missing-type-path.yaml")
+		err := sync("testdata/sync/047-graphql-ratelimiting-cost-decorations/kong-missing-type-path.yaml")
 		require.Error(t, err)
 		assert.ErrorContains(t, err, "type_path is required")
 	})
