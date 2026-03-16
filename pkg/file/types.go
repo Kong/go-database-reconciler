@@ -811,6 +811,7 @@ type LookUpSelectorTags struct {
 type Konnect struct {
 	RuntimeGroupName string `json:"runtime_group_name,omitempty" yaml:"runtime_group_name,omitempty"`
 	ControlPlaneName string `json:"control_plane_name,omitempty" yaml:"control_plane_name,omitempty"`
+	ControlPlaneID   string `json:"control_plane_id,omitempty" yaml:"control_plane_id,omitempty"`
 }
 
 // Kong represents Kong implementation of a Service in Konnect.
