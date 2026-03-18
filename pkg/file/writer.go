@@ -93,10 +93,10 @@ func getFormatVersion(kongVersion string) (string, error) {
 	return formatVersion, nil
 }
 
-func exportIDsWithBasicAuth(kongState *state.KongState) bool {
+func warnIfBasicAuthsFound(kongState *state.KongState) error {
 	basicAuths, err := kongState.BasicAuths.GetAll()
 	if err != nil {
-		return false
+		return fmt.Errorf("getting basic auths: %w", err)
 	}
 
 	exportIDs := len(basicAuths) > 0
@@ -106,7 +106,7 @@ func exportIDsWithBasicAuth(kongState *state.KongState) bool {
 		cprint.UpdatePrintlnStdErr(idsWarning)
 	}
 
-	return exportIDs
+	return nil
 }
 
 // KongStateToFile generates a state object to file.Content.
@@ -144,8 +144,8 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		}
 	}
 
-	if exportIDsWithBasicAuth(kongState) {
-		config.WithID = true
+	if err := warnIfBasicAuthsFound(kongState); err != nil {
+		return nil, err
 	}
 
 	err = populateServices(kongState, file, config)
