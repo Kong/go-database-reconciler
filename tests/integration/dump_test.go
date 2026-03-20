@@ -416,6 +416,135 @@ func Test_Dump_CustomEntities(t *testing.T) {
 	require.Equal(t, "query{ name }", query)
 }
 
+func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
+	setup(t)
+
+	// Sync a service first so we can attach cost decorations to it
+	require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
+	const serviceID = "58076db2-28b6-423b-ba39-a797193017f7"
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name              string
+		decorations       []*kong.GraphqlRateLimitingCostDecoration
+		customEntityTypes []string
+		expectedCount     int
+		expectedTypePaths []string
+	}{
+		{
+			name: "dump single decoration with all fields",
+			decorations: []*kong.GraphqlRateLimitingCostDecoration{
+				{
+					ID:           kong.String("d5308258-3c34-4f28-94f9-52e3a8a6c4b1"),
+					Service:      &kong.Service{ID: kong.String(serviceID)},
+					TypePath:     kong.String("Query.users"),
+					AddConstant:  kong.Float64(1.5),
+					MulConstant:  kong.Float64(2.0),
+					AddArguments: kong.StringSlice("limit"),
+					MulArguments: kong.StringSlice("first", "last"),
+				},
+			},
+			customEntityTypes: []string{"graphql_ratelimiting_cost_decorations"},
+			expectedCount:     1,
+			expectedTypePaths: []string{"Query.users"},
+		},
+		{
+			name: "dump multiple decorations",
+			decorations: []*kong.GraphqlRateLimitingCostDecoration{
+				{
+					ID:          kong.String("a1b2c3d4-1111-2222-3333-444455556666"),
+					Service:     &kong.Service{ID: kong.String(serviceID)},
+					TypePath:    kong.String("Query.users"),
+					AddConstant: kong.Float64(1.0),
+				},
+				{
+					ID:          kong.String("a1b2c3d4-1111-2222-3333-444422229999"),
+					Service:     &kong.Service{ID: kong.String(serviceID)},
+					TypePath:    kong.String("Query.posts"),
+					AddConstant: kong.Float64(2.0),
+				},
+				{
+					ID:           kong.String("a1b2c3d4-3333-4444-5555-666677778888"),
+					Service:      &kong.Service{ID: kong.String(serviceID)},
+					TypePath:     kong.String("Mutation.createUser"),
+					MulConstant:  kong.Float64(3.0),
+					MulArguments: kong.StringSlice("count"),
+				},
+			},
+			customEntityTypes: []string{"graphql_ratelimiting_cost_decorations"},
+			expectedCount:     3,
+			expectedTypePaths: []string{"Query.users", "Query.posts", "Mutation.createUser"},
+		},
+		{
+			name:              "dump empty when none exist",
+			decorations:       nil,
+			customEntityTypes: []string{"graphql_ratelimiting_cost_decorations"},
+			expectedCount:     0,
+			expectedTypePaths: nil,
+		},
+		{
+			name: "dump mixed with other custom entity types",
+			decorations: []*kong.GraphqlRateLimitingCostDecoration{
+				{
+					ID:          kong.String("b2c3d4e5-4444-5555-6666-777788889999"),
+					Service:     &kong.Service{ID: kong.String(serviceID)},
+					TypePath:    kong.String("Query.mixed"),
+					AddConstant: kong.Float64(1.0),
+				},
+			},
+			customEntityTypes: []string{"graphql_ratelimiting_cost_decorations", "degraphql_routes"},
+			expectedCount:     1,
+			expectedTypePaths: []string{"Query.mixed"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Reset Kong state and re-sync the service for each sub-test
+			// to ensure no stale decorations from previous sub-tests.
+			reset(t)
+			require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
+
+			// Create decorations for this test case
+			for _, deco := range tc.decorations {
+				_, err := client.GraphqlRateLimitingCostDecorations.CreateForServiceWithID(
+					context.Background(), deco)
+				require.NoError(t, err, "Should create decoration successfully")
+			}
+
+			// Call dump.Get with custom entities
+			rawState, err := deckDump.Get(context.Background(), client, deckDump.Config{
+				CustomEntityTypes: tc.customEntityTypes,
+			})
+			require.NoError(t, err, "Should dump from Kong successfully")
+
+			// Filter only graphql_ratelimiting_cost_decorations from the result
+			var costDecoEntities []custom.Entity
+			for _, entity := range rawState.CustomEntities {
+				if entity.Type() == "graphql_ratelimiting_cost_decorations" {
+					costDecoEntities = append(costDecoEntities, entity)
+				}
+			}
+			require.Len(t, costDecoEntities, tc.expectedCount)
+
+			// Verify expected type_paths
+			typePaths := make(map[string]bool)
+			for _, entity := range costDecoEntities {
+				obj := entity.Object()
+				typePath, ok := obj["type_path"].(string)
+				require.True(t, ok, "type_path should be a string")
+				typePaths[typePath] = true
+			}
+			for _, expected := range tc.expectedTypePaths {
+				require.True(t, typePaths[expected], "Should contain %s", expected)
+			}
+		})
+	}
+}
+
 func Test_Dump_KeysAndKeySets(t *testing.T) {
 	runWhen(t, "kong", ">=3.1.0")
 	setup(t)

@@ -431,8 +431,17 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, g := range raw.GraphqlRateLimitingCostDecorations {
+		err := kongState.GraphqlRateLimitingCostDecorations.Add(
+			GraphqlRateLimitingCostDecoration{GraphqlRateLimitingCostDecoration: *g})
+		if err != nil {
+			return fmt.Errorf("inserting graphql ratelimiting cost decoration into state: %w", err)
+		}
+	}
+
 	for _, c := range raw.CustomEntities {
-		if c.Type() == "degraphql_routes" {
+		switch c.Type() {
+		case "degraphql_routes":
 			entity := c.Object()
 
 			degraphqlRoute, err := buildDegraphqlRouteFromCustomEntity(kongState, entity)
@@ -443,6 +452,18 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			err = kongState.DegraphqlRoutes.Add(degraphqlRoute)
 			if err != nil {
 				return fmt.Errorf("inserting degraphql route into state: %w", err)
+			}
+		case "graphql_ratelimiting_cost_decorations":
+			entity := c.Object()
+
+			decoration, err := buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity)
+			if err != nil {
+				return fmt.Errorf("building graphql ratelimiting cost decoration from custom entity: %w", err)
+			}
+
+			err = kongState.GraphqlRateLimitingCostDecorations.Add(decoration)
+			if err != nil {
+				return fmt.Errorf("inserting graphql ratelimiting cost decoration into state: %w", err)
 			}
 		}
 	}
@@ -584,4 +605,88 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 	}
 
 	return degraphqlRoute, nil
+}
+
+func buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity map[string]interface{},
+) (GraphqlRateLimitingCostDecoration, error) {
+	var decoration GraphqlRateLimitingCostDecoration
+
+	if entity["id"] != nil {
+		id, ok := entity["id"].(string)
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("id must be of type string")
+		}
+		decoration.ID = kong.String(id)
+	}
+
+	if entity["service"] != nil {
+		svc, ok := entity["service"].(map[string]interface{})
+		if ok {
+			decoration.Service = &kong.Service{}
+			if id, ok := svc["id"].(string); ok {
+				decoration.Service.ID = kong.String(id)
+			}
+			if name, ok := svc["name"].(string); ok {
+				decoration.Service.Name = kong.String(name)
+			}
+		}
+	}
+
+	if entity["type_path"] != nil {
+		typePath, ok := entity["type_path"].(string)
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("type_path must be of type string")
+		}
+		decoration.TypePath = kong.String(typePath)
+	}
+
+	if entity["add_constant"] != nil {
+		addConstant, ok := entity["add_constant"].(float64)
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("add_constant must be of type float64")
+		}
+		decoration.AddConstant = kong.Float64(addConstant)
+	}
+
+	if entity["mul_constant"] != nil {
+		mulConstant, ok := entity["mul_constant"].(float64)
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("mul_constant must be of type float64")
+		}
+		decoration.MulConstant = kong.Float64(mulConstant)
+	}
+
+	if entity["add_arguments"] != nil {
+		addArgsSlice, ok := entity["add_arguments"].([]interface{})
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("add_arguments must be an array of strings")
+		}
+		addArgs := make([]*string, len(addArgsSlice))
+		for i, v := range addArgsSlice {
+			arg, ok := v.(string)
+			if !ok {
+				return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("add_arguments must be an array of strings")
+			}
+			addArgs[i] = kong.String(arg)
+		}
+		decoration.AddArguments = addArgs
+	}
+
+	if entity["mul_arguments"] != nil {
+		mulArgsSlice, ok := entity["mul_arguments"].([]interface{})
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("mul_arguments must be an array of strings")
+		}
+		mulArgs := make([]*string, len(mulArgsSlice))
+		for i, v := range mulArgsSlice {
+			arg, ok := v.(string)
+			if !ok {
+				return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("mul_arguments must be an array of strings")
+			}
+			mulArgs[i] = kong.String(arg)
+		}
+		decoration.MulArguments = mulArgs
+	}
+
+	return decoration, nil
 }

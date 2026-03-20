@@ -30,12 +30,32 @@ func Test_Apply_Custom_Entities(t *testing.T) {
 			initialStateFile:       "testdata/apply/001-custom-entities/initial-state.yaml",
 			targetPartialStateFile: "testdata/apply/001-custom-entities/partial-update.yaml",
 		},
+		{
+			name:                   "custom entity - graphql_ratelimiting_cost_decorationss basic",
+			initialStateFile:       "testdata/apply/001-custom-entities/initial-state.yaml",
+			targetPartialStateFile: "testdata/apply/001-custom-entities/graphql-cost-decoration-basic.yaml",
+		},
+		{
+			name:                   "custom entity - graphql_ratelimiting_cost_decorationss multiple",
+			initialStateFile:       "testdata/apply/001-custom-entities/initial-state.yaml",
+			targetPartialStateFile: "testdata/apply/001-custom-entities/graphql-cost-decoration-multiple.yaml",
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Clean up any existing graphql_ratelimiting_cost_decorations before each test
+			// The initial-state.yaml creates a service named "example"
+			svcID := kong.String("example")
+			existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAllForService(ctx, svcID)
+			if err == nil {
+				for _, d := range existingDecorations {
+					require.NoError(t, client.GraphqlRateLimitingCostDecorations.Delete(ctx, d.ID))
+				}
+			}
+
 			mustResetKongState(ctx, t, client, deckDump.Config{})
-			err := sync(tc.initialStateFile)
+			err = sync(tc.initialStateFile)
 			require.NoError(t, err)
 
 			err = apply(tc.targetPartialStateFile)

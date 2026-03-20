@@ -9399,6 +9399,194 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 	})
 }
 
+func Test_Sync_GraphqlRateLimitingCostDecorations(t *testing.T) {
+	client, err := getTestClient()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	ctx := context.Background()
+	dumpConfig := deckDump.Config{CustomEntityTypes: []string{"graphql_ratelimiting_cost_decorations"}}
+
+	runWhen(t, "enterprise", ">=3.0.0")
+
+	t.Run("create graphql ratelimiting cost decoration", func(t *testing.T) {
+		reset(t)
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t, "testdata/sync/047-graphql-ratelimiting-cost-decorations/kong.yaml", client, dumpConfig)
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		decorations, err := newState.GraphqlRateLimitingCostDecorations.GetAll()
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, len(decorations))
+		assert.Equal(t, "Query.users", *decorations[0].TypePath)
+		assert.Equal(t, 1.0, *decorations[0].AddConstant)
+	})
+
+	t.Run("create graphql ratelimiting cost decoration - all fields", func(t *testing.T) {
+		reset(t)
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t, "testdata/sync/047-graphql-ratelimiting-cost-decorations/kong-all-fields.yaml", client, dumpConfig)
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+
+			KongClient: client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in syncing")
+		logEntityChanges(t, stats, changes)
+
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		decorations, err := newState.GraphqlRateLimitingCostDecorations.GetAll()
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, len(decorations))
+		assert.Equal(t, "Query.posts", *decorations[0].TypePath)
+		assert.Equal(t, 2.0, *decorations[0].AddConstant)
+		assert.Equal(t, 1.5, *decorations[0].MulConstant)
+
+		expectedAddArgs := kong.StringSlice("limit", "offset")
+		assert.Equal(t, expectedAddArgs, decorations[0].AddArguments)
+
+		expectedMulArgs := kong.StringSlice("first", "last")
+		assert.Equal(t, expectedMulArgs, decorations[0].MulArguments)
+	})
+
+	t.Run("update graphql ratelimiting cost decoration - change add_constant", func(t *testing.T) {
+		// First sync the initial state with add_constant: 1.0
+		reset(t)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t,
+			"testdata/sync/047-graphql-ratelimiting-cost-decorations/kong.yaml", client, dumpConfig)
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+			KongClient:   client,
+		})
+		require.NoError(t, err)
+
+		_, errs, _ := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in initial sync")
+
+		// Now sync with updated add_constant: 5.0
+		currentState, err = fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		updatedTargetState := stateFromFile(ctx, t,
+			"testdata/sync/047-graphql-ratelimiting-cost-decorations/kong-update-add-constant.yaml", client, dumpConfig)
+		syncer, err = deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  updatedTargetState,
+			KongClient:   client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in update sync")
+		logEntityChanges(t, stats, changes)
+
+		// Verify the update was applied
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		decorations, err := newState.GraphqlRateLimitingCostDecorations.GetAll()
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, len(decorations))
+		assert.Equal(t, "Query.users", *decorations[0].TypePath)
+		assert.Equal(t, 5.0, *decorations[0].AddConstant)
+	})
+
+	t.Run("update graphql ratelimiting cost decoration - add multiple fields", func(t *testing.T) {
+		// First sync the initial state with only add_constant: 1.0
+		reset(t)
+		require.NoError(t, err)
+
+		targetState := stateFromFile(ctx, t,
+			"testdata/sync/047-graphql-ratelimiting-cost-decorations/kong.yaml", client, dumpConfig)
+		currentState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		syncer, err := deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  targetState,
+			KongClient:   client,
+		})
+		require.NoError(t, err)
+
+		_, errs, _ := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in initial sync")
+
+		// Now sync with mul_constant, add_arguments, and mul_arguments added
+		currentState, err = fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		updatedTargetState := stateFromFile(ctx, t,
+			"testdata/sync/047-graphql-ratelimiting-cost-decorations/kong-update-multiple-fields.yaml", client, dumpConfig)
+		syncer, err = deckDiff.NewSyncer(deckDiff.SyncerOpts{
+			CurrentState: currentState,
+			TargetState:  updatedTargetState,
+			KongClient:   client,
+		})
+		require.NoError(t, err)
+
+		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
+		require.Len(t, errs, 0, "Should have no errors in update sync")
+		logEntityChanges(t, stats, changes)
+
+		// Verify all fields were updated
+		newState, err := fetchCurrentState(ctx, client, dumpConfig)
+		require.NoError(t, err)
+
+		decorations, err := newState.GraphqlRateLimitingCostDecorations.GetAll()
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, len(decorations))
+		assert.Equal(t, "Query.users", *decorations[0].TypePath)
+		assert.Equal(t, 3.0, *decorations[0].AddConstant)
+		assert.Equal(t, 2.5, *decorations[0].MulConstant)
+
+		expectedAddArgs := kong.StringSlice("limit", "offset")
+		assert.Equal(t, expectedAddArgs, decorations[0].AddArguments)
+
+		expectedMulArgs := kong.StringSlice("first")
+		assert.Equal(t, expectedMulArgs, decorations[0].MulArguments)
+	})
+
+	t.Run("create graphql ratelimiting cost decoration - fails if type_path is missing", func(t *testing.T) {
+		err := sync("testdata/sync/047-graphql-ratelimiting-cost-decorations/kong-missing-type-path.yaml")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "type_path is required")
+	})
+}
+
 func Test_Sync_CustomEntities_Fake(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.0.0")
 	setup(t)

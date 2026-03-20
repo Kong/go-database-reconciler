@@ -529,6 +529,25 @@ func (crud *degraphqlRoutePostAction) Update(_ context.Context, args ...crud.Arg
 	return nil, crud.currentState.DegraphqlRoutes.Update(*args[0].(*state.DegraphqlRoute))
 }
 
+type graphqlRateLimitingCostDecorationPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud *graphqlRateLimitingCostDecorationPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil,
+		crud.currentState.GraphqlRateLimitingCostDecorations.Add(*args[0].(*state.GraphqlRateLimitingCostDecoration))
+}
+
+func (crud *graphqlRateLimitingCostDecorationPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.GraphqlRateLimitingCostDecorations.Delete(
+		*((args[0].(*state.GraphqlRateLimitingCostDecoration)).ID))
+}
+
+func (crud *graphqlRateLimitingCostDecorationPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil,
+		crud.currentState.GraphqlRateLimitingCostDecorations.Update(*args[0].(*state.GraphqlRateLimitingCostDecoration))
+}
+
 type partialPostAction struct {
 	currentState *state.KongState
 }
