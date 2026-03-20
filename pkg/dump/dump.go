@@ -659,6 +659,26 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		customEntityLock := sync.Mutex{}
 		for _, entityType := range config.CustomEntityTypes {
 			t := entityType
+
+			// In Konnect mode, graphql_ratelimiting_cost_decorations must be fetched
+			// per-service using the typed ListAllForService endpoint, because Konnect
+			// does not expose the generic custom entities list for this type.
+			if config.KonnectControlPlane != "" && t == "graphql_ratelimiting_cost_decorations" {
+				group.Go(func() error {
+					decorations, err := GetAllGraphqlRateLimitingCostDecorationsForServices(
+						ctx, client, config.SelectorTags)
+					if err != nil {
+						return fmt.Errorf("graphql_ratelimiting_cost_decorations: %w", err)
+					}
+					customEntityLock.Lock()
+					state.GraphqlRateLimitingCostDecorations = append(
+						state.GraphqlRateLimitingCostDecorations, decorations...)
+					customEntityLock.Unlock()
+					return nil
+				})
+				continue
+			}
+
 			group.Go(func() error {
 				// Fetch all entities with the given type.
 				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
@@ -1629,6 +1649,39 @@ func GetAllCustomEntitiesWithType(
 		opt = nextOpt
 	}
 	return entities, nil
+}
+
+// GetAllGraphqlRateLimitingCostDecorationsForServices fetches all services and then
+// retrieves graphql_ratelimiting_cost_decorations for each service using the
+// service-specific list endpoint. This is used in Konnect mode where the generic
+// custom entities list endpoint is not available for this entity type.
+func GetAllGraphqlRateLimitingCostDecorationsForServices(
+	ctx context.Context, client *kong.Client, tags []string,
+) ([]*kong.GraphqlRateLimitingCostDecoration, error) {
+	services, err := GetAllServices(ctx, client, tags)
+	if err != nil {
+		return nil, fmt.Errorf("fetching services: %w", err)
+	}
+
+	var allDecorations []*kong.GraphqlRateLimitingCostDecoration
+	for _, svc := range services {
+		if svc.ID == nil {
+			continue
+		}
+		decorations, err := client.GraphqlRateLimitingCostDecorations.ListAllForService(ctx, svc.ID)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("fetching graphql_ratelimiting_cost_decorations for service %s: %w",
+				*svc.ID, err)
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		allDecorations = append(allDecorations, decorations...)
+	}
+	return allDecorations, nil
 }
 
 // excludeConsumersPlugins filter out consumer plugins
