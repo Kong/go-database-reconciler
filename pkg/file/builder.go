@@ -2311,6 +2311,33 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 		}
 	}
 
+	// Extract service reference from fields if present
+	if fcEntity.Fields["service"] != nil {
+		if svc, ok := fcEntity.Fields["service"].(map[string]interface{}); ok {
+			var serviceID string
+			var serviceName string
+			if id, ok := svc["id"].(string); ok {
+				serviceID = id
+			}
+			if name, ok := svc["name"].(string); ok {
+				serviceName = name
+			}
+
+			if serviceID == "" && serviceName != "" {
+				s, err := b.intermediate.Services.Get(serviceName)
+				if err != nil {
+					return GraphqlRateLimitingCostDecoration{},
+						fmt.Errorf("service %v not found", serviceName)
+				}
+				serviceID = *s.ID
+			}
+
+			decoration.Service = &kong.Service{
+				ID: kong.String(serviceID),
+			}
+		}
+	}
+
 	if fcEntity.Fields["type_path"] != nil {
 		if tp, ok := fcEntity.Fields["type_path"].(*string); ok {
 			decoration.TypePath = tp

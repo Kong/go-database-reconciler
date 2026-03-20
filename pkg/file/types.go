@@ -1132,6 +1132,17 @@ func copyFromGraphqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecorati
 
 	fcEntity.Fields = make(map[string]interface{})
 
+	if g.Service != nil {
+		svc := make(map[string]interface{})
+		if g.Service.ID != nil {
+			svc["id"] = *g.Service.ID
+		}
+		if g.Service.Name != nil {
+			svc["name"] = *g.Service.Name
+		}
+		fcEntity.Fields["service"] = svc
+	}
+
 	if g.TypePath != nil {
 		fcEntity.Fields["type_path"] = *g.TypePath
 	}
@@ -1179,6 +1190,13 @@ func copyToGraphqlRateLimitingCostDecorationEntity(data map[string]interface{}, 
 	f, ok := data["fields"].(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("fields field should be a map")
+	}
+
+	if f["service"] != nil {
+		svc, ok := f["service"].(map[string]interface{})
+		if ok {
+			fcEntity.Fields["service"] = svc
+		}
 	}
 
 	if f["type_path"] != nil {

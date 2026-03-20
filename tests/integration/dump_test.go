@@ -417,8 +417,12 @@ func Test_Dump_CustomEntities(t *testing.T) {
 }
 
 func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
-	kong.RunWhenEnterprise(t, ">=3.4.0", kong.RequiredFeatures{})
+	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
 	setup(t)
+
+	// Sync a service first so we can attach cost decorations to it
+	require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
+	const serviceID = "58076db2-28b6-423b-ba39-a797193017f7"
 
 	client, err := getTestClient()
 	require.NoError(t, err)
@@ -435,6 +439,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 			decorations: []*kong.GraphqlRateLimitingCostDecoration{
 				{
 					ID:           kong.String("d5308258-3c34-4f28-94f9-52e3a8a6c4b1"),
+					Service:      &kong.Service{ID: kong.String(serviceID)},
 					TypePath:     kong.String("Query.users"),
 					AddConstant:  kong.Float64(1.5),
 					MulConstant:  kong.Float64(2.0),
@@ -451,16 +456,19 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 			decorations: []*kong.GraphqlRateLimitingCostDecoration{
 				{
 					ID:          kong.String("a1b2c3d4-1111-2222-3333-444455556666"),
+					Service:     &kong.Service{ID: kong.String(serviceID)},
 					TypePath:    kong.String("Query.users"),
 					AddConstant: kong.Float64(1.0),
 				},
 				{
-					ID:          kong.String("a1b2c3d4-2222-3333-4444-555566667777"),
+					ID:          kong.String("a1b2c3d4-1111-2222-3333-444422229999"),
+					Service:     &kong.Service{ID: kong.String(serviceID)},
 					TypePath:    kong.String("Query.posts"),
 					AddConstant: kong.Float64(2.0),
 				},
 				{
 					ID:           kong.String("a1b2c3d4-3333-4444-5555-666677778888"),
+					Service:      &kong.Service{ID: kong.String(serviceID)},
 					TypePath:     kong.String("Mutation.createUser"),
 					MulConstant:  kong.Float64(3.0),
 					MulArguments: kong.StringSlice("count"),
@@ -482,6 +490,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 			decorations: []*kong.GraphqlRateLimitingCostDecoration{
 				{
 					ID:          kong.String("b2c3d4e5-4444-5555-6666-777788889999"),
+					Service:     &kong.Service{ID: kong.String(serviceID)},
 					TypePath:    kong.String("Query.mixed"),
 					AddConstant: kong.Float64(1.0),
 				},
@@ -494,20 +503,16 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Clean up any existing decorations
-			existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAll(context.Background())
-			require.NoError(t, err)
-			for _, d := range existingDecorations {
-				_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), d.ID)
-			}
+			// Reset Kong state and re-sync the service for each sub-test
+			// to ensure no stale decorations from previous sub-tests.
+			reset(t)
+			require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
 
 			// Create decorations for this test case
 			for _, deco := range tc.decorations {
-				created, err := client.GraphqlRateLimitingCostDecorations.CreateWithID(context.Background(), deco)
+				_, err := client.GraphqlRateLimitingCostDecorations.CreateForServiceWithID(
+					context.Background(), deco)
 				require.NoError(t, err, "Should create decoration successfully")
-				t.Cleanup(func() {
-					_ = client.GraphqlRateLimitingCostDecorations.Delete(context.Background(), created.ID)
-				})
 			}
 
 			// Call dump.Get with custom entities

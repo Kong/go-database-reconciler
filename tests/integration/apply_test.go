@@ -31,12 +31,12 @@ func Test_Apply_Custom_Entities(t *testing.T) {
 			targetPartialStateFile: "testdata/apply/001-custom-entities/partial-update.yaml",
 		},
 		{
-			name:                   "custom entity - graphql_ratelimiting_cost_decorations basic",
+			name:                   "custom entity - graphql_ratelimiting_cost_decorationss basic",
 			initialStateFile:       "testdata/apply/001-custom-entities/initial-state.yaml",
 			targetPartialStateFile: "testdata/apply/001-custom-entities/graphql-cost-decoration-basic.yaml",
 		},
 		{
-			name:                   "custom entity - graphql_ratelimiting_cost_decorations multiple",
+			name:                   "custom entity - graphql_ratelimiting_cost_decorationss multiple",
 			initialStateFile:       "testdata/apply/001-custom-entities/initial-state.yaml",
 			targetPartialStateFile: "testdata/apply/001-custom-entities/graphql-cost-decoration-multiple.yaml",
 		},
@@ -45,10 +45,12 @@ func Test_Apply_Custom_Entities(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Clean up any existing graphql_ratelimiting_cost_decorations before each test
-			existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAll(ctx)
+			// The initial-state.yaml creates a service named "example"
+			svcID := kong.String("example")
+			existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAllForService(ctx, svcID)
 			if err == nil {
 				for _, d := range existingDecorations {
-					_ = client.GraphqlRateLimitingCostDecorations.Delete(ctx, d.ID)
+					require.NoError(t, client.GraphqlRateLimitingCostDecorations.Delete(ctx, d.ID))
 				}
 			}
 

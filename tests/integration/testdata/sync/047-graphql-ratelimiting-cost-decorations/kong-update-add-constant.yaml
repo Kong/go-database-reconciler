@@ -13,12 +13,5 @@ custom_entities:
     fields:
       service:
         name: svc1
-      type_path: "Query.posts"
-      add_constant: 2.0
-      mul_constant: 1.5
-      add_arguments:
-        - "limit"
-        - "offset"
-      mul_arguments:
-        - "first"
-        - "last"
+      type_path: "Query.users"
+      add_constant: 5.0

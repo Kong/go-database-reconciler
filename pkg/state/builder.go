@@ -619,6 +619,19 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity map[string]in
 		decoration.ID = kong.String(id)
 	}
 
+	if entity["service"] != nil {
+		svc, ok := entity["service"].(map[string]interface{})
+		if ok {
+			decoration.Service = &kong.Service{}
+			if id, ok := svc["id"].(string); ok {
+				decoration.Service.ID = kong.String(id)
+			}
+			if name, ok := svc["name"].(string); ok {
+				decoration.Service.Name = kong.String(name)
+			}
+		}
+	}
+
 	if entity["type_path"] != nil {
 		typePath, ok := entity["type_path"].(string)
 		if !ok {
