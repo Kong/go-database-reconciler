@@ -31,7 +31,7 @@ func (s *graphqlRateLimitingCostDecorationCRUD) Create(ctx context.Context, arg 
 	event := crud.EventFromArg(arg[0])
 	decoration := graphqlRateLimitingCostDecorationFromStruct(event)
 
-	createdDecoration, err := s.client.GraphqlRateLimitingCostDecorations.CreateForServiceWithID(ctx,
+	createdDecoration, err := s.client.GraphqlRateLimitingCostDecorations.CreateForService(ctx,
 		&decoration.GraphqlRateLimitingCostDecoration)
 	if err != nil {
 		return nil, err

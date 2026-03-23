@@ -510,7 +510,7 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 
 			// Create decorations for this test case
 			for _, deco := range tc.decorations {
-				_, err := client.GraphqlRateLimitingCostDecorations.CreateForServiceWithID(
+				_, err := client.GraphqlRateLimitingCostDecorations.CreateForService(
 					context.Background(), deco)
 				require.NoError(t, err, "Should create decoration successfully")
 			}
