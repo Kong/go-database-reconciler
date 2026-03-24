@@ -10,147 +10,108 @@ certificates:
     test-key
     -----END RSA PRIVATE KEY-----
   snis:
-  - id: sni-alpha
-    name: alpha.example.com
-  - id: sni-mike
-    name: mike.example.com
-  - id: sni-zulu
-    name: zulu.example.com
+  - name: alpha.example.com
+  - name: mike.example.com
+  - name: zulu.example.com
 consumer_groups:
-- id: cg-alpha
-  name: alpha-cg
-- id: cg-mike
-  name: mike-cg
-- id: cg-zulu
-  name: zulu-cg
+- name: alpha-cg
+- name: mike-cg
+- name: zulu-cg
   plugins:
   - config:
       allow:
       - group1
-    id: plugin-cg-acl
     name: acl
   - config:
       key_names:
       - apikey
-    id: plugin-cg-key-auth
     name: key-auth
   - config:
       limit:
       - 100
       window_size:
       - 60
-    id: plugin-cg-rate-limiting-advanced
     name: rate-limiting-advanced
 consumers:
 - acls:
   - group: alpha-group
-    id: acl-alpha
   - group: mike-group
-    id: acl-mike
   - group: zulu-group
-    id: acl-zulu
   basicauth_credentials:
-  - id: basicauth-alpha
-    password: pass3
+  - password: pass3
     username: alpha-user
-  - id: basicauth-mike
-    password: pass2
+  - password: pass2
     username: mike-user
-  - id: basicauth-zulu
-    password: pass1
+  - password: pass1
     username: zulu-user
   groups:
-  - id: cg-alpha
-    name: alpha-cg
-  - id: cg-mike
-    name: mike-cg
-  - id: cg-zulu
-    name: zulu-cg
+  - name: alpha-cg
+  - name: mike-cg
+  - name: zulu-cg
   hmacauth_credentials:
-  - id: hmacauth-alpha
-    secret: secret3
+  - secret: secret3
     username: alpha-hmac
-  - id: hmacauth-mike
-    secret: secret2
+  - secret: secret2
     username: mike-hmac
-  - id: hmacauth-zulu
-    secret: secret1
+  - secret: secret1
     username: zulu-hmac
-  id: consumer-1
   jwt_secrets:
   - algorithm: HS256
-    id: jwt-alpha
     key: alpha-jwt
     secret: jwt-secret3
   - algorithm: HS256
-    id: jwt-mike
     key: mike-jwt
     secret: jwt-secret2
   - algorithm: HS256
-    id: jwt-zulu
     key: zulu-jwt
     secret: jwt-secret1
   keyauth_credentials:
-  - id: keyauth-alpha
-    key: alpha-key
-  - id: keyauth-mike
-    key: mike-key
-  - id: keyauth-zulu
-    key: zulu-key
+  - key: alpha-key
+  - key: mike-key
+  - key: zulu-key
   oauth2_credentials:
   - client_id: alpha-client
     client_secret: secret3
-    id: oauth2-alpha
     name: alpha-oauth
   - client_id: mike-client
     client_secret: secret2
-    id: oauth2-mike
     name: mike-oauth
   - client_id: zulu-client
     client_secret: secret1
-    id: oauth2-zulu
     name: zulu-oauth
   username: test-consumer
 services:
 - connect_timeout: 60000
   host: test.example.com
-  id: svc-1
   name: test-service
   plugins:
   - config:
       allow:
       - group1
-    id: plugin-svc-acl
     name: acl
   - config:
       origins:
       - '*'
-    id: plugin-svc-cors
     name: cors
   - config:
       minute: 100
-    id: plugin-svc-rate-limiting
     name: rate-limiting
   protocol: http
   read_timeout: 60000
   routes:
-  - id: route-alpha
-    name: alpha-route
+  - name: alpha-route
     paths:
     - /alpha
     plugins:
-    - id: plugin-route-bot-detection
-      name: bot-detection
+    - name: bot-detection
     - config:
         key_names:
         - apikey
-      id: plugin-route-key-auth
       name: key-auth
     - config:
         add:
           headers:
           - 'X-Test: true'
-      id: plugin-route-response-transformer
       name: response-transformer
     preserve_host: false
     protocols:
@@ -158,8 +119,7 @@ services:
     - https
     regex_priority: 0
     strip_path: true
-  - id: route-mike
-    name: mike-route
+  - name: mike-route
     paths:
     - /mike
     preserve_host: false
@@ -168,8 +128,7 @@ services:
     - https
     regex_priority: 0
     strip_path: true
-  - id: route-zulu
-    name: zulu-route
+  - name: zulu-route
     paths:
     - /zulu
     preserve_host: false
@@ -240,16 +199,12 @@ upstreams:
         - 503
         tcp_failures: 0
         timeouts: 0
-  id: upstream-1
   name: test-upstream
   slots: 10000
   targets:
-  - id: target-alpha
-    target: alpha.local:8080
+  - target: alpha.local:8080
     weight: 100
-  - id: target-mike
-    target: mike.local:8080
+  - target: mike.local:8080
     weight: 100
-  - id: target-zulu
-    target: zulu.local:8080
+  - target: zulu.local:8080
     weight: 100
