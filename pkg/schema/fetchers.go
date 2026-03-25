@@ -71,7 +71,7 @@ func fetchKonnectEntitySchema(
 	}
 
 	endpoint := fmt.Sprintf("/v1/schemas/json/%s", konnectType)
-	req, err := client.NewRequest(http.MethodGet, endpoint, nil, nil)
+	req, err := client.NewKonnectWorkspaceRequest(http.MethodGet, endpoint, nil, nil)
 	if err != nil {
 		return schema, err
 	}
