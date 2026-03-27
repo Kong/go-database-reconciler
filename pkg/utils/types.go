@@ -140,6 +140,8 @@ type KonnectConfig struct {
 	ControlPlaneName string
 
 	TLSConfig TLSConfig
+
+	WorkspaceName string
 }
 
 type TLSConfig struct {
