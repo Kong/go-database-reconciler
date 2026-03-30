@@ -1975,6 +1975,8 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if consumer != nil {
 			cID = *consumer.ID
+		} else {
+			cID = *plugin.Consumer.ID
 		}
 	}
 	if plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
@@ -1992,6 +1994,8 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if route != nil {
 			rID = *route.ID
+		} else {
+			rID = *plugin.Route.ID
 		}
 	}
 	if plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
@@ -2009,6 +2013,8 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if service != nil {
 			sID = *service.ID
+		} else {
+			sID = *plugin.Service.ID
 		}
 	}
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
@@ -2026,6 +2032,8 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if consumerGroup != nil {
 			cgID = *consumerGroup.ID
+		} else {
+			cgID = *plugin.ConsumerGroup.ID
 		}
 	}
 
