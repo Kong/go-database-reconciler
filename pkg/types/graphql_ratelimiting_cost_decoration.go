@@ -46,7 +46,13 @@ func (s *graphqlRateLimitingCostDecorationCRUD) Create(ctx context.Context, arg 
 func (s *graphqlRateLimitingCostDecorationCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	decoration := graphqlRateLimitingCostDecorationFromStruct(event)
-	err := s.client.GraphqlRateLimitingCostDecorations.Delete(ctx, decoration.ID)
+	var err error
+	if s.client.IsKonnectMode() {
+		err = s.client.GraphqlRateLimitingCostDecorations.DeleteForService(ctx,
+			&decoration.GraphqlRateLimitingCostDecoration)
+	} else {
+		err = s.client.GraphqlRateLimitingCostDecorations.Delete(ctx, decoration.ID)
+	}
 	if err != nil {
 		return nil, err
 	}

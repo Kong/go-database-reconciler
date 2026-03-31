@@ -728,6 +728,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		if sc.isKonnect {
 			workspaceExists, err = utils.KonnectWorkspaceExists(ctx, sc.kongClient)
+			sc.kongClient.SetKonnectFlag(true)
 		} else {
 			workspaceExists, err = utils.WorkspaceExists(ctx, sc.kongClient)
 		}
