@@ -3,30 +3,31 @@ _info:
   select_tags:
     - "managed-by-test"
 services:
-- name: example-service
+- name: example-service2
   port: 3200
   protocol: http
   host: localhost
+
+routes:
+- name: example-route-1
+  paths:
+  - /r1
+  service:
+    name: example-service2
   plugins:
     - config:
-        limit_by: consumer
-        minute: 6
+        minute: 100
         policy: local
       enabled: true
       name: rate-limiting
       protocols:
         - http
     - config:
-        limit_by: consumer
-        minute: 10
+        minute: 200
         policy: local
-      consumer: 8ca63651-4068-4baa-b2b9-08dc99c29666 # bob's id
+      service: external-service # using name instead of UUID - should fail
       enabled: true
       name: rate-limiting
       protocols:
         - http
-  routes:
-  - name: example-route-1
-    paths:
-    - /r1
 

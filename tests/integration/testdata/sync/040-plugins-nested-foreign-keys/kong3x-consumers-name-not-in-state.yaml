@@ -1,4 +1,4 @@
-_format_version: "1.1"
+_format_version: "3.0"
 _info:
   select_tags:
     - "managed-by-test"
@@ -20,7 +20,7 @@ services:
         limit_by: consumer
         minute: 10
         policy: local
-      consumer: 8ca63651-4068-4baa-b2b9-08dc99c29666 # bob's id
+      consumer: bob # using name instead of UUID - should fail
       enabled: true
       name: rate-limiting
       protocols:
@@ -28,5 +28,5 @@ services:
   routes:
   - name: example-route-1
     paths:
-    - /r1
+    - ~/r1
 

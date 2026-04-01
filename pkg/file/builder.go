@@ -1975,8 +1975,10 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if consumer != nil {
 			cID = *consumer.ID
-		} else {
+		} else if utils.IsValidUUID(*plugin.Consumer.ID) {
 			cID = *plugin.Consumer.ID
+		} else {
+			b.err = state.ErrNotFound
 		}
 	}
 	if plugin.Route != nil && !utils.Empty(plugin.Route.ID) {
@@ -1994,8 +1996,10 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if route != nil {
 			rID = *route.ID
-		} else {
+		} else if utils.IsValidUUID(*plugin.Route.ID) {
 			rID = *plugin.Route.ID
+		} else {
+			b.err = state.ErrNotFound
 		}
 	}
 	if plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
@@ -2013,8 +2017,10 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if service != nil {
 			sID = *service.ID
-		} else {
+		} else if utils.IsValidUUID(*plugin.Service.ID) {
 			sID = *plugin.Service.ID
+		} else {
+			b.err = state.ErrNotFound
 		}
 	}
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
@@ -2032,8 +2038,10 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 
 		if consumerGroup != nil {
 			cgID = *consumerGroup.ID
-		} else {
+		} else if utils.IsValidUUID(*plugin.ConsumerGroup.ID) {
 			cgID = *plugin.ConsumerGroup.ID
+		} else {
+			b.err = state.ErrNotFound
 		}
 	}
 

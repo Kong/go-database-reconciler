@@ -20,7 +20,7 @@ services:
         limit_by: consumer
         minute: 10
         policy: local
-      consumer: 8ca63651-4068-4baa-b2b9-08dc99c29666 # bob's id
+      consumer: bob # using name instead of UUID - should fail
       enabled: true
       name: rate-limiting
       protocols:
