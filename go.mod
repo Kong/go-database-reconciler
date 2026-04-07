@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/kong/deck v1.56.0
-	github.com/kong/go-kong v0.73.0
+	github.com/kong/go-kong v0.74.0
 	github.com/samber/lo v1.52.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.0.1
