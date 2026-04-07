@@ -4942,6 +4942,92 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 	}
 }
 
+func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
+	tests := []struct {
+		name       string
+		target     *Content
+		wantErr    string
+		wantConfig kong.Configuration
+	}{
+		{
+			name: "accepts required fields from plugin config source",
+			target: &Content{
+				PluginConfigs: map[string]kong.Configuration{
+					"oidc": {
+						"cache_tokens_salt": "cache-salt",
+						"session_secret":    "session-secret",
+					},
+				},
+				Plugins: []FPlugin{
+					{
+						ConfigSource: kong.String("oidc"),
+						Plugin: kong.Plugin{
+							Name: kong.String("openid-connect"),
+						},
+					},
+				},
+			},
+			wantConfig: kong.Configuration{
+				"cache_tokens_salt": "cache-salt",
+				"session_secret":    "session-secret",
+			},
+		},
+		{
+			name: "rejects missing required fields",
+			target: &Content{
+				Plugins: []FPlugin{
+					{
+						Plugin: kong.Plugin{
+							Name:   kong.String("openid-connect"),
+							Config: kong.Configuration{},
+						},
+					},
+				},
+			},
+			wantErr: "openid-connect plugin requires explicit non-empty config values for cache_tokens_salt, session_secret",
+		},
+		{
+			name: "rejects nil required field values",
+			target: &Content{
+				Plugins: []FPlugin{
+					{
+						Plugin: kong.Plugin{
+							Name: kong.String("openid-connect"),
+							Config: kong.Configuration{
+								"cache_tokens_salt": "cache-salt",
+								"session_secret":    nil,
+							},
+						},
+					},
+				},
+			},
+			wantErr: "openid-connect plugin requires explicit non-empty config values for session_secret",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.target,
+				currentState:  emptyState(),
+				kongVersion:   kong340Version,
+				skipDefaults:  true,
+			}
+
+			_, _, err := b.build()
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.ErrorContains(t, err, tt.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, b.rawState.Plugins, 1)
+			assert.Equal(t, tt.wantConfig, b.rawState.Plugins[0].Config)
+		})
+	}
+}
+
 func Test_stateBuilder_partials(t *testing.T) {
 	assert := assert.New(t)
 	testRand = rand.New(rand.NewSource(42))

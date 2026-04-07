@@ -18,7 +18,15 @@ import (
 	"github.com/kong/go-kong/kong"
 )
 
-const ratelimitingAdvancedPluginName = "rate-limiting-advanced"
+const (
+	ratelimitingAdvancedPluginName = "rate-limiting-advanced"
+	openIDConnectPluginName        = "openid-connect"
+)
+
+var openIDConnectRequiredConfigFields = []string{
+	"cache_tokens_salt",
+	"session_secret",
+}
 
 const (
 	primaryRelationConsumer      = "consumer"
@@ -1700,10 +1708,6 @@ func (b *stateBuilder) plugins() {
 			p.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 		}
 
-		if err := b.validatePlugin(p); err != nil {
-			b.err = err
-			return
-		}
 		plugins = append(plugins, p)
 	}
 	if err := b.ingestPlugins(plugins); err != nil {
@@ -1773,7 +1777,35 @@ func (b *stateBuilder) validatePlugin(p FPlugin) error {
 			return utils.ErrorConsumerGroupUpgrade
 		}
 	}
+	if p.Name != nil && *p.Name == openIDConnectPluginName {
+		var missingFields []string
+		for _, field := range openIDConnectRequiredConfigFields {
+			value, ok := p.Config[field]
+			if !ok || isEmptyPluginConfigValue(value) {
+				missingFields = append(missingFields, field)
+			}
+		}
+		if len(missingFields) > 0 {
+			return fmt.Errorf(
+				"openid-connect plugin requires explicit non-empty config values for %s "+
+					"to avoid regenerating session credentials during sync",
+				strings.Join(missingFields, ", "))
+		}
+	}
 	return nil
+}
+
+func isEmptyPluginConfigValue(value interface{}) bool {
+	switch v := value.(type) {
+	case nil:
+		return true
+	case string:
+		return v == ""
+	case *string:
+		return v == nil || *v == ""
+	default:
+		return false
+	}
 }
 
 // strip_path schema default value is 'true', but it cannot be set when
@@ -1931,6 +1963,9 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		p.Config = ensureJSON(p.Config)
 		err = b.fillPluginConfig(&p)
 		if err != nil {
+			return err
+		}
+		if err := b.validatePlugin(p); err != nil {
 			return err
 		}
 		utils.MustMergeTags(&p, b.selectTags)
