@@ -7350,9 +7350,7 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute(t *testing.T) {
 	testKongState(t, client, false, expectedState, nil)
 
 	// create a temporary file to dump the state.
-	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	file, err := os.CreateTemp(t.TempDir(), "dump.*.yaml")
 	require.NoError(t, err)
 
 	// dump the state.
@@ -7497,9 +7495,7 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute38x(t *testing.T) {
 	testKongState(t, client, false, expectedState, nil)
 
 	// create a temporary file to dump the state.
-	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	file, err := os.CreateTemp(t.TempDir(), "dump.*.yaml")
 	require.NoError(t, err)
 
 	// dump the state.
@@ -7647,9 +7643,7 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute39x(t *testing.T) {
 	testKongState(t, client, false, expectedState, nil)
 
 	// create a temporary file to dump the state.
-	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	file, err := os.CreateTemp(t.TempDir(), "dump.*.yaml")
 	require.NoError(t, err)
 
 	// dump the state.
@@ -7795,9 +7789,7 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute312x(t *testing.T) {
 	testKongState(t, client, false, expectedState, nil)
 
 	// create a temporary file to dump the state.
-	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	file, err := os.CreateTemp(t.TempDir(), "dump.*.yaml")
 	require.NoError(t, err)
 
 	// dump the state.
@@ -7943,9 +7935,7 @@ func Test_Sync_PluginScopedToConsumerGroupAndRoute313x(t *testing.T) {
 	testKongState(t, client, false, expectedState, nil)
 
 	// create a temporary file to dump the state.
-	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	file, err := os.CreateTemp(cwd, "dump.*.yaml")
+	file, err := os.CreateTemp(t.TempDir(), "dump.*.yaml")
 	require.NoError(t, err)
 
 	// dump the state.
@@ -8808,9 +8798,8 @@ func TestSync_License(t *testing.T) {
 	buf, err := os.ReadFile("testdata/sync/032-licenses/config-with-license.yaml")
 	require.NoError(t, err)
 	fileContent := strings.ReplaceAll(string(buf), "__KONG_LICENSE_DATA__", fmt.Sprintf("'%s'", kongLicensePayload))
-	configFile, err := os.CreateTemp("/tmp", "kong-license-test")
+	configFile, err := os.CreateTemp(t.TempDir(), "kong-license-test")
 	require.NoError(t, err)
-	defer os.Remove(configFile.Name())
 
 	os.WriteFile(configFile.Name(), []byte(fileContent), os.ModeTemporary)
 	client, err := getTestClient()
@@ -8834,7 +8823,7 @@ func TestSync_License(t *testing.T) {
 
 		require.NoError(t, err, "Should get test client")
 		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Len(t, errs, 0, "Should have no errors in syncing")
+		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
 		newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
@@ -8843,7 +8832,7 @@ func TestSync_License(t *testing.T) {
 		licenses, err := newState.Licenses.GetAll()
 		require.NoError(t, err)
 		// Avoid dumping of `licenses` to leak sensitive content.
-		require.Equal(t, 1, len(licenses))
+		require.Len(t, licenses, 1)
 		// Compare hashes to avoid content of licenses to be leaked.
 		// Normalize both payloads as JSON before hashing to account for
 		// potential JSON reformatting (key reordering, whitespace) by Kong.
@@ -8864,7 +8853,7 @@ func TestSync_License(t *testing.T) {
 		require.NoError(t, err)
 		licenses, err := stateWithoutLicenses.Licenses.GetAll()
 		require.NoError(t, err)
-		require.Equal(t, 0, len(licenses))
+		require.Empty(t, licenses)
 	})
 
 	t.Run("sync_with_includeLicenses_false", func(t *testing.T) {
@@ -8885,7 +8874,7 @@ func TestSync_License(t *testing.T) {
 		require.NoError(t, err)
 
 		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Len(t, errs, 0, "Should have no errors in syncing")
+		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
 		newState, err := fetchCurrentState(ctx, client, deckDump.Config{IncludeLicenses: true})
@@ -10145,7 +10134,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		require.NoError(t, err)
 
 		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Len(t, errs, 0, "Should have no errors in syncing")
+		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
 		newState, err := fetchCurrentState(ctx, client, dumpConfig)
@@ -10154,7 +10143,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		degraphqlRoutes, err := newState.DegraphqlRoutes.GetAll()
 		require.NoError(t, err)
 
-		assert.Equal(t, 1, len(degraphqlRoutes))
+		assert.Len(t, degraphqlRoutes, 1)
 		assert.Equal(t, "/foo", *degraphqlRoutes[0].URI)
 		assert.Equal(t, "query{ foo { bar } }", *degraphqlRoutes[0].Query)
 
@@ -10177,7 +10166,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		require.NoError(t, err)
 
 		stats, errs, changes := syncer.Solve(ctx, 1, false, true)
-		require.Len(t, errs, 0, "Should have no errors in syncing")
+		require.Empty(t, errs, "Should have no errors in syncing")
 		logEntityChanges(t, stats, changes)
 
 		newState, err := fetchCurrentState(ctx, client, dumpConfig)
@@ -10186,7 +10175,7 @@ func Test_Sync_DegraphqlRoutes(t *testing.T) {
 		degraphqlRoutes, err := newState.DegraphqlRoutes.GetAll()
 		require.NoError(t, err)
 
-		assert.Equal(t, 1, len(degraphqlRoutes))
+		assert.Len(t, degraphqlRoutes, 1)
 		assert.Equal(t, "/search/posts", *degraphqlRoutes[0].URI)
 
 		expectedQuery := kong.String(complexQueryForDegraphqlRoute)
