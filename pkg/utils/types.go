@@ -250,6 +250,7 @@ func GetKongClient(opt KongClientConfig) (*kong.Client, error) {
 		TLSHandshakeTimeout: timeout,
 		Proxy:               http.ProxyFromEnvironment,
 		TLSClientConfig:     tlsConfig,
+		ForceAttemptHTTP2:   true,
 	}
 	address := CleanAddress(opt.Address)
 
@@ -346,8 +347,9 @@ func GetKonnectClient(httpClient *http.Client, config KonnectConfig) (*konnect.C
 		}
 		httpClient = &http.Client{
 			Transport: &http.Transport{
-				TLSClientConfig: tlsConfig,
-				Proxy:           http.ProxyFromEnvironment,
+				TLSClientConfig:   tlsConfig,
+				Proxy:             http.ProxyFromEnvironment,
+				ForceAttemptHTTP2: true,
 			},
 		}
 	}
@@ -386,6 +388,7 @@ func HTTPClient() *http.Client {
 			}).DialContext,
 			TLSHandshakeTimeout: defaultHTTPClientTimeout,
 			Proxy:               http.ProxyFromEnvironment,
+			ForceAttemptHTTP2:   true,
 		},
 	}
 }
@@ -416,6 +419,7 @@ func HTTPClientWithOpts(opts HTTPClientOptions) (*http.Client, error) {
 			TLSHandshakeTimeout: timeout,
 			Proxy:               http.ProxyFromEnvironment,
 			TLSClientConfig:     tlsConfig,
+			ForceAttemptHTTP2:   true,
 		},
 	}, nil
 }
