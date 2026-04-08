@@ -33,14 +33,29 @@ type RenderConfig struct {
 // rooted at filename, read all the files with .yaml, .yml and .json extensions
 // and generate a content after a merge of the content from all the files.
 //
+// If mockEnvVars is true, environment variables are replaced with their names
+// instead of their values while rendering templates.
+//
 // It will return an error if the file representation is invalid
 // or if there is any error during processing.
 func GetContentFromFiles(filenames []string, mockEnvVars bool) (*Content, error) {
+	mode := EnvVarsExpand
+	if mockEnvVars {
+		mode = EnvVarsMock
+	}
+
+	return GetContentFromFilesWithEnvVars(filenames, mode)
+}
+
+// GetContentFromFilesWithEnvVars reads state files and allows callers to
+// control environment variable handling explicitly.
+// EnvVarsExpand expands variables, EnvVarsMock uses variable names as values,
+// and EnvVarsSkip skips template rendering entirely.
+func GetContentFromFilesWithEnvVars(filenames []string, mode RenderEnvVarsMode) (*Content, error) {
 	if len(filenames) == 0 {
 		return nil, ErrorFilenameEmpty
 	}
-
-	return getContent(filenames, mockEnvVars)
+	return getContent(filenames, mode)
 }
 
 // GetForKonnect processes the fileContent and renders a RawState and KonnectRawState

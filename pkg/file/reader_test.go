@@ -69,7 +69,7 @@ func TestReadKongStateFromStdinFailsToParseText(t *testing.T) {
 
 	os.Stdin = tmpfile
 
-	c, err := GetContentFromFiles(filenames, false)
+	c, err := GetContentFromFilesWithEnvVars(filenames, EnvVarsExpand)
 	require.Error(t, err)
 	assert.Nil(c)
 }
@@ -98,7 +98,7 @@ func TestTransformNotFalse(t *testing.T) {
 
 	os.Stdin = tmpfile
 
-	c, err := GetContentFromFiles(filenames, false)
+	c, err := GetContentFromFilesWithEnvVars(filenames, EnvVarsExpand)
 	if err != nil {
 		panic(err)
 	}
@@ -140,7 +140,7 @@ func TestReadKongStateFromStdin(t *testing.T) {
 
 	os.Stdin = tmpfile
 
-	c, err := GetContentFromFiles(filenames, false)
+	c, err := GetContentFromFilesWithEnvVars(filenames, EnvVarsExpand)
 	assert.NotNil(c)
 	require.NoError(t, err)
 
@@ -155,7 +155,7 @@ func TestReadKongStateFromFile(t *testing.T) {
 	filenames := []string{"testdata/config.yaml"}
 	require.Equal(t, "testdata/config.yaml", filenames[0])
 
-	c, err := GetContentFromFiles(filenames, false)
+	c, err := GetContentFromFilesWithEnvVars(filenames, EnvVarsExpand)
 	require.NotNil(t, c)
 	require.NoError(t, err)
 
@@ -166,4 +166,21 @@ func TestReadKongStateFromFile(t *testing.T) {
 			Enabled: kong.Bool(true),
 		}, c.Services[0].Service)
 	})
+}
+
+func TestGetContentFromFilesCompatibilityWrapper(t *testing.T) {
+	t.Setenv("DECK_SVC2_HOST", "2.example.com")
+	t.Setenv("DECK_FILE_LOG_FUNCTION", "return")
+
+	filenames := []string{"testdata/file.yaml"}
+
+	expanded, err := GetContentFromFiles(filenames, false)
+	require.NoError(t, err)
+	require.NotNil(t, expanded)
+	assert.Equal(t, "2.example.com", *expanded.Services[0].Host)
+
+	mocked, err := GetContentFromFiles(filenames, true)
+	require.NoError(t, err)
+	require.NotNil(t, mocked)
+	assert.Equal(t, "DECK_SVC2_HOST", *mocked.Services[0].Host)
 }

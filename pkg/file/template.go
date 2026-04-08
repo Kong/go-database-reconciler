@@ -9,6 +9,21 @@ import (
 	"text/template"
 )
 
+// RenderEnvVarsMode controls how environment variables are handled when
+// reading state files.
+type RenderEnvVarsMode int
+
+const (
+	// EnvVarsExpand expands environment variables present in the state file.
+	EnvVarsExpand RenderEnvVarsMode = iota
+	// EnvVarsMock replaces environment variable references with their names
+	// instead of their values. Useful for validation without real env vars.
+	EnvVarsMock
+	// EnvVarsSkip skips template rendering entirely, leaving the file content
+	// unchanged.
+	EnvVarsSkip
+)
+
 // default env var prefix, can be set using SetEnvVarPrefix
 var envVarPrefix = "DECK_"
 
@@ -75,9 +90,13 @@ func indent(spaces int, v string) string {
 	return strings.ReplaceAll(v, "\n", "\n"+pad)
 }
 
-func renderTemplate(content string, mockEnvVars bool) (string, error) {
+func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
+	if mode == EnvVarsSkip {
+		return content, nil
+	}
+
 	var templateFuncs template.FuncMap
-	if mockEnvVars {
+	if mode == EnvVarsMock {
 		templateFuncs = template.FuncMap{
 			"env":     getPrefixedEnvVarMocked,
 			"toBool":  toBoolMocked,

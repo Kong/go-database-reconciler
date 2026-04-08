@@ -16,7 +16,7 @@ import (
 // getContent reads all the YAML and JSON files in the directory or the
 // file, depending on the type of each item in filenames, merges the content of
 // these files and renders a Content.
-func getContent(filenames []string, mockEnvVars bool) (*Content, error) {
+func getContent(filenames []string, mode RenderEnvVarsMode) (*Content, error) {
 	var workspaces, runtimeGroups []string
 	var res Content
 	var errs []error
@@ -27,7 +27,7 @@ func getContent(filenames []string, mockEnvVars bool) (*Content, error) {
 		}
 
 		for filename, r := range readers {
-			content, err := readContent(r, mockEnvVars)
+			content, err := readContent(r, mode)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("reading file %s: %w", filename, err))
 				continue
@@ -108,13 +108,13 @@ func hasLeadingSpace(fileContent string) bool {
 
 // readContent reads all the byes until io.EOF and unmarshals the read
 // bytes into Content.
-func readContent(reader io.Reader, mockEnvVars bool) (*Content, error) {
+func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 	var err error
 	contentBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
-	renderedContent, err := renderTemplate(string(contentBytes), mockEnvVars)
+	renderedContent, err := renderTemplate(string(contentBytes), mode)
 	if err != nil {
 		return nil, fmt.Errorf("parsing file: %w", err)
 	}
