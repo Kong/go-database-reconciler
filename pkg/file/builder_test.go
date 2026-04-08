@@ -1265,7 +1265,7 @@ func Test_pluginRelations(t *testing.T) {
 			currentState: existingScopedPluginState(),
 		},
 		{
-			name: "invalid UUID for consumer - returns empty (flow should not proceed)",
+			name: "invalid UUID for consumer - returns empty",
 			args: args{
 				plugin: &kong.Plugin{
 					Name: kong.String("foo"),
