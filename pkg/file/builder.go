@@ -842,20 +842,21 @@ func (b *stateBuilder) consumers() {
 			} else if group.Name != nil {
 				cg, err := b.intermediate.ConsumerGroups.Get(*group.Name)
 				if err != nil {
-					b.err = fmt.Errorf(
-						"consumer-group '%s' not found for consumer '%s'",
-						*group.Name, *c.ID,
-					)
+					if errors.Is(err, state.ErrNotFound) {
+						b.err = fmt.Errorf(
+							"consumer-group '%s' not found for consumer '%s'",
+							*group.Name, *c.ID,
+						)
+					} else {
+						b.err = err
+					}
 					return
 				}
 				groupIdentifier = *cg.ID
 			}
 			consumerExistsInGroup, err := b.intermediate.ConsumerGroupConsumers.Get(*c.ID, groupIdentifier)
 			if err != nil && !errors.Is(err, state.ErrNotFound) {
-				b.err = fmt.Errorf(
-					"consumer-group '%s' not found for consumer '%s'",
-					*group.Name, *c.ID,
-				)
+				b.err = err
 				return
 			}
 			if consumerExistsInGroup == nil {
