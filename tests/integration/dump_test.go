@@ -526,3 +526,24 @@ func Test_Dump_Services_TLS_Sans(t *testing.T) {
 		})
 	}
 }
+
+func Test_Dump_Plugin_Conditional(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.14.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-conditional.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	// resync with no error
+	output, err := dump("-o", "-", "--with-id")
+	require.NoError(t, err)
+
+	expectedFile := "testdata/dump/008-plugin-conditional/expected.yaml"
+	expected, err := readFile(expectedFile)
+	require.NoError(t, err)
+	assert.Equal(t, expected, output)
+}
