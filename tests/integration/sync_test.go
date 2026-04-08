@@ -10942,7 +10942,7 @@ func Test_Sync_Plugin_Conditional(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-  kongFile := "testdata/sync/003-create-a-plugin/kong-conditional.yaml"
+	kongFile := "testdata/sync/003-create-a-plugin/kong-conditional.yaml"
 
 	mustResetKongState(ctx, t, client, deckDump.Config{})
 	require.NoError(t, sync(kongFile))
@@ -10978,8 +10978,8 @@ func Test_Sync_Plugin_Conditional(t *testing.T) {
 
 func Test_Sync_Plugins_Nested_Foreign_Keys_External_Entities(t *testing.T) {
 	setup(t)
-  
-  client, err := getTestClient()
+
+	client, err := getTestClient()
 	require.NoError(t, err)
 	ctx := context.Background()
 
