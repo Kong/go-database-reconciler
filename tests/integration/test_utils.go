@@ -478,7 +478,7 @@ func stateFromFile(
 	currentState, err := state.NewKongState()
 	require.NoError(t, err, "stateFromFile: failed to build an initial empty KongState")
 
-	targetContent, err := file.GetContentFromFiles([]string{filename}, false)
+	targetContent, err := file.GetContentFromFilesWithEnvVars([]string{filename}, file.EnvVarsExpand)
 	require.NoErrorf(t, err, "failed to get file content from file %s", filename)
 
 	rawState, err := file.Get(ctx, targetContent, file.RenderConfig{
@@ -1397,7 +1397,7 @@ func renderYAMLFile(t *testing.T, inputPath string) string {
 	ctx := context.Background()
 
 	// Read and parse the input file
-	content, err := file.GetContentFromFiles([]string{inputPath}, false)
+	content, err := file.GetContentFromFilesWithEnvVars([]string{inputPath}, file.EnvVarsExpand)
 	require.NoError(t, err, "Failed to read input file: %s", inputPath)
 
 	// Create an empty current state

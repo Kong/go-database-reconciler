@@ -1227,6 +1227,7 @@ func Test_pluginRelations(t *testing.T) {
 		currentState *state.KongState
 	}{
 		{
+			name: "empty plugin - no relations",
 			args: args{
 				plugin: &kong.Plugin{
 					Name: kong.String("foo"),
@@ -1239,6 +1240,7 @@ func Test_pluginRelations(t *testing.T) {
 			currentState: emptyState(),
 		},
 		{
+			name: "entities exist in state - returns IDs",
 			args: args{
 				plugin: &kong.Plugin{
 					Name: kong.String("foo"),
@@ -1262,11 +1264,127 @@ func Test_pluginRelations(t *testing.T) {
 			wantCGID:     "cgID",
 			currentState: existingScopedPluginState(),
 		},
+		{
+			name: "invalid UUID for consumer - returns empty",
+			args: args{
+				plugin: &kong.Plugin{
+					Name: kong.String("foo"),
+					Consumer: &kong.Consumer{
+						ID: kong.String("invalid-not-a-uuid"),
+					},
+				},
+			},
+			wantCID:      "",
+			wantRID:      "",
+			wantSID:      "",
+			wantCGID:     "",
+			currentState: emptyState(),
+		},
+		{
+			name: "invalid UUID for route ",
+			args: args{
+				plugin: &kong.Plugin{
+					Name: kong.String("foo"),
+					Route: &kong.Route{
+						ID: kong.String("not-a-valid-uuid-route"),
+					},
+				},
+			},
+			wantCID:      "",
+			wantRID:      "",
+			wantSID:      "",
+			wantCGID:     "",
+			currentState: emptyState(),
+		},
+		{
+			name: "invalid UUID for service",
+			args: args{
+				plugin: &kong.Plugin{
+					Name: kong.String("foo"),
+					Service: &kong.Service{
+						ID: kong.String("invalid-service-id"),
+					},
+				},
+			},
+			wantCID:      "",
+			wantRID:      "",
+			wantSID:      "",
+			wantCGID:     "",
+			currentState: emptyState(),
+		},
+		{
+			name: "invalid UUID for consumer group ",
+			args: args{
+				plugin: &kong.Plugin{
+					Name: kong.String("foo"),
+					ConsumerGroup: &kong.ConsumerGroup{
+						ID: kong.String("not-valid-cg-uuid"),
+					},
+				},
+			},
+			wantCID:      "",
+			wantRID:      "",
+			wantSID:      "",
+			wantCGID:     "",
+			currentState: emptyState(),
+		},
+		{
+			name: "all invalid UUIDs ",
+			args: args{
+				plugin: &kong.Plugin{
+					Name: kong.String("foo"),
+					Consumer: &kong.Consumer{
+						ID: kong.String("bad-consumer-id"),
+					},
+					Route: &kong.Route{
+						ID: kong.String("bad-route-id"),
+					},
+					Service: &kong.Service{
+						ID: kong.String("bad-service-id"),
+					},
+					ConsumerGroup: &kong.ConsumerGroup{
+						ID: kong.String("bad-cg-id"),
+					},
+				},
+			},
+			wantCID:      "",
+			wantRID:      "",
+			wantSID:      "",
+			wantCGID:     "",
+			currentState: emptyState(),
+		},
+		{
+			name: "valid UUID for external entity (not in state) - returns UUID (fallback)",
+			args: args{
+				plugin: &kong.Plugin{
+					Name: kong.String("foo"),
+					Consumer: &kong.Consumer{
+						ID: kong.String("8ca63651-4068-4baa-b2b9-08dc99c29666"),
+					},
+					Route: &kong.Route{
+						ID: kong.String("9ca63651-4068-4baa-b2b9-08dc99c29777"),
+					},
+					Service: &kong.Service{
+						ID: kong.String("aca63651-4068-4baa-b2b9-08dc99c29888"),
+					},
+					ConsumerGroup: &kong.ConsumerGroup{
+						ID: kong.String("bca63651-4068-4baa-b2b9-08dc99c29999"),
+					},
+				},
+			},
+			wantCID:      "8ca63651-4068-4baa-b2b9-08dc99c29666",
+			wantRID:      "9ca63651-4068-4baa-b2b9-08dc99c29777",
+			wantSID:      "aca63651-4068-4baa-b2b9-08dc99c29888",
+			wantCGID:     "bca63651-4068-4baa-b2b9-08dc99c29999",
+			currentState: emptyState(),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			intermediate, _ := state.NewKongState()
 			b := &stateBuilder{
 				currentState: tt.currentState,
+				intermediate: intermediate,
 			}
 			gotCID, gotRID, gotSID, gotCGID := b.pluginRelations(tt.args.plugin)
 			if gotCID != tt.wantCID {

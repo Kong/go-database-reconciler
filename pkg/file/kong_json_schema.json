@@ -841,6 +841,9 @@
         "_config": {
           "type": "string"
         },
+        "condition": {
+          "type": "string"
+        },
         "config": {
           "additionalProperties": true,
           "type": "object"

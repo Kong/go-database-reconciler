@@ -454,3 +454,69 @@ func Test_Apply_Consumer_Group_Plugin(t *testing.T) {
 		})
 	}
 }
+
+func Test_Apply_Plugin_Conditional(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.14.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-conditional.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	expectedStatePostSync := utils.KongRawState{
+		Plugins: []*kong.Plugin{
+			{
+				ID:   kong.String("efead952-0a1d-43ec-9794-0ac6abdc7f55"),
+				Name: kong.String("key-auth"),
+				Config: kong.Configuration{
+					"anonymous":        nil,
+					"hide_credentials": bool(true),
+					"identity_realms":  []any{map[string]any{"id": nil, "region": nil, "scope": string("cp")}},
+					"key_in_body":      bool(false),
+					"key_in_header":    bool(true),
+					"key_in_query":     bool(true),
+					"key_names":        []any{string("apikey")},
+					"realm":            nil,
+					"run_on_preflight": bool(true),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https"), kong.String("ws"), kong.String("wss")},
+				Condition: kong.String("route.name != \"health\""),
+			},
+		},
+	}
+
+	testKongState(t, client, false, expectedStatePostSync, nil)
+
+	// apply command to change condition
+	updatedFile := "testdata/apply/007-plugin-conditional/updated.yaml"
+	require.NoError(t, sync(updatedFile))
+
+	expectedStatePostApply := utils.KongRawState{
+		Plugins: []*kong.Plugin{
+			{
+				ID:   kong.String("efead952-0a1d-43ec-9794-0ac6abdc7f55"),
+				Name: kong.String("key-auth"),
+				Config: kong.Configuration{
+					"anonymous":        nil,
+					"hide_credentials": bool(true),
+					"identity_realms":  []any{map[string]any{"id": nil, "region": nil, "scope": string("cp")}},
+					"key_in_body":      bool(false),
+					"key_in_header":    bool(true),
+					"key_in_query":     bool(true),
+					"key_names":        []any{string("apikey")},
+					"realm":            nil,
+					"run_on_preflight": bool(true),
+				},
+				Enabled:   kong.Bool(true),
+				Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https"), kong.String("ws"), kong.String("wss")},
+				Condition: kong.String("service.name != \"healthcheck-service\""),
+			},
+		},
+	}
+
+	testKongState(t, client, false, expectedStatePostApply, nil)
+}

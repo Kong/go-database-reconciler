@@ -517,6 +517,7 @@ type foo struct {
 	Route         string               `json:"route,omitempty" yaml:",omitempty"`
 	Enabled       *bool                `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 	RunOn         *string              `json:"run_on,omitempty" yaml:"run_on,omitempty"`
+	Condition     *string              `json:"condition,omitempty" yaml:"condition,omitempty"`
 	Ordering      *kong.PluginOrdering `json:"ordering,omitempty" yaml:"ordering,omitempty"`
 	Protocols     []*string            `json:"protocols,omitempty" yaml:"protocols,omitempty"`
 	Tags          []*string            `json:"tags,omitempty" yaml:"tags,omitempty"`
@@ -571,6 +572,9 @@ func copyToFoo(p FPlugin) foo {
 	}
 	if p.Partials != nil {
 		f.Partials = p.Partials
+	}
+	if p.Condition != nil {
+		f.Condition = p.Condition
 	}
 	return f
 }
@@ -628,6 +632,9 @@ func copyFromFoo(f foo, p *FPlugin) {
 	}
 	if f.Partials != nil {
 		p.Partials = f.Partials
+	}
+	if f.Condition != nil {
+		p.Condition = f.Condition
 	}
 }
 

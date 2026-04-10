@@ -37,11 +37,11 @@ func Test_getPrefixedEnvVar(t *testing.T) {
 func Test_renderTemplate(t *testing.T) {
 	content := "Hello, ${{ env \"DECK_MY_VARIABLE\" }}!"
 	expectedOutput := "Hello, my_value!"
-	mockEnvVars := false
+	mode := EnvVarsExpand
 
 	os.Setenv("DECK_MY_VARIABLE", "my_value")
 
-	output, err := renderTemplate(content, mockEnvVars)
+	output, err := renderTemplate(content, mode)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -57,11 +57,11 @@ func Test_renderTemplateCustomPrefix(t *testing.T) {
 	SetEnvVarPrefix("PREFIX_")
 	content := "Hello, ${{ env \"PREFIX_MY_VARIABLE\" }}!"
 	expectedOutput := "Hello, my_value!"
-	mockEnvVars := false
+	mode := EnvVarsExpand
 
 	os.Setenv("PREFIX_MY_VARIABLE", "my_value")
 
-	output, err := renderTemplate(content, mockEnvVars)
+	output, err := renderTemplate(content, mode)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -78,11 +78,11 @@ func Test_renderTemplateIgnoresComments(t *testing.T) {
   # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 
 	expectedOutput := `Hello, my_value!`
-	mockEnvVars := false
+	mode := EnvVarsExpand
 
 	os.Setenv("DECK_MY_VARIABLE", "my_value")
 
-	output, err := renderTemplate(content, mockEnvVars)
+	output, err := renderTemplate(content, mode)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -98,14 +98,62 @@ func Test_renderTemplateErrorWhenNotSet(t *testing.T) {
 Hello, ${{ env "DECK_MY_VARIABLE" }}!
 Also, ${{ env "DECK_NOT_SET_ERRORS" }}!`
 
-	mockEnvVars := false
+	mode := EnvVarsExpand
 
 	os.Setenv("DECK_MY_VARIABLE", "my_value")
 
-	_, err := renderTemplate(content, mockEnvVars)
+	_, err := renderTemplate(content, mode)
 	if err == nil {
 		t.Errorf("expected error but did not receive one")
 	}
 
 	os.Unsetenv("DECK_MY_VARIABLE")
+}
+
+func Test_renderTemplateMock(t *testing.T) {
+	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!`
+	// EnvVarsMock returns the variable name, not the value, and does not
+	// require the env var to be set.
+	expectedOutput := `Hello, DECK_MY_VARIABLE!`
+
+	output, err := renderTemplate(content, EnvVarsMock)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if output != expectedOutput {
+		t.Errorf("Expected output %q, but got %q", expectedOutput, output)
+	}
+}
+
+func Test_renderTemplateMockDoesNotRequireEnvVars(t *testing.T) {
+	// Even with an unset env var, EnvVarsMock should not error.
+	content := `Hello, ${{ env "DECK_NOT_SET" }}!`
+
+	_, err := renderTemplate(content, EnvVarsMock)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+}
+
+func Test_renderTemplateSkip(t *testing.T) {
+	// EnvVarsSkip returns the content unchanged, including template expressions.
+	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!`
+
+	output, err := renderTemplate(content, EnvVarsSkip)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if output != content {
+		t.Errorf("Expected output %q, but got %q", content, output)
+	}
+}
+
+func Test_renderTemplateSkipDoesNotRequireEnvVars(t *testing.T) {
+	// EnvVarsSkip must not error even when referenced env vars are not set.
+	content := `Hello, ${{ env "DECK_NOT_SET" }}!`
+
+	_, err := renderTemplate(content, EnvVarsSkip)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
 }
