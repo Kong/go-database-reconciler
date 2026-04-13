@@ -44,16 +44,6 @@ func Test_Apply_Custom_Entities(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Clean up any existing graphql_ratelimiting_cost_decorations before each test
-			// The initial-state.yaml creates a service named "example"
-			svcID := kong.String("example")
-			existingDecorations, err := client.GraphqlRateLimitingCostDecorations.ListAllForService(ctx, svcID)
-			if err == nil {
-				for _, d := range existingDecorations {
-					require.NoError(t, client.GraphqlRateLimitingCostDecorations.Delete(ctx, d.ID))
-				}
-			}
-
 			mustResetKongState(ctx, t, client, deckDump.Config{})
 			err = sync(tc.initialStateFile)
 			require.NoError(t, err)

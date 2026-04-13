@@ -420,8 +420,6 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 	kong.RunWhenEnterprise(t, ">=3.0.0", kong.RequiredFeatures{})
 	setup(t)
 
-	// Sync a service first so we can attach cost decorations to it
-	require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
 	const serviceID = "58076db2-28b6-423b-ba39-a797193017f7"
 
 	client, err := getTestClient()
@@ -503,8 +501,6 @@ func Test_Dump_GraphqlRateLimitingCostDecorations(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Reset Kong state and re-sync the service for each sub-test
-			// to ensure no stale decorations from previous sub-tests.
 			reset(t)
 			require.NoError(t, sync("testdata/sync/001-create-a-service/kong3x.yaml"))
 
