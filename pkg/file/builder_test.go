@@ -3848,6 +3848,135 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "nested object in plugin_config fills missing nested keys",
+			fields: fields{
+				targetContent: &Content{
+					PluginConfigs: map[string]kong.Configuration{
+						"redis-shared": {
+							"redis": map[string]interface{}{
+								"host":     "redis.example.com",
+								"port":     float64(6379),
+								"password": "secret",
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				plugin: &FPlugin{
+					ConfigSource: kong.String("redis-shared"),
+					Plugin: kong.Plugin{
+						Config: kong.Configuration{
+							"redis": map[string]interface{}{
+								"host": "override.example.com",
+							},
+						},
+					},
+				},
+			},
+			result: FPlugin{
+				ConfigSource: kong.String("redis-shared"),
+				Plugin: kong.Plugin{
+					Config: kong.Configuration{
+						"redis": map[string]interface{}{
+							"host":     "override.example.com",
+							"port":     float64(6379),
+							"password": "secret",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "deeply nested object: plugin values win at every level",
+			fields: fields{
+				targetContent: &Content{
+					PluginConfigs: map[string]kong.Configuration{
+						"shared": {
+							"level1": map[string]interface{}{
+								"level2": map[string]interface{}{
+									"a": "from-config",
+									"b": "from-config",
+								},
+								"other": "from-config",
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				plugin: &FPlugin{
+					ConfigSource: kong.String("shared"),
+					Plugin: kong.Plugin{
+						Config: kong.Configuration{
+							"level1": map[string]interface{}{
+								"level2": map[string]interface{}{
+									"a": "from-plugin",
+								},
+							},
+						},
+					},
+				},
+			},
+			result: FPlugin{
+				ConfigSource: kong.String("shared"),
+				Plugin: kong.Plugin{
+					Config: kong.Configuration{
+						"level1": map[string]interface{}{
+							"level2": map[string]interface{}{
+								"a": "from-plugin",
+								"b": "from-config",
+							},
+							"other": "from-config",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "top-level keys missing in plugin are filled from config-source alongside nested merge",
+			fields: fields{
+				targetContent: &Content{
+					PluginConfigs: map[string]kong.Configuration{
+						"shared": {
+							"redis": map[string]interface{}{
+								"host": "redis.example.com",
+								"port": float64(6379),
+							},
+							"limit": float64(100),
+						},
+					},
+				},
+			},
+			args: args{
+				plugin: &FPlugin{
+					ConfigSource: kong.String("shared"),
+					Plugin: kong.Plugin{
+						Config: kong.Configuration{
+							"redis": map[string]interface{}{
+								"host": "override.example.com",
+							},
+						},
+					},
+				},
+			},
+			result: FPlugin{
+				ConfigSource: kong.String("shared"),
+				Plugin: kong.Plugin{
+					Config: kong.Configuration{
+						"redis": map[string]interface{}{
+							"host": "override.example.com",
+							"port": float64(6379),
+						},
+						"limit": float64(100),
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
