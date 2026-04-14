@@ -1957,16 +1957,16 @@ func (b *stateBuilder) fillPluginConfig(plugin *FPlugin) error {
 			return fmt.Errorf("_plugin_config %q not found",
 				*plugin.ConfigSource)
 		}
-		mergeConfigInto(plugin.Config, conf)
+		mergePluginConfig(plugin.Config, conf)
 	}
 	return nil
 }
 
-// mergeConfigInto merges src into dst without overwriting existing keys.
+// mergePluginConfig merges src into dst without overwriting existing keys.
 // For nested maps, it recurses rather than replacing the entire object,
 // so that plugin-level values always take precedence over config-source values
 // at every level of nesting.
-func mergeConfigInto(dst, src map[string]interface{}) {
+func mergePluginConfig(dst, src map[string]interface{}) {
 	for k, v := range src {
 		existing, ok := dst[k]
 		if !ok {
@@ -1979,7 +1979,7 @@ func mergeConfigInto(dst, src map[string]interface{}) {
 		dstMap, dstIsMap := existing.(map[string]interface{})
 		srcMap, srcIsMap := v.(map[string]interface{})
 		if dstIsMap && srcIsMap {
-			mergeConfigInto(dstMap, srcMap)
+			mergePluginConfig(dstMap, srcMap)
 		}
 	}
 }
