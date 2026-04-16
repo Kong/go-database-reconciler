@@ -456,7 +456,7 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		case "graphql_ratelimiting_cost_decorations":
 			entity := c.Object()
 
-			decoration, err := buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity)
+			decoration, err := buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState, entity)
 			if err != nil {
 				return fmt.Errorf("building graphql ratelimiting cost decoration from custom entity: %w", err)
 			}
@@ -607,7 +607,7 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 	return degraphqlRoute, nil
 }
 
-func buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity map[string]interface{},
+func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState, entity map[string]interface{},
 ) (GraphqlRateLimitingCostDecoration, error) {
 	var decoration GraphqlRateLimitingCostDecoration
 
@@ -621,14 +621,27 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(entity map[string]in
 
 	if entity["service"] != nil {
 		svc, ok := entity["service"].(map[string]interface{})
-		if ok {
-			decoration.Service = &kong.Service{}
-			if id, ok := svc["id"].(string); ok {
-				decoration.Service.ID = kong.String(id)
-			}
-			if name, ok := svc["name"].(string); ok {
-				decoration.Service.Name = kong.String(name)
-			}
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("service must be of type object")
+		}
+
+		serviceID, ok := svc["id"].(string)
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{},
+				fmt.Errorf("service must be of type object with a valid string id")
+		}
+
+		ok, s, err := ensureService(kongState, serviceID)
+		if err != nil {
+			return GraphqlRateLimitingCostDecoration{}, err
+		}
+		if !ok {
+			return GraphqlRateLimitingCostDecoration{},
+				fmt.Errorf("service must be of type object with a valid string id")
+		}
+
+		decoration.Service = &kong.Service{
+			ID: s.ID,
 		}
 	}
 

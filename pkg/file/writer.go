@@ -1051,7 +1051,7 @@ func populateGraphqlRateLimitingCostDecorations(kongState *state.KongState, file
 	for _, d := range decorations {
 		f := FCustomEntity{}
 
-		err := copyFromGraphqlRateLimitingCostDecoration(GraphqlRateLimitingCostDecoration{
+		err := copyFromGqlRateLimitingCostDecoration(GraphqlRateLimitingCostDecoration{
 			GraphqlRateLimitingCostDecoration: d.GraphqlRateLimitingCostDecoration,
 		}, &f)
 		if err != nil {

@@ -980,7 +980,7 @@ func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
 		if err != nil {
 			return err
 		}
-		return copyToGraphqlRateLimitingCostDecorationEntity(entity, f)
+		return copyToGqlRateLimitingCostDecoration(entity, f)
 	default:
 		return fmt.Errorf("unknown entity type: %s", temp["type"])
 	}
@@ -1001,7 +1001,7 @@ func (f *FCustomEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		if err := unmarshal(&entity); err != nil {
 			return err
 		}
-		return copyFromGraphqlRateLimitingCostDecoration(entity, f)
+		return copyFromGqlRateLimitingCostDecoration(entity, f)
 	default:
 		return fmt.Errorf("unknown entity type: %s", *f.Type)
 	}
@@ -1130,7 +1130,7 @@ func (d DegraphqlRoute) sortKey() string {
 	return ""
 }
 
-func copyFromGraphqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, fcEntity *FCustomEntity) error {
+func copyFromGqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, fcEntity *FCustomEntity) error {
 	fcEntity.Type = kong.String(graphqlRateLimitingCostDecorationsType)
 
 	if g.ID != nil {
@@ -1185,7 +1185,7 @@ func copyFromGraphqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecorati
 	return nil
 }
 
-func copyToGraphqlRateLimitingCostDecorationEntity(data map[string]interface{}, fcEntity *FCustomEntity) error {
+func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *FCustomEntity) error {
 	fcEntity.Type = kong.String(graphqlRateLimitingCostDecorationsType)
 
 	if data["id"] != nil {
