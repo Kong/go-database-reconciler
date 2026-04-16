@@ -1,0 +1,28 @@
+_format_version: "3.0"
+_plugin_configs:
+  azure:
+    route_type: llm/v1/chat
+    auth:
+      header_name: api-key
+      header_value: my-api-key
+    logging:
+      log_statistics: true
+      log_payloads: true
+    model:
+      provider: azure
+      name: my-az-model
+      options:
+        azure_instance: my-instance
+        azure_deployment_id: my-deployment
+        azure_api_version: v1
+
+
+plugins:
+- name: ai-proxy
+  _config: azure
+  config:
+    auth:
+      header_value: my-updated-api-key
+    model:
+      options:
+        azure_instance: my-updated-instance

@@ -11124,6 +11124,30 @@ func Test_Sync_Services_TLS_Sans(t *testing.T) {
 	}
 }
 
+func Test_Sync_ConsumerGroupNotFoundForConsumer(t *testing.T) {
+	tests := []struct {
+		name          string
+		kongFile      string
+		expectedError string
+	}{
+		{
+			name:     "consumer references non-existent consumer group",
+			kongFile: "testdata/sync/047-consumer-group-not-found/kong.yaml",
+			expectedError: "building state: consumer-group 'non-existent-group' " +
+				"not found for consumer '58076db2-28b6-423b-ba39-a797193017f7'",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runWhenEnterpriseOrKonnect(t, ">=3.0.0")
+			setup(t)
+
+			err := sync(tc.kongFile)
+			require.Error(t, err)
+			assert.EqualError(t, err, tc.expectedError)
+		})
+	}
+}
 func Test_Sync_Plugin_Conditional(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.14.0")
 	client, err := getTestClient()
@@ -11288,6 +11312,97 @@ func Test_Sync_Plugins_Nested_Foreign_Keys_External_Entities(t *testing.T) {
 			// Second diff — to verify a state file should not break with "entity already exists".
 			_, err = diff(tc.stateFile)
 			require.NoError(t, err)
+		})
+	}
+}
+
+// test scope:
+//   - >=3.11.0
+func Test_Sync_PluginConfigNestedMerge(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.11.0")
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name          string
+		kongFile      string
+		expectedState utils.KongRawState
+	}{
+		{
+			name:     "deeply nested config with arrays and maps is merged correctly",
+			kongFile: "testdata/sync/048-plugin-config-nested-merge/kong.yaml",
+			expectedState: utils.KongRawState{
+				Plugins: []*kong.Plugin{
+					{
+						Name: kong.String("ai-proxy"),
+						Config: kong.Configuration{
+							"auth": map[string]any{
+								"allow_override":             bool(false),
+								"aws_access_key_id":          nil,
+								"aws_secret_access_key":      nil,
+								"azure_client_id":            nil,
+								"azure_client_secret":        nil,
+								"azure_tenant_id":            nil,
+								"azure_use_managed_identity": bool(false),
+								"gcp_service_account_json":   nil,
+								"gcp_use_service_account":    bool(false),
+								"header_name":                string("api-key"),
+								"header_value":               string("my-updated-api-key"),
+								"param_location":             nil,
+								"param_name":                 nil,
+								"param_value":                nil,
+							},
+							"genai_category":        string("text/generation"),
+							"llm_format":            string("openai"),
+							"logging":               map[string]any{"log_payloads": bool(true), "log_statistics": bool(true)},
+							"max_request_body_size": float64(8192),
+							"model": map[string]any{
+								"name": string("my-az-model"),
+								"options": map[string]any{
+									"anthropic_version":     nil,
+									"azure_api_version":     string("v1"),
+									"azure_deployment_id":   string("my-deployment"),
+									"azure_instance":        string("my-updated-instance"),
+									"bedrock":               nil,
+									"cohere":                nil,
+									"embeddings_dimensions": nil,
+									"gemini":                nil,
+									"huggingface":           nil,
+									"input_cost":            nil,
+									"llama2_format":         nil,
+									"max_tokens":            nil,
+									"mistral_format":        nil,
+									"output_cost":           nil,
+									"temperature":           nil,
+									"top_k":                 nil,
+									"top_p":                 nil,
+									"upstream_path":         nil,
+									"upstream_url":          nil,
+								},
+								"provider": string("azure"),
+							},
+							"model_name_header":  bool(true),
+							"response_streaming": string("allow"),
+							"route_type":         string("llm/v1/chat"),
+						},
+						Enabled:   kong.Bool(true),
+						Protocols: kong.StringSlice("grpc", "grpcs", "http", "https", "ws", "wss"),
+					},
+				},
+			},
+		},
+	}
+
+	ignoreFields := []cmp.Option{
+		cmpopts.IgnoreFields(kong.Plugin{}, "ID"),
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			setup(t)
+			sync(tc.kongFile)
+			testKongState(t, client, false, tc.expectedState, ignoreFields)
 		})
 	}
 }

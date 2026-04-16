@@ -842,7 +842,14 @@ func (b *stateBuilder) consumers() {
 			} else if group.Name != nil {
 				cg, err := b.intermediate.ConsumerGroups.Get(*group.Name)
 				if err != nil {
-					b.err = err
+					if errors.Is(err, state.ErrNotFound) {
+						b.err = fmt.Errorf(
+							"consumer-group '%s' not found for consumer '%s'",
+							*group.Name, *c.ID,
+						)
+					} else {
+						b.err = err
+					}
 					return
 				}
 				groupIdentifier = *cg.ID
@@ -1950,13 +1957,31 @@ func (b *stateBuilder) fillPluginConfig(plugin *FPlugin) error {
 			return fmt.Errorf("_plugin_config %q not found",
 				*plugin.ConfigSource)
 		}
-		for k, v := range conf {
-			if _, ok := plugin.Config[k]; !ok {
-				plugin.Config[k] = v
-			}
-		}
+		mergePluginConfig(plugin.Config, conf)
 	}
 	return nil
+}
+
+// mergePluginConfig merges src into dst without overwriting existing keys.
+// For nested maps, it recurses rather than replacing the entire object,
+// so that plugin-level values always take precedence over config-source values
+// at every level of nesting.
+func mergePluginConfig(dst, src map[string]interface{}) {
+	for k, v := range src {
+		existing, ok := dst[k]
+		if !ok {
+			dst[k] = v
+			continue
+		}
+
+		// checking if both existing and new values are maps;
+		// if so, we need to merge them recursively
+		dstMap, dstIsMap := existing.(map[string]interface{})
+		srcMap, srcIsMap := v.(map[string]interface{})
+		if dstIsMap && srcIsMap {
+			mergePluginConfig(dstMap, srcMap)
+		}
+	}
 }
 
 func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
