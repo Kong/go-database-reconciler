@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -90,6 +91,9 @@ func indent(spaces int, v string) string {
 	return strings.ReplaceAll(v, "\n", "\n"+pad)
 }
 
+// templateExprPattern matches ${{ ... }} template expressions.
+var templateExprPattern = regexp.MustCompile(`\$\{\{[^}]*\}\}`)
+
 func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	if mode == EnvVarsSkip {
 		return content, nil
@@ -115,14 +119,24 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	}
 	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
 
-	// Parse content line by line, and ignore lines that start with #
+	// Parse content line by line.
+	// Lines whose first non-whitespace character is '#' are YAML comment lines.
+	// We must NOT remove them entirely, because they may also be continuation lines
+	// of single-quoted YAML scalars (e.g. CSS hex colors like #4c4c4c that wrap to
+	// the next line). Removing such lines corrupts the YAML value.
+	// Instead, strip only any template expressions (${{ ... }}) from those lines so
+	// the template engine cannot accidentally execute them, but preserve the line so
+	// the YAML parser can process it normally (YAML will ignore true comment lines).
 	var allContent bytes.Buffer
 	lines := strings.Split(content, "\n")
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if !strings.HasPrefix(strings.TrimSpace(line), "#") {
-			allContent.WriteString(line + "\n")
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			// Remove any template expressions from the line to prevent accidental
+			// execution, but keep the line itself intact.
+			line = templateExprPattern.ReplaceAllString(line, "")
 		}
+		allContent.WriteString(line + "\n")
 	}
 
 	result := allContent.String()
