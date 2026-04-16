@@ -25,7 +25,6 @@ const (
 
 var openIDConnectRequiredConfigFields = []string{
 	"cache_tokens_salt",
-	"session_secret",
 }
 
 const (

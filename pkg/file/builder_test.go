@@ -4943,6 +4943,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 }
 
 func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
 	tests := []struct {
 		name       string
 		target     *Content
@@ -4955,7 +4956,6 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 				PluginConfigs: map[string]kong.Configuration{
 					"oidc": {
 						"cache_tokens_salt": "cache-salt",
-						"session_secret":    "session-secret",
 					},
 				},
 				Plugins: []FPlugin{
@@ -4969,7 +4969,6 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 			},
 			wantConfig: kong.Configuration{
 				"cache_tokens_salt": "cache-salt",
-				"session_secret":    "session-secret",
 			},
 		},
 		{
@@ -4984,7 +4983,7 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 					},
 				},
 			},
-			wantErr: "openid-connect plugin requires explicit non-empty config values for cache_tokens_salt, session_secret",
+			wantErr: "openid-connect plugin requires explicit non-empty config values for cache_tokens_salt",
 		},
 		{
 			name: "rejects nil required field values",
@@ -4994,14 +4993,13 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 						Plugin: kong.Plugin{
 							Name: kong.String("openid-connect"),
 							Config: kong.Configuration{
-								"cache_tokens_salt": "cache-salt",
-								"session_secret":    nil,
+								"cache_tokens_salt": nil,
 							},
 						},
 					},
 				},
 			},
-			wantErr: "openid-connect plugin requires explicit non-empty config values for session_secret",
+			wantErr: "openid-connect plugin requires explicit non-empty config values for cache_tokens_salt",
 		},
 	}
 
