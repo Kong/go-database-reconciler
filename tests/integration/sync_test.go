@@ -8877,6 +8877,7 @@ func Test_Sync_PluginDeprecatedFields39x(t *testing.T) {
 	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_addresses"] = nil
 	openidConnectConfigurationInitial["redis"].(map[string]interface{})["cluster_nodes"] = nil
 	openidConnectConfigurationInitial["session_redis_cluster_nodes"] = nil
+	openidConnectConfigurationInitial["cache_tokens_salt"] = string("5CjRldqVE1mQtsunhqKGAAA4U3big9Xc")
 
 	// Initial State
 	expectedInitialState := utils.KongRawState{
@@ -9079,6 +9080,7 @@ func Test_Sync_PluginDeprecatedFields312x(t *testing.T) {
 	openidConnectConfigurationInitial["consumer_groups_claim"] = nil
 	openidConnectConfigurationInitial["consumer_groups_optional"] = false
 	openidConnectConfigurationInitial["session_bind"] = nil
+	openidConnectConfigurationInitial["cache_tokens_salt"] = string("5CjRldqVE1mQtsunhqKGAAA4U3big9Xc")
 
 	// Initial State
 	expectedInitialState := utils.KongRawState{
