@@ -55,6 +55,7 @@ plugins:
   enabled: true
   config:
     issuer: https://accounts.google.test/.well-known/openid-configuration
+    cache_tokens_salt: 5CjRldqVE1mQtsunhqKGAAA4U3big9Xc
     redis:
       cluster_max_redirections: 11
       cluster_nodes:

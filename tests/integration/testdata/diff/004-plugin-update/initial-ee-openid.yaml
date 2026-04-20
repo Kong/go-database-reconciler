@@ -13,6 +13,7 @@ plugins:
     issuer: https://accounts.google.test/.well-known/openid-configuration
     session_redis_cluster_max_redirections: null
     session_redis_cluster_nodes: null
+    cache_tokens_salt: 5CjRldqVE1mQtsunhqKGAAA4U3big9Xc
     redis:
       cluster_nodes: null
       cluster_max_redirections: null
