@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -141,3 +142,58 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	}
 	return buffer.String(), nil
 }
+
+var templateExprPattern = regexp.MustCompile(`\$\{\{[^}]*\}\}`)
+func renderTemplateWithPreservingComment(content string, mode RenderEnvVarsMode) (string, error) {
+	if mode == EnvVarsSkip {
+		return content, nil
+	}
+
+	var templateFuncs template.FuncMap
+	if mode == EnvVarsMock {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVarMocked,
+			"toBool":  toBoolMocked,
+			"toInt":   toIntMocked,
+			"toFloat": toFloatMocked,
+			"indent":  indent,
+		}
+	} else {
+		templateFuncs = template.FuncMap{
+			"env":     getPrefixedEnvVar,
+			"toBool":  toBool,
+			"toInt":   toInt,
+			"toFloat": toFloat,
+			"indent":  indent,
+		}
+	}
+	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
+
+	// Parse content line by line, and ignore lines that start with #
+	var allContent bytes.Buffer
+	lines := strings.Split(content, "\n")
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			line = templateExprPattern.ReplaceAllString(line, "")
+		}
+		allContent.WriteString(line + "\n")
+	}
+
+	result := allContent.String()
+	if !strings.HasSuffix(content, "\n") {
+		result = strings.TrimSuffix(result, "\n")
+	}
+
+	t, err := t.Parse(result)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, nil)
+	if err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
+}
+
