@@ -15,11 +15,20 @@ type graphqlRateLimitingCostDecorationCRUD struct {
 	client *kong.Client
 }
 
+// kong and konnect APIs only require IDs for referenced entities.
+// konnect apis, break if name is passed.
+func stripGraphqlRateLimitingCostDecorationReferencesName(decoration *state.GraphqlRateLimitingCostDecoration) {
+	if decoration.Service != nil && decoration.Service.Name != nil {
+		decoration.Service.Name = nil
+	}
+}
+
 func graphqlRateLimitingCostDecorationFromStruct(arg crud.Event) *state.GraphqlRateLimitingCostDecoration {
 	decoration, ok := arg.Obj.(*state.GraphqlRateLimitingCostDecoration)
 	if !ok {
 		panic("unexpected type, expected *state.GraphqlRateLimitingCostDecoration")
 	}
+	stripGraphqlRateLimitingCostDecorationReferencesName(decoration)
 	return decoration
 }
 
@@ -162,24 +171,10 @@ func (d *graphqlRateLimitingCostDecorationDiffer) createUpdateDecoration(
 ) (*crud.Event, error) {
 	decoration = &state.GraphqlRateLimitingCostDecoration{GraphqlRateLimitingCostDecoration: *decoration.DeepCopy()}
 
-	// First try to find by ID
 	currentDecoration, err := d.currentState.GraphqlRateLimitingCostDecorations.Get(*decoration.ID)
 	if err != nil && !errors.Is(err, state.ErrNotFound) {
 		return nil, fmt.Errorf("error looking up graphql ratelimiting cost decoration %q: %w",
 			*decoration.ID, err)
-	}
-
-	// If not found by ID, try to find by TypePath
-	if errors.Is(err, state.ErrNotFound) && decoration.TypePath != nil {
-		currentDecoration, err = d.currentState.GraphqlRateLimitingCostDecorations.GetByTypePath(*decoration.TypePath)
-		if err != nil && !errors.Is(err, state.ErrNotFound) {
-			return nil, fmt.Errorf("error looking up graphql ratelimiting cost decoration by type_path %q: %w",
-				*decoration.TypePath, err)
-		}
-		// If found by TypePath, use the existing ID
-		if err == nil && currentDecoration != nil {
-			decoration.ID = currentDecoration.ID
-		}
 	}
 
 	if errors.Is(err, state.ErrNotFound) {

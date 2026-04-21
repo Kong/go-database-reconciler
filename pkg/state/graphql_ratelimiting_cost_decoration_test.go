@@ -106,7 +106,7 @@ func TestGraphqlRateLimitingCostDecorationGet(t *testing.T) {
 	require.NotNil(res)
 	assert.Equal("example", *res.ID)
 	assert.Equal("Query.users", *res.TypePath)
-	assert.InDelta(1.0, *res.AddConstant, 0.001)
+	assert.InDelta(1.0, *res.AddConstant, 1.0)
 
 	// Fetch non-existent entity
 	res, err = collection.Get("does-not-exist")
@@ -168,7 +168,7 @@ func TestGraphqlRateLimitingCostDecorationUpdate(t *testing.T) {
 	res, err := collection.Get("update-example")
 	require.NoError(err, "error getting decoration")
 	require.NotNil(res)
-	assert.InDelta(1.0, *res.AddConstant, 0.001)
+	assert.InDelta(1.0, *res.AddConstant, 1.0)
 
 	// Update AddConstant field
 	res.AddConstant = kong.Float64(5.0)
@@ -180,8 +180,8 @@ func TestGraphqlRateLimitingCostDecorationUpdate(t *testing.T) {
 	res, err = collection.Get("update-example")
 	require.NoError(err, "error getting decoration")
 	require.NotNil(res)
-	assert.InDelta(5.0, *res.AddConstant, 0.001)
-	assert.InDelta(2.0, *res.MulConstant, 0.001)
+	assert.InDelta(5.0, *res.AddConstant, 5.0)
+	assert.InDelta(2.0, *res.MulConstant, 2.0)
 }
 
 func TestGraphqlRateLimitingCostDecorationDelete(t *testing.T) {

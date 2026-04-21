@@ -20,6 +20,8 @@ const (
 	SelectTag = iota
 	// DefaultLookupTag represents the lookup selector tags
 	DefaultLookupTag
+
+	GraphQLRLCostDecorationEntityType = "graphql_ratelimiting_cost_decorations"
 )
 
 // Config can be used to skip exporting certain entities
@@ -663,10 +665,10 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			// In Konnect mode, graphql_ratelimiting_cost_decorations must be fetched
 			// per-service using the typed ListAllForService endpoint, because Konnect
 			// does not expose the generic custom entities list for this type.
-			if config.KonnectControlPlane != "" && t == "graphql_ratelimiting_cost_decorations" {
+			if config.KonnectControlPlane != "" && t == GraphQLRLCostDecorationEntityType {
 				group.Go(func() error {
 					decorations, err := GetAllGraphqlRateLimitingCostDecorationsForServices(
-						ctx, client, config.SelectorTags)
+						ctx, client)
 					if err != nil {
 						return fmt.Errorf("graphql_ratelimiting_cost_decorations: %w", err)
 					}
@@ -705,7 +707,7 @@ func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
 
 	// Special case: Kong exposes this API at /graphql-rate-limiting-advanced/costs,
 	// not at /graphql_ratelimiting_cost_decorations (the entity type name).
-	if typ == "graphql_ratelimiting_cost_decorations" {
+	if typ == GraphQLRLCostDecorationEntityType {
 		crudPath = "/graphql-rate-limiting-advanced/costs"
 	}
 
@@ -1656,9 +1658,9 @@ func GetAllCustomEntitiesWithType(
 // service-specific list endpoint. This is used in Konnect mode where the generic
 // custom entities list endpoint is not available for this entity type.
 func GetAllGraphqlRateLimitingCostDecorationsForServices(
-	ctx context.Context, client *kong.Client, tags []string,
+	ctx context.Context, client *kong.Client,
 ) ([]*kong.GraphqlRateLimitingCostDecoration, error) {
-	services, err := GetAllServices(ctx, client, tags)
+	services, err := GetAllServices(ctx, client, nil)
 	if err != nil {
 		return nil, fmt.Errorf("fetching services: %w", err)
 	}

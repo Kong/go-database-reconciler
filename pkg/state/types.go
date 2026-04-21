@@ -1993,13 +1993,7 @@ func (g *GraphqlRateLimitingCostDecoration) GetCustomEntityType() string {
 
 // Console returns the string to identify the GraphqlRateLimitingCostDecoration.
 func (g *GraphqlRateLimitingCostDecoration) Console() string {
-	if g.TypePath != nil {
-		return *g.TypePath
-	}
-	if g.ID != nil {
-		return *g.ID
-	}
-	return ""
+	return *g.ID
 }
 
 // Equal returns true if GraphqlRateLimitingCostDecoration g and g2 are equal.

@@ -432,6 +432,15 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 	}
 
 	for _, g := range raw.GraphqlRateLimitingCostDecorations {
+		if g.Service != nil && !utils.Empty(g.Service.ID) {
+			ok, s, err := ensureService(kongState, *g.Service.ID)
+			if err != nil {
+				return err
+			}
+			if ok {
+				g.Service = s
+			}
+		}
 		err := kongState.GraphqlRateLimitingCostDecorations.Add(
 			GraphqlRateLimitingCostDecoration{GraphqlRateLimitingCostDecoration: *g})
 		if err != nil {
@@ -628,7 +637,7 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		serviceID, ok := svc["id"].(string)
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{},
-				fmt.Errorf("service must be of type object with a valid string id")
+				fmt.Errorf("service must be of type object with a valid string id or name")
 		}
 
 		ok, s, err := ensureService(kongState, serviceID)
@@ -637,7 +646,7 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		}
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{},
-				fmt.Errorf("service must be of type object with a valid string id")
+				fmt.Errorf("service must be of type object with a valid string id or name")
 		}
 
 		decoration.Service = &kong.Service{

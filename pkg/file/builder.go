@@ -2370,14 +2370,6 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 			fmt.Errorf("fields are required for graphql_ratelimiting_cost_decorations")
 	}
 
-	if fcEntity.Fields["id"] != nil {
-		if id, ok := fcEntity.Fields["id"].(*string); ok {
-			decoration.ID = id
-		} else if id, ok := fcEntity.Fields["id"].(string); ok {
-			decoration.ID = kong.String(id)
-		}
-	}
-
 	// Extract service reference from fields if present
 	if fcEntity.Fields["service"] != nil {
 		if svc, ok := fcEntity.Fields["service"].(map[string]interface{}); ok {
@@ -2413,6 +2405,11 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 		}
 	}
 
+	if decoration.TypePath == nil {
+		return GraphqlRateLimitingCostDecoration{},
+			fmt.Errorf("type_path is required for graphql_ratelimiting_cost_decorations")
+	}
+
 	if fcEntity.Fields["add_constant"] != nil {
 		if ac, ok := fcEntity.Fields["add_constant"].(*float64); ok {
 			decoration.AddConstant = ac
@@ -2431,33 +2428,21 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 
 	if fcEntity.Fields["add_arguments"] != nil {
 		if args, ok := fcEntity.Fields["add_arguments"].([]*string); ok {
-			decoration.AddArguments = args
-		} else if args, ok := fcEntity.Fields["add_arguments"].([]interface{}); ok {
-			addArgs := make([]*string, len(args))
+			addArgs := make([]string, len(args))
 			for i, arg := range args {
-				if argStr, ok := arg.(string); ok {
-					addArgs[i] = kong.String(argStr)
-				} else if argPtr, ok := arg.(*string); ok {
-					addArgs[i] = argPtr
-				}
+				addArgs[i] = *arg
 			}
-			decoration.AddArguments = addArgs
+			decoration.AddArguments = kong.StringSlice(addArgs...)
 		}
 	}
 
 	if fcEntity.Fields["mul_arguments"] != nil {
 		if args, ok := fcEntity.Fields["mul_arguments"].([]*string); ok {
-			decoration.MulArguments = args
-		} else if args, ok := fcEntity.Fields["mul_arguments"].([]interface{}); ok {
-			mulArgs := make([]*string, len(args))
+			mulArgs := make([]string, len(args))
 			for i, arg := range args {
-				if argStr, ok := arg.(string); ok {
-					mulArgs[i] = kong.String(argStr)
-				} else if argPtr, ok := arg.(*string); ok {
-					mulArgs[i] = argPtr
-				}
+				mulArgs[i] = *arg
 			}
-			decoration.MulArguments = mulArgs
+			decoration.MulArguments = kong.StringSlice(mulArgs...)
 		}
 	}
 
