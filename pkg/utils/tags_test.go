@@ -50,11 +50,11 @@ func equalArray(want, have []*string) bool {
 		return false
 	}
 	for i := range want {
-		if want[i] == nil && have[i] == nil {
-			continue
-		}
 		if want[i] == nil || have[i] == nil {
-			return false
+			if want[i] != have[i] {
+				return false
+			}
+			continue
 		}
 		if *want[i] != *have[i] {
 			return false

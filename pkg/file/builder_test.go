@@ -481,6 +481,26 @@ func existingDegraphqlRouteState(t *testing.T) *state.KongState {
 	return s
 }
 
+func existingGqlCostDecorationState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.GraphqlRateLimitingCostDecorations.Add(
+		state.GraphqlRateLimitingCostDecoration{
+			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
+				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				TypePath: kong.String("Query.users"),
+				Service: &kong.Service{
+					ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+				},
+				AddConstant: kong.Float64(1),
+				MulConstant: kong.Float64(1),
+			},
+		})
+	return s
+}
+
 func existingPartialState(t *testing.T) *state.KongState {
 	t.Helper()
 	s, err := state.NewKongState()
@@ -6029,6 +6049,400 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 					assert.Equal(tt.want, b.rawState)
 				})
 			}
+		})
+	}
+}
+
+func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		want      *utils.KongRawState
+		wantErr   bool
+		errString string
+	}{
+		{
+			name: "generates a new graphql_ratelimiting_cost_decoration from valid config passed",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":     "Query.allFields",
+								"add_constant":  float64(5),
+								"mul_constant":  float64(3),
+								"add_arguments": []*string{kong.String("skip"), kong.String("take")},
+								"mul_arguments": []*string{kong.String("count"), kong.String("size")},
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:           kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						TypePath:     kong.String("Query.allFields"),
+						AddConstant:  kong.Float64(5),
+						MulConstant:  kong.Float64(3),
+						AddArguments: []*string{kong.String("skip"), kong.String("take")},
+						MulArguments: []*string{kong.String("count"), kong.String("size")},
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing graphql_ratelimiting_cost_decoration",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":    kong.String("Query.users"),
+								"add_constant": kong.Float64(1),
+								"mul_constant": kong.Float64(1),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: existingGqlCostDecorationState(t),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:          kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						TypePath:    kong.String("Query.users"),
+						AddConstant: kong.Float64(1),
+						MulConstant: kong.Float64(1),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "accepts service id lookup",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":    kong.String("Mutation.createUser"),
+								"add_constant": kong.Float64(10),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:          kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						TypePath:    kong.String("Mutation.createUser"),
+						AddConstant: kong.Float64(10),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "handles multiple graphql_ratelimiting_cost_decorations",
+			fields: fields{
+				targetContent: &Content{
+					Services: []FService{
+						{
+							Service: kong.Service{
+								Name: kong.String("service1"),
+							},
+						},
+						{
+							Service: kong.Service{
+								Name: kong.String("service2"),
+							},
+						},
+					},
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":    kong.String("Query.users"),
+								"add_constant": kong.Float64(1),
+								"service": map[string]interface{}{
+									"name": "service1",
+								},
+							},
+						},
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":    kong.String("Query.posts"),
+								"mul_constant": kong.Float64(3),
+								"service": map[string]interface{}{
+									"name": "service2",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:          kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						TypePath:    kong.String("Query.users"),
+						AddConstant: kong.Float64(1),
+						Service: &kong.Service{
+							ID: kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						},
+					},
+					{
+						ID:          kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						TypePath:    kong.String("Query.posts"),
+						MulConstant: kong.Float64(3),
+						Service: &kong.Service{
+							ID: kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						},
+					},
+				},
+				Services: []*kong.Service{
+					{
+						ID:             kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:           kong.String("service1"),
+						Protocol:       kong.String("http"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
+					},
+					{
+						ID:             kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:           kong.String("service2"),
+						Protocol:       kong.String("http"),
+						ConnectTimeout: kong.Int(60000),
+						WriteTimeout:   kong.Int(60000),
+						ReadTimeout:    kong.Int(60000),
+					},
+				},
+			},
+		},
+		{
+			name: "handles missing required fields - type_path",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"add_constant": kong.Float64(1),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: nil,
+			},
+			wantErr:   true,
+			errString: "type_path is required for graphql_ratelimiting_cost_decorations",
+		},
+		{
+			name: "handles missing fields",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type:   kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: nil,
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: nil,
+			},
+			wantErr:   true,
+			errString: "fields are required for graphql_ratelimiting_cost_decorations",
+		},
+		{
+			name: "handles add_constant only",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":    "Query.addConstantOnly",
+								"add_constant": float64(10),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:          kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						TypePath:    kong.String("Query.addConstantOnly"),
+						AddConstant: kong.Float64(10),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "handles mul_constant only",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":    "Query.mulConstantOnly",
+								"mul_constant": float64(2.5),
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:          kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						TypePath:    kong.String("Query.mulConstantOnly"),
+						MulConstant: kong.Float64(2.5),
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "handles add_arguments",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":     "Query.withAddArguments",
+								"add_constant":  float64(1),
+								"add_arguments": []*string{kong.String("limit"), kong.String("offset")},
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:           kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
+						TypePath:     kong.String("Query.withAddArguments"),
+						AddConstant:  kong.Float64(1),
+						AddArguments: []*string{kong.String("limit"), kong.String("offset")},
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "handles mul_arguments",
+			fields: fields{
+				targetContent: &Content{
+					CustomEntities: []FCustomEntity{
+						{
+							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Fields: CustomEntityConfiguration{
+								"type_path":     "Query.withMulArguments",
+								"mul_constant":  float64(2),
+								"mul_arguments": []*string{kong.String("first"), kong.String("last")},
+								"service": map[string]interface{}{
+									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								},
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
+					{
+						ID:           kong.String("aa43465a-7862-4616-978a-ed0ce3c6c4f3"),
+						TypePath:     kong.String("Query.withMulArguments"),
+						MulConstant:  kong.Float64(2),
+						MulArguments: []*string{kong.String("first"), kong.String("last")},
+						Service: &kong.Service{
+							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			_, _, err := b.build()
+			if tt.wantErr {
+				require.Error(t, err, "build error was expected")
+				require.ErrorContains(t, err, tt.errString)
+				assert.Equal(t, tt.want, b.rawState)
+				return
+			}
+
+			require.NoError(t, err, "build error is not nil")
+			assert.Equal(t, tt.want, b.rawState)
 		})
 	}
 }

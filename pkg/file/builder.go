@@ -2202,7 +2202,8 @@ func (b *stateBuilder) customEntities() {
 	}
 
 	supportedCustomEntities := map[string]bool{
-		degraphqlRoutesType: true,
+		degraphqlRoutesType:                    true,
+		graphqlRateLimitingCostDecorationsType: true,
 	}
 
 	var customEntities []FCustomEntity
@@ -2223,6 +2224,8 @@ func (b *stateBuilder) ingestCustomEntities(customEntities []FCustomEntity) {
 		switch *e.Type {
 		case degraphqlRoutesType:
 			b.ingestDeGraphqlRoute(e)
+		case graphqlRateLimitingCostDecorationsType:
+			b.ingestGraphqlRateLimitingCostDecoration(e)
 		}
 	}
 }
@@ -2323,6 +2326,132 @@ func (b *stateBuilder) copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRo
 	}
 
 	return degraphqlRoute, nil
+}
+
+func (b *stateBuilder) ingestGraphqlRateLimitingCostDecoration(entity FCustomEntity) {
+	decoration, err := b.copyToGraphqlRateLimitingCostDecoration(entity)
+	if err != nil {
+		b.err = err
+		return
+	}
+
+	if utils.Empty(decoration.ID) {
+		// Try to find existing by TypePath
+		d, err := b.currentState.GraphqlRateLimitingCostDecorations.GetByTypePath(*decoration.TypePath)
+		if errors.Is(err, state.ErrNotFound) {
+			decoration.ID = uuid()
+		} else if err != nil {
+			b.err = err
+			return
+		} else {
+			decoration.ID = kong.String(*d.ID)
+		}
+	} else {
+		decoration.ID = kong.String(*decoration.ID)
+	}
+
+	b.rawState.GraphqlRateLimitingCostDecorations = append(
+		b.rawState.GraphqlRateLimitingCostDecorations,
+		&decoration.GraphqlRateLimitingCostDecoration,
+	)
+}
+
+func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
+	fcEntity FCustomEntity,
+) (GraphqlRateLimitingCostDecoration, error) {
+	decoration := GraphqlRateLimitingCostDecoration{}
+
+	if fcEntity.ID != nil {
+		decoration.ID = fcEntity.ID
+	}
+
+	if fcEntity.Fields == nil {
+		return GraphqlRateLimitingCostDecoration{},
+			fmt.Errorf("fields are required for graphql_ratelimiting_cost_decorations")
+	}
+
+	// Extract service reference from fields if present
+	if fcEntity.Fields["service"] != nil {
+		if svc, ok := fcEntity.Fields["service"].(map[string]interface{}); ok {
+			var serviceID string
+			var serviceName string
+			if id, ok := svc["id"].(string); ok {
+				serviceID = id
+			}
+			if name, ok := svc["name"].(string); ok {
+				serviceName = name
+			}
+
+			if serviceID == "" && serviceName != "" {
+				s, err := b.intermediate.Services.Get(serviceName)
+				if err != nil {
+					return GraphqlRateLimitingCostDecoration{},
+						fmt.Errorf("service %v not found", serviceName)
+				}
+				serviceID = *s.ID
+			}
+
+			decoration.Service = &kong.Service{
+				ID: kong.String(serviceID),
+			}
+		}
+	}
+
+	if fcEntity.Fields["type_path"] != nil {
+		if tp, ok := fcEntity.Fields["type_path"].(*string); ok {
+			decoration.TypePath = tp
+		} else if tp, ok := fcEntity.Fields["type_path"].(string); ok {
+			decoration.TypePath = kong.String(tp)
+		}
+	}
+
+	if decoration.TypePath == nil {
+		return GraphqlRateLimitingCostDecoration{},
+			fmt.Errorf("type_path is required for graphql_ratelimiting_cost_decorations")
+	}
+
+	if fcEntity.Fields["add_constant"] != nil {
+		if ac, ok := fcEntity.Fields["add_constant"].(*float64); ok {
+			decoration.AddConstant = ac
+		} else if ac, ok := fcEntity.Fields["add_constant"].(float64); ok {
+			decoration.AddConstant = kong.Float64(ac)
+		}
+	}
+
+	if fcEntity.Fields["mul_constant"] != nil {
+		if mc, ok := fcEntity.Fields["mul_constant"].(*float64); ok {
+			decoration.MulConstant = mc
+		} else if mc, ok := fcEntity.Fields["mul_constant"].(float64); ok {
+			decoration.MulConstant = kong.Float64(mc)
+		}
+	}
+
+	if fcEntity.Fields["add_arguments"] != nil {
+		if args, ok := fcEntity.Fields["add_arguments"].([]*string); ok {
+			addArgs := make([]string, len(args))
+			for i, arg := range args {
+				addArgs[i] = *arg
+			}
+			decoration.AddArguments = kong.StringSlice(addArgs...)
+		}
+	}
+
+	if fcEntity.Fields["mul_arguments"] != nil {
+		if args, ok := fcEntity.Fields["mul_arguments"].([]*string); ok {
+			mulArgs := make([]string, len(args))
+			for i, arg := range args {
+				mulArgs[i] = *arg
+			}
+			decoration.MulArguments = kong.StringSlice(mulArgs...)
+		}
+	}
+
+	if decoration.TypePath == nil {
+		return GraphqlRateLimitingCostDecoration{},
+			fmt.Errorf("type_path is required for graphql_ratelimiting_cost_decorations")
+	}
+
+	return decoration, nil
 }
 
 func defaulter(

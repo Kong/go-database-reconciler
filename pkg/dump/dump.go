@@ -20,6 +20,8 @@ const (
 	SelectTag = iota
 	// DefaultLookupTag represents the lookup selector tags
 	DefaultLookupTag
+
+	GraphQLRLCostDecorationEntityType = "graphql_ratelimiting_cost_decorations"
 )
 
 // Config can be used to skip exporting certain entities
@@ -644,19 +646,42 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 	}
 
 	if !skipCustomEntities && len(config.CustomEntityTypes) > 0 {
-		// Get custom entities with types given in config.CustomEntityTypes.
+		// Register all entity types first (sequentially) to avoid data race on the registry map.
+		// The registry is not thread-safe, so we must complete all registrations before
+		// starting concurrent fetch operations that call Lookup().
+		for _, entityType := range config.CustomEntityTypes {
+			if err := tryRegisterEntityType(client, custom.Type(entityType)); err != nil {
+				group.Go(func() error {
+					return fmt.Errorf("custom entity %s: %w", entityType, err)
+				})
+				continue
+			}
+		}
+
 		customEntityLock := sync.Mutex{}
 		for _, entityType := range config.CustomEntityTypes {
 			t := entityType
+
+			// In Konnect mode, graphql_ratelimiting_cost_decorations must be fetched
+			// per-service using the typed ListAllForService endpoint, because Konnect
+			// does not expose the generic custom entities list for this type.
+			if config.KonnectControlPlane != "" && t == GraphQLRLCostDecorationEntityType {
+				group.Go(func() error {
+					decorations, err := GetAllGraphqlRateLimitingCostDecorationsForServices(
+						ctx, client)
+					if err != nil {
+						return fmt.Errorf("graphql_ratelimiting_cost_decorations: %w", err)
+					}
+					customEntityLock.Lock()
+					state.GraphqlRateLimitingCostDecorations = append(
+						state.GraphqlRateLimitingCostDecorations, decorations...)
+					customEntityLock.Unlock()
+					return nil
+				})
+				continue
+			}
+
 			group.Go(func() error {
-				// Register entity type.
-				// Because client writes an unprotected map to register entity types, we need to use mutex to protect it.
-				customEntityLock.Lock()
-				err := tryRegisterEntityType(client, custom.Type(t))
-				customEntityLock.Unlock()
-				if err != nil {
-					return fmt.Errorf("custom entity %s: %w", t, err)
-				}
 				// Fetch all entities with the given type.
 				entities, err := GetAllCustomEntitiesWithType(ctx, client, t)
 				if err != nil {
@@ -676,9 +701,19 @@ func tryRegisterEntityType(client *kong.Client, typ custom.Type) error {
 	if client.Lookup(typ) != nil {
 		return nil
 	}
+
+	// Determine the CRUD path based on entity type
+	crudPath := "/" + string(typ)
+
+	// Special case: Kong exposes this API at /graphql-rate-limiting-advanced/costs,
+	// not at /graphql_ratelimiting_cost_decorations (the entity type name).
+	if typ == GraphQLRLCostDecorationEntityType {
+		crudPath = "/graphql-rate-limiting-advanced/costs"
+	}
+
 	return client.Register(typ, &custom.EntityCRUDDefinition{
 		Name:       typ,
-		CRUDPath:   "/" + string(typ),
+		CRUDPath:   crudPath,
 		PrimaryKey: "id",
 	})
 }
@@ -1616,6 +1651,39 @@ func GetAllCustomEntitiesWithType(
 		opt = nextOpt
 	}
 	return entities, nil
+}
+
+// GetAllGraphqlRateLimitingCostDecorationsForServices fetches all services and then
+// retrieves graphql_ratelimiting_cost_decorations for each service using the
+// service-specific list endpoint. This is used in Konnect mode where the generic
+// custom entities list endpoint is not available for this entity type.
+func GetAllGraphqlRateLimitingCostDecorationsForServices(
+	ctx context.Context, client *kong.Client,
+) ([]*kong.GraphqlRateLimitingCostDecoration, error) {
+	services, err := GetAllServices(ctx, client, nil)
+	if err != nil {
+		return nil, fmt.Errorf("fetching services: %w", err)
+	}
+
+	var allDecorations []*kong.GraphqlRateLimitingCostDecoration
+	for _, svc := range services {
+		if svc.ID == nil {
+			continue
+		}
+		decorations, err := client.GraphqlRateLimitingCostDecorations.ListAllForService(ctx, svc.ID)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("fetching graphql_ratelimiting_cost_decorations for service %s: %w",
+				*svc.ID, err)
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		allDecorations = append(allDecorations, decorations...)
+	}
+	return allDecorations, nil
 }
 
 // excludeConsumersPlugins filter out consumer plugins
