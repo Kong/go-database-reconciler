@@ -1,7 +1,9 @@
 package file
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -157,3 +159,132 @@ func Test_renderTemplateSkipDoesNotRequireEnvVars(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 }
+
+// Benchmark_renderTemplate benchmarks the original implementation
+// that removes comment lines entirely.
+func Benchmark_renderTemplate(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines of content
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplate(contentStr, EnvVarsExpand)
+	}
+}
+
+// Benchmark_renderTemplateWithPreservingComment benchmarks the new implementation
+// that preserves comment lines but strips template expressions from them.
+func Benchmark_renderTemplateWithPreservingComment(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 9; j++ { // 9 lines of content
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplateWithPreservingComment(contentStr, EnvVarsExpand)
+	}
+}
+
+// Benchmark_renderTemplateWithComments benchmarks the original implementation
+// with content that includes comment lines containing template expressions.
+func Benchmark_renderTemplateWithComments(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 8; j++ { // 8 lines of content
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		// Add a comment line with a template expression
+		block.WriteString(fmt.Sprintf("# Comment with ${{ env \"DECK_UNSET_VAR%d\" }}\n", i))
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplate(contentStr, EnvVarsExpand)
+	}
+}
+
+// Benchmark_renderTemplateWithPreservingCommentWithComments benchmarks the new
+// implementation with content that includes comment lines containing template expressions.
+func Benchmark_renderTemplateWithPreservingCommentWithComments(b *testing.B) {
+	var content strings.Builder
+	blockCount := 10000
+	for i := 0; i < blockCount; i++ {
+		os.Setenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i), "my_value")
+
+		var block strings.Builder
+		for j := 0; j < 8; j++ { // 8 lines of content
+			line := strings.Repeat("x", 50) // 50 chars per line
+			block.WriteString(line + "\n")
+		}
+		// Add a comment line with a template expression
+		block.WriteString(fmt.Sprintf("# Comment with ${{ env \"DECK_UNSET_VAR%d\" }}\n", i))
+		block.WriteString(fmt.Sprintf("Value: ${{ env \"DECK_MY_VARIABLE%d\" }}\n", i))
+		content.WriteString(block.String())
+	}
+	defer func() {
+		for i := 0; i < blockCount; i++ {
+			os.Unsetenv(fmt.Sprintf("DECK_MY_VARIABLE%d", i))
+		}
+	}()
+
+	contentStr := content.String()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = renderTemplateWithPreservingComment(contentStr, EnvVarsExpand)
+	}
+}
+
