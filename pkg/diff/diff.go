@@ -473,6 +473,12 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 
 	var wg sync.WaitGroup
 
+	// Set the Konnect flag before starting concurrent goroutines to avoid
+	// a data race.
+	if sc.isKonnect {
+		sc.kongClient.SetKonnectFlag(true)
+	}
+
 	sc.eventChan = make(chan crud.Event, eventBuffer)
 	sc.stopChan = make(chan struct{})
 	sc.errChan = make(chan error)
@@ -728,7 +734,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		if sc.isKonnect {
 			workspaceExists, err = utils.KonnectWorkspaceExists(ctx, sc.kongClient)
-			sc.kongClient.SetKonnectFlag(true)
 		} else {
 			workspaceExists, err = utils.WorkspaceExists(ctx, sc.kongClient)
 		}
