@@ -114,7 +114,6 @@ func (d *graphqlRateLimitingCostDecorationDiffer) Deletes(handler func(crud.Even
 func (d *graphqlRateLimitingCostDecorationDiffer) deleteDecoration(
 	decoration *state.GraphqlRateLimitingCostDecoration,
 ) (*crud.Event, error) {
-	// First try to find by ID
 	_, err := d.targetState.GraphqlRateLimitingCostDecorations.Get(*decoration.ID)
 	if err == nil {
 		// Found by ID, no delete needed
@@ -124,20 +123,6 @@ func (d *graphqlRateLimitingCostDecorationDiffer) deleteDecoration(
 		return nil, fmt.Errorf("looking up graphql ratelimiting cost decoration %q: %w", *decoration.ID, err)
 	}
 
-	// Not found by ID, try to find by TypePath
-	if decoration.TypePath != nil {
-		_, err = d.targetState.GraphqlRateLimitingCostDecorations.GetByTypePath(*decoration.TypePath)
-		if err == nil {
-			// Found by TypePath, no delete needed
-			return nil, nil
-		}
-		if !errors.Is(err, state.ErrNotFound) {
-			return nil, fmt.Errorf("looking up graphql ratelimiting cost decoration by type_path %q: %w",
-				*decoration.TypePath, err)
-		}
-	}
-
-	// Not found by ID or TypePath, delete it
 	return &crud.Event{
 		Op:   crud.Delete,
 		Kind: d.kind,
