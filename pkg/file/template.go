@@ -91,7 +91,7 @@ func indent(spaces int, v string) string {
 	return strings.ReplaceAll(v, "\n", "\n"+pad)
 }
 
-var commentRegex = regexp.MustCompile(`^\s*#($|\s|[^0-9a-fA-F])`)
+var templateExprPattern = regexp.MustCompile(`\$\{\{[^}]*\}\}`)
 
 func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	if mode == EnvVarsSkip {
@@ -122,9 +122,10 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	lines := strings.Split(content, "\n")
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if commentRegex.MatchString(line) {
-			// This is a real comment (like "# Note"), so skip it
-			continue
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			// Remove any template expressions from the line to prevent accidental
+			//  execution but keep the line itself intact.
+			line = templateExprPattern.ReplaceAllString(line, "")
 		}
 		allContent.WriteString(line + "\n")
 	}
