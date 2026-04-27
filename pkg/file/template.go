@@ -115,17 +115,7 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	}
 	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
 
-	// Parse content line by line, and ignore lines that start with #
-	var allContent bytes.Buffer
-	lines := strings.Split(content, "\n")
-	for i := 0; i < len(lines); i++ {
-		line := lines[i]
-		// if !strings.HasPrefix(strings.TrimSpace(line), "#") {
-		allContent.WriteString(line + "\n")
-		//}
-	}
-
-	result := allContent.String()
+	result := content
 	if !strings.HasSuffix(content, "\n") {
 		result = strings.TrimSuffix(result, "\n")
 	}

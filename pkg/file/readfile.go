@@ -115,6 +115,13 @@ func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 		return nil, err
 	}
 
+	// go-yaml implementation fails at correctly parsing a file whose first
+	// character is a space, as shown in https://github.com/Kong/deck/issues/578
+	// If that is the case here, raise an error.
+	if hasLeadingSpace(string(contentBytes)) {
+		return nil, fmt.Errorf("file must not begin with a whitespace")
+	}
+
 	// Temp
 	var data interface{}
 	if err := yaml.Unmarshal(contentBytes, &data); err != nil {
@@ -128,22 +135,11 @@ func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 	}
 
 	yamlAwareStr := string(out)
-
-	// Convert ${{env DECK_*}} to ${{env "DECK_*"}}
-	// deckEnvRe := regexp.MustCompile(`\$\{\{env (DECK_[^}]*)\}\}`)
-	// yamlAwareStr = deckEnvRe.ReplaceAllString(yamlAwareStr, `${{env "$1"}}`)
-
-	// !Temp
 	renderedContent, err := renderTemplate(yamlAwareStr, mode)
 	if err != nil {
 		return nil, fmt.Errorf("parsing file: %w", err)
 	}
-	// go-yaml implementation fails at correctly parsing a file whose first
-	// character is a space, as shown in https://github.com/Kong/deck/issues/578
-	// If that is the case here, raise an error.
-	if hasLeadingSpace(renderedContent) {
-		return nil, fmt.Errorf("file must not begin with a whitespace")
-	}
+
 	renderedContentBytes := []byte(renderedContent)
 	err = validate(renderedContentBytes)
 	if err != nil {
