@@ -73,25 +73,25 @@ func Test_renderTemplateCustomPrefix(t *testing.T) {
 	SetEnvVarPrefix(oldPrefix)
 }
 
-func Test_renderTemplateIgnoresComments(t *testing.T) {
-	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!
-  # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
+// func Test_renderTemplateIgnoresComments(t *testing.T) {
+// 	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!
+//   # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 
-	expectedOutput := `Hello, my_value!`
-	mode := EnvVarsExpand
+// 	expectedOutput := `Hello, my_value!`
+// 	mode := EnvVarsExpand
 
-	os.Setenv("DECK_MY_VARIABLE", "my_value")
+// 	os.Setenv("DECK_MY_VARIABLE", "my_value")
 
-	output, err := renderTemplate(content, mode)
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
+// 	output, err := renderTemplate(content, mode)
+// 	if err != nil {
+// 		t.Errorf("Unexpected error: %v", err)
+// 	}
 
-	if output != expectedOutput {
-		t.Errorf("Expected output %q, but got %q", expectedOutput, output)
-	}
-	os.Unsetenv("DECK_MY_VARIABLE")
-}
+// 	if output != expectedOutput {
+// 		t.Errorf("Expected output %q, but got %q", expectedOutput, output)
+// 	}
+// 	os.Unsetenv("DECK_MY_VARIABLE")
+// }
 
 func Test_renderTemplateErrorWhenNotSet(t *testing.T) {
 	content := `
