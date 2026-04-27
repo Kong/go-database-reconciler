@@ -298,6 +298,8 @@ func (sc *Syncer) init() error {
 
 		types.DegraphqlRoute,
 
+		types.GraphqlRateLimitingCostDecoration,
+
 		types.Partial,
 
 		types.Key, types.KeySet,
@@ -470,6 +472,12 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	}
 
 	var wg sync.WaitGroup
+
+	// Set the Konnect flag before starting concurrent goroutines to avoid
+	// a data race.
+	if sc.isKonnect {
+		sc.kongClient.SetKonnectFlag(true)
+	}
 
 	sc.eventChan = make(chan crud.Event, eventBuffer)
 	sc.stopChan = make(chan struct{})
