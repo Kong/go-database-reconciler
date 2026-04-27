@@ -114,7 +114,27 @@ func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 	if err != nil {
 		return nil, err
 	}
-	renderedContent, err := renderTemplate(string(contentBytes), mode)
+
+	// Temp
+	var data interface{}
+	if err := yaml.Unmarshal(contentBytes, &data); err != nil {
+		return nil, fmt.Errorf("parsing file: %w", err)
+	}
+
+	// Step 2: Convert back to bytes
+	out, err := yaml.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("parsing file: %w", err)
+	}
+
+	yamlAwareStr := string(out)
+
+	// Convert ${{env DECK_*}} to ${{env "DECK_*"}}
+	// deckEnvRe := regexp.MustCompile(`\$\{\{env (DECK_[^}]*)\}\}`)
+	// yamlAwareStr = deckEnvRe.ReplaceAllString(yamlAwareStr, `${{env "$1"}}`)
+
+	// !Temp
+	renderedContent, err := renderTemplate(yamlAwareStr, mode)
 	if err != nil {
 		return nil, fmt.Errorf("parsing file: %w", err)
 	}

@@ -120,9 +120,9 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	lines := strings.Split(content, "\n")
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if !strings.HasPrefix(strings.TrimSpace(line), "#") {
-			allContent.WriteString(line + "\n")
-		}
+		// if !strings.HasPrefix(strings.TrimSpace(line), "#") {
+		allContent.WriteString(line + "\n")
+		//}
 	}
 
 	result := allContent.String()
