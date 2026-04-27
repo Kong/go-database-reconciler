@@ -77,7 +77,9 @@ func Test_renderTemplateIgnoresComments(t *testing.T) {
 	content := `Hello, ${{ env "DECK_MY_VARIABLE" }}!
   # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 
-	expectedOutput := `Hello, my_value!`
+	// Comment lines preserve the original template expressions intact.
+	expectedOutput := `Hello, my_value!
+  # Also, ${{ env "DECK_NOT_SET_DOESNT_ERROR" }}!`
 	mode := EnvVarsExpand
 
 	os.Setenv("DECK_MY_VARIABLE", "my_value")
@@ -155,5 +157,37 @@ func Test_renderTemplateSkipDoesNotRequireEnvVars(t *testing.T) {
 	_, err := renderTemplate(content, EnvVarsSkip)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
+	}
+}
+
+// Test_renderTemplatePreservesHTMLWithHashNotComment verifies that HTML content
+// with lines starting with # is not treated as comments and is preserved correctly,
+// in case of line-wrapping.
+func Test_renderTemplatePreservesHTMLWithHashNotComment(t *testing.T) {
+	content := `plugins:
+- name: request-termination
+  config:
+    body: '<html>
+      <head>
+        <style>
+          body { background-color:
+            #ffffff; color:
+            #333333; }
+          .header { color:
+            #ff5733; }
+        </style>
+      </head>
+      <body style="margin: 0; padding: 10px; background:
+        #f0f0f0;">
+        <h1>Hello World</h1>
+      </body>
+    </html>'`
+
+	output, err := renderTemplate(content, EnvVarsExpand)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if output != content {
+		t.Errorf("Expected content to be unchanged, but got %q", output)
 	}
 }

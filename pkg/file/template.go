@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -90,6 +91,8 @@ func indent(spaces int, v string) string {
 	return strings.ReplaceAll(v, "\n", "\n"+pad)
 }
 
+var templateExprPattern = regexp.MustCompile(`\$\{\{[^}]*\}\}`)
+
 func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	if mode == EnvVarsSkip {
 		return content, nil
@@ -115,22 +118,33 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	}
 	t := template.New("state").Funcs(templateFuncs).Delims("${{", "}}")
 
-	// Parse content line by line, and ignore lines that start with #
+	// On lines that start with '#' (YAML comments), replace template
+	// expressions with unique placeholders so the template engine does not
+	// attempt to evaluate them. After rendering, restore the original
+	// expressions.
+	placeholders := map[string]string{} // placeholder -> original expression
+	counter := 0
 	var allContent bytes.Buffer
 	lines := strings.Split(content, "\n")
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if !strings.HasPrefix(strings.TrimSpace(line), "#") {
-			allContent.WriteString(line + "\n")
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			line = templateExprPattern.ReplaceAllStringFunc(line, func(match string) string {
+				ph := fmt.Sprintf("__NO_MATCH__%d__", counter)
+				placeholders[ph] = match
+				counter++
+				return ph
+			})
+		}
+		allContent.WriteString(line)
+		// Only add newline between lines, not after the last one,
+		// to preserve the original trailing newline behavior.
+		if i < len(lines)-1 {
+			allContent.WriteByte('\n')
 		}
 	}
 
-	result := allContent.String()
-	if !strings.HasSuffix(content, "\n") {
-		result = strings.TrimSuffix(result, "\n")
-	}
-
-	t, err := t.Parse(result)
+	t, err := t.Parse(allContent.String())
 	if err != nil {
 		return "", err
 	}
@@ -139,5 +153,11 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return buffer.String(), nil
+
+	// Restore original template expressions in comment lines.
+	result := buffer.String()
+	for ph, orig := range placeholders {
+		result = strings.ReplaceAll(result, ph, orig)
+	}
+	return result, nil
 }
