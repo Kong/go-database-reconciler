@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.57.0
+	github.com/kong/deck v1.57.3
 	github.com/kong/go-kong v0.75.0
 	github.com/samber/lo v1.53.0
 	github.com/shirou/gopsutil/v3 v3.24.5
@@ -36,7 +36,7 @@ require (
 
 require (
 	github.com/Kong/go-diff v1.2.2 // indirect
-	github.com/Kong/sdk-konnect-go v0.2.28 // indirect
+	github.com/Kong/sdk-konnect-go v0.3.1 // indirect
 	github.com/adrg/strutil v0.3.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/basgys/goxml2json v1.1.1-0.20231018121955-e66ee54ceaad // indirect
@@ -74,7 +74,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kong/go-apiops v0.4.0 // indirect
 	github.com/kong/go-slugify v1.0.0 // indirect
-	github.com/kong/kubernetes-configuration v1.4.2 // indirect
+	github.com/kong/kubernetes-configuration v1.5.3 // indirect
 	github.com/kong/semver/v4 v4.0.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20230326075908-cb1d2100619a // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -135,7 +135,7 @@ require (
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 // indirect
-	sigs.k8s.io/controller-runtime v0.20.4 // indirect
+	sigs.k8s.io/controller-runtime v0.21.0 // indirect
 	sigs.k8s.io/gateway-api v1.3.0 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
