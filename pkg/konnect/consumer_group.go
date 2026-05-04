@@ -56,7 +56,7 @@ func isEmptyString(s *string) bool {
 }
 
 func CreateConsumerGroup(ctx context.Context, client *kong.Client, entity interface{}) (*kong.ConsumerGroup, error) {
-	endpoint := "/v1/consumer-groups"
+	endpoint := "/consumer_groups"
 	req, err := client.NewRequest(http.MethodPost, endpoint, nil, entity)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func UpdateConsumerGroup(ctx context.Context, client *kong.Client,
 	if isEmptyString(cgID) {
 		return nil, fmt.Errorf("update consumer-group: consumer-group ID cannot be nil")
 	}
-	endpoint := fmt.Sprintf("/v1/consumer-groups/%v", *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%v", *cgID)
 	req, err := client.NewRequest(http.MethodPut, endpoint, nil, entity)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func GetConsumerGroup(ctx context.Context,
 		return nil, fmt.Errorf("getting consumer-group: nameOrID cannot be nil")
 	}
 
-	endpoint := fmt.Sprintf("/v1/consumer-groups/%v", *nameOrID)
+	endpoint := fmt.Sprintf("/consumer_groups/%v", *nameOrID)
 	req, err := client.NewRequest("GET", endpoint, nil, nil)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func ListAllConsumerGroupMembers(
 	var err error
 	opt := &KonnectListOpt{Page: &PageOpt{Size: 100}}
 	for opt != nil {
-		endpoint := fmt.Sprintf("/v1/consumer-groups/%v/members", *cgID)
+		endpoint := fmt.Sprintf("/consumer_groups/%v/members", *cgID)
 		data, opt, err = ListConsumerGroupMembers(ctx, client, endpoint, opt)
 		if err != nil {
 			return nil, err
@@ -134,7 +134,7 @@ func ListAllConsumerGroupMembers(
 func upsertRateLimitingAdvancedPlugin(
 	ctx context.Context, client *kong.Client, id string, config kong.Configuration, method string,
 ) (*kong.ConsumerGroupRLA, error) {
-	endpoint := fmt.Sprintf("/v1/consumer-groups/%v/rate-limiting-advanced-config", id)
+	endpoint := fmt.Sprintf("/consumer_groups/%v/rate-limiting-advanced-config", id)
 	req, err := client.NewRequest(method, endpoint, nil, config)
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func GetConsumerGroupRateLimitingAdvancedPlugin(
 	if isEmptyString(cgID) {
 		return nil, fmt.Errorf("get consumer-group override: consumer-group ID cannot be nil")
 	}
-	endpoint := fmt.Sprintf("/v1/consumer-groups/%v/rate-limiting-advanced-config", *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%v/rate-limiting-advanced-config", *cgID)
 	req, err := client.NewRequest("GET", endpoint, nil, nil)
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func DeleteRateLimitingAdvancedPlugin(
 		return fmt.Errorf("deleting consumer-group plugin: id cannot be nil")
 	}
 
-	endpoint := fmt.Sprintf("/v1/consumer-groups/%v/rate-limiting-advanced-config", *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%v/rate-limiting-advanced-config", *cgID)
 	req, err := client.NewRequest("DELETE", endpoint, nil, nil)
 	if err != nil {
 		return err
@@ -326,7 +326,7 @@ func DeleteConsumerGroup(
 		return fmt.Errorf("delete consumer-group: ID cannot be nil")
 	}
 
-	endpoint := fmt.Sprintf("/v1/consumer-groups/%v", *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%v", *cgID)
 	req, err := client.NewRequest("DELETE", endpoint, nil, nil)
 	if err != nil {
 		return err
@@ -343,7 +343,7 @@ func DeleteConsumerGroupMember(
 		return fmt.Errorf("delete consumer-group-member: ID cannot be nil")
 	}
 
-	endpoint := fmt.Sprintf("/v1/consumers/%s/groups/%s/members", *consumer, *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%s/groups/%s/members", *consumer, *cgID)
 	req, err := client.NewRequest("DELETE", endpoint, nil, nil)
 	if err != nil {
 		return err
@@ -362,7 +362,7 @@ func CreateConsumerGroupMember(
 		return fmt.Errorf("create consumer-group-member: consumer group ID cannot be nil")
 	}
 
-	endpoint := fmt.Sprintf("/v1/consumers/%s/groups/%s/members", *consumer, *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%s/groups/%s/members", *consumer, *cgID)
 	req, err := client.NewRequest("POST", endpoint, nil, nil)
 	if err != nil {
 		return err
@@ -381,7 +381,7 @@ func UpdateConsumerGroupMember(
 		return fmt.Errorf("create consumer-group-member: consumer group ID cannot be nil")
 	}
 
-	endpoint := fmt.Sprintf("/v1/consumers/%s/groups/%s/members", *consumer, *cgID)
+	endpoint := fmt.Sprintf("/consumer_groups/%s/groups/%s/members", *consumer, *cgID)
 	req, err := client.NewRequest("PUT", endpoint, nil, nil)
 	if err != nil {
 		return err
@@ -429,7 +429,7 @@ func list(ctx context.Context,
 func ListConsumerGroups(ctx context.Context,
 	client *kong.Client, opt *KonnectListOpt,
 ) ([]*kong.ConsumerGroup, *KonnectListOpt, error) {
-	data, next, err := list(ctx, client, "/v1/consumer-groups", opt)
+	data, next, err := list(ctx, client, "/consumer_groups", opt)
 	if err != nil {
 		return nil, nil, err
 	}
