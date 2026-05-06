@@ -23,7 +23,7 @@ func TestRoutesCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				route: Route{
 					Route: kong.Route{

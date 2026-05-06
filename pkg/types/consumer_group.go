@@ -33,8 +33,7 @@ func (s *consumerGroupCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.A
 	consumerGroup := consumerGroupFromStruct(event)
 
 	var createdConsumerGroup *kong.ConsumerGroup
-	var err error
-	createdConsumerGroup, err = s.client.ConsumerGroups.Create(ctx, &consumerGroup.ConsumerGroup)
+	createdConsumerGroup, err := s.client.ConsumerGroups.Create(ctx, &consumerGroup.ConsumerGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +48,7 @@ func (s *consumerGroupCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.A
 	event := crud.EventFromArg(arg[0])
 	consumerGroup := consumerGroupFromStruct(event)
 
-	var err error
-	err = s.client.ConsumerGroups.Delete(ctx, consumerGroup.ID)
+	err := s.client.ConsumerGroups.Delete(ctx, consumerGroup.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +63,7 @@ func (s *consumerGroupCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.A
 	event := crud.EventFromArg(arg[0])
 	consumerGroup := consumerGroupFromStruct(event)
 
-	var err error
-	var updatedConsumerGroup *kong.ConsumerGroup
-	updatedConsumerGroup, err = s.client.ConsumerGroups.Update(ctx, &consumerGroup.ConsumerGroup)
+	updatedConsumerGroup, err := s.client.ConsumerGroups.Update(ctx, &consumerGroup.ConsumerGroup)
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"dario.cat/mergo"
@@ -110,7 +109,7 @@ func hasLeadingSpace(fileContent string) bool {
 // bytes into Content.
 func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 	var err error
-	contentBytes, err := ioutil.ReadAll(reader)
+	contentBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}

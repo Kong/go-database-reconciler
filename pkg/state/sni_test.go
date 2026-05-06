@@ -23,7 +23,7 @@ func TestSNIsCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{

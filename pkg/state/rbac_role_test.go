@@ -23,7 +23,7 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{

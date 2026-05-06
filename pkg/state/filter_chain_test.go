@@ -22,7 +22,7 @@ type testCase struct {
 
 var commonCases = []testCase{
 	{
-		name: "errors when ID is nil",
+		name: errorsWhenIDIsNil,
 		filterChain: kong.FilterChain{
 			ID: nil,
 			Service: &kong.Service{

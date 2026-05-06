@@ -22,6 +22,8 @@ const (
 	defaultSlots       = 10000
 	defaultWeight      = 100
 	defaultConcurrency = 10
+	testLimit          = "limit"
+	testServiceID      = "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"
 )
 
 var (
@@ -471,7 +473,7 @@ func existingDegraphqlRouteState(t *testing.T) *state.KongState {
 			DegraphqlRoute: kong.DegraphqlRoute{
 				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 				Service: &kong.Service{
-					ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+					ID: kong.String(testServiceID),
 				},
 				Methods: kong.StringSlice("GET"),
 				URI:     kong.String("/example"),
@@ -492,7 +494,7 @@ func existingGqlCostDecorationState(t *testing.T) *state.KongState {
 				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 				TypePath: kong.String("Query.users"),
 				Service: &kong.Service{
-					ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+					ID: kong.String(testServiceID),
 				},
 				AddConstant: kong.Float64(1),
 				MulConstant: kong.Float64(1),
@@ -1449,7 +1451,7 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 						FilterChain: kong.FilterChain{
 							Name: kong.String("my-filter-chain"),
 							Service: &kong.Service{
-								ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+								ID: kong.String(testServiceID),
 							},
 						},
 					},
@@ -1462,7 +1464,7 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						Name: kong.String("my-filter-chain"),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -3966,7 +3968,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 								"host": "redis.example.com",
 								"port": float64(6379),
 							},
-							"limit": float64(100),
+							testLimit: float64(100),
 						},
 					},
 				},
@@ -3991,7 +3993,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 							"host": "override.example.com",
 							"port": float64(6379),
 						},
-						"limit": float64(100),
+						testLimit: float64(100),
 					},
 				},
 			},
@@ -4376,8 +4378,8 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"uri":   kong.String("/foo"),
 								"query": kong.String("query { foo { bar }}"),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -4392,7 +4394,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 						URI:   kong.String("/foo"),
 						Query: kong.String("query { foo { bar }}"),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 						Methods: kong.StringSlice("GET"),
 					},
@@ -4409,8 +4411,8 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"uri":   kong.String("/example"),
 								"query": kong.String("query{ example { foo } }"),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -4423,7 +4425,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 					{
 						ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 						Methods: kong.StringSlice("GET"),
 						URI:     kong.String("/example"),
@@ -4455,7 +4457,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 		        								author
 		      								}
 										}`),
-								"service": map[string]interface{}{
+								primaryRelationService: map[string]interface{}{
 									"name": "foo",
 								},
 								"methods": kong.StringSlice("GET", "POST"),
@@ -4529,7 +4531,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"uri":   kong.String("/foo"),
 								"query": kong.String("query { foo }"),
-								"service": map[string]interface{}{
+								primaryRelationService: map[string]interface{}{
 									"name": "service1",
 								},
 							},
@@ -4539,7 +4541,7 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"uri":   kong.String("/bar"),
 								"query": kong.String("query { bar }"),
-								"service": map[string]interface{}{
+								primaryRelationService: map[string]interface{}{
 									"name": "service2",
 								},
 								"methods": kong.StringSlice("POST", "PUT"),
@@ -4621,8 +4623,8 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
 								"query": kong.String("query{ example { foo } }"),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -4645,8 +4647,8 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 							Type: kong.String("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
 								"uri": kong.String("/foo"),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -4715,7 +4717,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 								{
 									Name: kong.String("rate-limiting-advanced"),
 									Config: kong.Configuration{
-										"limit":       []any{float64(100)},
+										testLimit:     []any{float64(100)},
 										"window_size": []any{float64(60)},
 										"window_type": string("fixed"),
 									},
@@ -4737,7 +4739,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 									"header_name":             nil,
 									"hide_client_headers":     false,
 									"identifier":              string("consumer"),
-									"limit":                   []any{float64(10)},
+									testLimit:                 []any{float64(10)},
 									"namespace":               string("ZEz47TWgUrv01HenyQBQa8io06MWsp0L"),
 									"path":                    nil,
 									"redis": map[string]any{
@@ -4791,7 +4793,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 								ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
 								Name: kong.String("rate-limiting-advanced"),
 								Config: kong.Configuration{
-									"limit":       []any{float64(100)},
+									testLimit:     []any{float64(100)},
 									"window_size": []any{float64(60)},
 									"window_type": string("fixed"),
 								},
@@ -4813,7 +4815,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 							"header_name":             nil,
 							"hide_client_headers":     false,
 							"identifier":              string("consumer"),
-							"limit":                   []any{float64(10)},
+							testLimit:                 []any{float64(10)},
 							"namespace":               string("ZEz47TWgUrv01HenyQBQa8io06MWsp0L"),
 							"path":                    nil,
 							"redis": map[string]any{
@@ -4871,7 +4873,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 								{
 									Name: kong.String("rate-limiting-advanced"),
 									Config: kong.Configuration{
-										"limit":       []any{float64(100)},
+										testLimit:     []any{float64(100)},
 										"window_size": []any{float64(60)},
 										"window_type": string("fixed"),
 									},
@@ -4893,7 +4895,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 									"header_name":             nil,
 									"hide_client_headers":     false,
 									"identifier":              string("consumer"),
-									"limit":                   []any{float64(10)},
+									testLimit:                 []any{float64(10)},
 									"namespace":               string("ZEz47TWgUrv01HenyQBQa8io06MWsp0L"),
 									"path":                    nil,
 									"redis": map[string]any{
@@ -5981,7 +5983,7 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 									Name:         kong.String("rate-limiting-advanced"),
 									InstanceName: kong.String("custom-instance-name"),
 									Config: kong.Configuration{
-										"limit":       []any{float64(100)},
+										testLimit:     []any{float64(100)},
 										"window_size": []any{float64(60)},
 										"window_type": string("fixed"),
 									},
@@ -6008,7 +6010,7 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 						Name:         kong.String("rate-limiting-advanced"),
 						InstanceName: kong.String("custom-instance-name"),
 						Config: kong.Configuration{
-							"limit":       []any{float64(100)},
+							testLimit:     []any{float64(100)},
 							"window_size": []any{float64(60)},
 							"window_type": string("fixed"),
 						},
@@ -6079,8 +6081,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 								"mul_constant":  float64(3),
 								"add_arguments": []*string{kong.String("skip"), kong.String("take")},
 								"mul_arguments": []*string{kong.String("count"), kong.String("size")},
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6098,7 +6100,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						AddArguments: []*string{kong.String("skip"), kong.String("take")},
 						MulArguments: []*string{kong.String("count"), kong.String("size")},
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -6115,8 +6117,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 								"type_path":    kong.String("Query.users"),
 								"add_constant": kong.Float64(1),
 								"mul_constant": kong.Float64(1),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6132,7 +6134,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						AddConstant: kong.Float64(1),
 						MulConstant: kong.Float64(1),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -6148,8 +6150,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"type_path":    kong.String("Mutation.createUser"),
 								"add_constant": kong.Float64(10),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6164,7 +6166,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						TypePath:    kong.String("Mutation.createUser"),
 						AddConstant: kong.Float64(10),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -6192,7 +6194,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"type_path":    kong.String("Query.users"),
 								"add_constant": kong.Float64(1),
-								"service": map[string]interface{}{
+								primaryRelationService: map[string]interface{}{
 									"name": "service1",
 								},
 							},
@@ -6202,7 +6204,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"type_path":    kong.String("Query.posts"),
 								"mul_constant": kong.Float64(3),
-								"service": map[string]interface{}{
+								primaryRelationService: map[string]interface{}{
 									"name": "service2",
 								},
 							},
@@ -6259,8 +6261,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Type: kong.String("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"add_constant": kong.Float64(1),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6303,8 +6305,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"type_path":    "Query.addConstantOnly",
 								"add_constant": float64(10),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6319,7 +6321,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						TypePath:    kong.String("Query.addConstantOnly"),
 						AddConstant: kong.Float64(10),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -6335,8 +6337,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"type_path":    "Query.mulConstantOnly",
 								"mul_constant": float64(2.5),
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6351,7 +6353,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						TypePath:    kong.String("Query.mulConstantOnly"),
 						MulConstant: kong.Float64(2.5),
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -6367,9 +6369,9 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 							Fields: CustomEntityConfiguration{
 								"type_path":     "Query.withAddArguments",
 								"add_constant":  float64(1),
-								"add_arguments": []*string{kong.String("limit"), kong.String("offset")},
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								"add_arguments": []*string{kong.String(testLimit), kong.String("offset")},
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6383,9 +6385,9 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						ID:           kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
 						TypePath:     kong.String("Query.withAddArguments"),
 						AddConstant:  kong.Float64(1),
-						AddArguments: []*string{kong.String("limit"), kong.String("offset")},
+						AddArguments: []*string{kong.String(testLimit), kong.String("offset")},
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},
@@ -6402,8 +6404,8 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 								"type_path":     "Query.withMulArguments",
 								"mul_constant":  float64(2),
 								"mul_arguments": []*string{kong.String("first"), kong.String("last")},
-								"service": map[string]interface{}{
-									"id": "fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd",
+								primaryRelationService: map[string]interface{}{
+									"id": testServiceID,
 								},
 							},
 						},
@@ -6419,7 +6421,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 						MulConstant:  kong.Float64(2),
 						MulArguments: []*string{kong.String("first"), kong.String("last")},
 						Service: &kong.Service{
-							ID: kong.String("fdfd14cc-cd69-49a0-9e23-cd3375b6c0cd"),
+							ID: kong.String(testServiceID),
 						},
 					},
 				},

@@ -24,7 +24,7 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{

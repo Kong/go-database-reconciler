@@ -10,6 +10,13 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	fieldName    = "name"
+	fieldEnabled = "enabled"
+	fieldConfig  = "config"
+	fieldTimeout = "timeout"
+)
+
 // Test entities for testing
 type TestEntity struct {
 	Name        *string                `json:"name,omitempty"`
@@ -111,11 +118,11 @@ func TestParseSchemaForDefaults(t *testing.T) {
 				]
 			}`,
 			expectedFields: map[string]interface{}{
-				"name":    "default-name",
-				"port":    float64(8080),
-				"enabled": true,
-				"methods": []interface{}{"GET", "POST"},
-				"nums":    []interface{}{float64(1), float64(2)},
+				fieldName:    "default-name",
+				"port":       float64(8080),
+				fieldEnabled: true,
+				"methods":    []interface{}{"GET", "POST"},
+				"nums":       []interface{}{float64(1), float64(2)},
 			},
 		},
 		{
@@ -150,10 +157,10 @@ func TestParseSchemaForDefaults(t *testing.T) {
 				]
 			}`,
 			expectedFields: map[string]interface{}{
-				"name": "default-name",
-				"config": map[string]interface{}{
-					"timeout": float64(5000),
-					"retries": float64(3),
+				fieldName: "default-name",
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: float64(5000),
+					"retries":    float64(3),
 				},
 			},
 		},
@@ -177,7 +184,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 			}`,
 			expectedFields: map[string]interface{}{
 				"test": map[string]interface{}{
-					"name": "record-default",
+					fieldName: "record-default",
 				},
 			},
 		},
@@ -247,8 +254,8 @@ func TestParseSchemaForDefaults(t *testing.T) {
 				]
 			}`,
 			expectedFields: map[string]interface{}{
-				"name": "default-name",
-				"config": map[string]interface{}{
+				fieldName: "default-name",
+				fieldConfig: map[string]interface{}{
 					"redis": map[string]interface{}{
 						"host": "localhost",
 						"port": float64(6379),
@@ -348,8 +355,8 @@ func TestParseSchemaForDefaults(t *testing.T) {
 				]
 			}`,
 			expectedFields: map[string]interface{}{
-				"name": "default-name",
-				"config": map[string]interface{}{
+				fieldName: "default-name",
+				fieldConfig: map[string]interface{}{
 					"redis": map[string]interface{}{
 						"host":         "localhost",
 						"port":         float64(6379),
@@ -358,7 +365,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 					},
 					"redis_host": "localhost",
 					"redis_port": float64(6379),
-					"timeout":    float64(10),
+					fieldTimeout: float64(10),
 				},
 			},
 		},
@@ -394,8 +401,8 @@ func TestParseEntityWithDefaults(t *testing.T) {
 				}
 			},
 			defaultFields: map[string]interface{}{
-				"name": "",
-				"port": 3000,
+				fieldName: "",
+				"port":    3000,
 			},
 			validateFunc: func(t *testing.T, entity *TestEntity) {
 				if entity.Name != nil {
@@ -429,15 +436,15 @@ func TestParseEntityWithDefaults(t *testing.T) {
 			setupEntity: func() *TestEntity {
 				return &TestEntity{
 					Config: map[string]interface{}{
-						"timeout": 5000,
-						"retries": 3,
-						"name":    "custom-config",
+						fieldTimeout: 5000,
+						"retries":    3,
+						fieldName:    "custom-config",
 					},
 				}
 			},
 			defaultFields: map[string]interface{}{
-				"config": map[string]interface{}{
-					"timeout": 5000,
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 5000,
 				},
 			},
 			validateFunc: func(t *testing.T, entity *TestEntity) {
@@ -451,10 +458,10 @@ func TestParseEntityWithDefaults(t *testing.T) {
 				if retries, exists := entity.Config["retries"]; !exists || retries != 3 {
 					t.Errorf("Expected Config to contain retries=3, got %v", retries)
 				}
-				if name, exists := entity.Config["name"]; !exists || name != "custom-config" {
+				if name, exists := entity.Config[fieldName]; !exists || name != "custom-config" {
 					t.Errorf("Expected Config to contain name=custom-config, got %v", name)
 				}
-				if _, exists := entity.Config["timeout"]; exists {
+				if _, exists := entity.Config[fieldTimeout]; exists {
 					t.Error("Expected timeout to be removed from Config as it matches default")
 				}
 			},
@@ -541,72 +548,72 @@ func TestCompareMaps(t *testing.T) {
 		{
 			name: "remove default values",
 			fieldMap: map[string]interface{}{
-				"timeout": 5000,
-				"retries": 3,
-				"name":    "test",
+				fieldTimeout: 5000,
+				"retries":    3,
+				fieldName:    "test",
 			},
 			defaultMap: map[string]interface{}{
-				"timeout": 5000,
-				"name":    "default",
+				fieldTimeout: 5000,
+				fieldName:    "default",
 			},
 			expected: map[string]interface{}{
 				"retries": 3,
-				"name":    "test",
+				fieldName: "test",
 			},
 		},
 		{
 			name: "nested maps",
 			fieldMap: map[string]interface{}{
-				"config": map[string]interface{}{
-					"timeout":   5000,
-					"retries":   3,
-					"protocols": []string{"http", "https"},
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 5000,
+					"retries":    3,
+					"protocols":  []string{"http", "https"},
 					"throttling": map[string]interface{}{
-						"enabled": true,
-						"max":     100,
+						fieldEnabled: true,
+						"max":        100,
 					},
 				},
-				"enabled": true,
-				"version": "1.0",
+				fieldEnabled: true,
+				"version":    "1.0",
 			},
 			defaultMap: map[string]interface{}{
-				"config": map[string]interface{}{
-					"timeout":   5000,
-					"protocols": []string{"http", "https"},
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 5000,
+					"protocols":  []string{"http", "https"},
 					"throttling": map[string]interface{}{
-						"enabled": true,
-						"max":     10,
+						fieldEnabled: true,
+						"max":        10,
 					},
 				},
-				"enabled": false,
-				"version": "1.0",
+				fieldEnabled: false,
+				"version":    "1.0",
 			},
 			expected: map[string]interface{}{
-				"config": map[string]interface{}{
+				fieldConfig: map[string]interface{}{
 					"retries": 3,
 					"throttling": map[string]interface{}{
 						"max": 100,
 					},
 				},
-				"enabled": true,
+				fieldEnabled: true,
 			},
 		},
 		{
 			name: "all values are defaults",
 			fieldMap: map[string]interface{}{
-				"enabled": false,
-				"version": "1.0",
-				"config": map[string]interface{}{
-					"timeout":   5000,
-					"protocols": []string{"http", "https"},
+				fieldEnabled: false,
+				"version":    "1.0",
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 5000,
+					"protocols":  []string{"http", "https"},
 				},
 			},
 			defaultMap: map[string]interface{}{
-				"enabled": false,
-				"version": "1.0",
-				"config": map[string]interface{}{
-					"timeout":   5000,
-					"protocols": []string{"http", "https"},
+				fieldEnabled: false,
+				"version":    "1.0",
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 5000,
+					"protocols":  []string{"http", "https"},
 				},
 			},
 			expected: map[string]interface{}{},
@@ -614,38 +621,38 @@ func TestCompareMaps(t *testing.T) {
 		{
 			name: "no values are defaults",
 			fieldMap: map[string]interface{}{
-				"enabled": true,
-				"version": "2.0",
-				"config": map[string]interface{}{
-					"timeout":   6000,
-					"protocols": []string{"grpc", "https"},
+				fieldEnabled: true,
+				"version":    "2.0",
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 6000,
+					"protocols":  []string{"grpc", "https"},
 				},
 			},
 			defaultMap: map[string]interface{}{
-				"enabled": false,
-				"version": "1.0",
-				"config": map[string]interface{}{
-					"timeout":   5000,
-					"protocols": []string{"http", "https"},
+				fieldEnabled: false,
+				"version":    "1.0",
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 5000,
+					"protocols":  []string{"http", "https"},
 				},
 			},
 			expected: map[string]interface{}{
-				"enabled": true,
-				"version": "2.0",
-				"config": map[string]interface{}{
-					"timeout":   6000,
-					"protocols": []string{"grpc", "https"},
+				fieldEnabled: true,
+				"version":    "2.0",
+				fieldConfig: map[string]interface{}{
+					fieldTimeout: 6000,
+					"protocols":  []string{"grpc", "https"},
 				},
 			},
 		},
 		{
 			name: "field has nil value",
 			fieldMap: map[string]interface{}{
-				"timeout": 5000,
-				"name":    nil,
+				fieldTimeout: 5000,
+				fieldName:    nil,
 			},
 			defaultMap: map[string]interface{}{
-				"timeout": 5000,
+				fieldTimeout: 5000,
 			},
 			expected: map[string]interface{}{},
 		},

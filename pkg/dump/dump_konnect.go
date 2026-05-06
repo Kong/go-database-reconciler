@@ -217,7 +217,7 @@ func excludeKonnectManagedEntities[T any](kongEntities []T) ([]T, error) {
 
 func isManagedByKonnect(entity interface{}) (bool, error) {
 	ptr := reflect.ValueOf(entity)
-	if ptr.Kind() != reflect.Ptr {
+	if ptr.Kind() != reflect.Pointer {
 		return false, fmt.Errorf("entity is not a pointer")
 	}
 

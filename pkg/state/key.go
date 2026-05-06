@@ -20,10 +20,10 @@ var keyTableSchema = &memdb.TableSchema{
 			Unique:  true,
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
-		"name": {
-			Name:         "name",
+		nameIndex: {
+			Name:         nameIndex,
 			Unique:       true,
-			Indexer:      &memdb.StringFieldIndex{Field: "Name"},
+			Indexer:      &memdb.StringFieldIndex{Field: nameFieldIndex},
 			AllowMissing: true,
 		},
 		all: allIndex,
@@ -63,7 +63,7 @@ func (k *KeysCollection) Add(key Key) error {
 func getKey(txn *memdb.Txn, IDs ...string) (*Key, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, keyTableName,
-			[]string{"name", "id"}, id)
+			[]string{nameIndex, "id"}, id)
 		if errors.Is(err, ErrNotFound) {
 			continue
 		}

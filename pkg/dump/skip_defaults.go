@@ -297,7 +297,7 @@ func removeDefaultsFromEntity(
 	registry *schema_pkg.Registry,
 ) error {
 	ptr := reflect.ValueOf(entity)
-	if ptr.Kind() != reflect.Ptr {
+	if ptr.Kind() != reflect.Pointer {
 		return fmt.Errorf("entity is not a pointer")
 	}
 
@@ -463,7 +463,7 @@ func compareValues(fieldValue interface{}, defaultValue interface{}) bool {
 	fieldVal := reflect.ValueOf(fieldValue)
 	defaultVal := reflect.ValueOf(defaultValue)
 
-	if fieldVal.Kind() == reflect.Ptr && !fieldVal.IsNil() {
+	if fieldVal.Kind() == reflect.Pointer && !fieldVal.IsNil() {
 		fieldVal = fieldVal.Elem()
 		fieldValue = fieldVal.Interface()
 	}
