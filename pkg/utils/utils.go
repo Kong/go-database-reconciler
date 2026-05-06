@@ -249,16 +249,22 @@ func HasPathsWithRegex300AndAbove(route kong.Route) bool {
 
 // PrintRouteRegexWarning prints out a warning about 3.x routes' path usage.
 func PrintRouteRegexWarning(unsupportedRoutes []string) {
+	cprint.UpdatePrintlnStdErr(RouteRegexWarningMessage(unsupportedRoutes))
+}
+
+// RouteRegexWarningMessage returns the warning message for 3.x routes' path usage.
+func RouteRegexWarningMessage(unsupportedRoutes []string) string {
 	unsupportedRoutesLen := len(unsupportedRoutes)
 	// do not consider more than 10 sample routes to print out.
 	if unsupportedRoutesLen > 10 {
 		unsupportedRoutes = unsupportedRoutes[:10]
 	}
-	cprint.UpdatePrintfStdErr(
+	return fmt.Sprintf(
 		"%d unsupported routes' paths format with Kong version 3.0\n"+
 			"or above were detected. Some of these routes are (not an exhaustive list):\n\n"+
 			"%s\n\n"+UpgradeMessage,
-		unsupportedRoutesLen, strings.Join(unsupportedRoutes, "\n"),
+		unsupportedRoutesLen,
+		strings.Join(unsupportedRoutes, "\n"),
 	)
 }
 

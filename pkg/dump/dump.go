@@ -90,6 +90,9 @@ type Config struct {
 	// it is reused for schema fetching and caching (e.g. during SkipDefaults
 	// processing). When nil, a new registry is created internally.
 	SchemaRegistry *schema.Registry
+
+	// DiagnosticPolicy controls warning/error severity overrides.
+	DiagnosticPolicy utils.DiagnosticPolicy
 }
 
 func deduplicate(stringSlice []string) []string {
