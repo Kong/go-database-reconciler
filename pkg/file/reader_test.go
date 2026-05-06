@@ -3,7 +3,6 @@ package file
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -50,7 +49,7 @@ func TestReadKongStateFromStdinFailsToParseText(t *testing.T) {
 	var content bytes.Buffer
 	content.Write([]byte("hunter2\n"))
 
-	tmpfile, err := ioutil.TempFile("", "example")
+	tmpfile, err := os.CreateTemp("", "example")
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +77,7 @@ func TestTransformNotFalse(t *testing.T) {
 	filenames := []string{"-"}
 	assert := assert.New(t)
 
-	tmpfile, err := ioutil.TempFile("", "example")
+	tmpfile, err := os.CreateTemp("", "example")
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +120,7 @@ func TestReadKongStateFromStdin(t *testing.T) {
 	var content bytes.Buffer
 	content.Write([]byte("services:\n- host: test.com\n  name: test service\n"))
 
-	tmpfile, err := ioutil.TempFile("", "example")
+	tmpfile, err := os.CreateTemp("", "example")
 	if err != nil {
 		panic(err)
 	}

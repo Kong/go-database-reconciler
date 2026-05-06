@@ -33,14 +33,14 @@ var consumerGroupPluginTableSchema = &memdb.TableSchema{
 				},
 			},
 		},
-		"name": {
-			Name:   "name",
+		nameIndex: {
+			Name:   nameIndex,
 			Unique: true,
 			Indexer: &indexers.SubFieldIndexer{
 				Fields: []indexers.Field{
 					{
 						Struct: "ConsumerGroupPlugin",
-						Sub:    "Name",
+						Sub:    nameFieldIndex,
 					},
 				},
 			},

@@ -8,6 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testBar = "bar"
+	testBaz = "baz"
+)
+
 func pluginsCollection() *PluginsCollection {
 	return state().Plugins
 }
@@ -22,7 +27,7 @@ func TestPluginsCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
@@ -184,7 +189,7 @@ func TestPluginsCollection_Update(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
@@ -412,7 +417,7 @@ func TestGetPluginByProp(t *testing.T) {
 				ID:   kong.String("1"),
 				Name: kong.String("key-auth"),
 				Config: map[string]interface{}{
-					"key1": "value1",
+					testKey1: "value1",
 				},
 			},
 		},
@@ -424,7 +429,7 @@ func TestGetPluginByProp(t *testing.T) {
 					ID: kong.String("svc1"),
 				},
 				Config: map[string]interface{}{
-					"key2": "value2",
+					testKey2: "value2",
 				},
 			},
 		},
@@ -483,12 +488,12 @@ func TestGetPluginByProp(t *testing.T) {
 	plugin, err = collection.GetByProp("key-auth", "", "", "", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
-	assert.Equal("value1", plugin.Config["key1"])
+	assert.Equal("value1", plugin.Config[testKey1])
 
 	plugin, err = collection.GetByProp("key-auth", "svc1", "", "", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
-	assert.Equal("value2", plugin.Config["key2"])
+	assert.Equal("value2", plugin.Config[testKey2])
 
 	plugin, err = collection.GetByProp("key-auth", "", "route1", "", "")
 	require.NoError(t, err)
@@ -534,8 +539,8 @@ func TestPluginDelete(t *testing.T) {
 	plugin.ID = kong.String("first")
 	plugin.Name = kong.String("my-plugin")
 	plugin.Config = map[string]interface{}{
-		"foo": "bar",
-		"baz": "bar",
+		"foo":   testBar,
+		testBaz: testBar,
 	}
 	plugin.Service = &kong.Service{
 		ID:   kong.String("service1-id"),
@@ -547,7 +552,7 @@ func TestPluginDelete(t *testing.T) {
 	p, err := collection.Get("first")
 	require.NoError(t, err)
 	assert.NotNil(p)
-	assert.Equal("bar", p.Config["foo"])
+	assert.Equal(testBar, p.Config["foo"])
 
 	err = collection.Delete(*p.ID)
 	require.NoError(t, err)
@@ -572,8 +577,8 @@ func TestPluginGetAll(t *testing.T) {
 					Name: kong.String("service1-name"),
 				},
 				Config: map[string]interface{}{
-					"foo": "bar",
-					"baz": "bar",
+					"foo":   testBar,
+					testBaz: testBar,
 				},
 			},
 		},

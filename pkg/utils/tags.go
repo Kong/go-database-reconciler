@@ -21,7 +21,7 @@ func MergeTags(obj interface{}, tags []string) error {
 		return nil
 	}
 	ptr := reflect.ValueOf(obj)
-	if ptr.Kind() != reflect.Ptr {
+	if ptr.Kind() != reflect.Pointer {
 		return fmt.Errorf("obj is not a pointer")
 	}
 	v := reflect.Indirect(ptr)
@@ -64,7 +64,7 @@ func RemoveTags(obj interface{}, tags []string) error {
 	}
 
 	ptr := reflect.ValueOf(obj)
-	if ptr.Kind() != reflect.Ptr {
+	if ptr.Kind() != reflect.Pointer {
 		return fmt.Errorf("obj is not a pointer")
 	}
 	v := reflect.Indirect(ptr)
@@ -74,7 +74,7 @@ func RemoveTags(obj interface{}, tags []string) error {
 		return nil
 	}
 
-	res := reflect.MakeSlice(reflect.SliceOf(reflect.PtrTo(reflect.TypeOf(""))), 0, 0)
+	res := reflect.MakeSlice(reflect.SliceOf(reflect.PointerTo(reflect.TypeOf(""))), 0, 0)
 	for i := 0; i < structTags.Len(); i++ {
 		tag := reflect.Indirect(structTags.Index(i)).String()
 		if !m[tag] {

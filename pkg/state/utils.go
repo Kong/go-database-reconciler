@@ -7,7 +7,11 @@ import (
 )
 
 const (
-	all = "all"
+	all            = "all"
+	nameIndex      = "name"
+	nameFieldIndex = "Name"
+
+	errorsWhenIDIsNil = "errors when ID is nil"
 )
 
 // ErrNotFound is an error type that is
