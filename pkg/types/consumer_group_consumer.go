@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/kong/go-database-reconciler/pkg/crud"
-	//"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-kong/kong"
 )
@@ -34,13 +33,6 @@ func (s *consumerGroupConsumerCRUD) Create(ctx context.Context, arg ...crud.Arg)
 	consumer := consumerGroupConsumerFromStruct(event)
 
 	var err error
-	//if s.isKonnect {
-	//	err = konnect.CreateConsumerGroupMember(
-	//		ctx, s.client, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
-	//	)
-	//} else {
-	//	_, err = s.client.ConsumerGroupConsumers.Create(ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID)
-	//}
 	_, err = s.client.ConsumerGroupConsumers.Create(ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID)
 	if err != nil {
 		return nil, err
@@ -63,11 +55,6 @@ func (s *consumerGroupConsumerCRUD) Delete(ctx context.Context, arg ...crud.Arg)
 	consumer := consumerGroupConsumerFromStruct(event)
 
 	var err error
-	//if s.isKonnect {
-	//	err = konnect.DeleteConsumerGroupMember(ctx, s.client, consumer.ConsumerGroup.ID, consumer.Consumer.ID)
-	//} else {
-	//	err = s.client.ConsumerGroupConsumers.Delete(ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID)
-	//}
 	err = s.client.ConsumerGroupConsumers.Delete(ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID)
 	if err != nil {
 		return nil, err
@@ -85,17 +72,6 @@ func (s *consumerGroupConsumerCRUD) Update(ctx context.Context, arg ...crud.Arg)
 	consumer := consumerGroupConsumerFromStruct(event)
 
 	var err error
-	// delete the old member
-	//if s.isKonnect {
-	//	err = konnect.DeleteConsumerGroupMember(
-	//		ctx, s.client, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
-	//	)
-	//} else {
-	//	err = s.client.ConsumerGroupConsumers.Delete(
-	//		ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
-	//	)
-	//}
-
 	err = s.client.ConsumerGroupConsumers.Delete(
 		ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
 	)
@@ -104,16 +80,6 @@ func (s *consumerGroupConsumerCRUD) Update(ctx context.Context, arg ...crud.Arg)
 	}
 
 	// recreate it
-	//if s.isKonnect {
-	//	err = konnect.CreateConsumerGroupMember(
-	//		ctx, s.client, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
-	//	)
-	//} else {
-	//	_, err = s.client.ConsumerGroupConsumers.Create(
-	//		ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
-	//	)
-	//}
-
 	_, err = s.client.ConsumerGroupConsumers.Create(
 		ctx, consumer.ConsumerGroup.ID, consumer.Consumer.ID,
 	)

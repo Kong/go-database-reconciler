@@ -34,11 +34,6 @@ func (s *consumerGroupCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.A
 
 	var createdConsumerGroup *kong.ConsumerGroup
 	var err error
-	//if s.isKonnect {
-	//	createdConsumerGroup, err = konnect.CreateConsumerGroup(ctx, s.client, &consumerGroup.ConsumerGroup)
-	//} else {
-	//	createdConsumerGroup, err = s.client.ConsumerGroups.Create(ctx, &consumerGroup.ConsumerGroup)
-	//}
 	createdConsumerGroup, err = s.client.ConsumerGroups.Create(ctx, &consumerGroup.ConsumerGroup)
 	if err != nil {
 		return nil, err
@@ -55,11 +50,6 @@ func (s *consumerGroupCRUD) Delete(ctx context.Context, arg ...crud.Arg) (crud.A
 	consumerGroup := consumerGroupFromStruct(event)
 
 	var err error
-	//if s.isKonnect {
-	//	err = konnect.DeleteConsumerGroup(ctx, s.client, consumerGroup.ID)
-	//} else {
-	//	err = s.client.ConsumerGroups.Delete(ctx, consumerGroup.ID)
-	//}
 	err = s.client.ConsumerGroups.Delete(ctx, consumerGroup.ID)
 	if err != nil {
 		return nil, err
@@ -77,11 +67,6 @@ func (s *consumerGroupCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.A
 
 	var err error
 	var updatedConsumerGroup *kong.ConsumerGroup
-	//if s.isKonnect {
-	//	updatedConsumerGroup, err = konnect.UpdateConsumerGroup(ctx, s.client, consumerGroup.ID, &consumerGroup.ConsumerGroup)
-	//} else {
-	//	updatedConsumerGroup, err = s.client.ConsumerGroups.Update(ctx, &consumerGroup.ConsumerGroup)
-	//}
 	updatedConsumerGroup, err = s.client.ConsumerGroups.Update(ctx, &consumerGroup.ConsumerGroup)
 	if err != nil {
 		return nil, err

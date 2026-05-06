@@ -41,18 +41,6 @@ func (s *consumerGroupPluginCRUD) Create(ctx context.Context, arg ...crud.Arg) (
 		res *kong.ConsumerGroupRLA
 		err error
 	)
-	//if s.isKonnect {
-	//	res, err = konnect.CreateRateLimitingAdvancedPlugin(ctx, s.client, plugin.ConsumerGroup.ID, plugin.Config)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//} else {
-	//	res, err = s.client.ConsumerGroups.UpdateRateLimitingAdvancedPlugin(ctx, plugin.ConsumerGroup.ID, config)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
-
 	res, err = s.client.ConsumerGroups.UpdateRateLimitingAdvancedPlugin(ctx, plugin.ConsumerGroup.ID, config)
 	if err != nil {
 		return nil, err
@@ -82,17 +70,6 @@ func (s *consumerGroupPluginCRUD) Update(ctx context.Context, arg ...crud.Arg) (
 		res *kong.ConsumerGroupRLA
 		err error
 	)
-	//if s.isKonnect {
-	//	res, err = konnect.UpdateRateLimitingAdvancedPlugin(ctx, s.client, plugin.ConsumerGroup.ID, plugin.Config)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//} else {
-	//	res, err = s.client.ConsumerGroups.UpdateRateLimitingAdvancedPlugin(ctx, plugin.ConsumerGroup.ID, config)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
 	res, err = s.client.ConsumerGroups.UpdateRateLimitingAdvancedPlugin(ctx, plugin.ConsumerGroup.ID, config)
 	if err != nil {
 		return nil, err
