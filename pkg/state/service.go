@@ -20,10 +20,10 @@ var serviceTableSchema = &memdb.TableSchema{
 			Unique:  true,
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
-		"name": {
-			Name:         "name",
+		nameIndex: {
+			Name:         nameIndex,
 			Unique:       true,
-			Indexer:      &memdb.StringFieldIndex{Field: "Name"},
+			Indexer:      &memdb.StringFieldIndex{Field: nameFieldIndex},
 			AllowMissing: true,
 		},
 		all: allIndex,
@@ -95,7 +95,7 @@ func (k *ServicesCollection) Add(service Service) error {
 func getService(txn *memdb.Txn, IDs ...string) (*Service, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, serviceTableName,
-			[]string{"name", "id"}, id)
+			[]string{nameIndex, "id"}, id)
 		if errors.Is(err, ErrNotFound) {
 			continue
 		}

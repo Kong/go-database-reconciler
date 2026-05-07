@@ -8,6 +8,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testKey1       = "key1"
+	testKey2       = "key2"
+	testKeyGeneric = "key"
+	testFoo        = "foo"
+	testValue      = "value"
+	testPorts      = "ports"
+)
+
 func partialsCollection() *PartialsCollection {
 	return state().Partials
 }
@@ -28,8 +37,8 @@ func TestPartialAdd(t *testing.T) {
 					Name: kong.String("my-foo-partial"),
 					Type: kong.String("foo"),
 					Config: kong.Configuration{
-						"key1": "value1",
-						"key2": []any{"a", "b", "c"},
+						testKey1: "value1",
+						testKey2: []any{"a", "b", "c"},
 						"key3": map[string]interface{}{
 							"k1": "v1",
 							"k2": "v2",
@@ -48,8 +57,8 @@ func TestPartialAdd(t *testing.T) {
 					Name: kong.String("my-foo-partial"),
 					Type: kong.String("foo"),
 					Config: kong.Configuration{
-						"key1": "value1",
-						"key2": []any{"a", "b", "c"},
+						testKey1: "value1",
+						testKey2: []any{"a", "b", "c"},
 						"key3": map[string]interface{}{
 							"k1": "v1",
 							"k2": "v2",
@@ -67,8 +76,8 @@ func TestPartialAdd(t *testing.T) {
 					Name: kong.String("my-foo-partial"),
 					Type: kong.String("foo"),
 					Config: kong.Configuration{
-						"key1": "value1",
-						"key2": []any{"a", "b", "c"},
+						testKey1: "value1",
+						testKey2: []any{"a", "b", "c"},
 						"key3": map[string]interface{}{
 							"k1": "v1",
 							"k2": "v2",
@@ -86,8 +95,8 @@ func TestPartialAdd(t *testing.T) {
 					Name: kong.String("my-foo-partial"),
 					Type: kong.String("foo"),
 					Config: kong.Configuration{
-						"key1": "value1",
-						"key2": []any{"a", "b", "c"},
+						testKey1: "value1",
+						testKey2: []any{"a", "b", "c"},
 						"key3": map[string]interface{}{
 							"k1": "v1",
 							"k2": "v2",
@@ -127,7 +136,7 @@ func TestPartialGet(t *testing.T) {
 			Name: kong.String("my-foo-partial"),
 			Type: kong.String("foo"),
 			Config: kong.Configuration{
-				"key": "value",
+				testKeyGeneric: testValue,
 			},
 		},
 	}
@@ -142,7 +151,7 @@ func TestPartialGet(t *testing.T) {
 	assert.Equal("example", *res.ID)
 	assert.Equal("my-foo-partial", *res.Name)
 	assert.Equal("foo", *res.Type)
-	assert.Equal(kong.Configuration{"key": "value"}, res.Config)
+	assert.Equal(kong.Configuration{testKeyGeneric: testValue}, res.Config)
 
 	// Fetch non-existent entity
 	res, err = collection.Get("does-not-exist")
@@ -161,7 +170,7 @@ func TestPartialUpdate(t *testing.T) {
 			Name: kong.String("my-foo-partial"),
 			Type: kong.String("foo"),
 			Config: kong.Configuration{
-				"key1": "value1",
+				testKey1: "value1",
 			},
 		},
 	}
@@ -174,12 +183,12 @@ func TestPartialUpdate(t *testing.T) {
 	require.NoError(err, "error getting partial")
 	require.NotNil(res)
 	assert.Equal(kong.Configuration{
-		"key1": "value1",
+		testKey1: "value1",
 	}, res.Config)
 
 	// Update Ccnfig field
 	res.Config = kong.Configuration{
-		"key2": "value2",
+		testKey2: "value2",
 	}
 	err = collection.Update(*res)
 	require.NoError(err, "error updating partial")
@@ -189,7 +198,7 @@ func TestPartialUpdate(t *testing.T) {
 	require.NoError(err, "error getting partial")
 	require.NotNil(res)
 	assert.Equal(kong.Configuration{
-		"key2": "value2",
+		testKey2: "value2",
 	}, res.Config)
 }
 
@@ -203,7 +212,7 @@ func TestPartialDelete(t *testing.T) {
 			Name: kong.String("my-foo-partial"),
 			Type: kong.String("foo"),
 			Config: kong.Configuration{
-				"key": "value",
+				testKeyGeneric: testValue,
 			},
 		},
 	}
@@ -251,7 +260,7 @@ func populatePartials(t *testing.T,
 				Name: kong.String("my-foo-partial-1"),
 				Type: kong.String("foo"),
 				Config: kong.Configuration{
-					"key": "value",
+					testKeyGeneric: testValue,
 				},
 			},
 		},
@@ -261,7 +270,7 @@ func populatePartials(t *testing.T,
 				Name: kong.String("my-foo-partial-2"),
 				Type: kong.String("foo"),
 				Config: kong.Configuration{
-					"key": "value",
+					testKeyGeneric: testValue,
 				},
 			},
 		},
@@ -271,7 +280,7 @@ func populatePartials(t *testing.T,
 				Name: kong.String("my-foo-partial-3"),
 				Type: kong.String("foo"),
 				Config: kong.Configuration{
-					"key": "value",
+					testKeyGeneric: testValue,
 				},
 			},
 		},
@@ -281,7 +290,7 @@ func populatePartials(t *testing.T,
 				Name: kong.String("my-foo-partial-4"),
 				Type: kong.String("foo"),
 				Config: kong.Configuration{
-					"key": "value",
+					testKeyGeneric: testValue,
 				},
 			},
 		},
@@ -291,7 +300,7 @@ func populatePartials(t *testing.T,
 				Name: kong.String("my-foo-partial-5"),
 				Type: kong.String("foo"),
 				Config: kong.Configuration{
-					"key": "value",
+					testKeyGeneric: testValue,
 				},
 			},
 		},

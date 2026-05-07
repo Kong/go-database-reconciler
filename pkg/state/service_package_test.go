@@ -24,7 +24,7 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{

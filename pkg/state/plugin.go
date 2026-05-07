@@ -27,9 +27,9 @@ var pluginTableSchema = &memdb.TableSchema{
 			Unique:  true,
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
-		"name": {
-			Name:    "name",
-			Indexer: &memdb.StringFieldIndex{Field: "Name"},
+		nameIndex: {
+			Name:    nameIndex,
+			Indexer: &memdb.StringFieldIndex{Field: nameFieldIndex},
 		},
 		all: allIndex,
 		// foreign
@@ -91,7 +91,7 @@ var pluginTableSchema = &memdb.TableSchema{
 				Fields: []indexers.Field{
 					{
 						Struct: "Plugin",
-						Sub:    "Name",
+						Sub:    nameFieldIndex,
 					},
 					{
 						Struct: "Service",
@@ -211,7 +211,7 @@ func (k *PluginsCollection) Get(id string) (*Plugin, error) {
 // GetAllByName returns all plugins of a specific type
 // (key-auth, ratelimiting, etc).
 func (k *PluginsCollection) GetAllByName(name string) ([]*Plugin, error) {
-	return k.getAllPluginsBy("name", name)
+	return k.getAllPluginsBy(nameIndex, name)
 }
 
 func getPluginBy(txn *memdb.Txn, name, svcID, routeID, consumerID, consumerGroupID string) (

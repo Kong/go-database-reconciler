@@ -20,10 +20,10 @@ var consumerGroupTableSchema = &memdb.TableSchema{
 			Unique:  true,
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
-		"name": {
-			Name:    "name",
+		nameIndex: {
+			Name:    nameIndex,
 			Unique:  true,
-			Indexer: &memdb.StringFieldIndex{Field: "Name"},
+			Indexer: &memdb.StringFieldIndex{Field: nameFieldIndex},
 		},
 		all: allIndex,
 	},
@@ -94,7 +94,7 @@ func (k *ConsumerGroupsCollection) Add(consumerGroup ConsumerGroup) error {
 func getConsumerGroup(txn *memdb.Txn, IDs ...string) (*ConsumerGroup, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, consumerGroupTableName,
-			[]string{"name", "id"}, id)
+			[]string{nameIndex, "id"}, id)
 		if errors.Is(err, ErrNotFound) {
 			continue
 		}

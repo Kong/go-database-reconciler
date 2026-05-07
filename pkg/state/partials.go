@@ -20,10 +20,10 @@ var partialTableSchema = &memdb.TableSchema{
 			Unique:  true,
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
-		"name": {
-			Name:         "name",
+		nameIndex: {
+			Name:         nameIndex,
 			Unique:       true,
-			Indexer:      &memdb.StringFieldIndex{Field: "Name"},
+			Indexer:      &memdb.StringFieldIndex{Field: nameFieldIndex},
 			AllowMissing: true,
 		},
 		all: allIndex,
@@ -36,7 +36,7 @@ type PartialsCollection collection
 func getPartial(txn *memdb.Txn, IDs ...string) (*Partial, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, partialTableName,
-			[]string{"name", "id"}, id)
+			[]string{nameIndex, "id"}, id)
 		if errors.Is(err, ErrNotFound) {
 			continue
 		}

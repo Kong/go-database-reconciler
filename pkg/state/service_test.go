@@ -23,7 +23,7 @@ func TestServicesCollection_Add(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "errors when ID is nil",
+			name: errorsWhenIDIsNil,
 			args: args{
 				service: Service{
 					Service: kong.Service{

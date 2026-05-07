@@ -11,6 +11,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const testMyID = "my-id"
+
 var (
 	jsonString = `{
   "name": "rate-limiting",
@@ -55,7 +57,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: &FService{
 				Service: kong.Service{
 					Name: kong.String("my-service"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-service",
@@ -63,10 +65,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FService{
 				Service: kong.Service{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FService{},
@@ -76,7 +78,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: &FRoute{
 				Route: kong.Route{
 					Name: kong.String("my-route"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-route",
@@ -84,10 +86,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FRoute{
 				Route: kong.Route{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FRoute{},
@@ -97,7 +99,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FUpstream{
 				Upstream: kong.Upstream{
 					Name: kong.String("my-upstream"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-upstream",
@@ -105,10 +107,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FUpstream{
 				Upstream: kong.Upstream{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FUpstream{},
@@ -118,7 +120,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FTarget{
 				Target: kong.Target{
 					Target: kong.String("my-target"),
-					ID:     kong.String("my-id"),
+					ID:     kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-target",
@@ -126,10 +128,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FTarget{
 				Target: kong.Target{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FTarget{},
@@ -138,15 +140,15 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FCertificate{
 				Cert: kong.String("my-certificate"),
-				ID:   kong.String("my-id"),
+				ID:   kong.String(testMyID),
 			},
 			expectedKey: "my-certificate",
 		},
 		{
 			sortable: FCertificate{
-				ID: kong.String("my-id"),
+				ID: kong.String(testMyID),
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FCertificate{},
@@ -156,7 +158,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FCACertificate{
 				CACertificate: kong.CACertificate{
 					Cert: kong.String("my-ca-certificate"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-ca-certificate",
@@ -164,10 +166,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FCACertificate{
 				CACertificate: kong.CACertificate{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FCACertificate{},
@@ -177,7 +179,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
 					Name: kong.String("my-plugin"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-plugin",
@@ -186,7 +188,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
 					Name: kong.String("my-plugin"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 					Consumer: &kong.Consumer{
 						ID: kong.String("my-consumer-id"),
 					},
@@ -198,7 +200,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
 					Name: kong.String("my-plugin"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 					Route: &kong.Route{
 						ID: kong.String("my-route-id"),
 					},
@@ -210,7 +212,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
 					Name: kong.String("my-plugin"),
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 					Service: &kong.Service{
 						ID: kong.String("my-service-id"),
 					},
@@ -222,10 +224,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FPlugin{},
@@ -235,7 +237,7 @@ func Test_sortKey(t *testing.T) {
 			sortable: &FConsumer{
 				Consumer: kong.Consumer{
 					Username: kong.String("my-consumer"),
-					ID:       kong.String("my-id"),
+					ID:       kong.String(testMyID),
 				},
 			},
 			expectedKey: "my-consumer",
@@ -243,10 +245,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FConsumer{
 				Consumer: kong.Consumer{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FConsumer{},
@@ -255,15 +257,15 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FServicePackage{
 				Name: kong.String("my-service-package"),
-				ID:   kong.String("my-id"),
+				ID:   kong.String(testMyID),
 			},
 			expectedKey: "my-service-package",
 		},
 		{
 			sortable: &FServicePackage{
-				ID: kong.String("my-id"),
+				ID: kong.String(testMyID),
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FServicePackage{},
@@ -272,15 +274,15 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FServiceVersion{
 				Version: kong.String("my-service-version"),
-				ID:      kong.String("my-id"),
+				ID:      kong.String(testMyID),
 			},
 			expectedKey: "my-service-version",
 		},
 		{
 			sortable: &FServiceVersion{
-				ID: kong.String("my-id"),
+				ID: kong.String(testMyID),
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable:    FServiceVersion{},
@@ -297,7 +299,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FFilterChain{
 				FilterChain: kong.FilterChain{
-					ID:   kong.String("my-id"),
+					ID:   kong.String(testMyID),
 					Name: kong.String("my-name"),
 				},
 			},
@@ -306,10 +308,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FFilterChain{
 				FilterChain: kong.FilterChain{
-					ID: kong.String("my-id"),
+					ID: kong.String(testMyID),
 				},
 			},
-			expectedKey: "my-id",
+			expectedKey: testMyID,
 		},
 		{
 			sortable: &FFilterChain{

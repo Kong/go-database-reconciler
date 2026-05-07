@@ -20,10 +20,10 @@ var servicePackageTableSchema = &memdb.TableSchema{
 			Unique:  true,
 			Indexer: &memdb.StringFieldIndex{Field: "ID"},
 		},
-		"name": {
-			Name:    "name",
+		nameIndex: {
+			Name:    nameIndex,
 			Unique:  true,
-			Indexer: &memdb.StringFieldIndex{Field: "Name"},
+			Indexer: &memdb.StringFieldIndex{Field: nameFieldIndex},
 		},
 		all: allIndex,
 	},
@@ -65,7 +65,7 @@ func (k *ServicePackagesCollection) Add(servicePackage ServicePackage) error {
 func getServicePackage(txn *memdb.Txn, IDs ...string) (*ServicePackage, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, servicePackageTableName,
-			[]string{"name", "id"}, id)
+			[]string{nameIndex, "id"}, id)
 		if errors.Is(err, ErrNotFound) {
 			continue
 		}

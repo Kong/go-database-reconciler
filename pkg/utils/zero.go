@@ -8,7 +8,7 @@ var zero reflect.Value
 
 func ZeroOutField(obj interface{}, field string) {
 	ptr := reflect.ValueOf(obj)
-	if ptr.Kind() != reflect.Ptr {
+	if ptr.Kind() != reflect.Pointer {
 		return
 	}
 	v := reflect.Indirect(ptr)
