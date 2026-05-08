@@ -23,8 +23,9 @@ var (
 // RenderConfig contains necessary information to render a correct
 // KongConfig from a file.
 type RenderConfig struct {
-	CurrentState *state.KongState
-	KongVersion  semver.Version
+	CurrentState     *state.KongState
+	KongVersion      semver.Version
+	DiagnosticPolicy utils.DiagnosticPolicy
 }
 
 // GetContentFromFiles reads in a file with a slice of filenames and constructs
@@ -71,6 +72,7 @@ func GetForKonnect(ctx context.Context, fileContent *Content,
 	builder.ctx = ctx
 	builder.disableDynamicDefaults = true
 	builder.includeLicenses = false
+	builder.diagnosticPolicy = opt.DiagnosticPolicy
 
 	if fileContent.Transform != nil && !*fileContent.Transform {
 		return nil, nil, ErrorTransformFalseNotSupported
@@ -103,6 +105,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.skipHashForBasicAuth = dumpConfig.SkipHashForBasicAuth
 	builder.skipDefaults = dumpConfig.SkipDefaults
 	builder.schemaRegistry = dumpConfig.SchemaRegistry
+	builder.diagnosticPolicy = dumpConfig.DiagnosticPolicy
 
 	if len(dumpConfig.SelectorTags) > 0 {
 		builder.selectTags = dumpConfig.SelectorTags

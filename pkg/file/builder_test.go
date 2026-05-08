@@ -4694,6 +4694,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 	tests := []struct {
 		name                           string
 		isConsumerGroupPolicyOverrides bool
+		diagnosticPolicy               utils.DiagnosticPolicy
 		fields                         fields
 		want                           *utils.KongRawState
 		wantErr                        bool
@@ -4858,6 +4859,10 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 		{
 			name:                           "consumer-group policy overrides set as false",
 			isConsumerGroupPolicyOverrides: false,
+			diagnosticPolicy: utils.NewDiagnosticPolicy(
+				[]utils.DiagnosticCode{utils.DiagnosticCodeRLAConsumerGroups},
+				nil,
+			),
 			fields: fields{
 				targetContent: &Content{
 					Info: &Info{
@@ -4948,6 +4953,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 				currentState:                     tt.fields.currentState,
 				kongVersion:                      kong340Version,
 				isConsumerGroupPolicyOverrideSet: tt.isConsumerGroupPolicyOverrides,
+				diagnosticPolicy:                 tt.diagnosticPolicy,
 			}
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
 			b.defaulter = d
@@ -4969,6 +4975,7 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 	tests := []struct {
 		name       string
 		target     *Content
+		policy     utils.DiagnosticPolicy
 		wantErr    string
 		wantConfig kong.Configuration
 	}{
@@ -5023,15 +5030,35 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 			},
 			wantErr: "openid-connect plugin requires explicit non-empty config values for cache_tokens_salt",
 		},
+		{
+			name:   "allows downgrade of required field validation to warning",
+			policy: utils.NewDiagnosticPolicy(nil, []utils.DiagnosticCode{utils.DiagnosticCodeOIDCMissingConfig}),
+			target: &Content{
+				Plugins: []FPlugin{
+					{
+						Plugin: kong.Plugin{
+							Name: kong.String("openid-connect"),
+							Config: kong.Configuration{
+								"cache_tokens_salt": "",
+							},
+						},
+					},
+				},
+			},
+			wantConfig: kong.Configuration{
+				"cache_tokens_salt": "",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &stateBuilder{
-				targetContent: tt.target,
-				currentState:  emptyState(),
-				kongVersion:   kong340Version,
-				skipDefaults:  true,
+				targetContent:    tt.target,
+				currentState:     emptyState(),
+				kongVersion:      kong340Version,
+				skipDefaults:     true,
+				diagnosticPolicy: tt.policy,
 			}
 
 			_, _, err := b.build()
@@ -5046,6 +5073,50 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 			assert.Equal(t, tt.wantConfig, b.rawState.Plugins[0].Config)
 		})
 	}
+}
+
+func Test_stateBuilder_validateRateLimitingAdvancedDiagnosticSeverity(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	target := &Content{
+		Plugins: []FPlugin{
+			{
+				Plugin: kong.Plugin{
+					Name: kong.String("rate-limiting-advanced"),
+					Config: kong.Configuration{
+						"consumer_groups":         []any{"foo-group"},
+						"enforce_consumer_groups": true,
+					},
+				},
+			},
+		},
+	}
+
+	t.Run("defaults to error", func(t *testing.T) {
+		b := &stateBuilder{
+			targetContent: target,
+			currentState:  emptyState(),
+			kongVersion:   kong340Version,
+			skipDefaults:  true,
+		}
+
+		_, _, err := b.build()
+		require.Error(t, err)
+		assert.ErrorContains(t, err, utils.ErrorConsumerGroupUpgrade.Error())
+	})
+
+	t.Run("allows downgrade to warning when configured", func(t *testing.T) {
+		b := &stateBuilder{
+			targetContent:    target,
+			currentState:     emptyState(),
+			kongVersion:      kong340Version,
+			skipDefaults:     true,
+			diagnosticPolicy: utils.NewDiagnosticPolicy(nil, []utils.DiagnosticCode{utils.DiagnosticCodeRLAConsumerGroups}),
+		}
+
+		_, _, err := b.build()
+		require.NoError(t, err)
+		require.Len(t, b.rawState.Plugins, 1)
+	})
 }
 
 func Test_stateBuilder_partials(t *testing.T) {

@@ -75,6 +75,7 @@ type stateBuilder struct {
 	isConsumerGroupPolicyOverrideSet bool
 
 	skipHashForBasicAuth bool
+	diagnosticPolicy     utils.DiagnosticPolicy
 	// Track consumer IDs to avoid duplicates in rawState
 	consumerIDsInRawState map[string]bool
 
@@ -1431,7 +1432,13 @@ func (b *stateBuilder) routes() {
 			}
 		}
 		if len(unsupportedRoutes) > 0 {
-			utils.PrintRouteRegexWarning(unsupportedRoutes)
+			if err := b.emitDiagnostic(
+				utils.DiagnosticCodeRouteRegexPathFormat,
+				utils.RouteRegexWarningMessage(unsupportedRoutes),
+			); err != nil {
+				b.err = err
+				return
+			}
 		}
 	}
 }
@@ -1773,7 +1780,7 @@ func (b *stateBuilder) validatePlugin(p FPlugin) error {
 			}
 		}
 		if consumerGroupsFound || enforceConsumerGroupsFound {
-			return utils.ErrorConsumerGroupUpgrade
+			return b.emitDiagnostic(utils.DiagnosticCodeRLAConsumerGroups, utils.ErrorConsumerGroupUpgrade.Error())
 		}
 	}
 	if p.Name != nil && *p.Name == openIDConnectPluginName {
@@ -1785,10 +1792,14 @@ func (b *stateBuilder) validatePlugin(p FPlugin) error {
 			}
 		}
 		if len(missingFields) > 0 {
-			return fmt.Errorf(
-				"openid-connect plugin requires explicit non-empty config values for %s "+
-					"to avoid regenerating session credentials during sync",
-				strings.Join(missingFields, ", "))
+			return b.emitDiagnostic(
+				utils.DiagnosticCodeOIDCMissingConfig,
+				fmt.Sprintf(
+					"openid-connect plugin requires explicit non-empty config values for %s "+
+						"to avoid regenerating session credentials during sync",
+					strings.Join(missingFields, ", "),
+				),
+			)
 		}
 	}
 	return nil
