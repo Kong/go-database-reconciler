@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -190,9 +191,96 @@ func parseDeckEnvVars() []EnvVar {
 	return parsedEnvVars
 }
 
+const maskedValue = "[masked]"
+
+// Compiled patterns for identifying values in diff output.
+var (
+	// kvPattern matches values after a colon separator:
+	//   Group 1: quoted string  (:"val" or : "val")
+	//   Group 2: numeric        (: 42)
+	//   Group 3: YAML unquoted  (: bare-value)
+	kvPattern = regexp.MustCompile(
+		`:\s*"((?:[^"\\]|\\.)*)"|` +
+			`:\s+(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b|` +
+			`:\s+([^\s"\d{\[\]}\-][^\n,}\]]*)`,
+	)
+
+	// arrayElemPattern matches standalone quoted strings in JSON arrays
+	// (lines with only whitespace/diff markers before the value).
+	arrayElemPattern = regexp.MustCompile(`^([+\- ]*\s+)"((?:[^"\\]|\\.)*)"`)
+)
+
+// MaskEnvVarValue masks DECK_ environment variable values in diff output.
+// Only exact, complete values are masked — never substrings within other values.
 func MaskEnvVarValue(diffString string) string {
-	for _, envVar := range parseDeckEnvVars() {
-		diffString = strings.ReplaceAll(diffString, envVar.Value, "[masked]")
+	envVars := parseDeckEnvVars()
+	if len(envVars) == 0 {
+		return diffString
 	}
-	return diffString
+
+	secrets := make(map[string]bool, len(envVars))
+	for _, ev := range envVars {
+		if ev.Value != "" {
+			secrets[ev.Value] = true
+		}
+	}
+	if len(secrets) == 0 {
+		return diffString
+	}
+
+	lines := strings.Split(diffString, "\n")
+	for i, line := range lines {
+		isJSON := strings.Contains(line, `":`)
+
+		result := kvPattern.ReplaceAllStringFunc(line, func(match string) string {
+			sub := kvPattern.FindStringSubmatch(match)
+			if sub == nil {
+				return match
+			}
+			switch {
+			case sub[1] != "": // quoted string
+				if secrets[unescapeJSON(sub[1])] {
+					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + maskedValue + `"`
+				}
+			case sub[2] != "": // number
+				if secrets[sub[2]] {
+					prefix := match[:len(match)-len(sub[2])]
+					if isJSON {
+						return prefix + `"` + maskedValue + `"`
+					}
+					return prefix + maskedValue
+				}
+			case sub[3] != "": // YAML unquoted
+				if secrets[strings.TrimSpace(sub[3])] {
+					return match[:len(match)-len(sub[3])] + maskedValue
+				}
+			}
+			return match
+		})
+
+		// Fall back to array element masking if no kv match was made.
+		if result == line {
+			result = arrayElemPattern.ReplaceAllStringFunc(line, func(match string) string {
+				sub := arrayElemPattern.FindStringSubmatch(match)
+				if sub == nil || !secrets[unescapeJSON(sub[2])] {
+					return match
+				}
+				quoted := `"` + sub[2] + `"`
+				suffix := match[len(sub[1])+len(quoted):]
+				return sub[1] + `"` + maskedValue + `"` + suffix
+			})
+		}
+
+		lines[i] = result
+	}
+	return strings.Join(lines, "\n")
+}
+
+// unescapeJSON decodes a raw JSON string body (content between quotes).
+func unescapeJSON(raw string) string {
+	var s string
+	if err := json.Unmarshal([]byte(`"`+raw+`"`), &s); err != nil {
+		return raw
+	}
+	return s
 }
