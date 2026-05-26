@@ -211,21 +211,43 @@ var (
 )
 
 // MaskEnvVarValue masks DECK_ environment variable values in diff output.
-// Only exact, complete values are masked — never substrings within other values.
+// It identifies values in proper JSON/YAML positions (after `:` or as array elements)
+// and performs word-boundary substring replacement within those values. This prevents
+// corruption of non-value content (e.g., UUIDs in keys) while still masking secrets
+// that appear as part of larger strings.
 func MaskEnvVarValue(diffString string) string {
 	envVars := parseDeckEnvVars()
 	if len(envVars) == 0 {
 		return diffString
 	}
 
-	secrets := make(map[string]bool, len(envVars))
+	// Build sorted list of values (longest first) for substring replacement
+	var secrets []string
+	seen := make(map[string]bool, len(envVars))
 	for _, ev := range envVars {
-		if ev.Value != "" {
-			secrets[ev.Value] = true
+		if ev.Value != "" && !seen[ev.Value] {
+			secrets = append(secrets, ev.Value)
+			seen[ev.Value] = true
 		}
 	}
 	if len(secrets) == 0 {
 		return diffString
+	}
+	sort.Slice(secrets, func(i, j int) bool {
+		return len(secrets[i]) > len(secrets[j])
+	})
+
+	// Pre-compile word-boundary patterns once for all secrets
+	secretPatterns := make([]*regexp.Regexp, len(secrets))
+	for idx, secret := range secrets {
+		secretPatterns[idx] = regexp.MustCompile(`\b` + regexp.QuoteMeta(secret) + `\b`)
+	}
+
+	maskFn := func(s string) string {
+		for _, re := range secretPatterns {
+			s = re.ReplaceAllString(s, maskedValue)
+		}
+		return s
 	}
 
 	lines := strings.Split(diffString, "\n")
@@ -239,11 +261,12 @@ func MaskEnvVarValue(diffString string) string {
 			}
 			switch {
 			case sub[1] != "": // quoted string
-				if secrets[unescapeJSON(sub[1])] {
-					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + maskedValue + `"`
+				masked := maskFn(sub[1])
+				if masked != sub[1] {
+					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + masked + `"`
 				}
 			case sub[2] != "": // number
-				if secrets[sub[2]] {
+				if seen[sub[2]] {
 					prefix := match[:len(match)-len(sub[2])]
 					if isJSON {
 						return prefix + `"` + maskedValue + `"`
@@ -251,8 +274,9 @@ func MaskEnvVarValue(diffString string) string {
 					return prefix + maskedValue
 				}
 			case sub[3] != "": // YAML unquoted
-				if secrets[strings.TrimSpace(sub[3])] {
-					return match[:len(match)-len(sub[3])] + maskedValue
+				masked := maskFn(sub[3])
+				if masked != sub[3] {
+					return match[:len(match)-len(sub[3])] + masked
 				}
 			}
 			return match
@@ -262,25 +286,20 @@ func MaskEnvVarValue(diffString string) string {
 		if result == line {
 			result = arrayElemPattern.ReplaceAllStringFunc(line, func(match string) string {
 				sub := arrayElemPattern.FindStringSubmatch(match)
-				if sub == nil || !secrets[unescapeJSON(sub[2])] {
+				if sub == nil {
+					return match
+				}
+				masked := maskFn(sub[2])
+				if masked == sub[2] {
 					return match
 				}
 				quoted := `"` + sub[2] + `"`
 				suffix := match[len(sub[1])+len(quoted):]
-				return sub[1] + `"` + maskedValue + `"` + suffix
+				return sub[1] + `"` + masked + `"` + suffix
 			})
 		}
 
 		lines[i] = result
 	}
 	return strings.Join(lines, "\n")
-}
-
-// unescapeJSON decodes a raw JSON string body (content between quotes).
-func unescapeJSON(raw string) string {
-	var s string
-	if err := json.Unmarshal([]byte(`"`+raw+`"`), &s); err != nil {
-		return raw
-	}
-	return s
 }
