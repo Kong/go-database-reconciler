@@ -195,10 +195,15 @@ const maskedValue = "[masked]"
 
 // Compiled patterns for identifying values in diff output.
 var (
+	// jsonKeyPattern detects JSON-formatted output by matching a quoted key
+	// followed by a colon (e.g., "name":). This is how gojsondiff's ASCII
+	// formatter renders keys — YAML/plain text uses unquoted keys.
+	jsonKeyPattern = regexp.MustCompile(`"[^"]+"\s*:`)
+
 	// kvPattern matches values after a colon separator:
-	//   Group 1: quoted string  (:"val" or : "val")
-	//   Group 2: numeric        (: 42)
-	//   Group 3: YAML unquoted  (: bare-value)
+	//   Group 1: quoted string
+	//   Group 2: numeric
+	//   Group 3: YAML unquoted
 	kvPattern = regexp.MustCompile(
 		`:\s*"((?:[^"\\]|\\.)*)"|` +
 			`:\s+(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b|` +
@@ -210,11 +215,8 @@ var (
 	arrayElemPattern = regexp.MustCompile(`^([+\- ]*\s+)"((?:[^"\\]|\\.)*)"`)
 )
 
-// MaskEnvVarValue masks DECK_ environment variable values in diff output.
-// It identifies values in proper JSON/YAML positions (after `:` or as array elements)
-// and performs word-boundary substring replacement within those values. This prevents
-// corruption of non-value content (e.g., UUIDs in keys) while still masking secrets
-// that appear as part of larger strings.
+// MaskEnvVarValue masks DECK_ env var values in diff output using position-aware
+// regex and word-boundary matching to avoid corrupting unrelated content like UUIDs.
 func MaskEnvVarValue(diffString string) string {
 	envVars := parseDeckEnvVars()
 	if len(envVars) == 0 {
@@ -250,9 +252,14 @@ func MaskEnvVarValue(diffString string) string {
 		return s
 	}
 
+	// Detect format once: the diff engine (gojsondiff) always produces JSON-like
+	// output with quoted keys. Unified text diffs (from getDocumentDiff) never have
+	// quoted keys. We check the entire string rather than per-line to avoid false
+	// positives from YAML values that happen to contain `":`.
+	isJSON := jsonKeyPattern.MatchString(diffString)
+
 	lines := strings.Split(diffString, "\n")
 	for i, line := range lines {
-		isJSON := strings.Contains(line, `":`)
 
 		result := kvPattern.ReplaceAllStringFunc(line, func(match string) string {
 			sub := kvPattern.FindStringSubmatch(match)
