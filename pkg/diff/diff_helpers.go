@@ -267,23 +267,24 @@ func MaskEnvVarValue(diffString string) string {
 				return match
 			}
 			switch {
-			case sub[1] != "": // quoted string
+			case sub[1] != "":
+				// Can't hardcode the prefix since `:\s*` matches both compact and formatted JSON,
+				// so the original spacing must be preserved.
 				masked := maskFn(sub[1])
 				if masked != sub[1] {
 					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + masked + `"`
 				}
 			case sub[2] != "": // number
 				if seen[sub[2]] {
-					prefix := match[:len(match)-len(sub[2])]
 					if isJSON {
-						return prefix + `"` + maskedValue + `"`
+						return `: "` + maskedValue + `"`
 					}
-					return prefix + maskedValue
+					return ": " + maskedValue
 				}
 			case sub[3] != "": // YAML unquoted
 				masked := maskFn(sub[3])
 				if masked != sub[3] {
-					return match[:len(match)-len(sub[3])] + masked
+					return ": " + masked
 				}
 			}
 			return match
