@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -190,9 +191,123 @@ func parseDeckEnvVars() []EnvVar {
 	return parsedEnvVars
 }
 
+const maskedValue = "[masked]"
+
+// Compiled patterns for identifying values in diff output.
+var (
+	// jsonKeyPattern detects JSON-formatted output by matching a quoted key
+	// followed by a colon (e.g., "name":). This is how gojsondiff's ASCII
+	// formatter renders keys — YAML/plain text uses unquoted keys.
+	jsonKeyPattern = regexp.MustCompile(`"[^"]+"\s*:`)
+
+	// kvPattern matches values after a colon separator:
+	//   Group 1: quoted string
+	//   Group 2: numeric
+	//   Group 3: YAML unquoted
+	kvPattern = regexp.MustCompile(
+		`:\s*"((?:[^"\\]|\\.)*)"|` +
+			`:\s+(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b|` +
+			`:\s+([^\s"\d{\[\]}\-][^\n,}\]]*)`,
+	)
+
+	// arrayElemPattern matches standalone quoted strings in JSON arrays
+	// (lines with only whitespace/diff markers before the value).
+	arrayElemPattern = regexp.MustCompile(`^([+\- ]*\s+)"((?:[^"\\]|\\.)*)"`)
+)
+
+// MaskEnvVarValue masks DECK_ env var values in diff output using position-aware
+// regex and word-boundary matching to avoid corrupting unrelated content like UUIDs.
 func MaskEnvVarValue(diffString string) string {
-	for _, envVar := range parseDeckEnvVars() {
-		diffString = strings.ReplaceAll(diffString, envVar.Value, "[masked]")
+	envVars := parseDeckEnvVars()
+	if len(envVars) == 0 {
+		return diffString
 	}
-	return diffString
+
+	// Build sorted list of values (longest first) for substring replacement
+	var secrets []string
+	seen := make(map[string]bool, len(envVars))
+	for _, ev := range envVars {
+		if ev.Value != "" && !seen[ev.Value] {
+			secrets = append(secrets, ev.Value)
+			seen[ev.Value] = true
+		}
+	}
+	if len(secrets) == 0 {
+		return diffString
+	}
+	sort.Slice(secrets, func(i, j int) bool {
+		return len(secrets[i]) > len(secrets[j])
+	})
+
+	// Pre-compile word-boundary patterns once for all secrets
+	secretPatterns := make([]*regexp.Regexp, len(secrets))
+	for idx, secret := range secrets {
+		secretPatterns[idx] = regexp.MustCompile(`\b` + regexp.QuoteMeta(secret) + `\b`)
+	}
+
+	maskFn := func(s string) string {
+		for _, re := range secretPatterns {
+			s = re.ReplaceAllString(s, maskedValue)
+		}
+		return s
+	}
+
+	// Detect format once: the diff engine (gojsondiff) always produces JSON-like
+	// output with quoted keys. Unified text diffs (from getDocumentDiff) never have
+	// quoted keys. We check the entire string rather than per-line to avoid false
+	// positives from YAML values that happen to contain `":`.
+	isJSON := jsonKeyPattern.MatchString(diffString)
+
+	lines := strings.Split(diffString, "\n")
+	for i, line := range lines {
+
+		result := kvPattern.ReplaceAllStringFunc(line, func(match string) string {
+			sub := kvPattern.FindStringSubmatch(match)
+			if sub == nil {
+				return match
+			}
+			switch {
+			case sub[1] != "":
+				// Can't hardcode the prefix since `:\s*` matches both compact and formatted JSON,
+				// so the original spacing must be preserved.
+				masked := maskFn(sub[1])
+				if masked != sub[1] {
+					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + masked + `"`
+				}
+			case sub[2] != "": // number
+				if seen[sub[2]] {
+					if isJSON {
+						return `: "` + maskedValue + `"`
+					}
+					return ": " + maskedValue
+				}
+			case sub[3] != "": // YAML unquoted
+				masked := maskFn(sub[3])
+				if masked != sub[3] {
+					return ": " + masked
+				}
+			}
+			return match
+		})
+
+		// Fall back to array element masking if no kv match was made.
+		if result == line {
+			result = arrayElemPattern.ReplaceAllStringFunc(line, func(match string) string {
+				sub := arrayElemPattern.FindStringSubmatch(match)
+				if sub == nil {
+					return match
+				}
+				masked := maskFn(sub[2])
+				if masked == sub[2] {
+					return match
+				}
+				quoted := `"` + sub[2] + `"`
+				suffix := match[len(sub[1])+len(quoted):]
+				return sub[1] + `"` + masked + `"` + suffix
+			})
+		}
+
+		lines[i] = result
+	}
+	return strings.Join(lines, "\n")
 }

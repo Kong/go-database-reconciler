@@ -154,13 +154,90 @@ func Test_MaskEnvVarsValues(t *testing.T) {
 		envVars map[string]string
 	}{
 		{
-			name: "JSON",
+			name: "JSON string values",
 			envVars: map[string]string{
 				"DECK_BAR": "barbar",
 				"DECK_BAZ": "bazbaz",
 			},
 			args: `{"foo":"foo","bar":"barbar","baz":"bazbaz"}`,
 			want: `{"foo":"foo","bar":"[masked]","baz":"[masked]"}`,
+		},
+		{
+			name: "JSON integer values produce valid JSON",
+			envVars: map[string]string{
+				"DECK_REDIS_DB":  "0",
+				"DECK_SYNC_RATE": "1",
+				"DECK_RETRIES":   "2",
+				"DECK_CACHE_EXP": "5",
+			},
+			args: `{"id": "b35b3ec2-fa1c-4f6c-825e-c38141562c76", "retries": 2, "redis_database": 0}`,
+			want: `{"id": "b35b3ec2-fa1c-4f6c-825e-c38141562c76", "retries": "[masked]", "redis_database": "[masked]"}`,
+		},
+		{
+			name: "short values do not corrupt UUIDs or substrings",
+			envVars: map[string]string{
+				"DECK_REDIS_DB": "0",
+			},
+			args: `{"id": "b35b3ec2-fa1c-4f6c-825e-c38141562c76", "name": "my-service-01", "port": 8000}`,
+			want: `{"id": "b35b3ec2-fa1c-4f6c-825e-c38141562c76", "name": "my-service-01", "port": 8000}`,
+		},
+		{
+			name: "diff format with markers",
+			envVars: map[string]string{
+				"DECK_SECRET": "mysecretvalue",
+			},
+			args: ` {
+   "name": "my-plugin",
+-  "config.secret": "mysecretvalue",
++  "config.secret": "newsecretvalue"
+ }`,
+			want: ` {
+   "name": "my-plugin",
+-  "config.secret": "[masked]",
++  "config.secret": "newsecretvalue"
+ }`,
+		},
+		{
+			name: "YAML unquoted values in unified diff",
+			envVars: map[string]string{
+				"DECK_SECRET":  "mysecretvalue",
+				"DECK_API_KEY": "sk-1234567890abcdef",
+			},
+			args: `--- old
++++ new
+@@ -1,4 +1,4 @@
+ name: my-service
+-secret: mysecretvalue
++secret: newsecretvalue
+ api_key: sk-1234567890abcdef
+ port: 8080`,
+			want: `--- old
++++ new
+@@ -1,4 +1,4 @@
+ name: my-service
+-secret: [masked]
++secret: newsecretvalue
+ api_key: [masked]
+ port: 8080`,
+		},
+		{
+			name: "YAML short numeric values do not corrupt other values",
+			envVars: map[string]string{
+				"DECK_REDIS_DB": "0",
+				"DECK_RETRIES":  "5",
+			},
+			args: `--- old
++++ new
+@@ -1,3 +1,3 @@
+ name: my-service-500
+ redis_database: 0
+ retries: 5`,
+			want: `--- old
++++ new
+@@ -1,3 +1,3 @@
+ name: my-service-500
+ redis_database: [masked]
+ retries: [masked]`,
 		},
 	}
 	for _, tt := range tests {
