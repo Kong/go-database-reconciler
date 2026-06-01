@@ -285,6 +285,14 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, c := range raw.ClonedPluginDefinitions {
+		utils.ZeroOutTimestamps(c)
+		err := kongState.ClonedPluginDefinitions.Add(ClonedPluginDefinition{ClonedPluginDefinition: *c})
+		if err != nil {
+			return fmt.Errorf("inserting cloned plugin definition into state: %w", err)
+		}
+	}
+
 	for _, p := range raw.Partials {
 		utils.ZeroOutTimestamps(p)
 		err := kongState.Partials.Add(Partial{Partial: *p})

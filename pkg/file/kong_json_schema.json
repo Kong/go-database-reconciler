@@ -41,6 +41,13 @@
       },
       "type": "array"
     },
+    "cloned_plugins": {
+      "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FClonedPluginDefinition"
+      },
+      "type": "array"
+    },
     "consumer_groups": {
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -466,6 +473,40 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+     "FClonedPluginDefinition": {
+      "required": [
+        "name",
+        "ref"
+      ],
+      "properties": {
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer"
+        },
+        "ref": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+         "updated_at": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,

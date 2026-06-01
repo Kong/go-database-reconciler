@@ -139,6 +139,9 @@ func main() {
 	// partials
 	schema.Definitions["FPartial"].Required = []string{"type"}
 
+	// cloned plugin definitions
+	schema.Definitions["FClonedPluginDefinition"].Required = []string{"name", "plugin"}
+
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
 	schema.Definitions["FPlugin"].Properties["consumer"] = stringType

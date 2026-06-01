@@ -2185,3 +2185,60 @@ func (ks1 *KeySet) EqualWithOpts(ks2 *KeySet, ignoreID, ignoreTS bool) bool {
 	}
 	return reflect.DeepEqual(ks1Copy, ks2Copy)
 }
+
+// ClonedPluginDefinition represents a cloned plugin definition in Kong.
+// It adds some helper methods along with Meta to the original ClonedPluginDefinition object.
+type ClonedPluginDefinition struct {
+	kong.ClonedPluginDefinition `yaml:",inline"`
+	Meta
+}
+
+// Identifier returns the entity name or ID.
+func (c1 *ClonedPluginDefinition) Identifier() string {
+	if c1.Name != nil {
+		return *c1.Name
+	}
+	if c1.ID != nil {
+		return *c1.ID
+	}
+	return ""
+}
+
+// Console returns an entity's identity in a human readable string.
+func (c1 *ClonedPluginDefinition) Console() string {
+	return c1.Identifier()
+}
+
+// Equal returns true if c1 and c2 are equal.
+func (c1 *ClonedPluginDefinition) Equal(c2 *ClonedPluginDefinition) bool {
+	return c1.EqualWithOpts(c2, false, false)
+}
+
+// EqualWithOpts returns true if c1 and c2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+// If ignoreTS is set to true, timestamp fields will be ignored.
+func (c1 *ClonedPluginDefinition) EqualWithOpts(c2 *ClonedPluginDefinition, ignoreID, ignoreTS bool) bool {
+	c1Copy := c1.ClonedPluginDefinition.DeepCopy()
+	c2Copy := c2.ClonedPluginDefinition.DeepCopy()
+
+	if len(c1Copy.Tags) == 0 {
+		c1Copy.Tags = nil
+	}
+	if len(c2Copy.Tags) == 0 {
+		c2Copy.Tags = nil
+	}
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+
+	if ignoreID {
+		c1Copy.ID = nil
+		c2Copy.ID = nil
+	}
+	if ignoreTS {
+		c1Copy.CreatedAt = nil
+		c2Copy.CreatedAt = nil
+		c1Copy.UpdatedAt = nil
+		c2Copy.UpdatedAt = nil
+	}
+	return reflect.DeepEqual(c1Copy, c2Copy)
+}

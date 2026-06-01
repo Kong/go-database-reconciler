@@ -1315,6 +1315,20 @@ func (k FKeySet) sortKey() string {
 	return ""
 }
 
+// FClonedPluginDefinition represents a Kong ClonedPluginDefinition.
+// +k8s:deepcopy-gen=true
+type FClonedPluginDefinition struct {
+	kong.ClonedPluginDefinition `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (f FClonedPluginDefinition) sortKey() string {
+	if f.Name != nil {
+		return *f.Name
+	}
+	return ""
+}
+
 //go:generate go run ./codegen/main.go
 
 // Content represents a serialized Kong state.
@@ -1352,4 +1366,6 @@ type Content struct {
 
 	Keys    []FKey    `json:"keys,omitempty" yaml:"keys,omitempty"`
 	KeySets []FKeySet `json:"key_sets,omitempty" yaml:"key_sets,omitempty"`
+
+	ClonedPluginDefinitions []FClonedPluginDefinition `json:"cloned_plugins,omitempty" yaml:"cloned_plugins,omitempty"`
 }

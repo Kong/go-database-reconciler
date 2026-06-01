@@ -225,6 +225,10 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	if err != nil {
 		return nil, err
 	}
+	err = populateClonedPluginDefinitions(kongState, file, config)
+	if err != nil {
+		return nil, err
+	}
 
 	return file, nil
 }
@@ -1128,6 +1132,25 @@ func populateKeySets(kongState *state.KongState, file *Content,
 	}
 	sort.SliceStable(file.KeySets, func(i, j int) bool {
 		return compareOrder(file.KeySets[i], file.KeySets[j])
+	})
+	return nil
+}
+
+func populateClonedPluginDefinitions(kongState *state.KongState, file *Content,
+	config WriteConfig,
+) error {
+	cpds, err := kongState.ClonedPluginDefinitions.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, cpd := range cpds {
+		c := FClonedPluginDefinition{ClonedPluginDefinition: cpd.ClonedPluginDefinition}
+		utils.ZeroOutID(&c, c.Name, config.WithID)
+		utils.ZeroOutTimestamps(&c)
+		file.ClonedPluginDefinitions = append(file.ClonedPluginDefinitions, c)
+	}
+	sort.SliceStable(file.ClonedPluginDefinitions, func(i, j int) bool {
+		return compareOrder(file.ClonedPluginDefinitions[i], file.ClonedPluginDefinitions[j])
 	})
 	return nil
 }

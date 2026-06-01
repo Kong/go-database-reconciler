@@ -622,6 +622,21 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
+	group.Go(func() error {
+		clonedPluginDefinitions, err := GetAllClonedPluginDefinitions(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("cloned_plugins: %w", err)
+		}
+
+		clonedPluginDefinitions, err = excludeKonnectManagedEntities(clonedPluginDefinitions)
+		if err != nil {
+			return fmt.Errorf("cloned_plugins: %w", err)
+		}
+
+		state.ClonedPluginDefinitions = clonedPluginDefinitions
+		return nil
+	})
+
 	if config.IncludeLicenses {
 		group.Go(func() error {
 			licenses, err := GetAllLicenses(ctx, client, config.SelectorTags)
@@ -840,6 +855,32 @@ func GetAllKeySets(
 		opt = nextopt
 	}
 	return sets, nil
+}
+
+// GetAllClonedPluginDefinitions queries Kong for all the ClonedPluginDefinitions using client.
+func GetAllClonedPluginDefinitions(
+	ctx context.Context, client *kong.Client, tags []string,
+) ([]*kong.ClonedPluginDefinition, error) {
+	var cpds []*kong.ClonedPluginDefinition
+	opt := newOpt(tags)
+	for {
+		s, nextopt, err := client.ClonedPlugins.List(ctx, opt)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			return cpds, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		cpds = append(cpds, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return cpds, nil
 }
 
 // GetAllPartials queries Kong for all the partials using client.

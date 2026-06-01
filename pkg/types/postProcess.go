@@ -595,3 +595,19 @@ func (crud keySetPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.A
 func (crud keySetPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.KeySets.Update(*args[0].(*state.KeySet))
 }
+
+type clonedPluginDefinitionPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud clonedPluginDefinitionPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.ClonedPluginDefinitions.Add(*args[0].(*state.ClonedPluginDefinition))
+}
+
+func (crud clonedPluginDefinitionPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.ClonedPluginDefinitions.Delete(*((args[0].(*state.ClonedPluginDefinition)).ID))
+}
+
+func (crud clonedPluginDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.ClonedPluginDefinitions.Update(*args[0].(*state.ClonedPluginDefinition))
+}
