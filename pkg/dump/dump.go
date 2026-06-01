@@ -641,6 +641,21 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 			state.ClonedPluginDefinitions = clonedPluginDefinitions
 			return nil
 		})
+
+		group.Go(func() error {
+			clonedPluginDefinitions, err := GetAllClonedPluginDefinitions(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("cloned_plugins: %w", err)
+			}
+
+			clonedPluginDefinitions, err = excludeKonnectManagedEntities(clonedPluginDefinitions)
+			if err != nil {
+				return fmt.Errorf("cloned_plugins: %w", err)
+			}
+
+			state.ClonedPluginDefinitions = clonedPluginDefinitions
+			return nil
+		})
 	}
 
 	if config.IncludeLicenses {
