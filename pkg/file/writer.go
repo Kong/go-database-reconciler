@@ -27,6 +27,7 @@ type WriteConfig struct {
 	KongVersion                      string
 	IsConsumerGroupPolicyOverrideSet bool
 	SanitizeContent                  bool
+	IncludePluginDefinitions         bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
@@ -140,6 +141,16 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 			}
 		} else {
 			file.Info.ConsumerGroupPolicyOverrides = true
+		}
+	}
+
+	if config.IncludePluginDefinitions {
+		if file.Info == nil {
+			file.Info = &Info{
+				IncludePluginDefinitions: true,
+			}
+		} else {
+			file.Info.IncludePluginDefinitions = true
 		}
 	}
 

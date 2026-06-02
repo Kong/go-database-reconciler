@@ -141,6 +141,8 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	if !b.skipCACerts {
 		b.caCertificates()
 	}
+
+	b.clonedPluginDefinitions()
 	b.partials()
 	b.services()
 	b.routes()
@@ -151,7 +153,6 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.filterChains()
 	b.keySets()
 	b.keys()
-	b.clonedPluginDefinitions()
 	b.enterprise()
 
 	// konnect

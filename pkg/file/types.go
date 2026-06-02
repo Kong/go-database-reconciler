@@ -801,6 +801,7 @@ type Info struct {
 	Defaults                     KongDefaults        `json:"defaults,omitempty" yaml:"defaults,omitempty"`
 	ConsumerGroupPolicyOverrides bool                `json:"consumer_group_policy_overrides,omitempty" yaml:"consumer_group_policy_overrides,omitempty"` //nolint
 	SkipHashForBasicAuth         bool                `json:"skip_hash_for_basic_auth,omitempty" yaml:"skip_hash_for_basic_auth,omitempty"`               //nolint
+	IncludePluginDefinitions     bool                `json:"include_plugin_definitions,omitempty" yaml:"include_plugin_definitions,omitempty"`           //nolint
 }
 
 // LookUpSelectorTags contains tags to lookup

@@ -86,6 +86,10 @@ type Config struct {
 	// This flag is set to remove default values while dumping entities.
 	SkipDefaults bool
 
+	// This flag is set to include cloned-plugin and custom-plugin definitions
+	// in the dump output.
+	IncludePluginDefinitions bool
+
 	// SchemaRegistry is an optional shared schema registry. When provided,
 	// it is reused for schema fetching and caching (e.g. during SkipDefaults
 	// processing). When nil, a new registry is created internally.
@@ -622,20 +626,22 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		return nil
 	})
 
-	group.Go(func() error {
-		clonedPluginDefinitions, err := GetAllClonedPluginDefinitions(ctx, client, config.SelectorTags)
-		if err != nil {
-			return fmt.Errorf("cloned_plugins: %w", err)
-		}
+	if config.IncludePluginDefinitions {
+		group.Go(func() error {
+			clonedPluginDefinitions, err := GetAllClonedPluginDefinitions(ctx, client, config.SelectorTags)
+			if err != nil {
+				return fmt.Errorf("cloned_plugins: %w", err)
+			}
 
-		clonedPluginDefinitions, err = excludeKonnectManagedEntities(clonedPluginDefinitions)
-		if err != nil {
-			return fmt.Errorf("cloned_plugins: %w", err)
-		}
+			clonedPluginDefinitions, err = excludeKonnectManagedEntities(clonedPluginDefinitions)
+			if err != nil {
+				return fmt.Errorf("cloned_plugins: %w", err)
+			}
 
-		state.ClonedPluginDefinitions = clonedPluginDefinitions
-		return nil
-	})
+			state.ClonedPluginDefinitions = clonedPluginDefinitions
+			return nil
+		})
+	}
 
 	if config.IncludeLicenses {
 		group.Go(func() error {

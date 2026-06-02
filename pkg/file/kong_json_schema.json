@@ -1594,6 +1594,9 @@
         "consumer_group_policy_overrides": {
           "type": "boolean"
         },
+         "include_plugin_definitions": {
+          "type": "boolean"
+        },
         "skip_hash_for_basic_auth": {
           "type": "boolean"
         }
