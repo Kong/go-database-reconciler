@@ -550,42 +550,45 @@ func Test_Dump_Plugin_Conditional(t *testing.T) {
 
 // test scope:
 // - enterprise >=3.15.0
-func Test_Dump_ClonedPluginDefinitions(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.15.0")
-	setup(t)
+// uncomment post deck update
+// func Test_Dump_ClonedPluginDefinitions(t *testing.T) {
+// 	runWhen(t, "enterprise", ">=3.15.0")
+// 	setup(t)
 
-	client, err := getTestClient()
-	require.NoError(t, err)
-	ctx := t.Context()
+// 	client, err := getTestClient()
+// 	require.NoError(t, err)
+// 	ctx := t.Context()
 
-	tests := []struct {
-		name         string
-		dumpFlags    []string
-		expectedFile string
-	}{
-		{
-			name:         "dump includes all cloned plugin definitions",
-			dumpFlags:    []string{"-o", "-"},
-			expectedFile: "testdata/dump/009-cloned-plugin-definitions/expected.yaml",
-		},
-		{
-			name:         "select tags filter cloned plugin definitions",
-			dumpFlags:    []string{"--select-tag", "select-me", "-o", "-"},
-			expectedFile: "testdata/dump/009-cloned-plugin-definitions/expected-select-me.yaml",
-		},
-	}
+// 	tests := []struct {
+// 		name         string
+// 		dumpFlags    []string
+// 		expectedFile string
+// 	}{
+// 		{
+// 			name:         "dump includes all cloned plugin definitions",
+// 			dumpFlags:    []string{"-o", "-", "--include-plugin-definitions"},
+// 			expectedFile: "testdata/dump/009-cloned-plugin-definitions/expected.yaml",
+// 		},
+// 		{
+// 			name:         "select tags filter cloned plugin definitions",
+// 			dumpFlags:    []string{"--select-tag", "select-me", "-o", "-", "--include-plugin-definitions"},
+// 			expectedFile: "testdata/dump/009-cloned-plugin-definitions/expected-select-me.yaml",
+// 		},
+// 	}
 
-	mustResetKongState(ctx, t, client, deckDump.Config{})
-	require.NoError(t, sync("testdata/sync/049-cloned-plugin-definitions/kong.yaml"))
+// 	mustResetKongState(ctx, t, client, deckDump.Config{
+// 		IncludePluginDefinitions: true,
+// 	})
+// 	require.NoError(t, sync("testdata/sync/049-cloned-plugin-definitions/kong.yaml", "--include-plugin-definitions"))
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			output, err := dump(tc.dumpFlags...)
-			require.NoError(t, err)
+// 	for _, tc := range tests {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			output, err := dump(tc.dumpFlags...)
+// 			require.NoError(t, err)
 
-			expected, err := readFile(tc.expectedFile)
-			require.NoError(t, err)
-			assert.Equal(t, expected, output)
-		})
-	}
-}
+// 			expected, err := readFile(tc.expectedFile)
+// 			require.NoError(t, err)
+// 			assert.Equal(t, expected, output)
+// 		})
+// 	}
+// }

@@ -213,7 +213,9 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 
 	// Get entities from Kong
 	ctx := context.Background()
-	dumpConfig := deckDump.Config{}
+	dumpConfig := deckDump.Config{
+		IncludePluginDefinitions: true,
+	}
 	if expectedState.RBACEndpointPermissions != nil {
 		dumpConfig.RBACResourcesOnly = true
 	}
