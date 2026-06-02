@@ -153,7 +153,6 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.filterChains()
 	b.keySets()
 	b.keys()
-	b.clonedPluginDefinitions()
 	b.enterprise()
 
 	// konnect
