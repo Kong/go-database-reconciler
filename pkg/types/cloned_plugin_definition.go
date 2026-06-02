@@ -92,7 +92,9 @@ func (d *clonedPluginDefinitionDiffer) Deletes(handler func(crud.Event) error) e
 	return nil
 }
 
-func (d *clonedPluginDefinitionDiffer) deleteClonedPluginDefinition(cpd *state.ClonedPluginDefinition) (*crud.Event, error) {
+func (d *clonedPluginDefinitionDiffer) deleteClonedPluginDefinition(
+	cpd *state.ClonedPluginDefinition,
+) (*crud.Event, error) {
 	_, err := d.targetState.ClonedPluginDefinitions.Get(*cpd.ID)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{
@@ -129,8 +131,10 @@ func (d *clonedPluginDefinitionDiffer) CreateAndUpdates(handler func(crud.Event)
 	return nil
 }
 
-func (d *clonedPluginDefinitionDiffer) createUpdateClonedPluginDefinition(cpd *state.ClonedPluginDefinition) (*crud.Event, error) {
-	cpdCopy := &state.ClonedPluginDefinition{ClonedPluginDefinition: *cpd.ClonedPluginDefinition.DeepCopy()}
+func (d *clonedPluginDefinitionDiffer) createUpdateClonedPluginDefinition(
+	cpd *state.ClonedPluginDefinition,
+) (*crud.Event, error) {
+	cpdCopy := &state.ClonedPluginDefinition{ClonedPluginDefinition: *cpd.DeepCopy()}
 	currentCPD, err := d.currentState.ClonedPluginDefinitions.Get(*cpd.Name)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{

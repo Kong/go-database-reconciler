@@ -2218,8 +2218,8 @@ func (c1 *ClonedPluginDefinition) Equal(c2 *ClonedPluginDefinition) bool {
 // If ignoreID is set to true, IDs will be ignored while comparison.
 // If ignoreTS is set to true, timestamp fields will be ignored.
 func (c1 *ClonedPluginDefinition) EqualWithOpts(c2 *ClonedPluginDefinition, ignoreID, ignoreTS bool) bool {
-	c1Copy := c1.ClonedPluginDefinition.DeepCopy()
-	c2Copy := c2.ClonedPluginDefinition.DeepCopy()
+	c1Copy := c1.DeepCopy()
+	c2Copy := c2.DeepCopy()
 
 	if len(c1Copy.Tags) == 0 {
 		c1Copy.Tags = nil

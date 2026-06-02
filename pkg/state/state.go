@@ -13,25 +13,25 @@ type collection struct {
 // KongState is an in-memory database representation
 // of Kong's configuration.
 type KongState struct {
-	common                 collection
-	Services               *ServicesCollection
-	Routes                 *RoutesCollection
-	Upstreams              *UpstreamsCollection
-	Targets                *TargetsCollection
-	Certificates           *CertificatesCollection
-	SNIs                   *SNIsCollection
-	CACertificates         *CACertificatesCollection
-	Plugins                *PluginsCollection
-	FilterChains           *FilterChainsCollection
-	Consumers              *ConsumersCollection
-	Vaults                 *VaultsCollection
-	Licenses               *LicensesCollection
-	ConsumerGroups         *ConsumerGroupsCollection
-	ConsumerGroupConsumers *ConsumerGroupConsumersCollection
-	ConsumerGroupPlugins   *ConsumerGroupPluginsCollection
-	Partials               *PartialsCollection
-	Keys                   *KeysCollection
-	KeySets                *KeySetsCollection
+	common                  collection
+	Services                *ServicesCollection
+	Routes                  *RoutesCollection
+	Upstreams               *UpstreamsCollection
+	Targets                 *TargetsCollection
+	Certificates            *CertificatesCollection
+	SNIs                    *SNIsCollection
+	CACertificates          *CACertificatesCollection
+	Plugins                 *PluginsCollection
+	FilterChains            *FilterChainsCollection
+	Consumers               *ConsumersCollection
+	Vaults                  *VaultsCollection
+	Licenses                *LicensesCollection
+	ConsumerGroups          *ConsumerGroupsCollection
+	ConsumerGroupConsumers  *ConsumerGroupConsumersCollection
+	ConsumerGroupPlugins    *ConsumerGroupPluginsCollection
+	Partials                *PartialsCollection
+	Keys                    *KeysCollection
+	KeySets                 *KeySetsCollection
 	ClonedPluginDefinitions *ClonedPluginDefinitionsCollection
 
 	KeyAuths                           *KeyAuthsCollection
