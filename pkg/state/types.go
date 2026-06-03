@@ -2198,10 +2198,8 @@ func (c1 *ClonedPluginDefinition) Identifier() string {
 	if c1.Name != nil {
 		return *c1.Name
 	}
-	if c1.ID != nil {
-		return *c1.ID
-	}
-	return ""
+
+	return *c1.ID
 }
 
 // Console returns an entity's identity in a human readable string.
