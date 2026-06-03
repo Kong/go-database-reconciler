@@ -11,11 +11,13 @@ import (
 	"github.com/kong/go-kong/kong"
 )
 
+const nameField = "name"
+
 var (
 	// routes and services
 	anyOfNameOrID = []*jsonschema.Type{
 		{
-			Required: []string{"name"},
+			Required: []string{nameField},
 		},
 		{
 			Required: []string{"id"},
@@ -57,11 +59,11 @@ func main() {
 
 	schema.Definitions["FConsumer"].AnyOf = anyOfUsernameOrCustomID
 
-	schema.Definitions["FUpstream"].Required = []string{"name"}
+	schema.Definitions["FUpstream"].Required = []string{nameField}
 
 	schema.Definitions["FTarget"].Required = []string{"target"}
 	schema.Definitions["FCACertificate"].Required = []string{"cert"}
-	schema.Definitions["FPlugin"].Required = []string{"name"}
+	schema.Definitions["FPlugin"].Required = []string{nameField}
 
 	schema.Definitions["FCertificate"].Required = []string{"id", "cert", "key"}
 	schema.Definitions["FCertificate"].Properties["snis"] = &jsonschema.Type{
@@ -69,7 +71,7 @@ func main() {
 		Items: &jsonschema.Type{
 			Type: "object",
 			Properties: map[string]*jsonschema.Type{
-				"name": {
+				nameField: {
 					Type: "string",
 				},
 			},
@@ -91,10 +93,10 @@ func main() {
 
 	schema.Definitions["FFilter"] = &jsonschema.Type{
 		Type:                 "object",
-		Required:             []string{"name"},
+		Required:             []string{nameField},
 		AdditionalProperties: json.RawMessage(`false`),
 		Properties: map[string]*jsonschema.Type{
-			"name": {
+			nameField: {
 				Type: "string",
 			},
 			"config": {
@@ -124,7 +126,7 @@ func main() {
 	}
 	schema.Definitions["KeyAuth"].Required = []string{"key"}
 	schema.Definitions["Oauth2Credential"].Required = []string{
-		"name",
+		nameField,
 		"client_id", "client_secret",
 	}
 	schema.Definitions["MTLSAuth"].Required = []string{"id", "subject_name"}
@@ -133,11 +135,14 @@ func main() {
 	schema.Definitions["FCustomEntity"].Required = []string{"type"}
 
 	// RBAC resources
-	schema.Definitions["FRBACRole"].Required = []string{"name"}
+	schema.Definitions["FRBACRole"].Required = []string{nameField}
 	schema.Definitions["FRBACEndpointPermission"].Required = []string{"workspace", "endpoint"}
 
 	// partials
 	schema.Definitions["FPartial"].Required = []string{"type"}
+
+	// cloned plugin definitions
+	schema.Definitions["FClonedPluginDefinition"].Required = []string{nameField, "plugin"}
 
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
@@ -152,7 +157,7 @@ func main() {
 	schema.Definitions["FService"].Properties["client_certificate"] = stringType
 
 	// konnect resources
-	schema.Definitions["FServicePackage"].Required = []string{"name"}
+	schema.Definitions["FServicePackage"].Required = []string{nameField}
 	schema.Definitions["FServiceVersion"].Required = []string{"version"}
 	schema.Definitions["Implementation"].Required = []string{"type", "kong"}
 

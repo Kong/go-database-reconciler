@@ -145,6 +145,9 @@ const (
 	Key EntityType = "key"
 	// KeySet identifies a KeySet in Kong.
 	KeySet EntityType = "key-set"
+
+	// ClonedPluginDefinition identifies a ClonedPluginDefinition in Kong.
+	ClonedPluginDefinition EntityType = "cloned-plugin"
 )
 
 // AllTypes represents all types defined in the
@@ -177,6 +180,8 @@ var AllTypes = []EntityType{
 	Partial,
 
 	Key, KeySet,
+
+	ClonedPluginDefinition,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -678,6 +683,21 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &keySetDiffer{
 				kind:         entityTypeToKind(KeySet),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case ClonedPluginDefinition:
+		return entityImpl{
+			typ: ClonedPluginDefinition,
+			crudActions: &clonedPluginDefinitionCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &clonedPluginDefinitionPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &clonedPluginDefinitionDiffer{
+				kind:         entityTypeToKind(ClonedPluginDefinition),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

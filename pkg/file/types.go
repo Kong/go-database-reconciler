@@ -801,6 +801,7 @@ type Info struct {
 	Defaults                     KongDefaults        `json:"defaults,omitempty" yaml:"defaults,omitempty"`
 	ConsumerGroupPolicyOverrides bool                `json:"consumer_group_policy_overrides,omitempty" yaml:"consumer_group_policy_overrides,omitempty"` //nolint
 	SkipHashForBasicAuth         bool                `json:"skip_hash_for_basic_auth,omitempty" yaml:"skip_hash_for_basic_auth,omitempty"`               //nolint
+	IncludePluginDefinitions     bool                `json:"include_plugin_definitions,omitempty" yaml:"include_plugin_definitions,omitempty"`           //nolint
 }
 
 // LookUpSelectorTags contains tags to lookup
@@ -1315,6 +1316,20 @@ func (k FKeySet) sortKey() string {
 	return ""
 }
 
+// FClonedPluginDefinition represents a Kong ClonedPluginDefinition.
+// +k8s:deepcopy-gen=true
+type FClonedPluginDefinition struct {
+	kong.ClonedPluginDefinition `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (f FClonedPluginDefinition) sortKey() string {
+	if f.Name != nil {
+		return *f.Name
+	}
+	return ""
+}
+
 //go:generate go run ./codegen/main.go
 
 // Content represents a serialized Kong state.
@@ -1352,4 +1367,6 @@ type Content struct {
 
 	Keys    []FKey    `json:"keys,omitempty" yaml:"keys,omitempty"`
 	KeySets []FKeySet `json:"key_sets,omitempty" yaml:"key_sets,omitempty"`
+
+	ClonedPluginDefinitions []FClonedPluginDefinition `json:"cloned_plugins,omitempty" yaml:"cloned_plugins,omitempty"`
 }

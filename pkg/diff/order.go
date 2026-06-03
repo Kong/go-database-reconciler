@@ -45,6 +45,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.License,
 		types.Partial,
 		types.KeySet,
+		types.ClonedPluginDefinition,
 	},
 	{
 		types.ConsumerGroup,

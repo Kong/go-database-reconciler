@@ -198,6 +198,10 @@ func sortSlices(x, y interface{}) bool {
 		yEntity := y.(*kong.KeySet)
 		xName = *xEntity.Name
 		yName = *yEntity.Name
+	case *kong.ClonedPluginDefinition:
+		yEntity := y.(*kong.ClonedPluginDefinition)
+		xName = *xEntity.Name
+		yName = *yEntity.Name
 	}
 	return xName < yName
 }
@@ -209,7 +213,9 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 
 	// Get entities from Kong
 	ctx := context.Background()
-	dumpConfig := deckDump.Config{}
+	dumpConfig := deckDump.Config{
+		IncludePluginDefinitions: true,
+	}
 	if expectedState.RBACEndpointPermissions != nil {
 		dumpConfig.RBACResourcesOnly = true
 	}
@@ -249,6 +255,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 		cmpopts.IgnoreFields(kong.Key{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.KeySet{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.Partial{}, "ID", "CreatedAt", "UpdatedAt"),
+		cmpopts.IgnoreFields(kong.ClonedPluginDefinition{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.SortSlices(sortSlices),
 		cmpopts.SortSlices(func(a, b *string) bool { return *a < *b }),
 		cmpopts.EquateEmpty(),

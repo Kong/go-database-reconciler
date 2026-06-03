@@ -5864,6 +5864,177 @@ func Test_stateBuilder_keySets(t *testing.T) {
 	}
 }
 
+func existingClonedPluginDefinitionState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.ClonedPluginDefinitions.Add(
+		state.ClonedPluginDefinition{
+			ClonedPluginDefinition: kong.ClonedPluginDefinition{
+				ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name: kong.String("file-log-clone"),
+				Ref:  kong.String("file-log"),
+			},
+		})
+	return s
+}
+
+func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "generates a new cloned plugin definition from valid config",
+			fields: fields{
+				targetContent: &Content{
+					ClonedPluginDefinitions: []FClonedPluginDefinition{
+						{
+							ClonedPluginDefinition: kong.ClonedPluginDefinition{
+								Name: kong.String("file-log-clone"),
+								Ref:  kong.String("file-log"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("file-log-clone"),
+						Ref:  kong.String("file-log"),
+					},
+				},
+			},
+		},
+		{
+			name: "generates multiple cloned plugin definitions with priority and tags",
+			fields: fields{
+				targetContent: &Content{
+					ClonedPluginDefinitions: []FClonedPluginDefinition{
+						{
+							ClonedPluginDefinition: kong.ClonedPluginDefinition{
+								Name:     kong.String("file-log-clone"),
+								Ref:      kong.String("file-log"),
+								Priority: kong.Uint64(50000),
+								Tags:     kong.StringSlice("t1", "t2"),
+							},
+						},
+						{
+							ClonedPluginDefinition: kong.ClonedPluginDefinition{
+								Name: kong.String("http-log-clone"),
+								Ref:  kong.String("http-log"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
+					{
+						ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:     kong.String("file-log-clone"),
+						Ref:      kong.String("file-log"),
+						Priority: kong.Uint64(50000),
+						Tags:     kong.StringSlice("t1", "t2"),
+					},
+					{
+						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: kong.String("http-log-clone"),
+						Ref:  kong.String("http-log"),
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing cloned plugin definition",
+			fields: fields{
+				targetContent: &Content{
+					ClonedPluginDefinitions: []FClonedPluginDefinition{
+						{
+							ClonedPluginDefinition: kong.ClonedPluginDefinition{
+								Name: kong.String("file-log-clone"),
+								Ref:  kong.String("file-log"),
+							},
+						},
+					},
+				},
+				currentState: existingClonedPluginDefinitionState(t),
+			},
+			want: &utils.KongRawState{
+				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
+					{
+						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: kong.String("file-log-clone"),
+						Ref:  kong.String("file-log"),
+					},
+				},
+			},
+		},
+		{
+			name: "uses provided ID when explicitly set",
+			fields: fields{
+				targetContent: &Content{
+					ClonedPluginDefinitions: []FClonedPluginDefinition{
+						{
+							ClonedPluginDefinition: kong.ClonedPluginDefinition{
+								ID:   kong.String("1234abcd-0000-0000-0000-000000000000"),
+								Name: kong.String("file-log-clone"),
+								Ref:  kong.String("file-log"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
+					{
+						ID:   kong.String("1234abcd-0000-0000-0000-000000000000"),
+						Name: kong.String("file-log-clone"),
+						Ref:  kong.String("file-log"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty cloned plugin definition entities",
+			fields: fields{
+				targetContent: &Content{
+					ClonedPluginDefinitions: []FClonedPluginDefinition{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				ClonedPluginDefinitions: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			_, _, err := b.build()
+
+			require.NoError(t, err, "build error is not nil")
+			assert.Equal(t, tt.want, b.rawState)
+		})
+	}
+}
+
 func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 	testRand = rand.New(rand.NewSource(42))
 

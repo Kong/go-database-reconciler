@@ -303,6 +303,8 @@ func (sc *Syncer) init() error {
 		types.Partial,
 
 		types.Key, types.KeySet,
+
+		types.ClonedPluginDefinition,
 	}
 
 	sc.entityDiffers = map[types.EntityType]types.Differ{}
