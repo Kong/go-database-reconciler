@@ -240,6 +240,10 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	if err != nil {
 		return nil, err
 	}
+	err = populateCustomPluginDefinitions(kongState, file, config)
+	if err != nil {
+		return nil, err
+	}
 
 	return file, nil
 }
@@ -1162,6 +1166,28 @@ func populateClonedPluginDefinitions(kongState *state.KongState, file *Content,
 	}
 	sort.SliceStable(file.ClonedPluginDefinitions, func(i, j int) bool {
 		return compareOrder(file.ClonedPluginDefinitions[i], file.ClonedPluginDefinitions[j])
+	})
+	return nil
+}
+
+func populateCustomPluginDefinitions(kongState *state.KongState, file *Content,
+	config WriteConfig,
+) error {
+	if !config.IncludePluginDefinitions {
+		return nil
+	}
+	cpds, err := kongState.CustomPluginDefinitions.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, cpd := range cpds {
+		c := FCustomPluginDefinition{CustomPluginDefinition: cpd.CustomPluginDefinition}
+		utils.ZeroOutID(&c, c.Name, config.WithID)
+		utils.ZeroOutTimestamps(&c)
+		file.CustomPluginDefinitions = append(file.CustomPluginDefinitions, c)
+	}
+	sort.SliceStable(file.CustomPluginDefinitions, func(i, j int) bool {
+		return compareOrder(file.CustomPluginDefinitions[i], file.CustomPluginDefinitions[j])
 	})
 	return nil
 }

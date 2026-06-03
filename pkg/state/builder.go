@@ -285,6 +285,14 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, c := range raw.CustomPluginDefinitions {
+		utils.ZeroOutTimestamps(c)
+		err := kongState.CustomPluginDefinitions.Add(CustomPluginDefinition{CustomPluginDefinition: *c})
+		if err != nil {
+			return fmt.Errorf("inserting custom plugin definition into state: %w", err)
+		}
+	}
+
 	for _, c := range raw.ClonedPluginDefinitions {
 		utils.ZeroOutTimestamps(c)
 		err := kongState.ClonedPluginDefinitions.Add(ClonedPluginDefinition{ClonedPluginDefinition: *c})

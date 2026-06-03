@@ -143,6 +143,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	}
 
 	b.clonedPluginDefinitions()
+	b.customPluginDefinitions()
 	b.partials()
 	b.services()
 	b.routes()
@@ -277,6 +278,28 @@ func (b *stateBuilder) clonedPluginDefinitions() {
 		}
 		utils.MustMergeTags(&cpd.ClonedPluginDefinition, b.selectTags)
 		b.rawState.ClonedPluginDefinitions = append(b.rawState.ClonedPluginDefinitions, &cpd.ClonedPluginDefinition)
+	}
+}
+
+func (b *stateBuilder) customPluginDefinitions() {
+	if b.err != nil {
+		return
+	}
+
+	for _, cpd := range b.targetContent.CustomPluginDefinitions {
+		if utils.Empty(cpd.ID) {
+			existing, err := b.currentState.CustomPluginDefinitions.Get(*cpd.Name)
+			if errors.Is(err, state.ErrNotFound) {
+				cpd.ID = uuid()
+			} else if err != nil {
+				b.err = err
+				return
+			} else {
+				cpd.ID = kong.String(*existing.ID)
+			}
+		}
+		utils.MustMergeTags(&cpd.CustomPluginDefinition, b.selectTags)
+		b.rawState.CustomPluginDefinitions = append(b.rawState.CustomPluginDefinitions, &cpd.CustomPluginDefinition)
 	}
 }
 

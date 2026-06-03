@@ -148,6 +148,9 @@ const (
 
 	// ClonedPluginDefinition identifies a ClonedPluginDefinition in Kong.
 	ClonedPluginDefinition EntityType = "cloned-plugin"
+
+	// CustomPluginDefinition identifies a CustomPluginDefinition in Kong.
+	CustomPluginDefinition EntityType = "custom-plugin"
 )
 
 // AllTypes represents all types defined in the
@@ -182,6 +185,8 @@ var AllTypes = []EntityType{
 	Key, KeySet,
 
 	ClonedPluginDefinition,
+
+	CustomPluginDefinition,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -698,6 +703,21 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &clonedPluginDefinitionDiffer{
 				kind:         entityTypeToKind(ClonedPluginDefinition),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case CustomPluginDefinition:
+		return entityImpl{
+			typ: CustomPluginDefinition,
+			crudActions: &customPluginDefinitionCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &customPluginDefinitionPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &customPluginDefinitionDiffer{
+				kind:         entityTypeToKind(CustomPluginDefinition),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},
