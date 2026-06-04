@@ -65,6 +65,7 @@ type KongRawState struct {
 	KeySets []*kong.KeySet
 
 	ClonedPluginDefinitions []*kong.ClonedPluginDefinition
+	CustomPluginDefinitions []*kong.CustomPluginDefinition
 }
 
 // KonnectRawState contains all of Konnect resources.

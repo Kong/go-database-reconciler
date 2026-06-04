@@ -144,6 +144,9 @@ func main() {
 	// cloned plugin definitions
 	schema.Definitions["FClonedPluginDefinition"].Required = []string{nameField, "plugin"}
 
+	// custom plugin definitions
+	schema.Definitions["FCustomPluginDefinition"].Required = []string{nameField, "schema", "handler"}
+
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
 	schema.Definitions["FPlugin"].Properties["consumer"] = stringType

@@ -62,6 +62,13 @@
       },
       "type": "array"
     },
+    "custom_plugins": {
+      "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FCustomPluginDefinition"
+      },
+      "type": "array"
+    },
     "filter_chains": {
       "items": {
         "$ref": "#/definitions/FFilterChain"
@@ -640,6 +647,41 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+     "FCustomPluginDefinition": {
+      "required": [
+        "name",
+        "schema",
+        "handler"
+      ],
+      "properties": {
+        "created_at": {
+          "type": "integer"
+        },
+        "handler": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "updated_at": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,

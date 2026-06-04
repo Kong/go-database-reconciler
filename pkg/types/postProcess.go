@@ -611,3 +611,19 @@ func (crud clonedPluginDefinitionPostAction) Delete(_ context.Context, args ...c
 func (crud clonedPluginDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.ClonedPluginDefinitions.Update(*args[0].(*state.ClonedPluginDefinition))
 }
+
+type customPluginDefinitionPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud customPluginDefinitionPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.CustomPluginDefinitions.Add(*args[0].(*state.CustomPluginDefinition))
+}
+
+func (crud customPluginDefinitionPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.CustomPluginDefinitions.Delete(*((args[0].(*state.CustomPluginDefinition)).ID))
+}
+
+func (crud customPluginDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.CustomPluginDefinitions.Update(*args[0].(*state.CustomPluginDefinition))
+}

@@ -591,6 +591,23 @@ func existingKeySetState(t *testing.T) *state.KongState {
 	return s
 }
 
+func existingCustomPluginDefinitionState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.CustomPluginDefinitions.Add(
+		state.CustomPluginDefinition{
+			CustomPluginDefinition: kong.CustomPluginDefinition{
+				ID:      kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name:    kong.String("my-plugin"),
+				Schema:  kong.String("return {}"),
+				Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+			},
+		})
+	return s
+}
+
 var testRand *rand.Rand
 
 var deterministicUUID = func() *string {
@@ -6684,6 +6701,169 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				assert.Equal(t, tt.want, b.rawState)
 				return
 			}
+
+			require.NoError(t, err, "build error is not nil")
+			assert.Equal(t, tt.want, b.rawState)
+		})
+	}
+}
+
+func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "generates a new custom plugin definition from valid config",
+			fields: fields{
+				targetContent: &Content{
+					CustomPluginDefinitions: []FCustomPluginDefinition{
+						{
+							CustomPluginDefinition: kong.CustomPluginDefinition{
+								Name:    kong.String("my-plugin"),
+								Schema:  kong.String("return {}"),
+								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
+					{
+						ID:      kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:    kong.String("my-plugin"),
+						Schema:  kong.String("return {}"),
+						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+					},
+				},
+			},
+		},
+		{
+			name: "generates multiple custom plugin definitions with tags",
+			fields: fields{
+				targetContent: &Content{
+					CustomPluginDefinitions: []FCustomPluginDefinition{
+						{
+							CustomPluginDefinition: kong.CustomPluginDefinition{
+								Name:    kong.String("my-plugin"),
+								Schema:  kong.String("return {}"),
+								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+								Tags:    kong.StringSlice("t1", "t2"),
+							},
+						},
+						{
+							CustomPluginDefinition: kong.CustomPluginDefinition{
+								Name:    kong.String("other-plugin"),
+								Schema:  kong.String("return {}"),
+								Handler: kong.String("return { PRIORITY = 500, VERSION = \"0.1.0\" }"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
+					{
+						ID:      kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:    kong.String("my-plugin"),
+						Schema:  kong.String("return {}"),
+						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+						Tags:    kong.StringSlice("t1", "t2"),
+					},
+					{
+						ID:      kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:    kong.String("other-plugin"),
+						Schema:  kong.String("return {}"),
+						Handler: kong.String("return { PRIORITY = 500, VERSION = \"0.1.0\" }"),
+					},
+				},
+			},
+		},
+		{
+			name: "matches ID for an existing custom plugin definition",
+			fields: fields{
+				targetContent: &Content{
+					CustomPluginDefinitions: []FCustomPluginDefinition{
+						{
+							CustomPluginDefinition: kong.CustomPluginDefinition{
+								Name:    kong.String("my-plugin"),
+								Schema:  kong.String("return {}"),
+								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+							},
+						},
+					},
+				},
+				currentState: existingCustomPluginDefinitionState(t),
+			},
+			want: &utils.KongRawState{
+				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
+					{
+						ID:      kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:    kong.String("my-plugin"),
+						Schema:  kong.String("return {}"),
+						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+					},
+				},
+			},
+		},
+		{
+			name: "uses provided ID when explicitly set",
+			fields: fields{
+				targetContent: &Content{
+					CustomPluginDefinitions: []FCustomPluginDefinition{
+						{
+							CustomPluginDefinition: kong.CustomPluginDefinition{
+								ID:      kong.String("1234abcd-0000-0000-0000-000000000000"),
+								Name:    kong.String("my-plugin"),
+								Schema:  kong.String("return {}"),
+								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
+					{
+						ID:      kong.String("1234abcd-0000-0000-0000-000000000000"),
+						Name:    kong.String("my-plugin"),
+						Schema:  kong.String("return {}"),
+						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty custom plugin definition entities",
+			fields: fields{
+				targetContent: &Content{
+					CustomPluginDefinitions: []FCustomPluginDefinition{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				CustomPluginDefinitions: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+			}
+			_, _, err := b.build()
 
 			require.NoError(t, err, "build error is not nil")
 			assert.Equal(t, tt.want, b.rawState)
