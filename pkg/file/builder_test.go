@@ -5942,7 +5942,7 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 							ClonedPluginDefinition: kong.ClonedPluginDefinition{
 								Name:     kong.String("file-log-clone"),
 								Ref:      kong.String("file-log"),
-								Priority: kong.Uint64(50000),
+								Priority: kong.Int(50000),
 								Tags:     kong.StringSlice("t1", "t2"),
 							},
 						},
@@ -5962,7 +5962,7 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 						ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
 						Name:     kong.String("file-log-clone"),
 						Ref:      kong.String("file-log"),
-						Priority: kong.Uint64(50000),
+						Priority: kong.Int(50000),
 						Tags:     kong.StringSlice("t1", "t2"),
 					},
 					{
