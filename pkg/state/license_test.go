@@ -10,8 +10,8 @@ import (
 
 var presetLicense = License{
 	License: kong.License{
-		ID:      kong.String("license-preset"),
-		Payload: kong.String("preset-license-payload"),
+		ID:      new("license-preset"),
+		Payload: new("preset-license-payload"),
 	},
 }
 
@@ -32,8 +32,8 @@ func TestLicenseCollection_Add(t *testing.T) {
 			name: "insert with ID and payload",
 			license: &License{
 				License: kong.License{
-					ID:      kong.String("1234"),
-					Payload: kong.String("license-test"),
+					ID:      new("1234"),
+					Payload: new("license-test"),
 				},
 			},
 		},
@@ -41,8 +41,8 @@ func TestLicenseCollection_Add(t *testing.T) {
 			name: "insert a license with existing ID",
 			license: &License{
 				License: kong.License{
-					ID:      kong.String("license-preset"),
-					Payload: kong.String("license-test"),
+					ID:      new("license-preset"),
+					Payload: new("license-test"),
 				},
 			},
 			expectedError: ErrAlreadyExists,
@@ -124,8 +124,8 @@ func TestLicenseCollection_Update(t *testing.T) {
 			name: "update non existing license",
 			license: License{
 				License: kong.License{
-					ID:      kong.String("license-non-exist"),
-					Payload: kong.String("updated-payload"),
+					ID:      new("license-non-exist"),
+					Payload: new("updated-payload"),
 				},
 			},
 			expectedError: ErrNotFound,
@@ -134,8 +134,8 @@ func TestLicenseCollection_Update(t *testing.T) {
 			name: "update existing license",
 			license: License{
 				License: kong.License{
-					ID:      kong.String("license-preset"),
-					Payload: kong.String("updated-payload"),
+					ID:      new("license-preset"),
+					Payload: new("updated-payload"),
 				},
 			},
 		},

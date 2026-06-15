@@ -3,7 +3,6 @@ package state
 import (
 	"testing"
 
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,9 +13,9 @@ func clonedPluginDefinitionsCollection() *ClonedPluginDefinitionsCollection {
 
 func createTestClonedPluginDefinition(id string, name string) ClonedPluginDefinition {
 	cpd := ClonedPluginDefinition{}
-	cpd.ID = kong.String(id)
+	cpd.ID = new(id)
 	if name != "" {
-		cpd.Name = kong.String(name)
+		cpd.Name = new(name)
 	}
 	return cpd
 }

@@ -119,7 +119,7 @@ func runWhen(t *testing.T, mode string, semverRange string) {
 	}
 }
 
-func sortSlices(x, y interface{}) bool {
+func sortSlices(x, y any) bool {
 	var xName, yName string
 	switch xEntity := x.(type) {
 	case *kong.Service:
@@ -577,26 +577,26 @@ type configFactory struct {
 var DefaultConfigFactory = configFactory{
 	Service: func(id string, host string, name string) *kong.Service {
 		return &kong.Service{
-			ID:             kong.String(id),
-			Host:           kong.String(host),
-			Name:           kong.String(name),
-			ConnectTimeout: kong.Int(60000),
-			Port:           kong.Int(80),
+			ID:             new(id),
+			Host:           new(host),
+			Name:           new(name),
+			ConnectTimeout: new(60000),
+			Port:           new(80),
 			Path:           nil,
-			Protocol:       kong.String("http"),
-			ReadTimeout:    kong.Int(60000),
-			Retries:        kong.Int(5),
-			WriteTimeout:   kong.Int(60000),
-			Tags:           []*string{kong.String("test")},
-			Enabled:        kong.Bool(true),
+			Protocol:       new("http"),
+			ReadTimeout:    new(60000),
+			Retries:        new(5),
+			WriteTimeout:   new(60000),
+			Tags:           []*string{new("test")},
+			Enabled:        new(true),
 		}
 	},
 	Plugin: func(id, name string, config kong.Configuration) *kong.Plugin {
 		return &kong.Plugin{
-			ID:        kong.String(id),
-			Name:      kong.String(name),
-			Enabled:   kong.Bool(true),
-			Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			ID:        new(id),
+			Name:      new(name),
+			Enabled:   new(true),
+			Protocols: []*string{new("grpc"), new("grpcs"), new("http"), new("https")},
 			Config:    config,
 		}
 	},
@@ -989,26 +989,26 @@ var DefaultConfigFactory = configFactory{
 var DefaultConfigFactory39x = configFactory{
 	Service: func(id string, host string, name string) *kong.Service {
 		return &kong.Service{
-			ID:             kong.String(id),
-			Host:           kong.String(host),
-			Name:           kong.String(name),
-			ConnectTimeout: kong.Int(60000),
-			Port:           kong.Int(80),
+			ID:             new(id),
+			Host:           new(host),
+			Name:           new(name),
+			ConnectTimeout: new(60000),
+			Port:           new(80),
 			Path:           nil,
-			Protocol:       kong.String("http"),
-			ReadTimeout:    kong.Int(60000),
-			Retries:        kong.Int(5),
-			WriteTimeout:   kong.Int(60000),
-			Tags:           []*string{kong.String("test")},
-			Enabled:        kong.Bool(true),
+			Protocol:       new("http"),
+			ReadTimeout:    new(60000),
+			Retries:        new(5),
+			WriteTimeout:   new(60000),
+			Tags:           []*string{new("test")},
+			Enabled:        new(true),
 		}
 	},
 	Plugin: func(id, name string, config kong.Configuration) *kong.Plugin {
 		return &kong.Plugin{
-			ID:        kong.String(id),
-			Name:      kong.String(name),
-			Enabled:   kong.Bool(true),
-			Protocols: []*string{kong.String("grpc"), kong.String("grpcs"), kong.String("http"), kong.String("https")},
+			ID:        new(id),
+			Name:      new(name),
+			Enabled:   new(true),
+			Protocols: []*string{new("grpc"), new("grpcs"), new("http"), new("https")},
 			Config:    config,
 		}
 	},

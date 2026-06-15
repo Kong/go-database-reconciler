@@ -1,0 +1,5 @@
+################################################################################
+# Tools
+
+[tools."go:golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize"]
+version = "0.22.0"

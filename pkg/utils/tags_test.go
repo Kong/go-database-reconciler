@@ -112,8 +112,8 @@ func TestHasTags(t *testing.T) {
 
 	consumer := &kong.Consumer{
 		Tags: []*string{
-			kong.String(testTag1),
-			kong.String(testTag2),
+			new(testTag1),
+			new(testTag2),
 		},
 	}
 	assert.True(HasTags(consumer, []string{testTag1}))
@@ -125,8 +125,8 @@ func TestHasTags(t *testing.T) {
 func BenchmarkHasTags(b *testing.B) {
 	consumer := &kong.Consumer{
 		Tags: []*string{
-			kong.String(testTag1),
-			kong.String(testTag2),
+			new(testTag1),
+			new(testTag2),
 		},
 	}
 	b.ResetTimer()

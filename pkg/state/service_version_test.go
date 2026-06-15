@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kong/go-database-reconciler/pkg/konnect"
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +27,7 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						Version: kong.String("foo"),
+						Version: new("foo"),
 					},
 				},
 			},
@@ -39,7 +38,7 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 					},
 				},
 			},
@@ -50,8 +49,8 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						ID:      kong.String("id1"),
-						Version: kong.String("bar-name"),
+						ID:      new("id1"),
+						Version: new("bar-name"),
 					},
 				},
 			},
@@ -62,10 +61,10 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						ID:      kong.String("id2"),
-						Version: kong.String("bar-name"),
+						ID:      new("id2"),
+						Version: new("bar-name"),
 						ServicePackage: &konnect.ServicePackage{
-							ID: kong.String("id1"),
+							ID: new("id1"),
 						},
 					},
 				},
@@ -77,10 +76,10 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						ID:      kong.String("id4"),
-						Version: kong.String("foo-name"),
+						ID:      new("id4"),
+						Version: new("foo-name"),
 						ServicePackage: &konnect.ServicePackage{
-							ID: kong.String("id1"),
+							ID: new("id1"),
 						},
 					},
 				},
@@ -92,10 +91,10 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						ID:      kong.String("id3"),
-						Version: kong.String("foobar-name"),
+						ID:      new("id3"),
+						Version: new("foobar-name"),
 						ServicePackage: &konnect.ServicePackage{
-							ID: kong.String("id1"),
+							ID: new("id1"),
 						},
 					},
 				},
@@ -106,10 +105,10 @@ func TestServiceVersionCollection_Add(t *testing.T) {
 	k := serviceVersionCollection()
 	sv1 := ServiceVersion{
 		ServiceVersion: konnect.ServiceVersion{
-			ID:      kong.String("id3"),
-			Version: kong.String("foo-name"),
+			ID:      new("id3"),
+			Version: new("foo-name"),
 			ServicePackage: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
@@ -131,19 +130,19 @@ func TestServiceVersionCollection_Get(t *testing.T) {
 	}
 	sv1 := ServiceVersion{
 		ServiceVersion: konnect.ServiceVersion{
-			ID:      kong.String("foo-id"),
-			Version: kong.String("foo-name"),
+			ID:      new("foo-id"),
+			Version: new("foo-name"),
 			ServicePackage: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
 	sv2 := ServiceVersion{
 		ServiceVersion: konnect.ServiceVersion{
-			ID:      kong.String("bar-id"),
-			Version: kong.String("bar-name"),
+			ID:      new("bar-id"),
+			Version: new("bar-name"),
 			ServicePackage: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
@@ -208,28 +207,28 @@ func TestServiceVersionCollection_Get(t *testing.T) {
 func TestServiceVersionCollection_Update(t *testing.T) {
 	sv1 := ServiceVersion{
 		ServiceVersion: konnect.ServiceVersion{
-			ID:      kong.String("foo-id"),
-			Version: kong.String("foo-name"),
+			ID:      new("foo-id"),
+			Version: new("foo-name"),
 			ServicePackage: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
 	sv2 := ServiceVersion{
 		ServiceVersion: konnect.ServiceVersion{
-			ID:      kong.String("bar-id"),
-			Version: kong.String("bar-name"),
+			ID:      new("bar-id"),
+			Version: new("bar-name"),
 			ServicePackage: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
 	sv3 := ServiceVersion{
 		ServiceVersion: konnect.ServiceVersion{
-			ID:      kong.String("foo-id"),
-			Version: kong.String("new-foo-name"),
+			ID:      new("foo-id"),
+			Version: new("new-foo-name"),
 			ServicePackage: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
@@ -247,9 +246,9 @@ func TestServiceVersionCollection_Update(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						Version: kong.String("name"),
+						Version: new("name"),
 						ServicePackage: &konnect.ServicePackage{
-							ID: kong.String("id1"),
+							ID: new("id1"),
 						},
 					},
 				},
@@ -261,7 +260,7 @@ func TestServiceVersionCollection_Update(t *testing.T) {
 			args: args{
 				serviceVersion: ServiceVersion{
 					ServiceVersion: konnect.ServiceVersion{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 					},
 				},
 			},
@@ -301,10 +300,10 @@ func TestServiceVersionDelete(t *testing.T) {
 	collection := serviceVersionCollection()
 
 	var serviceVersion ServiceVersion
-	serviceVersion.Version = kong.String("my-serviceVersion")
-	serviceVersion.ID = kong.String("first")
+	serviceVersion.Version = new("my-serviceVersion")
+	serviceVersion.ID = new("first")
 	serviceVersion.ServicePackage = &konnect.ServicePackage{
-		ID: kong.String("package-id1"),
+		ID: new("package-id1"),
 	}
 	err := collection.Add(serviceVersion)
 	require.NoError(t, err)
@@ -325,19 +324,19 @@ func TestServiceVersionGetAll(t *testing.T) {
 	collection := serviceVersionCollection()
 
 	var serviceVersion ServiceVersion
-	serviceVersion.Version = kong.String("my-sv1")
-	serviceVersion.ID = kong.String("first")
+	serviceVersion.Version = new("my-sv1")
+	serviceVersion.ID = new("first")
 	serviceVersion.ServicePackage = &konnect.ServicePackage{
-		ID: kong.String("id1"),
+		ID: new("id1"),
 	}
 	err := collection.Add(serviceVersion)
 	require.NoError(t, err)
 
 	var sv2 ServiceVersion
-	sv2.Version = kong.String("my-sv2")
-	sv2.ID = kong.String("second")
+	sv2.Version = new("my-sv2")
+	sv2.ID = new("second")
 	sv2.ServicePackage = &konnect.ServicePackage{
-		ID: kong.String("id1"),
+		ID: new("id1"),
 	}
 	err = collection.Add(sv2)
 	require.NoError(t, err)
@@ -355,46 +354,46 @@ func TestServiceVersionGetAllByServiceID(t *testing.T) {
 	serviceVersions := []*ServiceVersion{
 		{
 			ServiceVersion: konnect.ServiceVersion{
-				ID:      kong.String("sv1-id"),
-				Version: kong.String("sv1-name"),
+				ID:      new("sv1-id"),
+				Version: new("sv1-name"),
 				ServicePackage: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 		},
 		{
 			ServiceVersion: konnect.ServiceVersion{
-				ID:      kong.String("sv2-id"),
-				Version: kong.String("sv2-name"),
+				ID:      new("sv2-id"),
+				Version: new("sv2-name"),
 				ServicePackage: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 		},
 		{
 			ServiceVersion: konnect.ServiceVersion{
-				ID:      kong.String("sv3-id"),
-				Version: kong.String("sv3-name"),
+				ID:      new("sv3-id"),
+				Version: new("sv3-name"),
 				ServicePackage: &konnect.ServicePackage{
-					ID: kong.String("id2"),
+					ID: new("id2"),
 				},
 			},
 		},
 		{
 			ServiceVersion: konnect.ServiceVersion{
-				ID:      kong.String("sv4-id"),
-				Version: kong.String("sv4-name"),
+				ID:      new("sv4-id"),
+				Version: new("sv4-name"),
 				ServicePackage: &konnect.ServicePackage{
-					ID: kong.String("id2"),
+					ID: new("id2"),
 				},
 			},
 		},
 		{
 			ServiceVersion: konnect.ServiceVersion{
-				ID:      kong.String("sv5-id"),
-				Version: kong.String("sv5-name"),
+				ID:      new("sv5-id"),
+				Version: new("sv5-name"),
 				ServicePackage: &konnect.ServicePackage{
-					ID: kong.String("id2"),
+					ID: new("id2"),
 				},
 			},
 		},

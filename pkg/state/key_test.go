@@ -3,7 +3,6 @@ package state
 import (
 	"testing"
 
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,9 +13,9 @@ func keysCollection() *KeysCollection {
 
 func createTestKey(id string, name string) Key {
 	key := Key{}
-	key.ID = kong.String(id)
+	key.ID = new(id)
 	if name != "" {
-		key.Name = kong.String(name)
+		key.Name = new(name)
 	}
 	return key
 }

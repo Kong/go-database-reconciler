@@ -24,7 +24,7 @@ var (
 )
 
 // Arg is an argument to a callback function.
-type Arg interface{}
+type Arg any
 
 // Actions is an interface for CRUD operations on any entity
 type Actions interface {
@@ -39,8 +39,8 @@ type Actions interface {
 type Event struct {
 	Op     Op
 	Kind   Kind
-	Obj    interface{}
-	OldObj interface{}
+	Obj    any
+	OldObj any
 }
 
 // EventFromArg converts arg into Event.

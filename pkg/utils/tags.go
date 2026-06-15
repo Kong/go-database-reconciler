@@ -8,7 +8,7 @@ import (
 )
 
 // MustMergeTags is same as MergeTags but panics if there is an error.
-func MustMergeTags(obj interface{}, tags []string) {
+func MustMergeTags(obj any, tags []string) {
 	err := MergeTags(obj, tags)
 	if err != nil {
 		panic(err)
@@ -16,7 +16,7 @@ func MustMergeTags(obj interface{}, tags []string) {
 }
 
 // MergeTags merges Tags in the object with tags.
-func MergeTags(obj interface{}, tags []string) error {
+func MergeTags(obj any, tags []string) error {
 	if len(tags) == 0 {
 		return nil
 	}
@@ -45,7 +45,7 @@ func MergeTags(obj interface{}, tags []string) error {
 }
 
 // MustRemoveTags is same as RemoveTags but panics if there is an error.
-func MustRemoveTags(obj interface{}, tags []string) {
+func MustRemoveTags(obj any, tags []string) {
 	err := RemoveTags(obj, tags)
 	if err != nil {
 		panic(err)
@@ -53,7 +53,7 @@ func MustRemoveTags(obj interface{}, tags []string) {
 }
 
 // RemoveTags removes tags from the Tags in obj.
-func RemoveTags(obj interface{}, tags []string) error {
+func RemoveTags(obj any, tags []string) error {
 	if len(tags) == 0 {
 		return nil
 	}
@@ -74,7 +74,7 @@ func RemoveTags(obj interface{}, tags []string) error {
 		return nil
 	}
 
-	res := reflect.MakeSlice(reflect.SliceOf(reflect.PointerTo(reflect.TypeOf(""))), 0, 0)
+	res := reflect.MakeSlice(reflect.SliceOf(reflect.PointerTo(reflect.TypeFor[string]())), 0, 0)
 	for i := 0; i < structTags.Len(); i++ {
 		tag := reflect.Indirect(structTags.Index(i)).String()
 		if !m[tag] {

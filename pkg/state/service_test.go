@@ -27,8 +27,8 @@ func TestServicesCollection_Add(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						Name: kong.String("foo"),
-						Host: kong.String("example.com"),
+						Name: new("foo"),
+						Host: new("example.com"),
 					},
 				},
 			},
@@ -39,8 +39,8 @@ func TestServicesCollection_Add(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						ID:   kong.String("id1"),
-						Host: kong.String("example.com"),
+						ID:   new("id1"),
+						Host: new("example.com"),
 					},
 				},
 			},
@@ -51,9 +51,9 @@ func TestServicesCollection_Add(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						ID:   kong.String("id2"),
-						Name: kong.String("foo-name"),
-						Host: kong.String("example.com"),
+						ID:   new("id2"),
+						Name: new("foo-name"),
+						Host: new("example.com"),
 					},
 				},
 			},
@@ -64,9 +64,9 @@ func TestServicesCollection_Add(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						ID:   kong.String("id3"),
-						Name: kong.String("foo-name"),
-						Host: kong.String("example.com"),
+						ID:   new("id3"),
+						Name: new("foo-name"),
+						Host: new("example.com"),
 					},
 				},
 			},
@@ -77,9 +77,9 @@ func TestServicesCollection_Add(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						ID:   kong.String("new-id"),
-						Name: kong.String("bar-name"),
-						Host: kong.String("example.com"),
+						ID:   new("new-id"),
+						Name: new("bar-name"),
+						Host: new("example.com"),
 					},
 				},
 			},
@@ -89,9 +89,9 @@ func TestServicesCollection_Add(t *testing.T) {
 	k := servicesCollection()
 	svc1 := Service{
 		Service: kong.Service{
-			ID:   kong.String("id3"),
-			Name: kong.String("bar-name"),
-			Host: kong.String("example.com"),
+			ID:   new("id3"),
+			Name: new("bar-name"),
+			Host: new("example.com"),
 		},
 	}
 	k.Add(svc1)
@@ -109,8 +109,8 @@ func TestServiceInsertIgnoreDuplicate(t *testing.T) {
 	collection := servicesCollection()
 
 	var s Service
-	s.ID = kong.String("my-id")
-	s.Name = kong.String("first")
+	s.ID = new("my-id")
+	s.Name = new("first")
 	err := collection.Add(s)
 	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(s)
@@ -132,15 +132,15 @@ func TestServicesCollection_Get(t *testing.T) {
 	}
 	svc1 := Service{
 		Service: kong.Service{
-			ID:   kong.String("foo-id"),
-			Host: kong.String("example.com"),
+			ID:   new("foo-id"),
+			Host: new("example.com"),
 		},
 	}
 	svc2 := Service{
 		Service: kong.Service{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
-			Host: kong.String("example.com"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
+			Host: new("example.com"),
 		},
 	}
 	tests := []struct {
@@ -204,23 +204,23 @@ func TestServicesCollection_Get(t *testing.T) {
 func TestServicesCollection_Update(t *testing.T) {
 	svc1 := Service{
 		Service: kong.Service{
-			ID:   kong.String("foo-id"),
-			Host: kong.String("example.com"),
+			ID:   new("foo-id"),
+			Host: new("example.com"),
 		},
 	}
 	svc2 := Service{
 		Service: kong.Service{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
-			Host: kong.String("example.com"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
+			Host: new("example.com"),
 		},
 	}
 	svc3 := Service{
 		Service: kong.Service{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("name"),
-			Host: kong.String("2.example.com"),
-			Port: kong.Int(42),
+			ID:   new("foo-id"),
+			Name: new("name"),
+			Host: new("2.example.com"),
+			Port: new(42),
 		},
 	}
 	type args struct {
@@ -237,7 +237,7 @@ func TestServicesCollection_Update(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						Name: kong.String("name"),
+						Name: new("name"),
 					},
 				},
 			},
@@ -248,7 +248,7 @@ func TestServicesCollection_Update(t *testing.T) {
 			args: args{
 				service: Service{
 					Service: kong.Service{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 					},
 				},
 			},
@@ -288,14 +288,14 @@ func TestServiceUpdate(t *testing.T) {
 	k := servicesCollection()
 	svc1 := Service{
 		Service: kong.Service{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
-			Host: kong.String("example.com"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
+			Host: new("example.com"),
 		},
 	}
 	require.NoError(t, k.Add(svc1))
 
-	svc1.Name = kong.String("bar-name")
+	svc1.Name = new("bar-name")
 	require.NoError(t, k.Update(svc1))
 
 	r, err := k.Get("foo-id")
@@ -319,15 +319,15 @@ func TestServiceGetMemoryReference(t *testing.T) {
 	collection := servicesCollection()
 
 	var service Service
-	service.Name = kong.String("my-service")
-	service.ID = kong.String("first")
+	service.Name = new("my-service")
+	service.ID = new("first")
 	err := collection.Add(service)
 	require.NoError(t, err)
 
 	se, err := collection.Get("first")
 	require.NoError(t, err)
 	assert.NotNil(se)
-	se.Host = kong.String("example.com")
+	se.Host = new("example.com")
 
 	se, err = collection.Get("my-service")
 	require.NoError(t, err)
@@ -340,8 +340,8 @@ func TestServicesInvalidType(t *testing.T) {
 	collection := servicesCollection()
 
 	var route Route
-	route.Name = kong.String("my-route")
-	route.ID = kong.String("first")
+	route.Name = new("my-route")
+	route.ID = new("first")
 	txn := collection.db.Txn(true)
 	txn.Insert(serviceTableName, &route)
 	txn.Commit()
@@ -358,8 +358,8 @@ func TestServiceDelete(t *testing.T) {
 	collection := servicesCollection()
 
 	var service Service
-	service.ID = kong.String("first")
-	service.Host = kong.String("example.com")
+	service.ID = new("first")
+	service.Host = new("example.com")
 	err := collection.Add(service)
 	require.NoError(t, err)
 
@@ -382,16 +382,16 @@ func TestServiceGetAll(t *testing.T) {
 	services := []Service{
 		{
 			Service: kong.Service{
-				ID:   kong.String("first"),
-				Name: kong.String("my-service1"),
-				Host: kong.String("example.com"),
+				ID:   new("first"),
+				Name: new("my-service1"),
+				Host: new("example.com"),
 			},
 		},
 		{
 			Service: kong.Service{
-				ID:   kong.String("second"),
-				Name: kong.String("my-service2"),
-				Host: kong.String("example.com"),
+				ID:   new("second"),
+				Name: new("my-service2"),
+				Host: new("example.com"),
 			},
 		},
 	}
@@ -415,16 +415,16 @@ func TestServiceGetAllMemoryReference(t *testing.T) {
 	services := []Service{
 		{
 			Service: kong.Service{
-				ID:   kong.String("first"),
-				Name: kong.String("my-service1"),
-				Host: kong.String("example.com"),
+				ID:   new("first"),
+				Name: new("my-service1"),
+				Host: new("example.com"),
 			},
 		},
 		{
 			Service: kong.Service{
-				ID:   kong.String("second"),
-				Name: kong.String("my-service2"),
-				Host: kong.String("example.com"),
+				ID:   new("second"),
+				Name: new("my-service2"),
+				Host: new("example.com"),
 			},
 		},
 	}
@@ -436,8 +436,8 @@ func TestServiceGetAllMemoryReference(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(allServices, len(services))
 
-	allServices[0].Host = kong.String("new.example.com")
-	allServices[1].Host = kong.String("new.example.com")
+	allServices[0].Host = new("new.example.com")
+	allServices[1].Host = new("new.example.com")
 
 	service, err := collection.Get("my-service1")
 	require.NoError(t, err)

@@ -15,20 +15,20 @@ import (
 
 func Test_ensureJSON(t *testing.T) {
 	type args struct {
-		m map[string]interface{}
+		m map[string]any
 	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]interface{}
+		want map[string]any
 	}{
 		{
 			"empty array is kept as is",
-			args{map[string]interface{}{
-				"foo": []interface{}{},
+			args{map[string]any{
+				"foo": []any{},
 			}},
-			map[string]interface{}{
-				"foo": []interface{}{},
+			map[string]any{
+				"foo": []any{},
 			},
 		},
 	}
@@ -144,8 +144,8 @@ func TestReadKongStateFromStdin(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(kong.Service{
-		Name: kong.String("test service"),
-		Host: kong.String("test.com"),
+		Name: new("test service"),
+		Host: new("test.com"),
 	},
 		c.Services[0].Service)
 }
@@ -160,9 +160,9 @@ func TestReadKongStateFromFile(t *testing.T) {
 
 	t.Run("enabled field for service is read", func(t *testing.T) {
 		assert.Equal(t, kong.Service{
-			Name:    kong.String("svc1"),
-			Host:    kong.String("mockbin.org"),
-			Enabled: kong.Bool(true),
+			Name:    new("svc1"),
+			Host:    new("mockbin.org"),
+			Enabled: new(true),
 		}, c.Services[0].Service)
 	})
 }

@@ -30,6 +30,10 @@ coverage:
 	grep -E -v 'generated.deepcopy.go' coverage.out.tmp > coverage.out
 	rm -f coverage.out.tmp
 
+.PHONY: modernize
+modernize:
+	modernize ./...
+
 generate-cli-docs:
 	mkdir -p $(CLI_DOCS_PATH)
 	go run docs/*.go -output-path $(CLI_DOCS_PATH)

@@ -39,7 +39,7 @@ func FetchEntitySchema(
 		return fetchKonnectEntitySchema(ctx, client, entityType)
 	}
 
-	var schema map[string]interface{}
+	var schema map[string]any
 	endpoint := fmt.Sprintf("/schemas/%s", entityType)
 	req, err := client.NewRequest(http.MethodGet, endpoint, nil, nil)
 	if err != nil {
@@ -63,7 +63,7 @@ func FetchEntitySchema(
 func fetchKonnectEntitySchema(
 	ctx context.Context, client *kong.Client, entityType string,
 ) (kong.Schema, error) {
-	var schema map[string]interface{}
+	var schema map[string]any
 
 	konnectType, ok := KongToKonnectEntitiesMap[entityType]
 	if !ok {
@@ -88,14 +88,14 @@ func fetchKonnectEntitySchema(
 // FetchPluginSchema fetches the full schema for a plugin by name from the Kong admin API.
 func FetchPluginSchema(
 	ctx context.Context, client *kong.Client, pluginName string,
-) (map[string]interface{}, error) {
+) (map[string]any, error) {
 	return client.Plugins.GetFullSchema(ctx, &pluginName)
 }
 
 // FetchPartialSchema fetches the full schema for a partial by type from the Kong admin API.
 func FetchPartialSchema(
 	ctx context.Context, client *kong.Client, partialType string,
-) (map[string]interface{}, error) {
+) (map[string]any, error) {
 	return client.Partials.GetFullSchema(ctx, &partialType)
 }
 
@@ -108,7 +108,7 @@ func FetchVaultSchema(
 		return fetchKonnectVaultSchema(ctx, client, vaultType)
 	}
 
-	var schema map[string]interface{}
+	var schema map[string]any
 	endpoint := fmt.Sprintf("/schemas/vaults/%s", vaultType)
 	req, err := client.NewRequest(http.MethodGet, endpoint, nil, nil)
 	if err != nil {
@@ -129,7 +129,7 @@ func FetchVaultSchema(
 func fetchKonnectVaultSchema(
 	ctx context.Context, client *kong.Client, vaultType string,
 ) (kong.Schema, error) {
-	var schema map[string]interface{}
+	var schema map[string]any
 
 	fullSchema, err := fetchKonnectEntitySchema(ctx, client, "vaults")
 	if err != nil {
@@ -137,7 +137,7 @@ func fetchKonnectVaultSchema(
 	}
 
 	// Start with the base schema from fullSchema
-	schema = make(map[string]interface{})
+	schema = make(map[string]any)
 	for key, value := range fullSchema {
 		if key != "allOf" {
 			schema[key] = value
@@ -145,7 +145,7 @@ func fetchKonnectVaultSchema(
 	}
 
 	// Extract the specific vault type schema from the conditional allOf structure.
-	allOf, ok := fullSchema["allOf"].([]interface{})
+	allOf, ok := fullSchema["allOf"].([]any)
 	if !ok {
 		return schema, fmt.Errorf("invalid schema format: allOf not found or not an array")
 	}
@@ -160,30 +160,30 @@ func fetchKonnectVaultSchema(
 	)
 
 	for _, condition := range allOf {
-		conditionMap, ok := condition.(map[string]interface{})
+		conditionMap, ok := condition.(map[string]any)
 		if !ok {
 			continue
 		}
 
 		if ifClause, exists := conditionMap[ifKey]; exists {
-			if ifMap, ok := ifClause.(map[string]interface{}); ok {
+			if ifMap, ok := ifClause.(map[string]any); ok {
 				if properties, exists := ifMap[propertiesKey]; exists {
-					if propsMap, ok := properties.(map[string]interface{}); ok {
+					if propsMap, ok := properties.(map[string]any); ok {
 						if nameClause, exists := propsMap[nameKey]; exists {
-							if nameMap, ok := nameClause.(map[string]interface{}); ok {
+							if nameMap, ok := nameClause.(map[string]any); ok {
 								if constValue, exists := nameMap[constKey]; exists {
 									if constStr, ok := constValue.(string); ok && constStr == vaultType {
 										if thenClause, exists := conditionMap[thenKey]; exists {
-											if thenMap, ok := thenClause.(map[string]interface{}); ok {
+											if thenMap, ok := thenClause.(map[string]any); ok {
 												if thenProps, exists := thenMap[propertiesKey]; exists {
-													if thenPropsMap, ok := thenProps.(map[string]interface{}); ok {
+													if thenPropsMap, ok := thenProps.(map[string]any); ok {
 														if configSchema, exists := thenPropsMap[configKey]; exists {
-															if configSchemaMap, ok := configSchema.(map[string]interface{}); ok {
+															if configSchemaMap, ok := configSchema.(map[string]any); ok {
 																if configProps, exists := configSchemaMap[propertiesKey]; exists {
-																	if configPropsMap, ok := configProps.(map[string]interface{}); ok {
+																	if configPropsMap, ok := configProps.(map[string]any); ok {
 																		vaultConfigSchema := configPropsMap[vaultType]
 																		if schemaProps, exists := schema[propertiesKey]; exists {
-																			if schemaPropsMap, ok := schemaProps.(map[string]interface{}); ok {
+																			if schemaPropsMap, ok := schemaProps.(map[string]any); ok {
 																				schemaPropsMap[configKey] = vaultConfigSchema
 																			}
 																		}

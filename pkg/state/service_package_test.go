@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kong/go-database-reconciler/pkg/konnect"
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +27,7 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -39,7 +38,7 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 					},
 				},
 			},
@@ -50,8 +49,8 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						ID:   kong.String("id2"),
-						Name: kong.String("foo-name"),
+						ID:   new("id2"),
+						Name: new("foo-name"),
 					},
 				},
 			},
@@ -62,8 +61,8 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						ID:   kong.String("id3"),
-						Name: kong.String("foo-name"),
+						ID:   new("id3"),
+						Name: new("foo-name"),
 					},
 				},
 			},
@@ -74,8 +73,8 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						ID:   kong.String("new-id"),
-						Name: kong.String("bar-name"),
+						ID:   new("new-id"),
+						Name: new("bar-name"),
 					},
 				},
 			},
@@ -85,8 +84,8 @@ func TestServicePackagesCollection_Add(t *testing.T) {
 	k := servicePackagesCollection()
 	svc1 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("id3"),
-			Name: kong.String("bar-name"),
+			ID:   new("id3"),
+			Name: new("bar-name"),
 		},
 	}
 	k.Add(svc1)
@@ -106,14 +105,14 @@ func TestServicePackagesCollection_Get(t *testing.T) {
 	}
 	svc1 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 		},
 	}
 	svc2 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
 		},
 	}
 	tests := []struct {
@@ -177,20 +176,20 @@ func TestServicePackagesCollection_Get(t *testing.T) {
 func TestServicePackagesCollection_Update(t *testing.T) {
 	svc1 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 		},
 	}
 	svc2 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
 		},
 	}
 	svc3 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("name"),
+			ID:   new("foo-id"),
+			Name: new("name"),
 		},
 	}
 	type args struct {
@@ -207,7 +206,7 @@ func TestServicePackagesCollection_Update(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						Name: kong.String("name"),
+						Name: new("name"),
 					},
 				},
 			},
@@ -218,7 +217,7 @@ func TestServicePackagesCollection_Update(t *testing.T) {
 			args: args{
 				servicePackage: ServicePackage{
 					ServicePackage: konnect.ServicePackage{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 					},
 				},
 			},
@@ -258,13 +257,13 @@ func TestServicePackageUpdate(t *testing.T) {
 	k := servicePackagesCollection()
 	svc1 := ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 		},
 	}
 	require.NoError(t, k.Add(svc1))
 
-	svc1.Name = kong.String("bar-name")
+	svc1.Name = new("bar-name")
 	require.NoError(t, k.Update(svc1))
 
 	r, err := k.Get("foo-id")
@@ -285,8 +284,8 @@ func TestServicePackagesInvalidType(t *testing.T) {
 	collection := servicePackagesCollection()
 
 	var route Route
-	route.Name = kong.String("my-route")
-	route.ID = kong.String("first")
+	route.Name = new("my-route")
+	route.ID = new("first")
 	txn := collection.db.Txn(true)
 	txn.Insert(servicePackageTableName, &route)
 	txn.Commit()
@@ -303,8 +302,8 @@ func TestServicePackageDelete(t *testing.T) {
 	collection := servicePackagesCollection()
 
 	var servicePackage ServicePackage
-	servicePackage.ID = kong.String("first-id")
-	servicePackage.Name = kong.String("first-name")
+	servicePackage.ID = new("first-id")
+	servicePackage.Name = new("first-name")
 	err := collection.Add(servicePackage)
 	require.NoError(t, err)
 
@@ -327,14 +326,14 @@ func TestServicePackageGetAll(t *testing.T) {
 	services := []ServicePackage{
 		{
 			ServicePackage: konnect.ServicePackage{
-				ID:   kong.String("first"),
-				Name: kong.String("my-service1"),
+				ID:   new("first"),
+				Name: new("my-service1"),
 			},
 		},
 		{
 			ServicePackage: konnect.ServicePackage{
-				ID:   kong.String("second"),
-				Name: kong.String("my-service2"),
+				ID:   new("second"),
+				Name: new("my-service2"),
 			},
 		},
 	}
@@ -358,16 +357,16 @@ func TestServicePackagesGetAllMemoryReference(t *testing.T) {
 	services := []ServicePackage{
 		{
 			ServicePackage: konnect.ServicePackage{
-				ID:          kong.String("first"),
-				Name:        kong.String("my-service1"),
-				Description: kong.String("service1-desc"),
+				ID:          new("first"),
+				Name:        new("my-service1"),
+				Description: new("service1-desc"),
 			},
 		},
 		{
 			ServicePackage: konnect.ServicePackage{
-				ID:          kong.String("second"),
-				Name:        kong.String("my-service2"),
-				Description: kong.String("service2-desc"),
+				ID:          new("second"),
+				Name:        new("my-service2"),
+				Description: new("service2-desc"),
 			},
 		},
 	}
@@ -379,8 +378,8 @@ func TestServicePackagesGetAllMemoryReference(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(allServices, len(services))
 
-	allServices[0].Description = kong.String("new-service1-desc")
-	allServices[1].Description = kong.String("new-service2-desc")
+	allServices[0].Description = new("new-service1-desc")
+	allServices[1].Description = new("new-service2-desc")
 
 	servicePackage, err := collection.Get("my-service1")
 	require.NoError(t, err)

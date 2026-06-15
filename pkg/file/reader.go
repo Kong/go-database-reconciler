@@ -156,17 +156,17 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	return state, nil
 }
 
-func ensureJSON(m map[string]interface{}) map[string]interface{} {
-	res := map[string]interface{}{}
+func ensureJSON(m map[string]any) map[string]any {
+	res := map[string]any{}
 	for k, v := range m {
 		switch v2 := v.(type) {
-		case map[interface{}]interface{}:
+		case map[any]any:
 			res[fmt.Sprint(k)] = yamlToJSON(v2)
-		case []interface{}:
-			var array []interface{}
+		case []any:
+			var array []any
 			for _, element := range v2 {
 				switch el := element.(type) {
-				case map[interface{}]interface{}:
+				case map[any]any:
 					array = append(array, yamlToJSON(el))
 				default:
 					array = append(array, el)
@@ -184,11 +184,11 @@ func ensureJSON(m map[string]interface{}) map[string]interface{} {
 	return res
 }
 
-func yamlToJSON(m map[interface{}]interface{}) map[string]interface{} {
-	res := map[string]interface{}{}
+func yamlToJSON(m map[any]any) map[string]any {
+	res := map[string]any{}
 	for k, v := range m {
 		switch v2 := v.(type) {
-		case map[interface{}]interface{}:
+		case map[any]any:
 			res[fmt.Sprint(k)] = yamlToJSON(v2)
 		default:
 			res[fmt.Sprint(k)] = v

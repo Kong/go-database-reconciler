@@ -56,8 +56,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FService{
 				Service: kong.Service{
-					Name: kong.String("my-service"),
-					ID:   kong.String(testMyID),
+					Name: new("my-service"),
+					ID:   new(testMyID),
 				},
 			},
 			expectedKey: "my-service",
@@ -65,7 +65,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FService{
 				Service: kong.Service{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -77,8 +77,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FRoute{
 				Route: kong.Route{
-					Name: kong.String("my-route"),
-					ID:   kong.String(testMyID),
+					Name: new("my-route"),
+					ID:   new(testMyID),
 				},
 			},
 			expectedKey: "my-route",
@@ -86,7 +86,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FRoute{
 				Route: kong.Route{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -98,8 +98,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FUpstream{
 				Upstream: kong.Upstream{
-					Name: kong.String("my-upstream"),
-					ID:   kong.String(testMyID),
+					Name: new("my-upstream"),
+					ID:   new(testMyID),
 				},
 			},
 			expectedKey: "my-upstream",
@@ -107,7 +107,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FUpstream{
 				Upstream: kong.Upstream{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -119,8 +119,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FTarget{
 				Target: kong.Target{
-					Target: kong.String("my-target"),
-					ID:     kong.String(testMyID),
+					Target: new("my-target"),
+					ID:     new(testMyID),
 				},
 			},
 			expectedKey: "my-target",
@@ -128,7 +128,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FTarget{
 				Target: kong.Target{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -139,14 +139,14 @@ func Test_sortKey(t *testing.T) {
 		},
 		{
 			sortable: FCertificate{
-				Cert: kong.String("my-certificate"),
-				ID:   kong.String(testMyID),
+				Cert: new("my-certificate"),
+				ID:   new(testMyID),
 			},
 			expectedKey: "my-certificate",
 		},
 		{
 			sortable: FCertificate{
-				ID: kong.String(testMyID),
+				ID: new(testMyID),
 			},
 			expectedKey: testMyID,
 		},
@@ -157,8 +157,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FCACertificate{
 				CACertificate: kong.CACertificate{
-					Cert: kong.String("my-ca-certificate"),
-					ID:   kong.String(testMyID),
+					Cert: new("my-ca-certificate"),
+					ID:   new(testMyID),
 				},
 			},
 			expectedKey: "my-ca-certificate",
@@ -166,7 +166,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FCACertificate{
 				CACertificate: kong.CACertificate{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -178,8 +178,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
-					Name: kong.String("my-plugin"),
-					ID:   kong.String(testMyID),
+					Name: new("my-plugin"),
+					ID:   new(testMyID),
 				},
 			},
 			expectedKey: "my-plugin",
@@ -187,10 +187,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
-					Name: kong.String("my-plugin"),
-					ID:   kong.String(testMyID),
+					Name: new("my-plugin"),
+					ID:   new(testMyID),
 					Consumer: &kong.Consumer{
-						ID: kong.String("my-consumer-id"),
+						ID: new("my-consumer-id"),
 					},
 				},
 			},
@@ -199,10 +199,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
-					Name: kong.String("my-plugin"),
-					ID:   kong.String(testMyID),
+					Name: new("my-plugin"),
+					ID:   new(testMyID),
 					Route: &kong.Route{
-						ID: kong.String("my-route-id"),
+						ID: new("my-route-id"),
 					},
 				},
 			},
@@ -211,10 +211,10 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
-					Name: kong.String("my-plugin"),
-					ID:   kong.String(testMyID),
+					Name: new("my-plugin"),
+					ID:   new(testMyID),
 					Service: &kong.Service{
-						ID: kong.String("my-service-id"),
+						ID: new("my-service-id"),
 					},
 				},
 			},
@@ -224,7 +224,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: FPlugin{
 				Plugin: kong.Plugin{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -236,8 +236,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FConsumer{
 				Consumer: kong.Consumer{
-					Username: kong.String("my-consumer"),
-					ID:       kong.String(testMyID),
+					Username: new("my-consumer"),
+					ID:       new(testMyID),
 				},
 			},
 			expectedKey: "my-consumer",
@@ -245,7 +245,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FConsumer{
 				Consumer: kong.Consumer{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -256,14 +256,14 @@ func Test_sortKey(t *testing.T) {
 		},
 		{
 			sortable: &FServicePackage{
-				Name: kong.String("my-service-package"),
-				ID:   kong.String(testMyID),
+				Name: new("my-service-package"),
+				ID:   new(testMyID),
 			},
 			expectedKey: "my-service-package",
 		},
 		{
 			sortable: &FServicePackage{
-				ID: kong.String(testMyID),
+				ID: new(testMyID),
 			},
 			expectedKey: testMyID,
 		},
@@ -273,14 +273,14 @@ func Test_sortKey(t *testing.T) {
 		},
 		{
 			sortable: &FServiceVersion{
-				Version: kong.String("my-service-version"),
-				ID:      kong.String(testMyID),
+				Version: new("my-service-version"),
+				ID:      new(testMyID),
 			},
 			expectedKey: "my-service-version",
 		},
 		{
 			sortable: &FServiceVersion{
-				ID: kong.String(testMyID),
+				ID: new(testMyID),
 			},
 			expectedKey: testMyID,
 		},
@@ -291,7 +291,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FFilterChain{
 				FilterChain: kong.FilterChain{
-					Name: kong.String("my-name"),
+					Name: new("my-name"),
 				},
 			},
 			expectedKey: "my-name",
@@ -299,8 +299,8 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FFilterChain{
 				FilterChain: kong.FilterChain{
-					ID:   kong.String(testMyID),
-					Name: kong.String("my-name"),
+					ID:   new(testMyID),
+					Name: new("my-name"),
 				},
 			},
 			expectedKey: "my-name",
@@ -308,7 +308,7 @@ func Test_sortKey(t *testing.T) {
 		{
 			sortable: &FFilterChain{
 				FilterChain: kong.FilterChain{
-					ID: kong.String(testMyID),
+					ID: new(testMyID),
 				},
 			},
 			expectedKey: testMyID,
@@ -340,13 +340,13 @@ func TestPluginUnmarshalYAML(t *testing.T) {
 		RunOn:     p.RunOn,
 		Protocols: p.Protocols,
 		Service: &kong.Service{
-			ID: kong.String("foo"),
+			ID: new("foo"),
 		},
 		Consumer: &kong.Consumer{
-			ID: kong.String("baz"),
+			ID: new("baz"),
 		},
 		Route: &kong.Route{
-			ID: kong.String("bar"),
+			ID: new("bar"),
 		},
 	}, p.Plugin)
 }
@@ -361,13 +361,13 @@ func TestPluginUnmarshalJSON(t *testing.T) {
 		RunOn:     p.RunOn,
 		Protocols: p.Protocols,
 		Service: &kong.Service{
-			ID: kong.String("foo"),
+			ID: new("foo"),
 		},
 		Consumer: &kong.Consumer{
-			ID: kong.String("baz"),
+			ID: new("baz"),
 		},
 		Route: &kong.Route{
-			ID: kong.String("bar"),
+			ID: new("bar"),
 		},
 	}, p.Plugin)
 }
@@ -394,18 +394,18 @@ func TestFilterChainUnmarshalJSON(t *testing.T) {
 	assert := assert.New(t)
 	require.NoError(t, json.Unmarshal([]byte(fcJSON), &fc))
 	assert.Equal(kong.FilterChain{
-		Name:    kong.String("my-filter-chain"),
-		ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
-		Enabled: kong.Bool(true),
+		Name:    new("my-filter-chain"),
+		ID:      new("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+		Enabled: new(true),
 		Filters: []*kong.Filter{
 			{
-				Name:   kong.String("my-filter"),
+				Name:   new("my-filter"),
 				Config: jsonRawMessage(`{"a":1}`),
 			},
 			{
-				Name:    kong.String("my-other-filter"),
+				Name:    new("my-other-filter"),
 				Config:  jsonRawMessage(`"config!"`),
-				Enabled: kong.Bool(false),
+				Enabled: new(false),
 			},
 		},
 	}, fc.FilterChain)
@@ -429,18 +429,18 @@ filters:
 	assert := assert.New(t)
 	require.NoError(t, yaml.Unmarshal([]byte(fcYaml), &fc))
 	assert.Equal(kong.FilterChain{
-		Name:    kong.String("my-filter-chain"),
-		ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
-		Enabled: kong.Bool(true),
+		Name:    new("my-filter-chain"),
+		ID:      new("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+		Enabled: new(true),
 		Filters: []*kong.Filter{
 			{
-				Name:   kong.String("my-filter"),
+				Name:   new("my-filter"),
 				Config: jsonRawMessage(`{"a":1}`),
 			},
 			{
-				Name:    kong.String("my-other-filter"),
+				Name:    new("my-other-filter"),
 				Config:  jsonRawMessage(`"config!"`),
-				Enabled: kong.Bool(false),
+				Enabled: new(false),
 			},
 		},
 	}, fc.FilterChain)
@@ -461,10 +461,10 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "https://foo.com:8008/bar",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Port:     kong.Int(8008),
-						Protocol: kong.String("https"),
-						Path:     kong.String("/bar"),
+						Host:     new("foo.com"),
+						Port:     new(8008),
+						Protocol: new("https"),
+						Path:     new("/bar"),
 					},
 				},
 			},
@@ -475,10 +475,10 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "https://foo.com/bar",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Protocol: kong.String("https"),
-						Path:     kong.String("/bar"),
-						Port:     kong.Int(443),
+						Host:     new("foo.com"),
+						Protocol: new("https"),
+						Path:     new("/bar"),
+						Port:     new(443),
 					},
 				},
 			},
@@ -489,10 +489,10 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "https://foo.com:4224/",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Protocol: kong.String("https"),
-						Path:     kong.String("/"),
-						Port:     kong.Int(4224),
+						Host:     new("foo.com"),
+						Protocol: new("https"),
+						Path:     new("/"),
+						Port:     new(4224),
 					},
 				},
 			},
@@ -503,10 +503,10 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "https://foo.com/",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Protocol: kong.String("https"),
-						Path:     kong.String("/"),
-						Port:     kong.Int(443),
+						Host:     new("foo.com"),
+						Protocol: new("https"),
+						Path:     new("/"),
+						Port:     new(443),
 					},
 				},
 			},
@@ -517,9 +517,9 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "http://foo.com:4242",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Protocol: kong.String("http"),
-						Port:     kong.Int(4242),
+						Host:     new("foo.com"),
+						Protocol: new("http"),
+						Port:     new(4242),
 					},
 				},
 			},
@@ -530,9 +530,9 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "http://foo.com",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Protocol: kong.String("http"),
-						Port:     kong.Int(80),
+						Host:     new("foo.com"),
+						Protocol: new("http"),
+						Port:     new(80),
 					},
 				},
 			},
@@ -543,9 +543,9 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "grpc://foocom",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foocom"),
-						Protocol: kong.String("grpc"),
-						Port:     kong.Int(80),
+						Host:     new("foocom"),
+						Protocol: new("grpc"),
+						Port:     new(80),
 					},
 				},
 			},
@@ -583,10 +583,10 @@ func Test_unwrapURL(t *testing.T) {
 				urlString: "http://foo.com/Spaced%20Test/bar",
 				fService: &FService{
 					Service: kong.Service{
-						Host:     kong.String("foo.com"),
-						Protocol: kong.String("http"),
-						Port:     kong.Int(80),
-						Path:     kong.String("/Spaced%20Test/bar"),
+						Host:     new("foo.com"),
+						Protocol: new("http"),
+						Port:     new(80),
+						Path:     new("/Spaced%20Test/bar"),
 					},
 				},
 			},

@@ -3,6 +3,7 @@ package indexers
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // Field represents a field that needs to be used for
@@ -24,7 +25,7 @@ type SubFieldIndexer struct {
 
 // FromObject take Obj and returns index key formed using
 // the field SubField.
-func (s *SubFieldIndexer) FromObject(obj interface{}) (bool, []byte, error) {
+func (s *SubFieldIndexer) FromObject(obj any) (bool, []byte, error) {
 	v := reflect.ValueOf(obj)
 	v = reflect.Indirect(v) // Dereference the pointer if any
 
@@ -51,16 +52,16 @@ func (s *SubFieldIndexer) FromObject(obj interface{}) (bool, []byte, error) {
 }
 
 // FromArgs takes in a string and returns its byte form.
-func (s *SubFieldIndexer) FromArgs(args ...interface{}) ([]byte, error) {
-	val := ""
+func (s *SubFieldIndexer) FromArgs(args ...any) ([]byte, error) {
+	var val strings.Builder
 	for _, arg := range args {
 		s, ok := arg.(string)
 		if !ok {
 			return nil, fmt.Errorf("argument must be a string: %#v", args[0])
 		}
-		val += s
+		val.WriteString(s)
 	}
 	// Add the null character as a terminator
-	val += "\x00"
-	return []byte(val), nil
+	val.WriteString("\x00")
+	return []byte(val.String()), nil
 }

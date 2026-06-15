@@ -27,9 +27,9 @@ func TestRBACEndpointPermissionsCollection_Add(t *testing.T) {
 			args: args{
 				rbacEndpointPermission: RBACEndpointPermission{
 					RBACEndpointPermission: kong.RBACEndpointPermission{
-						Workspace: kong.String("*"),
+						Workspace: new("*"),
 						Actions:   kong.StringSlice("read"),
-						Endpoint:  kong.String("/foo"),
+						Endpoint:  new("/foo"),
 					},
 				},
 			},
@@ -40,10 +40,10 @@ func TestRBACEndpointPermissionsCollection_Add(t *testing.T) {
 			args: args{
 				rbacEndpointPermission: RBACEndpointPermission{
 					RBACEndpointPermission: kong.RBACEndpointPermission{
-						Workspace: kong.String("*"),
-						Endpoint:  kong.String("/foo"),
+						Workspace: new("*"),
+						Endpoint:  new("/foo"),
 						Actions:   kong.StringSlice("read"),
-						Role:      &kong.RBACRole{ID: kong.String("1234")},
+						Role:      &kong.RBACRole{ID: new("1234")},
 					},
 				},
 			},
@@ -53,10 +53,10 @@ func TestRBACEndpointPermissionsCollection_Add(t *testing.T) {
 	k := rbacEndpointPermissionsCollection()
 	rbacEndpointPermission1 := RBACEndpointPermission{
 		RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("*"),
+			Workspace: new("*"),
+			Endpoint:  new("*"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		},
 	}
 	k.Add(rbacEndpointPermission1)
@@ -76,18 +76,18 @@ func TestRBACEndpointPermissionsCollection_Get(t *testing.T) {
 	}
 	rbacEndpointPermission1 := RBACEndpointPermission{
 		RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/foo"),
+			Workspace: new("*"),
+			Endpoint:  new("/foo"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		},
 	}
 	rbacEndpointPermission2 := RBACEndpointPermission{
 		RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/bar"),
+			Workspace: new("*"),
+			Endpoint:  new("/bar"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		},
 	}
 	tests := []struct {
@@ -151,27 +151,27 @@ func TestRBACEndpointPermissionsCollection_Get(t *testing.T) {
 func TestRBACEndpointPermissionsCollection_Update(t *testing.T) {
 	rbacEndpointPermission1 := RBACEndpointPermission{
 		RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/foo"),
+			Workspace: new("*"),
+			Endpoint:  new("/foo"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		},
 	}
 	rbacEndpointPermission2 := RBACEndpointPermission{
 		RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/bar"),
+			Workspace: new("*"),
+			Endpoint:  new("/bar"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		},
 	}
 	rbacEndpointPermission3 := RBACEndpointPermission{
 		RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/foo"),
+			Workspace: new("*"),
+			Endpoint:  new("/foo"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
-			Comment:   kong.String("updated!"),
+			Role:      &kong.RBACRole{ID: new("1234")},
+			Comment:   new("updated!"),
 		},
 	}
 	type args struct {
@@ -188,10 +188,10 @@ func TestRBACEndpointPermissionsCollection_Update(t *testing.T) {
 			args: args{
 				rbacEndpointPermission: RBACEndpointPermission{
 					RBACEndpointPermission: kong.RBACEndpointPermission{
-						Workspace: kong.String("foo"),
-						Endpoint:  kong.String("bad"),
+						Workspace: new("foo"),
+						Endpoint:  new("bad"),
 						Actions:   kong.StringSlice("read"),
-						Role:      &kong.RBACRole{ID: kong.String("1234")},
+						Role:      &kong.RBACRole{ID: new("1234")},
 					},
 				},
 			},
@@ -231,10 +231,10 @@ func TestRBACEndpointPermissionDelete(t *testing.T) {
 	collection := rbacEndpointPermissionsCollection()
 
 	rbacEndpointPermission := RBACEndpointPermission{RBACEndpointPermission: kong.RBACEndpointPermission{
-		Workspace: kong.String("*"),
-		Endpoint:  kong.String("/foo"),
+		Workspace: new("*"),
+		Endpoint:  new("/foo"),
 		Actions:   kong.StringSlice("read"),
-		Role:      &kong.RBACRole{ID: kong.String("1234")},
+		Role:      &kong.RBACRole{ID: new("1234")},
 	}}
 
 	err := collection.Add(rbacEndpointPermission)
@@ -256,20 +256,20 @@ func TestRBACEndpointPermissionGetAll(t *testing.T) {
 	collection := rbacEndpointPermissionsCollection()
 
 	rbacEndpointPermission := RBACEndpointPermission{RBACEndpointPermission: kong.RBACEndpointPermission{
-		Workspace: kong.String("*"),
-		Endpoint:  kong.String("/first"),
+		Workspace: new("*"),
+		Endpoint:  new("/first"),
 		Actions:   kong.StringSlice("read"),
-		Role:      &kong.RBACRole{ID: kong.String("1234")},
+		Role:      &kong.RBACRole{ID: new("1234")},
 	}}
 
 	err := collection.Add(rbacEndpointPermission)
 	require.NoError(t, err)
 
 	rbacEndpointPermission2 := RBACEndpointPermission{RBACEndpointPermission: kong.RBACEndpointPermission{
-		Workspace: kong.String("*"),
-		Endpoint:  kong.String("/second"),
+		Workspace: new("*"),
+		Endpoint:  new("/second"),
 		Actions:   kong.StringSlice("read"),
-		Role:      &kong.RBACRole{ID: kong.String("1234")},
+		Role:      &kong.RBACRole{ID: new("1234")},
 	}}
 
 	err = collection.Add(rbacEndpointPermission2)
@@ -287,34 +287,34 @@ func TestRBACEndpointPermissionGetAllByServiceID(t *testing.T) {
 
 	rbacEndpointPermissions := []*RBACEndpointPermission{
 		{RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/first"),
+			Workspace: new("*"),
+			Endpoint:  new("/first"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		}},
 		{RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/second"),
+			Workspace: new("*"),
+			Endpoint:  new("/second"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		}},
 		{RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/third"),
+			Workspace: new("*"),
+			Endpoint:  new("/third"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("1234")},
+			Role:      &kong.RBACRole{ID: new("1234")},
 		}},
 		{RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/fourth"),
+			Workspace: new("*"),
+			Endpoint:  new("/fourth"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("4321")},
+			Role:      &kong.RBACRole{ID: new("4321")},
 		}},
 		{RBACEndpointPermission: kong.RBACEndpointPermission{
-			Workspace: kong.String("*"),
-			Endpoint:  kong.String("/fifth"),
+			Workspace: new("*"),
+			Endpoint:  new("/fifth"),
 			Actions:   kong.StringSlice("read"),
-			Role:      &kong.RBACRole{ID: kong.String("4321")},
+			Role:      &kong.RBACRole{ID: new("4321")},
 		}},
 	}
 

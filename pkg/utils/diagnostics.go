@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -77,9 +77,7 @@ func ValidDiagnosticCodes() []DiagnosticCode {
 	for code := range validDiagnosticCodes {
 		codes = append(codes, code)
 	}
-	sort.Slice(codes, func(i, j int) bool {
-		return codes[i] < codes[j]
-	})
+	slices.Sort(codes)
 	return codes
 }
 
@@ -98,21 +96,11 @@ func ValidDiagnosticCodesString() string {
 }
 
 func (p DiagnosticPolicy) IsAlwaysError(code DiagnosticCode) bool {
-	for _, c := range p.AlwaysError {
-		if c == code {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(p.AlwaysError, code)
 }
 
 func (p DiagnosticPolicy) IsAlwaysWarning(code DiagnosticCode) bool {
-	for _, c := range p.AlwaysWarning {
-		if c == code {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(p.AlwaysWarning, code)
 }
 
 func (p DiagnosticPolicy) ResolveSeverity(code DiagnosticCode) Severity {

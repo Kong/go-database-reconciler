@@ -75,28 +75,28 @@ func TestServiceEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var s1, s2 Service
-	s1.ID = kong.String(testFoo)
-	s1.Name = kong.String(testBar)
+	s1.ID = new(testFoo)
+	s1.Name = new(testBar)
 
-	s2.ID = kong.String(testFoo)
-	s2.Name = kong.String(testBaz)
+	s2.ID = new(testFoo)
+	s2.Name = new(testBaz)
 
 	assert.False(s1.Equal(&s2))
 	assert.False(s1.EqualWithOpts(&s2, false, false))
 
-	s2.Name = kong.String(testBar)
+	s2.Name = new(testBar)
 	assert.True(s1.Equal(&s2))
 	assert.True(s1.EqualWithOpts(&s2, false, false))
 	s1.Tags = getTags(true)
 	s2.Tags = getTags(false)
 	assert.True(s1.EqualWithOpts(&s2, false, false))
 
-	s1.ID = kong.String("fuu")
+	s1.ID = new("fuu")
 	assert.False(s1.EqualWithOpts(&s2, false, false))
 	assert.True(s1.EqualWithOpts(&s2, true, false))
 
-	s2.CreatedAt = kong.Int(1)
-	s1.UpdatedAt = kong.Int(2)
+	s2.CreatedAt = new(1)
+	s1.UpdatedAt = new(2)
 	assert.False(s1.EqualWithOpts(&s2, false, false))
 	assert.False(s1.EqualWithOpts(&s2, false, true))
 
@@ -109,28 +109,28 @@ func TestRouteEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var r1, r2 Route
-	r1.ID = kong.String(testFoo)
-	r1.Name = kong.String(testBar)
+	r1.ID = new(testFoo)
+	r1.Name = new(testBar)
 
-	r2.ID = kong.String(testFoo)
-	r2.Name = kong.String(testBaz)
+	r2.ID = new(testFoo)
+	r2.Name = new(testBaz)
 
 	assert.False(r1.Equal(&r2))
 	assert.False(r1.EqualWithOpts(&r2, false, false, false))
 
-	r2.Name = kong.String(testBar)
+	r2.Name = new(testBar)
 	assert.True(r1.Equal(&r2))
 	assert.True(r1.EqualWithOpts(&r2, false, false, false))
 	r1.Tags = getTags(true)
 	r2.Tags = getTags(false)
 	assert.True(r1.EqualWithOpts(&r2, false, false, false))
 
-	r1.ID = kong.String("fuu")
+	r1.ID = new("fuu")
 	assert.False(r1.EqualWithOpts(&r2, false, false, false))
 	assert.True(r1.EqualWithOpts(&r2, true, false, false))
 
-	r2.CreatedAt = kong.Int(1)
-	r1.UpdatedAt = kong.Int(2)
+	r2.CreatedAt = new(1)
+	r1.UpdatedAt = new(2)
 	assert.False(r1.EqualWithOpts(&r2, false, false, false))
 	assert.False(r1.EqualWithOpts(&r2, false, true, false))
 	assert.True(r1.EqualWithOpts(&r2, true, true, false))
@@ -144,12 +144,12 @@ func TestRouteEqual(t *testing.T) {
 	r2.Hosts = kong.StringSlice("demo1.example.com", "demo2.example.com")
 	assert.True(r1.EqualWithOpts(&r2, true, true, false))
 
-	r1.Service = &kong.Service{ID: kong.String("1")}
-	r2.Service = &kong.Service{ID: kong.String("2")}
+	r1.Service = &kong.Service{ID: new("1")}
+	r2.Service = &kong.Service{ID: new("2")}
 	assert.False(r1.EqualWithOpts(&r2, true, true, false))
 	assert.True(r1.EqualWithOpts(&r2, true, true, true))
 
-	r1.Service = &kong.Service{ID: kong.String("2")}
+	r1.Service = &kong.Service{ID: new("2")}
 	assert.True(r1.EqualWithOpts(&r2, true, true, false))
 }
 
@@ -157,23 +157,23 @@ func TestUpstreamEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var u1, u2 Upstream
-	u1.ID = kong.String(testFoo)
-	u1.Name = kong.String(testBar)
+	u1.ID = new(testFoo)
+	u1.Name = new(testBar)
 
-	u2.ID = kong.String(testFoo)
-	u2.Name = kong.String(testBaz)
+	u2.ID = new(testFoo)
+	u2.Name = new(testBaz)
 
 	assert.False(u1.Equal(&u2))
 	assert.False(u1.EqualWithOpts(&u2, false, false))
 
-	u2.Name = kong.String(testBar)
+	u2.Name = new(testBar)
 	assert.True(u1.Equal(&u2))
 	assert.True(u1.EqualWithOpts(&u2, false, false))
 	u1.Tags = getTags(true)
 	u2.Tags = getTags(false)
 	assert.True(u1.EqualWithOpts(&u2, false, false))
 
-	u1.ID = kong.String("fuu")
+	u1.ID = new("fuu")
 	assert.False(u1.EqualWithOpts(&u2, false, false))
 	assert.True(u1.EqualWithOpts(&u2, true, false))
 
@@ -187,23 +187,23 @@ func TestTargetEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var t1, t2 Target
-	t1.ID = kong.String(testFoo)
-	t1.Target.Target = kong.String(testBar)
+	t1.ID = new(testFoo)
+	t1.Target.Target = new(testBar)
 
-	t2.ID = kong.String(testFoo)
-	t2.Target.Target = kong.String(testBaz)
+	t2.ID = new(testFoo)
+	t2.Target.Target = new(testBaz)
 
 	assert.False(t1.Equal(&t2))
 	assert.False(t1.EqualWithOpts(&t2, false, false, false))
 
-	t2.Target.Target = kong.String(testBar)
+	t2.Target.Target = new(testBar)
 	assert.True(t1.Equal(&t2))
 	assert.True(t1.EqualWithOpts(&t2, false, false, false))
 	t1.Tags = getTags(true)
 	t2.Tags = getTags(false)
 	assert.True(t1.EqualWithOpts(&t2, false, false, false))
 
-	t1.ID = kong.String("fuu")
+	t1.ID = new("fuu")
 	assert.False(t1.EqualWithOpts(&t2, false, false, false))
 	assert.True(t1.EqualWithOpts(&t2, true, false, false))
 
@@ -212,12 +212,12 @@ func TestTargetEqual(t *testing.T) {
 	assert.False(t1.EqualWithOpts(&t2, false, false, false))
 	assert.False(t1.EqualWithOpts(&t2, false, true, false))
 
-	t1.Upstream = &kong.Upstream{ID: kong.String("1")}
-	t2.Upstream = &kong.Upstream{ID: kong.String("2")}
+	t1.Upstream = &kong.Upstream{ID: new("1")}
+	t2.Upstream = &kong.Upstream{ID: new("2")}
 	assert.False(t1.EqualWithOpts(&t2, true, true, false))
 	assert.True(t1.EqualWithOpts(&t2, true, true, true))
 
-	t1.Upstream = &kong.Upstream{ID: kong.String("2")}
+	t1.Upstream = &kong.Upstream{ID: new("2")}
 	assert.True(t1.EqualWithOpts(&t2, true, true, false))
 }
 
@@ -225,25 +225,25 @@ func TestCertificateEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var c1, c2 Certificate
-	c1.ID = kong.String(testFoo)
-	c1.Cert = kong.String("certfoo")
-	c1.Key = kong.String("keyfoo")
+	c1.ID = new(testFoo)
+	c1.Cert = new("certfoo")
+	c1.Key = new("keyfoo")
 
-	c2.ID = kong.String(testFoo)
-	c2.Cert = kong.String("certfoo")
-	c2.Key = kong.String("keyfoo-unequal")
+	c2.ID = new(testFoo)
+	c2.Cert = new("certfoo")
+	c2.Key = new("keyfoo-unequal")
 
 	assert.False(c1.Equal(&c2))
 	assert.False(c1.EqualWithOpts(&c2, false, false))
 
-	c2.Key = kong.String("keyfoo")
+	c2.Key = new("keyfoo")
 	assert.True(c1.Equal(&c2))
 	assert.True(c1.EqualWithOpts(&c2, false, false))
 	c1.Tags = getTags(true)
 	c2.Tags = getTags(false)
 	assert.True(c1.EqualWithOpts(&c2, false, false))
 
-	c1.ID = kong.String("fuu")
+	c1.ID = new("fuu")
 	assert.False(c1.EqualWithOpts(&c2, false, false))
 	assert.True(c1.EqualWithOpts(&c2, true, false))
 
@@ -257,23 +257,23 @@ func TestSNIEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var s1, s2 SNI
-	s1.ID = kong.String(testFoo)
-	s1.Name = kong.String(testBar)
+	s1.ID = new(testFoo)
+	s1.Name = new(testBar)
 
-	s2.ID = kong.String(testFoo)
-	s2.Name = kong.String(testBaz)
+	s2.ID = new(testFoo)
+	s2.Name = new(testBaz)
 
 	assert.False(s1.Equal(&s2))
 	assert.False(s1.EqualWithOpts(&s2, false, false, false))
 
-	s2.Name = kong.String(testBar)
+	s2.Name = new(testBar)
 	assert.True(s1.Equal(&s2))
 	assert.True(s1.EqualWithOpts(&s2, false, false, false))
 	s1.Tags = getTags(true)
 	s2.Tags = getTags(false)
 	assert.True(s1.EqualWithOpts(&s2, false, false, false))
 
-	s1.ID = kong.String("fuu")
+	s1.ID = new("fuu")
 	assert.False(s1.EqualWithOpts(&s2, false, false, false))
 	assert.True(s1.EqualWithOpts(&s2, true, false, false))
 
@@ -282,12 +282,12 @@ func TestSNIEqual(t *testing.T) {
 	assert.False(s1.EqualWithOpts(&s2, false, false, false))
 	assert.False(s1.EqualWithOpts(&s2, false, true, false))
 
-	s1.Certificate = &kong.Certificate{ID: kong.String("1")}
-	s2.Certificate = &kong.Certificate{ID: kong.String("2")}
+	s1.Certificate = &kong.Certificate{ID: new("1")}
+	s2.Certificate = &kong.Certificate{ID: new("2")}
 	assert.False(s1.EqualWithOpts(&s2, true, true, false))
 	assert.True(s1.EqualWithOpts(&s2, true, true, true))
 
-	s1.Certificate = &kong.Certificate{ID: kong.String("2")}
+	s1.Certificate = &kong.Certificate{ID: new("2")}
 	assert.True(s1.EqualWithOpts(&s2, true, true, false))
 }
 
@@ -295,16 +295,16 @@ func TestPluginEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var p1, p2 Plugin
-	p1.ID = kong.String(testFoo)
-	p1.Name = kong.String(testBar)
+	p1.ID = new(testFoo)
+	p1.Name = new(testBar)
 
-	p2.ID = kong.String(testFoo)
-	p2.Name = kong.String(testBaz)
+	p2.ID = new(testFoo)
+	p2.Name = new(testBaz)
 
 	assert.False(p1.Equal(&p2))
 	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
-	p2.Name = kong.String(testBar)
+	p2.Name = new(testBar)
 	assert.True(p1.Equal(&p2))
 	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 	p1.Tags = getTags(true)
@@ -316,18 +316,18 @@ func TestPluginEqual(t *testing.T) {
 	p2.Protocols = getProtocols(false)
 	assert.True(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 
-	p1.ID = kong.String("fuu")
+	p1.ID = new("fuu")
 	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 	assert.True(p1.EqualWithOpts(&p2, true, false, false, gjson.Result{}))
 	timestamp := 1
 	p2.CreatedAt = &timestamp
 	assert.False(p1.EqualWithOpts(&p2, false, false, false, gjson.Result{}))
 	assert.False(p1.EqualWithOpts(&p2, false, true, false, gjson.Result{}))
-	p1.Service = &kong.Service{ID: kong.String("1")}
-	p2.Service = &kong.Service{ID: kong.String("2")}
+	p1.Service = &kong.Service{ID: new("1")}
+	p2.Service = &kong.Service{ID: new("2")}
 	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 	assert.True(p1.EqualWithOpts(&p2, true, true, true, gjson.Result{}))
-	p1.Service = &kong.Service{ID: kong.String("2")}
+	p1.Service = &kong.Service{ID: new("2")}
 	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{testFoo: testBar}
@@ -336,39 +336,39 @@ func TestPluginEqual(t *testing.T) {
 	p2.Config = kong.Configuration{testFoo: testBaz}
 	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
-	p1.Config = kong.Configuration{testFoo: []interface{}{"b", "a", "c"}, testBar: testBaz}
-	p2.Config = kong.Configuration{testFoo: []interface{}{"a", "b", "c"}, testBar: testBaz}
+	p1.Config = kong.Configuration{testFoo: []any{"b", "a", "c"}, testBar: testBaz}
+	p2.Config = kong.Configuration{testFoo: []any{"a", "b", "c"}, testBar: testBaz}
 	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
-	p2.Config = kong.Configuration{testFoo: []interface{}{"a", "c", "b"}, testBar: testBaz}
-	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
-
-	p2.Config = kong.Configuration{testFoo: []interface{}{"a", "c", "b"}, testBar: testBaz}
+	p2.Config = kong.Configuration{testFoo: []any{"a", "c", "b"}, testBar: testBaz}
 	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
-	p2.Config = kong.Configuration{testFoo: []interface{}{"a", "c", "b"}, testBar: testBar}
+	p2.Config = kong.Configuration{testFoo: []any{"a", "c", "b"}, testBar: testBaz}
+	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
+
+	p2.Config = kong.Configuration{testFoo: []any{"a", "c", "b"}, testBar: testBar}
 	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p1.Config = kong.Configuration{
-		testFoo: []interface{}{"b", "a", "c"},
+		testFoo: []any{"b", "a", "c"},
 		testBar: testBaz,
-		"nested": map[string]interface{}{
-			testKey1: []interface{}{"b", "a", "c"},
+		"nested": map[string]any{
+			testKey1: []any{"b", "a", "c"},
 		},
 	}
 	p2.Config = kong.Configuration{
-		testFoo: []interface{}{"a", "b", "c"},
+		testFoo: []any{"a", "b", "c"},
 		testBar: testBaz,
-		"nested": map[string]interface{}{
-			testKey1: []interface{}{"a", "b", "c"},
+		"nested": map[string]any{
+			testKey1: []any{"a", "b", "c"},
 		},
 	}
 	assert.True(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
 
 	p2.Config = kong.Configuration{
-		testFoo: []interface{}{"a", "c", "c"},
+		testFoo: []any{"a", "c", "c"},
 		testBar: testBaz,
-		"nested": map[string]interface{}{
-			testKey1: []interface{}{"a", "b", "c"},
+		"nested": map[string]any{
+			testKey1: []any{"a", "b", "c"},
 		},
 	}
 	assert.False(p1.EqualWithOpts(&p2, true, true, false, gjson.Result{}))
@@ -378,23 +378,23 @@ func TestConsumerEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var c1, c2 Consumer
-	c1.ID = kong.String(testFoo)
-	c1.Username = kong.String(testBar)
+	c1.ID = new(testFoo)
+	c1.Username = new(testBar)
 
-	c2.ID = kong.String(testFoo)
-	c2.Username = kong.String(testBaz)
+	c2.ID = new(testFoo)
+	c2.Username = new(testBaz)
 
 	assert.False(c1.Equal(&c2))
 	assert.False(c1.EqualWithOpts(&c2, false, false))
 
-	c2.Username = kong.String(testBar)
+	c2.Username = new(testBar)
 	assert.True(c1.Equal(&c2))
 	assert.True(c1.EqualWithOpts(&c2, false, false))
 	c1.Tags = getTags(true)
 	c2.Tags = getTags(false)
 	assert.True(c1.EqualWithOpts(&c2, false, false))
 
-	c1.ID = kong.String("fuu")
+	c1.ID = new("fuu")
 	assert.False(c1.EqualWithOpts(&c2, false, false))
 	assert.True(c1.EqualWithOpts(&c2, true, false))
 
@@ -408,31 +408,31 @@ func TestKeyAuthEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var k1, k2 KeyAuth
-	k1.ID = kong.String(testFoo)
-	k1.Key = kong.String(testBar)
+	k1.ID = new(testFoo)
+	k1.Key = new(testBar)
 
-	k2.ID = kong.String(testFoo)
-	k2.Key = kong.String(testBaz)
+	k2.ID = new(testFoo)
+	k2.Key = new(testBaz)
 
 	assert.False(k1.Equal(&k2))
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 
-	k2.Key = kong.String(testBar)
+	k2.Key = new(testBar)
 	assert.True(k1.Equal(&k2))
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 	k1.Tags = getTags(true)
 	k2.Tags = getTags(false)
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 
-	k1.ID = kong.String("fuu")
+	k1.ID = new("fuu")
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.True(k1.EqualWithOpts(&k2, true, false, false))
 
-	k2.CreatedAt = kong.Int(1)
+	k2.CreatedAt = new(1)
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 
-	k2.Consumer = &kong.Consumer{Username: kong.String("u1")}
+	k2.Consumer = &kong.Consumer{Username: new("u1")}
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 	assert.False(k1.EqualWithOpts(&k2, false, false, true))
 }
@@ -441,31 +441,31 @@ func TestHMACAuthEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var k1, k2 HMACAuth
-	k1.ID = kong.String(testFoo)
-	k1.Username = kong.String(testBar)
+	k1.ID = new(testFoo)
+	k1.Username = new(testBar)
 
-	k2.ID = kong.String(testFoo)
-	k2.Username = kong.String(testBaz)
+	k2.ID = new(testFoo)
+	k2.Username = new(testBaz)
 
 	assert.False(k1.Equal(&k2))
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 
-	k2.Username = kong.String(testBar)
+	k2.Username = new(testBar)
 	assert.True(k1.Equal(&k2))
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 	k1.Tags = getTags(true)
 	k2.Tags = getTags(false)
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 
-	k1.ID = kong.String("fuu")
+	k1.ID = new("fuu")
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.True(k1.EqualWithOpts(&k2, true, false, false))
 
-	k2.CreatedAt = kong.Int(1)
+	k2.CreatedAt = new(1)
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 
-	k2.Consumer = &kong.Consumer{Username: kong.String("u1")}
+	k2.Consumer = &kong.Consumer{Username: new("u1")}
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 	assert.False(k1.EqualWithOpts(&k2, false, false, true))
 }
@@ -474,31 +474,31 @@ func TestJWTAuthEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var k1, k2 JWTAuth
-	k1.ID = kong.String(testFoo)
-	k1.Key = kong.String(testBar)
+	k1.ID = new(testFoo)
+	k1.Key = new(testBar)
 
-	k2.ID = kong.String(testFoo)
-	k2.Key = kong.String(testBaz)
+	k2.ID = new(testFoo)
+	k2.Key = new(testBaz)
 
 	assert.False(k1.Equal(&k2))
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 
-	k2.Key = kong.String(testBar)
+	k2.Key = new(testBar)
 	assert.True(k1.Equal(&k2))
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 	k1.Tags = getTags(true)
 	k2.Tags = getTags(false)
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 
-	k1.ID = kong.String("fuu")
+	k1.ID = new("fuu")
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.True(k1.EqualWithOpts(&k2, true, false, false))
 
-	k2.CreatedAt = kong.Int(1)
+	k2.CreatedAt = new(1)
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 
-	k2.Consumer = &kong.Consumer{Username: kong.String("u1")}
+	k2.Consumer = &kong.Consumer{Username: new("u1")}
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 	assert.False(k1.EqualWithOpts(&k2, false, false, true))
 }
@@ -507,16 +507,16 @@ func TestBasicAuthEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var k1, k2 BasicAuth
-	k1.ID = kong.String(testFoo)
-	k1.Password = kong.String(testBar)
+	k1.ID = new(testFoo)
+	k1.Password = new(testBar)
 
-	k2.ID = kong.String(testFoo)
-	k2.Password = kong.String(testBaz)
+	k2.ID = new(testFoo)
+	k2.Password = new(testBaz)
 
 	assert.False(k1.Equal(&k2))
 	assert.False(k1.EqualWithOpts(&k2, false, false, false, false))
 
-	k2.Password = kong.String(testBar)
+	k2.Password = new(testBar)
 	assert.True(k1.Equal(&k2))
 	assert.True(k1.EqualWithOpts(&k2, false, false, false, false))
 	assert.True(k1.EqualWithOpts(&k2, false, false, false, true))
@@ -524,15 +524,15 @@ func TestBasicAuthEqual(t *testing.T) {
 	k2.Tags = getTags(false)
 	assert.True(k1.EqualWithOpts(&k2, false, false, false, false))
 
-	k1.ID = kong.String("fuu")
+	k1.ID = new("fuu")
 	assert.False(k1.EqualWithOpts(&k2, false, false, false, false))
 	assert.True(k1.EqualWithOpts(&k2, true, false, false, false))
 
-	k2.CreatedAt = kong.Int(1)
+	k2.CreatedAt = new(1)
 	assert.False(k1.EqualWithOpts(&k2, false, false, false, false))
 	assert.False(k1.EqualWithOpts(&k2, false, true, false, false))
 
-	k2.Consumer = &kong.Consumer{Username: kong.String("u1")}
+	k2.Consumer = &kong.Consumer{Username: new("u1")}
 	assert.False(k1.EqualWithOpts(&k2, false, true, false, false))
 	assert.False(k1.EqualWithOpts(&k2, false, false, true, false))
 }
@@ -541,31 +541,31 @@ func TestACLGroupEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var k1, k2 ACLGroup
-	k1.ID = kong.String(testFoo)
-	k1.Group = kong.String(testBar)
+	k1.ID = new(testFoo)
+	k1.Group = new(testBar)
 
-	k2.ID = kong.String(testFoo)
-	k2.Group = kong.String(testBaz)
+	k2.ID = new(testFoo)
+	k2.Group = new(testBaz)
 
 	assert.False(k1.Equal(&k2))
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 
-	k2.Group = kong.String(testBar)
+	k2.Group = new(testBar)
 	assert.True(k1.Equal(&k2))
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 	k1.Tags = getTags(true)
 	k2.Tags = getTags(false)
 	assert.True(k1.EqualWithOpts(&k2, false, false, false))
 
-	k1.ID = kong.String("fuu")
+	k1.ID = new("fuu")
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.True(k1.EqualWithOpts(&k2, true, false, false))
 
-	k2.CreatedAt = kong.Int(1)
+	k2.CreatedAt = new(1)
 	assert.False(k1.EqualWithOpts(&k2, false, false, false))
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 
-	k2.Consumer = &kong.Consumer{Username: kong.String("u1")}
+	k2.Consumer = &kong.Consumer{Username: new("u1")}
 	assert.False(k1.EqualWithOpts(&k2, false, true, false))
 	assert.False(k1.EqualWithOpts(&k2, false, false, true))
 }
@@ -574,28 +574,28 @@ func TestCACertificateEqual(t *testing.T) {
 	assert := assert.New(t)
 
 	var c1, c2 CACertificate
-	c1.ID = kong.String("cert")
-	c1.Cert = kong.String("==== cert")
+	c1.ID = new("cert")
+	c1.Cert = new("==== cert")
 
-	c2.ID = kong.String("cert")
-	c2.Cert = kong.String("==== cert")
+	c2.ID = new("cert")
+	c2.Cert = new("==== cert")
 
 	assert.True(c1.Equal(&c2))
 
-	c2.Cert = kong.String("==== another cert")
+	c2.Cert = new("==== another cert")
 	assert.False(c1.Equal(&c2), "should distinguish cert")
-	c2.Cert = kong.String("==== cert")
+	c2.Cert = new("==== cert")
 
-	c2.CertDigest = kong.String("digest")
+	c2.CertDigest = new("digest")
 	assert.True(c1.Equal(&c2), "should ignore cert_digest")
 	c2.CertDigest = nil
 
-	c2.ID = kong.String("another")
+	c2.ID = new("another")
 	assert.False(c1.Equal(&c2), "should distinguish ID")
 	assert.True(c1.EqualWithOpts(&c2, true, false), "should ignore ID when configured")
 
-	c2.ID = kong.String("cert")
-	c2.CreatedAt = lo.ToPtr(int64(1))
+	c2.ID = new("cert")
+	c2.CreatedAt = new(int64(1))
 	assert.False(c1.Equal(&c2), "should distinguish createdAt")
 	assert.True(c1.EqualWithOpts(&c2, false, true), "should ignore createdAt when configured")
 
@@ -614,33 +614,33 @@ func TestStripKey(t *testing.T) {
 func TestSortInterfaceSlice(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    []interface{}
-		expected []interface{}
+		input    []any
+		expected []any
 	}{
 		{
 			name:     "integers",
-			input:    []interface{}{3, 1, 2},
-			expected: []interface{}{1, 2, 3},
+			input:    []any{3, 1, 2},
+			expected: []any{1, 2, 3},
 		},
 		{
 			name:     "strings",
-			input:    []interface{}{"b", "c", "a"},
-			expected: []interface{}{"a", "b", "c"},
+			input:    []any{"b", "c", "a"},
+			expected: []any{"a", "b", "c"},
 		},
 		{
 			name:     "mixed types",
-			input:    []interface{}{"b", 2, "a", 1},
-			expected: []interface{}{1, 2, "a", "b"},
+			input:    []any{"b", 2, "a", 1},
+			expected: []any{1, 2, "a", "b"},
 		},
 		{
 			name:     "floats",
-			input:    []interface{}{2.2, 3.3, 1.1},
-			expected: []interface{}{1.1, 2.2, 3.3},
+			input:    []any{2.2, 3.3, 1.1},
+			expected: []any{1.1, 2.2, 3.3},
 		},
 		{
 			name:     "maps",
-			input:    []interface{}{map[string]interface{}{testKeyGeneric: "b"}, map[string]interface{}{testKeyGeneric: "a"}},
-			expected: []interface{}{map[string]interface{}{testKeyGeneric: "a"}, map[string]interface{}{testKeyGeneric: "b"}},
+			input:    []any{map[string]any{testKeyGeneric: "b"}, map[string]any{testKeyGeneric: "a"}},
+			expected: []any{map[string]any{testKeyGeneric: "a"}, map[string]any{testKeyGeneric: "b"}},
 		},
 	}
 
@@ -657,38 +657,38 @@ func TestSortInterfaceSlice(t *testing.T) {
 func TestSortNestedArrays(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    map[string]interface{}
-		expected map[string]interface{}
+		input    map[string]any
+		expected map[string]any
 	}{
 		{
 			name: "single level",
-			input: map[string]interface{}{
-				testKey1: []interface{}{"b", "a", "c"},
+			input: map[string]any{
+				testKey1: []any{"b", "a", "c"},
 			},
-			expected: map[string]interface{}{
-				testKey1: []interface{}{"a", "b", "c"},
+			expected: map[string]any{
+				testKey1: []any{"a", "b", "c"},
 			},
 		},
 		{
 			name: "nested map",
-			input: map[string]interface{}{
-				testKey1: []interface{}{"b", "a", "c"},
-				testKey2: map[string]interface{}{
-					"nestedKey1": []interface{}{3, 1, 2},
+			input: map[string]any{
+				testKey1: []any{"b", "a", "c"},
+				testKey2: map[string]any{
+					"nestedKey1": []any{3, 1, 2},
 				},
-				"key3": []map[string]interface{}{
-					{"nestedKey1": map[string]interface{}{testKeyGeneric: "b", testKey2: "a"}},
-					{"nestedKey2": map[string]interface{}{testKeyGeneric: "a", testKey2: "b"}},
+				"key3": []map[string]any{
+					{"nestedKey1": map[string]any{testKeyGeneric: "b", testKey2: "a"}},
+					{"nestedKey2": map[string]any{testKeyGeneric: "a", testKey2: "b"}},
 				},
 			},
-			expected: map[string]interface{}{
-				testKey1: []interface{}{"a", "b", "c"},
-				testKey2: map[string]interface{}{
-					"nestedKey1": []interface{}{1, 2, 3},
+			expected: map[string]any{
+				testKey1: []any{"a", "b", "c"},
+				testKey2: map[string]any{
+					"nestedKey1": []any{1, 2, 3},
 				},
-				"key3": []map[string]interface{}{
-					{"nestedKey1": map[string]interface{}{testKeyGeneric: "b", testKey2: "a"}},
-					{"nestedKey2": map[string]interface{}{testKeyGeneric: "a", testKey2: "b"}},
+				"key3": []map[string]any{
+					{"nestedKey1": map[string]any{testKeyGeneric: "b", testKey2: "a"}},
+					{"nestedKey2": map[string]any{testKeyGeneric: "a", testKey2: "b"}},
 				},
 			},
 		},
@@ -705,17 +705,17 @@ func TestSortNestedArrays(t *testing.T) {
 }
 
 func TestDeepEqualWithSorting(t *testing.T) {
-	map1 := map[string]interface{}{
-		testKey1: []interface{}{"a", "c", "b"},
-		testKey2: map[string]interface{}{
-			"nestedKey1": []interface{}{3, 1, 2},
+	map1 := map[string]any{
+		testKey1: []any{"a", "c", "b"},
+		testKey2: map[string]any{
+			"nestedKey1": []any{3, 1, 2},
 		},
 	}
 
-	map2 := map[string]interface{}{
-		testKey1: []interface{}{"a", "b", "c"},
-		testKey2: map[string]interface{}{
-			"nestedKey1": []interface{}{1, 2, 3},
+	map2 := map[string]any{
+		testKey1: []any{"a", "b", "c"},
+		testKey2: map[string]any{
+			"nestedKey1": []any{1, 2, 3},
 		},
 	}
 
@@ -741,38 +741,38 @@ func TestPluginConsole(t *testing.T) {
 		{
 			name: "plugin associated with service",
 			plugin: kong.Plugin{
-				Service: &kong.Service{ID: kong.String(testBar)},
+				Service: &kong.Service{ID: new(testBar)},
 			},
 			expected: "foo-plugin for service bar",
 		},
 		{
 			name: "plugin associated with route",
 			plugin: kong.Plugin{
-				Route: &kong.Route{ID: kong.String(testBaz)},
+				Route: &kong.Route{ID: new(testBaz)},
 			},
 			expected: "foo-plugin for route baz",
 		},
 		{
 			name: "plugin associated with consumer",
 			plugin: kong.Plugin{
-				Consumer: &kong.Consumer{ID: kong.String("demo")},
+				Consumer: &kong.Consumer{ID: new("demo")},
 			},
 			expected: "foo-plugin for consumer demo",
 		},
 		{
 			name: "plugin associated with consumer group",
 			plugin: kong.Plugin{
-				ConsumerGroup: &kong.ConsumerGroup{ID: kong.String("demo-group")},
+				ConsumerGroup: &kong.ConsumerGroup{ID: new("demo-group")},
 			},
 			expected: "foo-plugin for consumer-group demo-group",
 		},
 		{
 			name: "plugin associated with >1 entities",
 			plugin: kong.Plugin{
-				Service:       &kong.Service{ID: kong.String(testBar)},
-				Route:         &kong.Route{ID: kong.String(testBaz)},
-				Consumer:      &kong.Consumer{ID: kong.String("demo")},
-				ConsumerGroup: &kong.ConsumerGroup{ID: kong.String("demo-group")},
+				Service:       &kong.Service{ID: new(testBar)},
+				Route:         &kong.Route{ID: new(testBaz)},
+				Consumer:      &kong.Consumer{ID: new("demo")},
+				ConsumerGroup: &kong.ConsumerGroup{ID: new("demo-group")},
 			},
 			expected: "foo-plugin for service bar and route baz and consumer demo and consumer-group demo-group",
 		},
@@ -780,8 +780,8 @@ func TestPluginConsole(t *testing.T) {
 	for _, tt := range tests {
 		var p1 Plugin
 		p1.Plugin = tt.plugin
-		p1.ID = kong.String(testFoo)
-		p1.Name = kong.String("foo-plugin")
+		p1.ID = new(testFoo)
+		p1.Name = new("foo-plugin")
 
 		t.Run(tt.name, func(t *testing.T) {
 			actual := p1.Console()
@@ -804,67 +804,67 @@ func TestSortNestedArraysBasedOnSchema(t *testing.T) {
 	// Create a plugin config with all field types from the schema
 	originalPluginConfig := kong.Configuration{
 		"primitive_str": "test-value",
-		"record_of_array_of_str": map[string]interface{}{
-			"headers": []interface{}{
+		"record_of_array_of_str": map[string]any{
+			"headers": []any{
 				"header-z",
 				"header-a",
 				"header-m",
 			},
 		},
-		"map_type": map[string]interface{}{
+		"map_type": map[string]any{
 			testKeyGeneric: testValue,
 		},
-		"array_of_record": []interface{}{
-			map[string]interface{}{
+		"array_of_record": []any{
+			map[string]any{
 				"host": "host2.example.com",
 				"port": float64(6380),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"host": "host1.example.com",
 				"port": float64(6379),
 			},
 		},
-		"nested_array_of_array_of_str": []interface{}{
-			[]interface{}{"z", "a", "m"},
-			[]interface{}{"b", "y", "c"},
+		"nested_array_of_array_of_str": []any{
+			[]any{"z", "a", "m"},
+			[]any{"b", "y", "c"},
 		},
-		"nested_array_of_set_of_str": []interface{}{
-			[]interface{}{"z", "a", "m"},
-			[]interface{}{"b", "y", "c"},
+		"nested_array_of_set_of_str": []any{
+			[]any{"z", "a", "m"},
+			[]any{"b", "y", "c"},
 		},
-		"nested_set_of_array_of_str": []interface{}{
-			[]interface{}{"z", "a", "m"},
-			[]interface{}{"b", "y", "c"},
+		"nested_set_of_array_of_str": []any{
+			[]any{"z", "a", "m"},
+			[]any{"b", "y", "c"},
 		},
-		"nested_set_of_set_of_str": []interface{}{
-			[]interface{}{"z", "a", "m"},
-			[]interface{}{"b", "y", "c"},
+		"nested_set_of_set_of_str": []any{
+			[]any{"z", "a", "m"},
+			[]any{"b", "y", "c"},
 		},
-		"nested_array_of_record_of_array": []interface{}{
-			[]interface{}{
-				map[string]interface{}{testPorts: []interface{}{float64(9096), float64(9091), float64(9092)}},
-				map[string]interface{}{testPorts: []interface{}{float64(8086), float64(8081), float64(8082)}},
+		"nested_array_of_record_of_array": []any{
+			[]any{
+				map[string]any{testPorts: []any{float64(9096), float64(9091), float64(9092)}},
+				map[string]any{testPorts: []any{float64(8086), float64(8081), float64(8082)}},
 			},
 		},
-		"nested_array_of_record_of_set": []interface{}{
-			[]interface{}{
-				map[string]interface{}{testPorts: []interface{}{float64(9096), float64(9091), float64(9092)}},
-				map[string]interface{}{testPorts: []interface{}{float64(8086), float64(8081), float64(8082)}},
+		"nested_array_of_record_of_set": []any{
+			[]any{
+				map[string]any{testPorts: []any{float64(9096), float64(9091), float64(9092)}},
+				map[string]any{testPorts: []any{float64(8086), float64(8081), float64(8082)}},
 			},
 		},
-		"nested_set_of_record_of_set": []interface{}{
-			[]interface{}{
-				map[string]interface{}{testPorts: []interface{}{float64(9096), float64(9091), float64(9092)}},
-				map[string]interface{}{testPorts: []interface{}{float64(8086), float64(8081), float64(8082)}},
+		"nested_set_of_record_of_set": []any{
+			[]any{
+				map[string]any{testPorts: []any{float64(9096), float64(9091), float64(9092)}},
+				map[string]any{testPorts: []any{float64(8086), float64(8081), float64(8082)}},
 			},
 		},
-		"shorthand_record_of_set_array": map[string]interface{}{
-			"set_hosts": []interface{}{
+		"shorthand_record_of_set_array": map[string]any{
+			"set_hosts": []any{
 				"example.com",
 				"abcgefgh.com",
 				"zzz.com",
 			},
-			"array_hosts": []interface{}{
+			"array_hosts": []any{
 				"example.com",
 				"abcgefgh.com",
 				"zzz.com",
@@ -873,67 +873,67 @@ func TestSortNestedArraysBasedOnSchema(t *testing.T) {
 	}
 	expectedPluginConfig := kong.Configuration{
 		"primitive_str": "test-value",
-		"record_of_array_of_str": map[string]interface{}{
-			"headers": []interface{}{ // not sorted
+		"record_of_array_of_str": map[string]any{
+			"headers": []any{ // not sorted
 				"header-z",
 				"header-a",
 				"header-m",
 			},
 		},
-		"map_type": map[string]interface{}{
+		"map_type": map[string]any{
 			testKeyGeneric: testValue,
 		},
-		"array_of_record": []interface{}{ // not sorted
-			map[string]interface{}{
+		"array_of_record": []any{ // not sorted
+			map[string]any{
 				"host": "host2.example.com",
 				"port": float64(6380),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"host": "host1.example.com",
 				"port": float64(6379),
 			},
 		},
-		"nested_array_of_array_of_str": []interface{}{ // not sorted
-			[]interface{}{"z", "a", "m"}, // not sorted
-			[]interface{}{"b", "y", "c"}, // not sorted
+		"nested_array_of_array_of_str": []any{ // not sorted
+			[]any{"z", "a", "m"}, // not sorted
+			[]any{"b", "y", "c"}, // not sorted
 		},
-		"nested_array_of_set_of_str": []interface{}{ // not sorted
-			[]interface{}{"a", "m", "z"}, // sorted
-			[]interface{}{"b", "c", "y"}, // sorted
+		"nested_array_of_set_of_str": []any{ // not sorted
+			[]any{"a", "m", "z"}, // sorted
+			[]any{"b", "c", "y"}, // sorted
 		},
-		"nested_set_of_array_of_str": []interface{}{ // sorted
-			[]interface{}{"b", "y", "c"}, // not sorted
-			[]interface{}{"z", "a", "m"}, // not sorted
+		"nested_set_of_array_of_str": []any{ // sorted
+			[]any{"b", "y", "c"}, // not sorted
+			[]any{"z", "a", "m"}, // not sorted
 		},
-		"nested_set_of_set_of_str": []interface{}{ // sorted
-			[]interface{}{"a", "m", "z"}, // sorted
-			[]interface{}{"b", "c", "y"}, // sorted
+		"nested_set_of_set_of_str": []any{ // sorted
+			[]any{"a", "m", "z"}, // sorted
+			[]any{"b", "c", "y"}, // sorted
 		},
-		"nested_array_of_record_of_array": []interface{}{
-			[]interface{}{ // not sorted
-				map[string]interface{}{testPorts: []interface{}{float64(9096), float64(9091), float64(9092)}}, // not sorted
-				map[string]interface{}{testPorts: []interface{}{float64(8086), float64(8081), float64(8082)}}, // not sorted
+		"nested_array_of_record_of_array": []any{
+			[]any{ // not sorted
+				map[string]any{testPorts: []any{float64(9096), float64(9091), float64(9092)}}, // not sorted
+				map[string]any{testPorts: []any{float64(8086), float64(8081), float64(8082)}}, // not sorted
 			},
 		},
-		"nested_array_of_record_of_set": []interface{}{
-			[]interface{}{ // not sorted
-				map[string]interface{}{testPorts: []interface{}{float64(9091), float64(9092), float64(9096)}}, // sorted
-				map[string]interface{}{testPorts: []interface{}{float64(8081), float64(8082), float64(8086)}}, // sorted
+		"nested_array_of_record_of_set": []any{
+			[]any{ // not sorted
+				map[string]any{testPorts: []any{float64(9091), float64(9092), float64(9096)}}, // sorted
+				map[string]any{testPorts: []any{float64(8081), float64(8082), float64(8086)}}, // sorted
 			},
 		},
-		"nested_set_of_record_of_set": []interface{}{
-			[]interface{}{ // sorted
-				map[string]interface{}{testPorts: []interface{}{float64(8081), float64(8082), float64(8086)}}, // sorted
-				map[string]interface{}{testPorts: []interface{}{float64(9091), float64(9092), float64(9096)}}, // sorted
+		"nested_set_of_record_of_set": []any{
+			[]any{ // sorted
+				map[string]any{testPorts: []any{float64(8081), float64(8082), float64(8086)}}, // sorted
+				map[string]any{testPorts: []any{float64(9091), float64(9092), float64(9096)}}, // sorted
 			},
 		},
-		"shorthand_record_of_set_array": map[string]interface{}{
-			"set_hosts": []interface{}{ // sorted
+		"shorthand_record_of_set_array": map[string]any{
+			"set_hosts": []any{ // sorted
 				"abcgefgh.com",
 				"example.com",
 				"zzz.com",
 			},
-			"array_hosts": []interface{}{ // not sorted
+			"array_hosts": []any{ // not sorted
 				"example.com",
 				"abcgefgh.com",
 				"zzz.com",

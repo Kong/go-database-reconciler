@@ -18,13 +18,13 @@ func TestCertificateInsert(t *testing.T) {
 	var certificate Certificate
 	require.Error(t, collection.Add(certificate))
 
-	certificate.ID = kong.String("first")
+	certificate.ID = new("first")
 	require.Error(t, collection.Add(certificate))
 
-	certificate.Key = kong.String("firstKey")
+	certificate.Key = new("firstKey")
 	require.Error(t, collection.Add(certificate))
 
-	certificate.Cert = kong.String("firstCert")
+	certificate.Cert = new("firstCert")
 	err := collection.Add(certificate)
 	require.NoError(t, err)
 
@@ -37,9 +37,9 @@ func TestCertificateGetUpdate(t *testing.T) {
 	collection := certsCollection()
 
 	var certificate Certificate
-	certificate.Cert = kong.String("firstCert")
-	certificate.Key = kong.String("firstKey")
-	certificate.ID = kong.String("first")
+	certificate.Cert = new("firstCert")
+	certificate.Key = new("firstKey")
+	certificate.ID = new("first")
 	err := collection.Add(certificate)
 	require.NoError(t, err)
 
@@ -49,13 +49,13 @@ func TestCertificateGetUpdate(t *testing.T) {
 	se.ID = nil
 	require.Error(t, collection.Update(*se))
 
-	se.ID = kong.String("first")
+	se.ID = new("first")
 	se.Key = nil
-	se.Cert = kong.String("firstCert-updated")
+	se.Cert = new("firstCert-updated")
 	err = collection.Update(*se)
 	require.Error(t, err)
 
-	se.Key = kong.String("firstKey-updated")
+	se.Key = new("firstKey-updated")
 	err = collection.Update(*se)
 	require.NoError(t, err)
 
@@ -85,16 +85,16 @@ func TestCertificateGetMemoryReference(t *testing.T) {
 	collection := certsCollection()
 
 	var cert Certificate
-	cert.Cert = kong.String("my-cert")
-	cert.Key = kong.String("my-key")
-	cert.ID = kong.String("first")
+	cert.Cert = new("my-cert")
+	cert.Key = new("my-key")
+	cert.ID = new("first")
 	err := collection.Add(cert)
 	require.NoError(t, err)
 
 	c, err := collection.Get("first")
 	require.NoError(t, err)
 	assert.NotNil(c)
-	c.Cert = kong.String("my-new-cert")
+	c.Cert = new("my-new-cert")
 
 	c, err = collection.Get("first")
 	require.NoError(t, err)
@@ -107,8 +107,8 @@ func TestCertificatesInvalidType(t *testing.T) {
 	collection := certsCollection()
 
 	var upstream Upstream
-	upstream.Name = kong.String("my-upstream")
-	upstream.ID = kong.String("first")
+	upstream.Name = new("my-upstream")
+	upstream.ID = new("first")
 	txn := collection.db.Txn(true)
 	err := txn.Insert(certificateTableName, &upstream)
 	require.Error(t, err)
@@ -121,9 +121,9 @@ func TestCertificatesInvalidType(t *testing.T) {
 
 	certificate := badCertificate{
 		Certificate: kong.Certificate{
-			ID:   kong.String("id"),
-			Cert: kong.String("Cert"),
-			Key:  kong.String("Key"),
+			ID:   new("id"),
+			Cert: new("Cert"),
+			Key:  new("Key"),
 		},
 	}
 
@@ -149,9 +149,9 @@ func TestCertificateDelete(t *testing.T) {
 	collection := certsCollection()
 
 	var certificate Certificate
-	certificate.ID = kong.String("first")
-	certificate.Cert = kong.String("firstCert")
-	certificate.Key = kong.String("firstKey")
+	certificate.ID = new("first")
+	certificate.Cert = new("firstCert")
+	certificate.Key = new("firstKey")
 	err := collection.Add(certificate)
 	require.NoError(t, err)
 
@@ -166,9 +166,9 @@ func TestCertificateDelete(t *testing.T) {
 	err = collection.Delete(*se.ID)
 	require.Error(t, err)
 
-	certificate.ID = kong.String("first")
-	certificate.Cert = kong.String("firstCert")
-	certificate.Key = kong.String("firstKey")
+	certificate.ID = new("first")
+	certificate.Cert = new("firstCert")
+	certificate.Key = new("firstKey")
 	err = collection.Add(certificate)
 	require.NoError(t, err)
 
@@ -200,16 +200,16 @@ func TestCertificateGetAll(t *testing.T) {
 	collection := certsCollection()
 
 	var certificate Certificate
-	certificate.ID = kong.String("first")
-	certificate.Cert = kong.String("firstCert")
-	certificate.Key = kong.String("firstKey")
+	certificate.ID = new("first")
+	certificate.Cert = new("firstCert")
+	certificate.Key = new("firstKey")
 	err := collection.Add(certificate)
 	require.NoError(t, err)
 
 	var certificate2 Certificate
-	certificate2.ID = kong.String("second")
-	certificate2.Cert = kong.String("secondCert")
-	certificate2.Key = kong.String("secondKey")
+	certificate2.ID = new("second")
+	certificate2.Cert = new("secondCert")
+	certificate2.Key = new("secondKey")
 	err = collection.Add(certificate2)
 	require.NoError(t, err)
 
