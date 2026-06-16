@@ -950,7 +950,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		return result, nil
 	})
-	// fix for https://github.com/Kong/go-database-reconciler/issues/375 - negative or zero parallelism sent explicitly would hang up deck and cause a timeout
 	if len(errs) > 0 {
 		return stats, errs, output
 	}
