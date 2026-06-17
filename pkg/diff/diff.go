@@ -472,7 +472,7 @@ func (sc *Syncer) wait() {
 // Run starts a diff and invokes action for every diff.
 func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	if parallelism < 1 {
-		return append([]error{}, fmt.Errorf("parallelism can not be less than 1"))
+		return append([]error{}, fmt.Errorf("parallelism can not be negative"))
 	}
 
 	var wg sync.WaitGroup
@@ -948,9 +948,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 
 		return result, nil
 	})
-	if len(errs) > 0 {
-		return stats, errs, output
-	}
 	for event := range sc.eventChan {
 		// Add events remaining in the event queue but not dispatched to the runners to the dropped events.
 		sc.droppedEvents = append(sc.droppedEvents, event)
