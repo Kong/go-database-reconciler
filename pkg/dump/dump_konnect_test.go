@@ -24,17 +24,17 @@ func Test_kongServiceIDs(t *testing.T) {
 				cpID: "cp1",
 				relations: []*konnect.ControlPlaneServiceRelation{
 					{
-						ID:                   kong.String("id1"),
-						ControlPlaneEntityID: kong.String("kong-svc-1"),
+						ID:                   new("id1"),
+						ControlPlaneEntityID: new("kong-svc-1"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp1"),
+							ID: new("cp1"),
 						},
 					},
 					{
-						ID:                   kong.String("id2"),
-						ControlPlaneEntityID: kong.String("kong-svc-2"),
+						ID:                   new("id2"),
+						ControlPlaneEntityID: new("kong-svc-2"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp1"),
+							ID: new("cp1"),
 						},
 					},
 				},
@@ -50,9 +50,9 @@ func Test_kongServiceIDs(t *testing.T) {
 				cpID: "cp1",
 				relations: []*konnect.ControlPlaneServiceRelation{
 					{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp2"),
+							ID: new("cp2"),
 						},
 					},
 				},
@@ -65,10 +65,10 @@ func Test_kongServiceIDs(t *testing.T) {
 				cpID: "cp1",
 				relations: []*konnect.ControlPlaneServiceRelation{
 					{
-						ID:                   kong.String("id1"),
-						ControlPlaneEntityID: kong.String("kong-svc-1"),
+						ID:                   new("id1"),
+						ControlPlaneEntityID: new("kong-svc-1"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp2"),
+							ID: new("cp2"),
 						},
 					},
 				},
@@ -112,15 +112,15 @@ func Test_filterNonKongPackages(t *testing.T) {
 				controlPlaneID: "cp1",
 				packages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("sp-id1"),
-						Name: kong.String("sp-name1"),
+						ID:   new("sp-id1"),
+						Name: new("sp-name1"),
 					},
 				},
 			},
 			want: []*konnect.ServicePackage{
 				{
-					ID:   kong.String("sp-id1"),
-					Name: kong.String("sp-name1"),
+					ID:   new("sp-id1"),
+					Name: new("sp-name1"),
 				},
 			},
 		},
@@ -130,14 +130,14 @@ func Test_filterNonKongPackages(t *testing.T) {
 				controlPlaneID: "cp1",
 				packages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("sp-id1"),
-						Name: kong.String("sp-name1"),
+						ID:   new("sp-id1"),
+						Name: new("sp-name1"),
 						Versions: []konnect.ServiceVersion{
 							{
-								ID:      kong.String("sv-id1"),
-								Version: kong.String("sv-v1"),
+								ID:      new("sv-id1"),
+								Version: new("sv-v1"),
 								ControlPlaneServiceRelation: &konnect.ControlPlaneServiceRelation{
-									ControlPlaneEntityID: kong.String("kong-svc-1"),
+									ControlPlaneEntityID: new("kong-svc-1"),
 								},
 							},
 						},
@@ -145,10 +145,10 @@ func Test_filterNonKongPackages(t *testing.T) {
 				},
 				relations: []*konnect.ControlPlaneServiceRelation{
 					{
-						ID:                   kong.String("id1"),
-						ControlPlaneEntityID: kong.String("kong-svc-1"),
+						ID:                   new("id1"),
+						ControlPlaneEntityID: new("kong-svc-1"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp2"),
+							ID: new("cp2"),
 						},
 					},
 				},
@@ -161,14 +161,14 @@ func Test_filterNonKongPackages(t *testing.T) {
 				controlPlaneID: "cp1",
 				packages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("sp-id1"),
-						Name: kong.String("sp-name1"),
+						ID:   new("sp-id1"),
+						Name: new("sp-name1"),
 						Versions: []konnect.ServiceVersion{
 							{
-								ID:      kong.String("sv-id1"),
-								Version: kong.String("sv-v1"),
+								ID:      new("sv-id1"),
+								Version: new("sv-v1"),
 								ControlPlaneServiceRelation: &konnect.ControlPlaneServiceRelation{
-									ControlPlaneEntityID: kong.String("kong-svc-1"),
+									ControlPlaneEntityID: new("kong-svc-1"),
 								},
 							},
 						},
@@ -176,24 +176,24 @@ func Test_filterNonKongPackages(t *testing.T) {
 				},
 				relations: []*konnect.ControlPlaneServiceRelation{
 					{
-						ID:                   kong.String("id1"),
-						ControlPlaneEntityID: kong.String("kong-svc-1"),
+						ID:                   new("id1"),
+						ControlPlaneEntityID: new("kong-svc-1"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp1"),
+							ID: new("cp1"),
 						},
 					},
 				},
 			},
 			want: []*konnect.ServicePackage{
 				{
-					ID:   kong.String("sp-id1"),
-					Name: kong.String("sp-name1"),
+					ID:   new("sp-id1"),
+					Name: new("sp-name1"),
 					Versions: []konnect.ServiceVersion{
 						{
-							ID:      kong.String("sv-id1"),
-							Version: kong.String("sv-v1"),
+							ID:      new("sv-id1"),
+							Version: new("sv-v1"),
 							ControlPlaneServiceRelation: &konnect.ControlPlaneServiceRelation{
-								ControlPlaneEntityID: kong.String("kong-svc-1"),
+								ControlPlaneEntityID: new("kong-svc-1"),
 							},
 						},
 					},
@@ -206,16 +206,16 @@ func Test_filterNonKongPackages(t *testing.T) {
 				controlPlaneID: "cp1",
 				packages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("sp-id1"),
-						Name: kong.String("sp-name1"),
+						ID:   new("sp-id1"),
+						Name: new("sp-name1"),
 						Versions: []konnect.ServiceVersion{
 							{
-								ID:      kong.String("sv-id1"),
-								Version: kong.String("sv-v1"),
+								ID:      new("sv-id1"),
+								Version: new("sv-v1"),
 							},
 							{
-								ID:      kong.String("sv-id2"),
-								Version: kong.String("sv-v2"),
+								ID:      new("sv-id2"),
+								Version: new("sv-v2"),
 							},
 						},
 					},
@@ -224,16 +224,16 @@ func Test_filterNonKongPackages(t *testing.T) {
 			},
 			want: []*konnect.ServicePackage{
 				{
-					ID:   kong.String("sp-id1"),
-					Name: kong.String("sp-name1"),
+					ID:   new("sp-id1"),
+					Name: new("sp-name1"),
 					Versions: []konnect.ServiceVersion{
 						{
-							ID:      kong.String("sv-id1"),
-							Version: kong.String("sv-v1"),
+							ID:      new("sv-id1"),
+							Version: new("sv-v1"),
 						},
 						{
-							ID:      kong.String("sv-id2"),
-							Version: kong.String("sv-v2"),
+							ID:      new("sv-id2"),
+							Version: new("sv-v2"),
 						},
 					},
 				},
@@ -245,14 +245,14 @@ func Test_filterNonKongPackages(t *testing.T) {
 				controlPlaneID: "cp1",
 				packages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("sp-id1"),
-						Name: kong.String("sp-name1"),
+						ID:   new("sp-id1"),
+						Name: new("sp-name1"),
 						Versions: []konnect.ServiceVersion{
 							{
-								ID:      kong.String("sv-id1"),
-								Version: kong.String("sv-v1"),
+								ID:      new("sv-id1"),
+								Version: new("sv-v1"),
 								ControlPlaneServiceRelation: &konnect.ControlPlaneServiceRelation{
-									ControlPlaneEntityID: kong.String("kong-svc-1"),
+									ControlPlaneEntityID: new("kong-svc-1"),
 								},
 							},
 						},
@@ -260,10 +260,10 @@ func Test_filterNonKongPackages(t *testing.T) {
 				},
 				relations: []*konnect.ControlPlaneServiceRelation{
 					{
-						ID:                   kong.String("id1"),
-						ControlPlaneEntityID: kong.String("kong-svc-42"),
+						ID:                   new("id1"),
+						ControlPlaneEntityID: new("kong-svc-42"),
 						ControlPlane: &konnect.ControlPlane{
-							ID: kong.String("cp1"),
+							ID: new("cp1"),
 						},
 					},
 				},
@@ -291,41 +291,41 @@ func Test_excludeKonnectManagedPlugins(t *testing.T) {
 			name: "exclude konnect tags",
 			plugins: []*kong.Plugin{
 				{
-					Name: kong.String("rate-limiting"),
-					Tags: []*string{kong.String("tag1")},
+					Name: new("rate-limiting"),
+					Tags: []*string{new("tag1")},
 				},
 				{
-					Name: kong.String("basic-auth"),
+					Name: new("basic-auth"),
 					Tags: []*string{},
 				},
 				{
-					Name: kong.String("key-auth"),
+					Name: new("key-auth"),
 					Tags: []*string{
-						kong.String("konnect-app-registration"),
-						kong.String("konnect-managed-plugin"),
+						new("konnect-app-registration"),
+						new("konnect-managed-plugin"),
 					},
 				},
 				{
-					Name: kong.String("acl"),
+					Name: new("acl"),
 					Tags: []*string{
-						kong.String("konnect-app-registration"),
-						kong.String("konnect-managed-plugin"),
+						new("konnect-app-registration"),
+						new("konnect-managed-plugin"),
 					},
 				},
 				{
-					Name: kong.String("prometheus"),
+					Name: new("prometheus"),
 					Tags: []*string{
-						kong.String("konnect-managed-plugin"),
+						new("konnect-managed-plugin"),
 					},
 				},
 			},
 			want: []*kong.Plugin{
 				{
-					Name: kong.String("rate-limiting"),
-					Tags: []*string{kong.String("tag1")},
+					Name: new("rate-limiting"),
+					Tags: []*string{new("tag1")},
 				},
 				{
-					Name: kong.String("basic-auth"),
+					Name: new("basic-auth"),
 					Tags: []*string{},
 				},
 			},
@@ -339,23 +339,23 @@ func Test_excludeKonnectManagedPlugins(t *testing.T) {
 			name: "all konnect managed",
 			plugins: []*kong.Plugin{
 				{
-					Name: kong.String("key-auth"),
+					Name: new("key-auth"),
 					Tags: []*string{
-						kong.String("konnect-app-registration"),
-						kong.String("konnect-managed-plugin"),
+						new("konnect-app-registration"),
+						new("konnect-managed-plugin"),
 					},
 				},
 				{
-					Name: kong.String("acl"),
+					Name: new("acl"),
 					Tags: []*string{
-						kong.String("konnect-app-registration"),
-						kong.String("konnect-managed-plugin"),
+						new("konnect-app-registration"),
+						new("konnect-managed-plugin"),
 					},
 				},
 				{
-					Name: kong.String("prometheus"),
+					Name: new("prometheus"),
 					Tags: []*string{
-						kong.String("konnect-managed-plugin"),
+						new("konnect-managed-plugin"),
 					},
 				},
 			},
@@ -382,29 +382,29 @@ func Test_excludeKonnectManagedEntities(t *testing.T) {
 			name: "exclude konnect managed",
 			entities: []any{
 				&kong.SNI{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Tags: []*string{
-						kong.String("konnect-managed"),
+						new("konnect-managed"),
 					},
 				},
 				&kong.SNI{
-					Name: kong.String("bar"),
+					Name: new("bar"),
 					Tags: []*string{
-						kong.String("bar-tag1"),
+						new("bar-tag1"),
 					},
 				},
 				&kong.SNI{
-					Name: kong.String("baz"),
+					Name: new("baz"),
 					Tags: []*string{
-						kong.String("konnect-managed"),
+						new("konnect-managed"),
 					},
 				},
 			},
 			want: []any{
 				&kong.SNI{
-					Name: kong.String("bar"),
+					Name: new("bar"),
 					Tags: []*string{
-						kong.String("bar-tag1"),
+						new("bar-tag1"),
 					},
 				},
 			},
@@ -418,15 +418,15 @@ func Test_excludeKonnectManagedEntities(t *testing.T) {
 			name: "all konnect managed",
 			entities: []any{
 				&kong.SNI{
-					Name: kong.String("sni1"),
+					Name: new("sni1"),
 					Tags: []*string{
-						kong.String("konnect-managed"),
+						new("konnect-managed"),
 					},
 				},
 				&kong.SNI{
-					Name: kong.String("sni2"),
+					Name: new("sni2"),
 					Tags: []*string{
-						kong.String("konnect-managed"),
+						new("konnect-managed"),
 					},
 				},
 			},

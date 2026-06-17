@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/kong/go-database-reconciler/pkg/utils"
-	"github.com/kong/go-kong/kong"
 )
 
 // PopulateDocumentContent updates the Documents contained within a Content with the
@@ -29,7 +28,7 @@ func (c Content) PopulateDocumentContent(filenames []string) error {
 			if err != nil {
 				return fmt.Errorf("error reading document file: %w", err)
 			}
-			sp.Document.Content = kong.String(string(content))
+			sp.Document.Content = new(string(content))
 		}
 		for _, sv := range sp.Versions {
 			if sv.Document != nil {
@@ -38,7 +37,7 @@ func (c Content) PopulateDocumentContent(filenames []string) error {
 				if err != nil {
 					return fmt.Errorf("error reading document file: %w", err)
 				}
-				sv.Document.Content = kong.String(string(content))
+				sv.Document.Content = new(string(content))
 			}
 		}
 	}

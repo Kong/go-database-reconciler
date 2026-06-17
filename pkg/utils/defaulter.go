@@ -13,14 +13,14 @@ import (
 
 // DefaulterInterface defines the interface for defaulters.
 type DefaulterInterface interface {
-	Set(arg interface{}) error
-	MustSet(arg interface{})
+	Set(arg any) error
+	MustSet(arg any)
 }
 
 // Defaulter registers types and fills in struct fields with
 // default values.
 type Defaulter struct {
-	r map[string]interface{}
+	r map[string]any
 
 	ctx       context.Context
 	client    *kong.Client
@@ -34,7 +34,7 @@ type Defaulter struct {
 }
 
 type DefaulterOpts struct {
-	KongDefaults           interface{}
+	KongDefaults           any
 	DisableDynamicDefaults bool
 	IsKonnect              bool
 	Client                 *kong.Client
@@ -87,7 +87,7 @@ func getKongDefaulter(opts DefaulterOpts) (*Defaulter, error) {
 }
 
 // Check if `entity` has restricted fields set
-func checkEntityDefaults(entity interface{}, restrictedFields []string) error {
+func checkEntityDefaults(entity any, restrictedFields []string) error {
 	var invalidFields []string
 	r := reflect.ValueOf(entity)
 	for _, fieldName := range restrictedFields {
@@ -105,14 +105,14 @@ func checkEntityDefaults(entity interface{}, restrictedFields []string) error {
 
 func (d *Defaulter) once() {
 	if d.r == nil {
-		d.r = make(map[string]interface{})
+		d.r = make(map[string]any)
 	}
 }
 
 // Register registers a type and it's default value.
 // The default value is passed in and the type is inferred from the
 // default value.
-func (d *Defaulter) Register(def interface{}) error {
+func (d *Defaulter) Register(def any) error {
 	d.once()
 	v := reflect.ValueOf(def)
 	if !v.IsValid() {
@@ -126,11 +126,8 @@ func (d *Defaulter) Register(def interface{}) error {
 type kongTransformer struct{}
 
 func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
-	var a *int
-	var ar []int
-	var b *bool
 	switch typ {
-	case reflect.TypeOf(ar):
+	case reflect.TypeFor[[]int]():
 
 		return func(dst, _ reflect.Value) error {
 			if dst.CanSet() {
@@ -140,7 +137,7 @@ func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Val
 			}
 			return nil
 		}
-	case reflect.TypeOf(a):
+	case reflect.TypeFor[*int]():
 
 		return func(dst, _ reflect.Value) error {
 			if dst.CanSet() {
@@ -150,7 +147,7 @@ func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Val
 			}
 			return nil
 		}
-	case reflect.TypeOf(b):
+	case reflect.TypeFor[*bool]():
 
 		return func(dst, _ reflect.Value) error {
 			if dst.CanSet() {
@@ -167,7 +164,7 @@ func (t kongTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Val
 }
 
 // Set fills in default values in a struct of a registered type.
-func (d *Defaulter) Set(arg interface{}) error {
+func (d *Defaulter) Set(arg any) error {
 	d.once()
 	v := reflect.ValueOf(arg)
 	if !v.IsValid() {
@@ -187,18 +184,18 @@ func (d *Defaulter) Set(arg interface{}) error {
 }
 
 // MustSet is like Set but panics if there is an error.
-func (d *Defaulter) MustSet(arg interface{}) {
+func (d *Defaulter) MustSet(arg any) {
 	err := d.Set(arg)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (d *Defaulter) getEntitySchema(entityType string) (map[string]interface{}, error) {
+func (d *Defaulter) getEntitySchema(entityType string) (map[string]any, error) {
 	return schema.FetchEntitySchema(d.ctx, d.client, d.isKonnect, entityType)
 }
 
-func (d *Defaulter) addEntityDefaults(entityType string, entity interface{}) error {
+func (d *Defaulter) addEntityDefaults(entityType string, entity any) error {
 	schema, err := d.getEntitySchema(entityType)
 	if schema == nil && err == nil {
 		return nil
@@ -298,7 +295,7 @@ func GetDefaulter(ctx context.Context, opts DefaulterOpts) (*Defaulter, error) {
 	return getKongDefaulter(opts)
 }
 
-func (d *Defaulter) populateDefaultsFromInput(defaults interface{}) error {
+func (d *Defaulter) populateDefaultsFromInput(defaults any) error {
 	err := validateKongDefaults(defaults)
 	if err != nil {
 		return fmt.Errorf("validating defaults: %w", err)
@@ -344,7 +341,7 @@ func (d *Defaulter) populateDefaultsFromInput(defaults interface{}) error {
 	return nil
 }
 
-func validateKongDefaults(defaults interface{}) error {
+func validateKongDefaults(defaults any) error {
 	var errs ErrArray
 	r := reflect.ValueOf(defaults)
 	for objectName, restrictedFields := range defaultsRestrictedFields {
@@ -401,11 +398,11 @@ func NewNoOpDefaulter() *NoOpDefaulter {
 }
 
 // Set does nothing and returns nil.
-func (d *NoOpDefaulter) Set(_ interface{}) error {
+func (d *NoOpDefaulter) Set(_ any) error {
 	return nil
 }
 
 // MustSet does nothing.
-func (d *NoOpDefaulter) MustSet(_ interface{}) {
+func (d *NoOpDefaulter) MustSet(_ any) {
 	// No-op
 }

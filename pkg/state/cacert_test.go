@@ -3,7 +3,6 @@ package state
 import (
 	"testing"
 
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,9 +16,9 @@ func TestCACertificateInsert(t *testing.T) {
 
 	var caCert CACertificate
 	require.Error(t, collection.Add(caCert))
-	caCert.ID = kong.String("first")
+	caCert.ID = new("first")
 	require.Error(t, collection.Add(caCert))
-	caCert.Cert = kong.String("firstCert")
+	caCert.Cert = new("firstCert")
 	require.NoError(t, collection.Add(caCert))
 
 	// re-inesrt
@@ -34,8 +33,8 @@ func TestCACertificateGetUpdate(t *testing.T) {
 
 	require.Error(t, collection.Update(caCert))
 
-	caCert.Cert = kong.String("firstCert")
-	caCert.ID = kong.String("first")
+	caCert.Cert = new("firstCert")
+	caCert.ID = new("first")
 	require.Error(t, collection.Update(caCert))
 
 	err := collection.Add(caCert)
@@ -48,7 +47,7 @@ func TestCACertificateGetUpdate(t *testing.T) {
 	se, err = collection.Get("firstCert")
 	require.NoError(t, err)
 	assert.NotNil(se)
-	se.Cert = kong.String("firstCert-updated")
+	se.Cert = new("firstCert-updated")
 	err = collection.Update(*se)
 	require.NoError(t, err)
 
@@ -67,8 +66,8 @@ func TestCACertInvalidType(t *testing.T) {
 	collection := caCertsCollection()
 
 	var cert Certificate
-	cert.Cert = kong.String("my-cert")
-	cert.ID = kong.String("first")
+	cert.Cert = new("my-cert")
+	cert.ID = new("first")
 	txn := collection.db.Txn(true)
 	txn.Insert(caCertTableName, &cert)
 	txn.Commit()
@@ -88,8 +87,8 @@ func TestCACertificateDelete(t *testing.T) {
 	require.Error(t, collection.Delete(""))
 
 	var caCert CACertificate
-	caCert.ID = kong.String("first")
-	caCert.Cert = kong.String("firstCert")
+	caCert.ID = new("first")
+	caCert.Cert = new("firstCert")
 	err := collection.Add(caCert)
 	require.NoError(t, err)
 
@@ -104,8 +103,8 @@ func TestCACertificateDelete(t *testing.T) {
 	err = collection.Delete(*se.ID)
 	require.Error(t, err)
 
-	caCert.ID = kong.String("first")
-	caCert.Cert = kong.String("firstCert")
+	caCert.ID = new("first")
+	caCert.Cert = new("firstCert")
 	err = collection.Add(caCert)
 	require.NoError(t, err)
 
@@ -126,14 +125,14 @@ func TestCACertificateGetAll(t *testing.T) {
 	collection := caCertsCollection()
 
 	var caCert CACertificate
-	caCert.ID = kong.String("first")
-	caCert.Cert = kong.String("firstCert")
+	caCert.ID = new("first")
+	caCert.Cert = new("firstCert")
 	err := collection.Add(caCert)
 	require.NoError(t, err)
 
 	var certificate2 CACertificate
-	certificate2.ID = kong.String("second")
-	certificate2.Cert = kong.String("secondCert")
+	certificate2.ID = new("second")
+	certificate2.Cert = new("secondCert")
 	err = collection.Add(certificate2)
 	require.NoError(t, err)
 

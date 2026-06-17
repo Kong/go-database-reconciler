@@ -16,20 +16,20 @@ func TestHMACAuthInsert(t *testing.T) {
 	collection := hmacAuthsCollection()
 
 	var hmacAuth HMACAuth
-	hmacAuth.ID = kong.String("first")
+	hmacAuth.ID = new("first")
 	err := collection.Add(hmacAuth)
 	require.Error(t, err)
 
-	hmacAuth.Username = kong.String("my-username")
+	hmacAuth.Username = new("my-username")
 	err = collection.Add(hmacAuth)
 	require.Error(t, err)
 
 	var hmacAuth2 HMACAuth
-	hmacAuth2.Username = kong.String("my-username")
-	hmacAuth2.ID = kong.String("first")
+	hmacAuth2.Username = new("my-username")
+	hmacAuth2.ID = new("first")
 	hmacAuth2.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer-id"),
-		Username: kong.String("my-username"),
+		ID:       new("consumer-id"),
+		Username: new("my-username"),
 	}
 	err = collection.Add(hmacAuth2)
 	require.NoError(t, err)
@@ -40,11 +40,11 @@ func TestHMACAuthGet(t *testing.T) {
 	collection := hmacAuthsCollection()
 
 	var hmacAuth HMACAuth
-	hmacAuth.Username = kong.String("my-username")
-	hmacAuth.ID = kong.String("first")
+	hmacAuth.Username = new("my-username")
+	hmacAuth.ID = new("first")
 	hmacAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(hmacAuth)
@@ -71,10 +71,10 @@ func TestHMACAuthUpdate(t *testing.T) {
 	collection := hmacAuthsCollection()
 
 	var hmacAuth HMACAuth
-	hmacAuth.Username = kong.String("my-username")
-	hmacAuth.ID = kong.String("first")
+	hmacAuth.Username = new("my-username")
+	hmacAuth.ID = new("first")
 	hmacAuth.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 
 	err := collection.Add(hmacAuth)
@@ -85,8 +85,8 @@ func TestHMACAuthUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("my-username", *res.Username)
 
-	res.Username = kong.String("my-username2")
-	res.Secret = kong.String("secret")
+	res.Username = new("my-username2")
+	res.Secret = new("secret")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -105,11 +105,11 @@ func TestHMACAuthDelete(t *testing.T) {
 	collection := hmacAuthsCollection()
 
 	var hmacAuth HMACAuth
-	hmacAuth.Username = kong.String("my-username1")
-	hmacAuth.ID = kong.String("first")
+	hmacAuth.Username = new("my-username1")
+	hmacAuth.ID = new("first")
 	hmacAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 	err := collection.Add(hmacAuth)
 	require.NoError(t, err)
@@ -160,51 +160,51 @@ func populateWithHMACAuthFixtures(
 	hmacAuths := []HMACAuth{
 		{
 			HMACAuth: kong.HMACAuth{
-				Username: kong.String("my-username11"),
-				ID:       kong.String("first"),
+				Username: new("my-username11"),
+				ID:       new("first"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			HMACAuth: kong.HMACAuth{
-				Username: kong.String("my-username12"),
-				ID:       kong.String("second"),
+				Username: new("my-username12"),
+				ID:       new("second"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			HMACAuth: kong.HMACAuth{
-				Username: kong.String("my-username13"),
-				ID:       kong.String("third"),
+				Username: new("my-username13"),
+				ID:       new("third"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			HMACAuth: kong.HMACAuth{
-				Username: kong.String("my-username21"),
-				ID:       kong.String("fourth"),
+				Username: new("my-username21"),
+				ID:       new("fourth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},
 		{
 			HMACAuth: kong.HMACAuth{
-				Username: kong.String("my-username22"),
-				ID:       kong.String("fifth"),
+				Username: new("my-username22"),
+				ID:       new("fifth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},

@@ -27,7 +27,7 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -38,7 +38,7 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 					},
 				},
 			},
@@ -49,8 +49,8 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						ID:   kong.String("id2"),
-						Name: kong.String("bar-name"),
+						ID:   new("id2"),
+						Name: new("bar-name"),
 					},
 				},
 			},
@@ -61,8 +61,8 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						ID:   kong.String("id4"),
-						Name: kong.String("foo-name"),
+						ID:   new("id4"),
+						Name: new("foo-name"),
 					},
 				},
 			},
@@ -73,8 +73,8 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						ID:   kong.String("id3"),
-						Name: kong.String("foobar-name"),
+						ID:   new("id3"),
+						Name: new("foobar-name"),
 					},
 				},
 			},
@@ -84,8 +84,8 @@ func TestRBACRolesCollection_Add(t *testing.T) {
 	k := rbacRolesCollection()
 	rbacRole1 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID:   kong.String("id3"),
-			Name: kong.String("foo-name"),
+			ID:   new("id3"),
+			Name: new("foo-name"),
 		},
 	}
 	k.Add(rbacRole1)
@@ -105,14 +105,14 @@ func TestRBACRolesCollection_Get(t *testing.T) {
 	}
 	rbacRole1 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 		},
 	}
 	rbacRole2 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
 		},
 	}
 	tests := []struct {
@@ -176,20 +176,20 @@ func TestRBACRolesCollection_Get(t *testing.T) {
 func TestRBACRolesCollection_Update(t *testing.T) {
 	rbacRole1 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 		},
 	}
 	rbacRole2 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
 		},
 	}
 	rbacRole3 := RBACRole{
 		RBACRole: kong.RBACRole{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-new-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-new-name"),
 		},
 	}
 	type args struct {
@@ -206,7 +206,7 @@ func TestRBACRolesCollection_Update(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						Name: kong.String("name"),
+						Name: new("name"),
 					},
 				},
 			},
@@ -217,7 +217,7 @@ func TestRBACRolesCollection_Update(t *testing.T) {
 			args: args{
 				rbacRole: RBACRole{
 					RBACRole: kong.RBACRole{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 					},
 				},
 			},
@@ -257,8 +257,8 @@ func TestRBACRoleDelete(t *testing.T) {
 	collection := rbacRolesCollection()
 
 	var rbacRole RBACRole
-	rbacRole.Name = kong.String("my-rbacRole")
-	rbacRole.ID = kong.String("first")
+	rbacRole.Name = new("my-rbacRole")
+	rbacRole.ID = new("first")
 
 	err := collection.Add(rbacRole)
 	require.NoError(t, err)
@@ -279,15 +279,15 @@ func TestRBACRoleGetAll(t *testing.T) {
 	collection := rbacRolesCollection()
 
 	var rbacRole RBACRole
-	rbacRole.Name = kong.String("my-rbacRole1")
-	rbacRole.ID = kong.String("first")
+	rbacRole.Name = new("my-rbacRole1")
+	rbacRole.ID = new("first")
 
 	err := collection.Add(rbacRole)
 	require.NoError(t, err)
 
 	var rbacRole2 RBACRole
-	rbacRole2.Name = kong.String("my-rbacRole2")
-	rbacRole2.ID = kong.String("second")
+	rbacRole2.Name = new("my-rbacRole2")
+	rbacRole2.ID = new("second")
 
 	err = collection.Add(rbacRole2)
 	require.NoError(t, err)

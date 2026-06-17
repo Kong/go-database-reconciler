@@ -16,20 +16,20 @@ func TestBasicAuthInsert(t *testing.T) {
 	collection := basicAuthsCollection()
 
 	var basicAuth BasicAuth
-	basicAuth.ID = kong.String("first")
+	basicAuth.ID = new("first")
 	err := collection.Add(basicAuth)
 	require.Error(t, err)
 
-	basicAuth.Username = kong.String("my-username")
+	basicAuth.Username = new("my-username")
 	err = collection.Add(basicAuth)
 	require.Error(t, err)
 
 	var basicAuth2 BasicAuth
-	basicAuth2.Username = kong.String("my-username")
-	basicAuth2.ID = kong.String("first")
+	basicAuth2.Username = new("my-username")
+	basicAuth2.ID = new("first")
 	basicAuth2.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer-id"),
-		Username: kong.String("my-username"),
+		ID:       new("consumer-id"),
+		Username: new("my-username"),
 	}
 	err = collection.Add(basicAuth2)
 	require.NoError(t, err)
@@ -40,11 +40,11 @@ func TestBasicAuthGet(t *testing.T) {
 	collection := basicAuthsCollection()
 
 	var basicAuth BasicAuth
-	basicAuth.Username = kong.String("my-username")
-	basicAuth.ID = kong.String("first")
+	basicAuth.Username = new("my-username")
+	basicAuth.ID = new("first")
 	basicAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(basicAuth)
@@ -71,11 +71,11 @@ func TestBasicAuthUpdate(t *testing.T) {
 	collection := basicAuthsCollection()
 
 	var basicAuth BasicAuth
-	basicAuth.Username = kong.String("my-username")
-	basicAuth.ID = kong.String("first")
+	basicAuth.Username = new("my-username")
+	basicAuth.ID = new("first")
 	basicAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(basicAuth)
@@ -86,8 +86,8 @@ func TestBasicAuthUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("my-username", *res.Username)
 
-	res.Username = kong.String("my-username2")
-	res.Password = kong.String("password")
+	res.Username = new("my-username2")
+	res.Password = new("password")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -106,11 +106,11 @@ func TestBasicAuthDelete(t *testing.T) {
 	collection := basicAuthsCollection()
 
 	var basicAuth BasicAuth
-	basicAuth.Username = kong.String("my-username1")
-	basicAuth.ID = kong.String("first")
+	basicAuth.Username = new("my-username1")
+	basicAuth.ID = new("first")
 	basicAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 	err := collection.Add(basicAuth)
 	require.NoError(t, err)
@@ -161,51 +161,51 @@ func populateWithBasicAuthFixtures(
 	basicAuths := []BasicAuth{
 		{
 			BasicAuth: kong.BasicAuth{
-				Username: kong.String("my-username11"),
-				ID:       kong.String("first"),
+				Username: new("my-username11"),
+				ID:       new("first"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			BasicAuth: kong.BasicAuth{
-				Username: kong.String("my-username12"),
-				ID:       kong.String("second"),
+				Username: new("my-username12"),
+				ID:       new("second"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			BasicAuth: kong.BasicAuth{
-				Username: kong.String("my-username13"),
-				ID:       kong.String("third"),
+				Username: new("my-username13"),
+				ID:       new("third"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			BasicAuth: kong.BasicAuth{
-				Username: kong.String("my-username21"),
-				ID:       kong.String("fourth"),
+				Username: new("my-username21"),
+				ID:       new("fourth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},
 		{
 			BasicAuth: kong.BasicAuth{
-				Username: kong.String("my-username22"),
-				ID:       kong.String("fifth"),
+				Username: new("my-username22"),
+				ID:       new("fifth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},

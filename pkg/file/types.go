@@ -146,25 +146,25 @@ func copyFromSerializableFilterChain(sf SerializableFilterChain, f *FFilterChain
 	}
 	if sf.Route != "" {
 		f.Route = &kong.Route{
-			ID: kong.String(sf.Route),
+			ID: new(sf.Route),
 		}
 	}
 	if sf.Service != "" {
 		f.Service = &kong.Service{
-			ID: kong.String(sf.Service),
+			ID: new(sf.Service),
 		}
 	}
 }
 
 // MarshalYAML is a custom marshal method to handle
 // foreign references.
-func (f FFilterChain) MarshalYAML() (interface{}, error) {
+func (f FFilterChain) MarshalYAML() (any, error) {
 	return copyToSerializableFilterChain(f), nil
 }
 
 // UnmarshalYAML is a custom marshal method to handle
 // foreign references.
-func (f *FFilterChain) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (f *FFilterChain) UnmarshalYAML(unmarshal func(any) error) error {
 	var sf SerializableFilterChain
 	if err := unmarshal(&sf); err != nil {
 		return err
@@ -258,7 +258,7 @@ func copyToService(fService FService) service {
 	s := service{}
 	if fService.ClientCertificate != nil &&
 		!utils.Empty(fService.ClientCertificate.ID) {
-		s.ClientCertificate = kong.String(*fService.ClientCertificate.ID)
+		s.ClientCertificate = new(*fService.ClientCertificate.ID)
 	}
 	if fService.TLSSANs != nil && !reflect.DeepEqual(*fService.TLSSANs, kong.SANs{}) {
 		s.TLSSANs = fService.TLSSANs
@@ -296,27 +296,27 @@ func unwrapURL(urlString string, fService *FService) error {
 		return fmt.Errorf("invalid url: %s", urlString)
 	}
 
-	fService.Protocol = kong.String(parsed.Scheme)
+	fService.Protocol = new(parsed.Scheme)
 
-	fService.Port = kong.Int(httpPort)
+	fService.Port = new(httpPort)
 	if parsed.Scheme == "https" {
-		fService.Port = kong.Int(httpsPort)
+		fService.Port = new(httpsPort)
 	}
 
 	if parsed.Host != "" {
 		hostPort := strings.Split(parsed.Host, ":")
-		fService.Host = kong.String(hostPort[0])
+		fService.Host = new(hostPort[0])
 		if len(hostPort) > 1 {
 			port, err := strconv.Atoi(hostPort[1])
 			if err == nil {
-				fService.Port = kong.Int(port)
+				fService.Port = new(port)
 			}
 		}
 	}
 	if parsed.Path != "" {
 		// make sure that decoded whitespaces are encoded back
 		encodedParsedPath := strings.ReplaceAll(parsed.Path, " ", "%20")
-		fService.Path = kong.String(encodedParsedPath)
+		fService.Path = new(encodedParsedPath)
 	}
 	return nil
 }
@@ -325,7 +325,7 @@ func copyFromService(service service, fService *FService) error {
 	if service.ClientCertificate != nil &&
 		!utils.Empty(service.ClientCertificate) {
 		fService.ClientCertificate = &kong.Certificate{
-			ID: kong.String(*service.ClientCertificate),
+			ID: new(*service.ClientCertificate),
 		}
 	}
 	if !utils.Empty(service.URL) {
@@ -370,13 +370,13 @@ func copyFromService(service service, fService *FService) error {
 
 // MarshalYAML is a custom marshal to handle
 // SNI.
-func (s FService) MarshalYAML() (interface{}, error) {
+func (s FService) MarshalYAML() (any, error) {
 	return copyToService(s), nil
 }
 
 // UnmarshalYAML is a custom marshal method to handle
 // foreign references.
-func (s *FService) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (s *FService) UnmarshalYAML(unmarshal func(any) error) error {
 	var service service
 	if err := unmarshal(&service); err != nil {
 		return err
@@ -612,22 +612,22 @@ func copyFromFoo(f foo, p *FPlugin) {
 	}
 	if f.Consumer != "" {
 		p.Consumer = &kong.Consumer{
-			ID: kong.String(f.Consumer),
+			ID: new(f.Consumer),
 		}
 	}
 	if f.Route != "" {
 		p.Route = &kong.Route{
-			ID: kong.String(f.Route),
+			ID: new(f.Route),
 		}
 	}
 	if f.Service != "" {
 		p.Service = &kong.Service{
-			ID: kong.String(f.Service),
+			ID: new(f.Service),
 		}
 	}
 	if f.ConsumerGroup != "" {
 		p.ConsumerGroup = &kong.ConsumerGroup{
-			ID: kong.String(f.ConsumerGroup),
+			ID: new(f.ConsumerGroup),
 		}
 	}
 	if f.Partials != nil {
@@ -640,13 +640,13 @@ func copyFromFoo(f foo, p *FPlugin) {
 
 // MarshalYAML is a custom marshal method to handle
 // foreign references.
-func (p FPlugin) MarshalYAML() (interface{}, error) {
+func (p FPlugin) MarshalYAML() (any, error) {
 	return copyToFoo(p), nil
 }
 
 // UnmarshalYAML is a custom marshal method to handle
 // foreign references.
-func (p *FPlugin) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (p *FPlugin) UnmarshalYAML(unmarshal func(any) error) error {
 	var f foo
 	if err := unmarshal(&f); err != nil {
 		return err
@@ -758,7 +758,7 @@ type FRBACEndpointPermission struct {
 }
 
 func (frbac FRBACEndpointPermission) MarshalJSON() ([]byte, error) {
-	m := map[string]interface{}{}
+	m := map[string]any{}
 	if frbac.Workspace != nil {
 		m["workspace"] = frbac.Workspace
 	}
@@ -798,7 +798,7 @@ type KongDefaults struct {
 type Info struct {
 	SelectorTags                 []string            `json:"select_tags,omitempty" yaml:"select_tags,omitempty"`
 	LookUpSelectorTags           *LookUpSelectorTags `json:"default_lookup_tags,omitempty" yaml:"default_lookup_tags,omitempty"` //nolint
-	Defaults                     KongDefaults        `json:"defaults,omitempty" yaml:"defaults,omitempty"`
+	Defaults                     KongDefaults        `json:"defaults" yaml:"defaults,omitempty"`
 	ConsumerGroupPolicyOverrides bool                `json:"consumer_group_policy_overrides,omitempty" yaml:"consumer_group_policy_overrides,omitempty"` //nolint
 	SkipHashForBasicAuth         bool                `json:"skip_hash_for_basic_auth,omitempty" yaml:"skip_hash_for_basic_auth,omitempty"`               //nolint
 	IncludePluginDefinitions     bool                `json:"include_plugin_definitions,omitempty" yaml:"include_plugin_definitions,omitempty"`           //nolint
@@ -936,7 +936,7 @@ type FCustomEntity struct {
 }
 
 // Configuration represents a config of a custom-entity in Kong.
-type CustomEntityConfiguration map[string]interface{}
+type CustomEntityConfiguration map[string]any
 
 // DeepCopyInto copies the receiver, writing into out. in must be non-nil.
 func (in CustomEntityConfiguration) DeepCopyInto(out *CustomEntityConfiguration) {
@@ -958,7 +958,7 @@ func (in CustomEntityConfiguration) DeepCopy() CustomEntityConfiguration {
 }
 
 func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
-	var temp map[string]interface{}
+	var temp map[string]any
 	if err := json.Unmarshal(b, &temp); err != nil {
 		return err
 	}
@@ -969,14 +969,14 @@ func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
 
 	switch temp["type"] {
 	case degraphqlRoutesType:
-		var entity map[string]interface{}
+		var entity map[string]any
 		err := json.Unmarshal(b, &entity)
 		if err != nil {
 			return err
 		}
 		return copyToFCustomEntity(entity, f)
 	case graphqlRateLimitingCostDecorationsType:
-		var entity map[string]interface{}
+		var entity map[string]any
 		err := json.Unmarshal(b, &entity)
 		if err != nil {
 			return err
@@ -989,7 +989,7 @@ func (f *FCustomEntity) UnmarshalJSON(b []byte) error {
 
 // UnmarshalYAML is a custom marshal method to handle
 // foreign references.
-func (f *FCustomEntity) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (f *FCustomEntity) UnmarshalYAML(unmarshal func(any) error) error {
 	switch *f.Type {
 	case degraphqlRoutesType:
 		var entity DegraphqlRoute
@@ -1035,16 +1035,16 @@ func (g GraphqlRateLimitingCostDecoration) sortKey() string {
 }
 
 func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) error {
-	fcEntity.Type = kong.String(degraphqlRoutesType)
+	fcEntity.Type = new(degraphqlRoutesType)
 
 	if dRoute.ID != nil {
 		fcEntity.ID = dRoute.ID
 	}
 
-	fcEntity.Fields = make(map[string]interface{})
+	fcEntity.Fields = make(map[string]any)
 
 	if dRoute.Service != nil && dRoute.Service.ID != nil {
-		serviceMap := make(map[string]interface{})
+		serviceMap := make(map[string]any)
 		serviceMap["name"] = *dRoute.Service.Name
 		fcEntity.Fields["service"] = serviceMap
 	}
@@ -1058,7 +1058,7 @@ func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) erro
 	}
 
 	if dRoute.Methods != nil {
-		methods := make([]interface{}, len(dRoute.Methods))
+		methods := make([]any, len(dRoute.Methods))
 		for i, method := range dRoute.Methods {
 			methods[i] = method
 		}
@@ -1068,23 +1068,23 @@ func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) erro
 	return nil
 }
 
-func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity) error {
-	fcEntity.Type = kong.String(degraphqlRoutesType)
+func copyToFCustomEntity(dRoute map[string]any, fcEntity *FCustomEntity) error {
+	fcEntity.Type = new(degraphqlRoutesType)
 
 	if dRoute["id"] != nil {
-		fcEntity.ID = kong.String(dRoute["id"].(string))
+		fcEntity.ID = new(dRoute["id"].(string))
 	}
 
-	fcEntity.Fields = make(map[string]interface{})
+	fcEntity.Fields = make(map[string]any)
 
-	f, ok := dRoute["fields"].(map[string]interface{})
+	f, ok := dRoute["fields"].(map[string]any)
 	if !ok {
 		return fmt.Errorf("fields field should be a map")
 	}
 	dRouteFields := f
 
 	if dRouteFields["service"] != nil {
-		service, ok := dRouteFields["service"].(map[string]interface{})
+		service, ok := dRouteFields["service"].(map[string]any)
 		if !ok {
 			return fmt.Errorf("service field should be a map")
 		}
@@ -1096,7 +1096,7 @@ func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity)
 		if !ok {
 			return fmt.Errorf("uri field should be a string")
 		}
-		fcEntity.Fields["uri"] = kong.String(uri)
+		fcEntity.Fields["uri"] = new(uri)
 	}
 
 	if dRouteFields["query"] != nil {
@@ -1104,11 +1104,11 @@ func copyToFCustomEntity(dRoute map[string]interface{}, fcEntity *FCustomEntity)
 		if !ok {
 			return fmt.Errorf("query field should be a string")
 		}
-		fcEntity.Fields["query"] = kong.String(query)
+		fcEntity.Fields["query"] = new(query)
 	}
 
 	if dRouteFields["methods"] != nil {
-		methodsArray, ok := dRouteFields["methods"].([]interface{})
+		methodsArray, ok := dRouteFields["methods"].([]any)
 		if !ok {
 			return fmt.Errorf("methods field should be an array")
 		}
@@ -1132,16 +1132,16 @@ func (d DegraphqlRoute) sortKey() string {
 }
 
 func copyFromGqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, fcEntity *FCustomEntity) error {
-	fcEntity.Type = kong.String(graphqlRateLimitingCostDecorationsType)
+	fcEntity.Type = new(graphqlRateLimitingCostDecorationsType)
 
 	if g.ID != nil {
 		fcEntity.ID = g.ID
 	}
 
-	fcEntity.Fields = make(map[string]interface{})
+	fcEntity.Fields = make(map[string]any)
 
 	if g.Service != nil {
-		svc := make(map[string]interface{})
+		svc := make(map[string]any)
 		if g.Service.ID != nil {
 			svc["id"] = *g.Service.ID
 		}
@@ -1164,7 +1164,7 @@ func copyFromGqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, 
 	}
 
 	if g.AddArguments != nil {
-		addArgs := make([]interface{}, len(g.AddArguments))
+		addArgs := make([]any, len(g.AddArguments))
 		for i, arg := range g.AddArguments {
 			if arg != nil {
 				addArgs[i] = *arg
@@ -1174,7 +1174,7 @@ func copyFromGqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, 
 	}
 
 	if g.MulArguments != nil {
-		mulArgs := make([]interface{}, len(g.MulArguments))
+		mulArgs := make([]any, len(g.MulArguments))
 		for i, arg := range g.MulArguments {
 			if arg != nil {
 				mulArgs[i] = *arg
@@ -1186,22 +1186,22 @@ func copyFromGqlRateLimitingCostDecoration(g GraphqlRateLimitingCostDecoration, 
 	return nil
 }
 
-func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *FCustomEntity) error {
-	fcEntity.Type = kong.String(graphqlRateLimitingCostDecorationsType)
+func copyToGqlRateLimitingCostDecoration(data map[string]any, fcEntity *FCustomEntity) error {
+	fcEntity.Type = new(graphqlRateLimitingCostDecorationsType)
 
 	if data["id"] != nil {
-		fcEntity.ID = kong.String(data["id"].(string))
+		fcEntity.ID = new(data["id"].(string))
 	}
 
-	fcEntity.Fields = make(map[string]interface{})
+	fcEntity.Fields = make(map[string]any)
 
-	f, ok := data["fields"].(map[string]interface{})
+	f, ok := data["fields"].(map[string]any)
 	if !ok {
 		return fmt.Errorf("fields field should be a map")
 	}
 
 	if f["service"] != nil {
-		svc, ok := f["service"].(map[string]interface{})
+		svc, ok := f["service"].(map[string]any)
 		if ok {
 			fcEntity.Fields["service"] = svc
 		}
@@ -1212,7 +1212,7 @@ func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *
 		if !ok {
 			return fmt.Errorf("type_path field should be a string")
 		}
-		fcEntity.Fields["type_path"] = kong.String(typePath)
+		fcEntity.Fields["type_path"] = new(typePath)
 	}
 
 	if f["add_constant"] != nil {
@@ -1220,7 +1220,7 @@ func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *
 		if !ok {
 			return fmt.Errorf("add_constant field should be a number")
 		}
-		fcEntity.Fields["add_constant"] = kong.Float64(addConstant)
+		fcEntity.Fields["add_constant"] = new(addConstant)
 	}
 
 	if f["mul_constant"] != nil {
@@ -1228,11 +1228,11 @@ func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *
 		if !ok {
 			return fmt.Errorf("mul_constant field should be a number")
 		}
-		fcEntity.Fields["mul_constant"] = kong.Float64(mulConstant)
+		fcEntity.Fields["mul_constant"] = new(mulConstant)
 	}
 
 	if f["add_arguments"] != nil {
-		argsArray, ok := f["add_arguments"].([]interface{})
+		argsArray, ok := f["add_arguments"].([]any)
 		if !ok {
 			return fmt.Errorf("add_arguments field should be an array")
 		}
@@ -1242,13 +1242,13 @@ func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *
 			if !ok {
 				return fmt.Errorf("add_arguments elements should be strings")
 			}
-			args[i] = kong.String(argStr)
+			args[i] = new(argStr)
 		}
 		fcEntity.Fields["add_arguments"] = args
 	}
 
 	if f["mul_arguments"] != nil {
-		argsArray, ok := f["mul_arguments"].([]interface{})
+		argsArray, ok := f["mul_arguments"].([]any)
 		if !ok {
 			return fmt.Errorf("mul_arguments field should be an array")
 		}
@@ -1258,7 +1258,7 @@ func copyToGqlRateLimitingCostDecoration(data map[string]interface{}, fcEntity *
 			if !ok {
 				return fmt.Errorf("mul_arguments elements should be strings")
 			}
-			args[i] = kong.String(argStr)
+			args[i] = new(argStr)
 		}
 		fcEntity.Fields["mul_arguments"] = args
 	}

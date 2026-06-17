@@ -16,14 +16,14 @@ func TestOauth2CredInsert(t *testing.T) {
 	collection := oauth2CredsCollection()
 
 	var oauth2Cred Oauth2Credential
-	oauth2Cred.ClientID = kong.String("client-id")
-	oauth2Cred.ID = kong.String("first")
+	oauth2Cred.ClientID = new("client-id")
+	oauth2Cred.ID = new("first")
 	err := collection.Add(oauth2Cred)
 	require.Error(t, err)
 
 	oauth2Cred.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer-id"),
-		Username: kong.String("my-username"),
+		ID:       new("consumer-id"),
+		Username: new("my-username"),
 	}
 	err = collection.Add(oauth2Cred)
 	require.NoError(t, err)
@@ -34,11 +34,11 @@ func TestOauth2CredentialGet(t *testing.T) {
 	collection := oauth2CredsCollection()
 
 	var oauth2Cred Oauth2Credential
-	oauth2Cred.ClientID = kong.String("my-clientid")
-	oauth2Cred.ID = kong.String("first")
+	oauth2Cred.ClientID = new("my-clientid")
+	oauth2Cred.ID = new("first")
 	oauth2Cred.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(oauth2Cred)
@@ -65,11 +65,11 @@ func TestOauth2CredentialUpdate(t *testing.T) {
 	collection := oauth2CredsCollection()
 
 	var oauth2Cred Oauth2Credential
-	oauth2Cred.ClientID = kong.String("my-clientid")
-	oauth2Cred.ID = kong.String("first")
+	oauth2Cred.ClientID = new("my-clientid")
+	oauth2Cred.ID = new("first")
 	oauth2Cred.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(oauth2Cred)
@@ -80,7 +80,7 @@ func TestOauth2CredentialUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("my-clientid", *res.ClientID)
 
-	res.ClientID = kong.String("my-clientid2")
+	res.ClientID = new("my-clientid2")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -98,11 +98,11 @@ func TestOauth2CredentialDelete(t *testing.T) {
 	collection := oauth2CredsCollection()
 
 	var oauth2Cred Oauth2Credential
-	oauth2Cred.ClientID = kong.String("my-clientid1")
-	oauth2Cred.ID = kong.String("first")
+	oauth2Cred.ClientID = new("my-clientid1")
+	oauth2Cred.ID = new("first")
 	oauth2Cred.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 	err := collection.Add(oauth2Cred)
 	require.NoError(t, err)
@@ -153,51 +153,51 @@ func populateWithOauth2CredentialFixtures(
 	oauth2Creds := []Oauth2Credential{
 		{
 			Oauth2Credential: kong.Oauth2Credential{
-				ClientID: kong.String("my-clientid11"),
-				ID:       kong.String("first"),
+				ClientID: new("my-clientid11"),
+				ID:       new("first"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			Oauth2Credential: kong.Oauth2Credential{
-				ClientID: kong.String("my-clientid12"),
-				ID:       kong.String("second"),
+				ClientID: new("my-clientid12"),
+				ID:       new("second"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			Oauth2Credential: kong.Oauth2Credential{
-				ClientID: kong.String("my-clientid13"),
-				ID:       kong.String("third"),
+				ClientID: new("my-clientid13"),
+				ID:       new("third"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			Oauth2Credential: kong.Oauth2Credential{
-				ClientID: kong.String("my-clientid21"),
-				ID:       kong.String("fourth"),
+				ClientID: new("my-clientid21"),
+				ID:       new("fourth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},
 		{
 			Oauth2Credential: kong.Oauth2Credential{
-				ClientID: kong.String("my-clientid22"),
-				ID:       kong.String("fifth"),
+				ClientID: new("my-clientid22"),
+				ID:       new("fifth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},

@@ -5,7 +5,6 @@ import (
 
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/state"
-	"github.com/kong/go-kong/kong"
 )
 
 func Test_PrettyPrintJSONString(t *testing.T) {
@@ -70,20 +69,20 @@ func Test_GetDocumentDiff(t *testing.T) {
 			args: args{
 				docA: &state.Document{
 					Document: konnect.Document{
-						Path: kong.String("foo"),
+						Path: new("foo"),
 						Parent: &konnect.ServiceVersion{
-							ID: kong.String("abc"),
+							ID: new("abc"),
 						},
-						Content: kong.String(`{"foo":"foo","bar":"bar"}`),
+						Content: new(`{"foo":"foo","bar":"bar"}`),
 					},
 				},
 				docB: &state.Document{
 					Document: konnect.Document{
-						Path: kong.String("foo"),
+						Path: new("foo"),
 						Parent: &konnect.ServiceVersion{
-							ID: kong.String("abc"),
+							ID: new("abc"),
 						},
-						Content: kong.String(`{"foo":"foo","bar":"bar","baz":"baz"}`),
+						Content: new(`{"foo":"foo","bar":"bar","baz":"baz"}`),
 					},
 				},
 			},
@@ -106,21 +105,21 @@ func Test_GetDocumentDiff(t *testing.T) {
 			args: args{
 				docA: &state.Document{
 					Document: konnect.Document{
-						Path: kong.String("foo"),
+						Path: new("foo"),
 						Parent: &konnect.ServiceVersion{
-							ID: kong.String("abc"),
+							ID: new("abc"),
 						},
-						Content: kong.String(`foo
+						Content: new(`foo
 `),
 					},
 				},
 				docB: &state.Document{
 					Document: konnect.Document{
-						Path: kong.String("foo"),
+						Path: new("foo"),
 						Parent: &konnect.ServiceVersion{
-							ID: kong.String("abc"),
+							ID: new("abc"),
 						},
-						Content: kong.String(`foo
+						Content: new(`foo
 bar
 `),
 					},

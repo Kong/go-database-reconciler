@@ -188,7 +188,7 @@ func (k *FilterChainsCollection) getAllFilterChainsBy(index string, identifier .
 	[]*FilterChain, error,
 ) {
 	haveID := false
-	args := make([]interface{}, len(identifier))
+	args := make([]any, len(identifier))
 	for i, v := range identifier {
 		haveID = haveID || v != ""
 		args[i] = v

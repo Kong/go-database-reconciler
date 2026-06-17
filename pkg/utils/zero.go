@@ -6,7 +6,7 @@ import (
 
 var zero reflect.Value
 
-func ZeroOutField(obj interface{}, field string) {
+func ZeroOutField(obj any, field string) {
 	ptr := reflect.ValueOf(obj)
 	if ptr.Kind() != reflect.Pointer {
 		return
@@ -19,7 +19,7 @@ func ZeroOutField(obj interface{}, field string) {
 	ts.Set(reflect.Zero(ts.Type()))
 }
 
-func ZeroOutID(obj interface{}, altName *string, withID bool) {
+func ZeroOutID(obj any, altName *string, withID bool) {
 	// withID is set, export the ID
 	if withID {
 		return
@@ -32,7 +32,7 @@ func ZeroOutID(obj interface{}, altName *string, withID bool) {
 	ZeroOutField(obj, "ID")
 }
 
-func ZeroOutTimestamps(obj interface{}) {
+func ZeroOutTimestamps(obj any) {
 	ZeroOutField(obj, "CreatedAt")
 	ZeroOutField(obj, "UpdatedAt")
 }

@@ -16,20 +16,20 @@ func TestMTLSAuthInsert(t *testing.T) {
 	collection := mtlsAuthsCollection()
 
 	var mtlsAuth MTLSAuth
-	mtlsAuth.ID = kong.String("first")
+	mtlsAuth.ID = new("first")
 	err := collection.Add(mtlsAuth)
 	require.Error(t, err)
 
-	mtlsAuth.SubjectName = kong.String("test@example.com")
+	mtlsAuth.SubjectName = new("test@example.com")
 	err = collection.Add(mtlsAuth)
 	require.Error(t, err)
 
 	var mtlsAuth2 MTLSAuth
-	mtlsAuth2.SubjectName = kong.String("test@example.com")
-	mtlsAuth2.ID = kong.String("first")
+	mtlsAuth2.SubjectName = new("test@example.com")
+	mtlsAuth2.ID = new("first")
 	mtlsAuth2.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer-id"),
-		Username: kong.String("my-username"),
+		ID:       new("consumer-id"),
+		Username: new("my-username"),
 	}
 	err = collection.Add(mtlsAuth2)
 	require.NoError(t, err)
@@ -40,11 +40,11 @@ func TestMTLSAuthGet(t *testing.T) {
 	collection := mtlsAuthsCollection()
 
 	var mtlsAuth MTLSAuth
-	mtlsAuth.SubjectName = kong.String("test@example.com")
-	mtlsAuth.ID = kong.String("first")
+	mtlsAuth.SubjectName = new("test@example.com")
+	mtlsAuth.ID = new("first")
 	mtlsAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(mtlsAuth)
@@ -65,11 +65,11 @@ func TestMTLSAuthUpdate(t *testing.T) {
 	collection := mtlsAuthsCollection()
 
 	var mtlsAuth MTLSAuth
-	mtlsAuth.SubjectName = kong.String("test@example.com")
-	mtlsAuth.ID = kong.String("first")
+	mtlsAuth.SubjectName = new("test@example.com")
+	mtlsAuth.ID = new("first")
 	mtlsAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(mtlsAuth)
@@ -80,7 +80,7 @@ func TestMTLSAuthUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("test@example.com", *res.SubjectName)
 
-	res.SubjectName = kong.String("test2@example.com")
+	res.SubjectName = new("test2@example.com")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -94,11 +94,11 @@ func TestMTLSAuthDelete(t *testing.T) {
 	collection := mtlsAuthsCollection()
 
 	var mtlsAuth MTLSAuth
-	mtlsAuth.SubjectName = kong.String("test@example.com")
-	mtlsAuth.ID = kong.String("first")
+	mtlsAuth.SubjectName = new("test@example.com")
+	mtlsAuth.ID = new("first")
 	mtlsAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 	err := collection.Add(mtlsAuth)
 	require.NoError(t, err)
@@ -146,51 +146,51 @@ func populateWithMTLSAuthFixtures(
 	mtlsAuths := []MTLSAuth{
 		{
 			MTLSAuth: kong.MTLSAuth{
-				SubjectName: kong.String("test11@example.com"),
-				ID:          kong.String("first"),
+				SubjectName: new("test11@example.com"),
+				ID:          new("first"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			MTLSAuth: kong.MTLSAuth{
-				SubjectName: kong.String("test12@example.com"),
-				ID:          kong.String("second"),
+				SubjectName: new("test12@example.com"),
+				ID:          new("second"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			MTLSAuth: kong.MTLSAuth{
-				SubjectName: kong.String("test13@example.com"),
-				ID:          kong.String("third"),
+				SubjectName: new("test13@example.com"),
+				ID:          new("third"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			MTLSAuth: kong.MTLSAuth{
-				SubjectName: kong.String("test21@example.com"),
-				ID:          kong.String("fourth"),
+				SubjectName: new("test21@example.com"),
+				ID:          new("fourth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},
 		{
 			MTLSAuth: kong.MTLSAuth{
-				SubjectName: kong.String("test22@example.com"),
-				ID:          kong.String("fifth"),
+				SubjectName: new("test22@example.com"),
+				ID:          new("fifth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},

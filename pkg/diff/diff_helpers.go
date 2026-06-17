@@ -48,7 +48,7 @@ func getDocumentDiff(a, b *state.Document) (string, error) {
 
 func prettyPrintJSONString(JSONString string) (string, error) {
 	jBlob := []byte(JSONString)
-	var obj interface{}
+	var obj any
 	err := json.Unmarshal(jBlob, &obj)
 	if err != nil {
 		return "", err
@@ -60,7 +60,7 @@ func prettyPrintJSONString(JSONString string) (string, error) {
 	return string(bytes), nil
 }
 
-func getDiff(a, b interface{}, defaults ...map[string]interface{}) (string, error) {
+func getDiff(a, b any, defaults ...map[string]any) (string, error) {
 	aJSON, err := json.Marshal(a)
 	if err != nil {
 		return "", err
@@ -87,7 +87,7 @@ func getDiff(a, b interface{}, defaults ...map[string]interface{}) (string, erro
 	if err != nil {
 		return "", err
 	}
-	var leftObject map[string]interface{}
+	var leftObject map[string]any
 	err = json.Unmarshal(aJSON, &leftObject)
 	if err != nil {
 		return "", err
@@ -102,8 +102,8 @@ func getDiff(a, b interface{}, defaults ...map[string]interface{}) (string, erro
 // fillMissingDefaults injects schema default values into both oldJSON and newJSON
 // for fields that are present in one but absent in the other. This produces correct
 // modification diffs when both states have had their defaults stripped.
-func fillMissingDefaults(oldJSON, newJSON []byte, defaults map[string]interface{}) ([]byte, []byte) {
-	var oldMap, newMap map[string]interface{}
+func fillMissingDefaults(oldJSON, newJSON []byte, defaults map[string]any) ([]byte, []byte) {
+	var oldMap, newMap map[string]any
 	if err := json.Unmarshal(oldJSON, &oldMap); err != nil {
 		return oldJSON, newJSON
 	}
@@ -153,7 +153,7 @@ func fillMissingDefaults(oldJSON, newJSON []byte, defaults map[string]interface{
 }
 
 func removeTimestamps(jsonData []byte) []byte {
-	var dataMap map[string]interface{}
+	var dataMap map[string]any
 	if err := json.Unmarshal(jsonData, &dataMap); err != nil {
 		return jsonData
 	}

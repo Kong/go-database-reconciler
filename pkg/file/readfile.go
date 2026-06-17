@@ -141,6 +141,6 @@ func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 // `map[interface{}]interface{}` is present in go-kong.Plugin.Configuration.
 // If it is present, then it leads to a silent error. See Github Issue #144.
 // The verification for this is done using a test.
-func yamlUnmarshal(bytes []byte, v interface{}) error {
+func yamlUnmarshal(bytes []byte, v any) error {
 	return yaml.Unmarshal(bytes, v)
 }

@@ -13,8 +13,8 @@ import (
 // endpoint should be relative to the baseURL specified during
 // client creation.
 // body is always marshaled into JSON.
-func (c *Client) NewRequest(method, endpoint string, qs interface{},
-	body interface{},
+func (c *Client) NewRequest(method, endpoint string, qs any,
+	body any,
 ) (*http.Request, error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("endpoint can't be nil")

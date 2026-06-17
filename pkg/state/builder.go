@@ -564,7 +564,7 @@ func GetKonnectState(rawKong *utils.KongRawState,
 	return kongState, nil
 }
 
-func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string]interface{}) (DegraphqlRoute, error) {
+func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string]any) (DegraphqlRoute, error) {
 	var degraphqlRoute DegraphqlRoute
 
 	if entity["id"] != nil {
@@ -572,11 +572,11 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 		if !ok {
 			return DegraphqlRoute{}, fmt.Errorf("id must be of type string")
 		}
-		degraphqlRoute.ID = kong.String(id)
+		degraphqlRoute.ID = new(id)
 	}
 
 	if entity["service"] != nil {
-		service, ok := entity["service"].(map[string]interface{})
+		service, ok := entity["service"].(map[string]any)
 		if !ok {
 			return DegraphqlRoute{}, fmt.Errorf("service must be of type object")
 		}
@@ -601,7 +601,7 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 		if !ok {
 			return DegraphqlRoute{}, fmt.Errorf("uri must be of type string")
 		}
-		degraphqlRoute.URI = kong.String(uri)
+		degraphqlRoute.URI = new(uri)
 	}
 
 	if entity["query"] != nil {
@@ -609,11 +609,11 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 		if !ok {
 			return DegraphqlRoute{}, fmt.Errorf("query must be of type string")
 		}
-		degraphqlRoute.Query = kong.String(query)
+		degraphqlRoute.Query = new(query)
 	}
 
 	if entity["methods"] != nil {
-		methodSlice, ok := entity["methods"].([]interface{})
+		methodSlice, ok := entity["methods"].([]any)
 		if !ok {
 			return DegraphqlRoute{}, fmt.Errorf("methods must be an array of strings")
 		}
@@ -632,7 +632,7 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 	return degraphqlRoute, nil
 }
 
-func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState, entity map[string]interface{},
+func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState, entity map[string]any,
 ) (GraphqlRateLimitingCostDecoration, error) {
 	var decoration GraphqlRateLimitingCostDecoration
 
@@ -641,11 +641,11 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("id must be of type string")
 		}
-		decoration.ID = kong.String(id)
+		decoration.ID = new(id)
 	}
 
 	if entity["service"] != nil {
-		svc, ok := entity["service"].(map[string]interface{})
+		svc, ok := entity["service"].(map[string]any)
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("service must be of type object")
 		}
@@ -675,7 +675,7 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("type_path must be of type string")
 		}
-		decoration.TypePath = kong.String(typePath)
+		decoration.TypePath = new(typePath)
 	}
 
 	if entity["add_constant"] != nil {
@@ -683,7 +683,7 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("add_constant must be of type float64")
 		}
-		decoration.AddConstant = kong.Float64(addConstant)
+		decoration.AddConstant = new(addConstant)
 	}
 
 	if entity["mul_constant"] != nil {
@@ -691,11 +691,11 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("mul_constant must be of type float64")
 		}
-		decoration.MulConstant = kong.Float64(mulConstant)
+		decoration.MulConstant = new(mulConstant)
 	}
 
 	if entity["add_arguments"] != nil {
-		addArgsSlice, ok := entity["add_arguments"].([]interface{})
+		addArgsSlice, ok := entity["add_arguments"].([]any)
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("add_arguments must be an array of strings")
 		}
@@ -705,13 +705,13 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 			if !ok {
 				return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("add_arguments must be an array of strings")
 			}
-			addArgs[i] = kong.String(arg)
+			addArgs[i] = new(arg)
 		}
 		decoration.AddArguments = addArgs
 	}
 
 	if entity["mul_arguments"] != nil {
-		mulArgsSlice, ok := entity["mul_arguments"].([]interface{})
+		mulArgsSlice, ok := entity["mul_arguments"].([]any)
 		if !ok {
 			return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("mul_arguments must be an array of strings")
 		}
@@ -721,7 +721,7 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 			if !ok {
 				return GraphqlRateLimitingCostDecoration{}, fmt.Errorf("mul_arguments must be an array of strings")
 			}
-			mulArgs[i] = kong.String(arg)
+			mulArgs[i] = new(arg)
 		}
 		decoration.MulArguments = mulArgs
 	}

@@ -42,7 +42,7 @@ func main() {
 	reflector.ExpandedStruct = true
 	reflector.TypeMapper = func(typ reflect.Type) *jsonschema.Type {
 		// plugin configuration
-		if typ == reflect.TypeOf(kong.Configuration{}) {
+		if typ == reflect.TypeFor[kong.Configuration]() {
 			return &jsonschema.Type{
 				Type:                 "object",
 				Properties:           map[string]*jsonschema.Type{},

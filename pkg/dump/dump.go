@@ -439,8 +439,7 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		state.FilterChains = make([]*kong.FilterChain, 0)
 		filterChains, err := GetAllFilterChains(ctx, client, config.SelectorTags)
 		if err != nil {
-			var kongErr *kong.APIError
-			if errors.As(err, &kongErr) {
+			if kongErr, ok := errors.AsType[*kong.APIError](err); ok {
 				// GET /filter-chains returns:
 				//   -> 200 on success
 				//   -> 404 if Kong version < 3.4
@@ -1628,8 +1627,7 @@ func GetAllMTLSAuths(ctx context.Context,
 			// but this is currently necessary for compatibility. We need a better approach
 			// before adding other Enterprise resources that decK handles by default (versus,
 			// for example, RBAC roles, which require the --rbac-resources-only flag).
-			var kongErr *kong.APIError
-			if errors.As(err, &kongErr) {
+			if kongErr, ok := errors.AsType[*kong.APIError](err); ok {
 				if kongErr.Code() == http.StatusForbidden {
 					return mtlsAuths, nil
 				}

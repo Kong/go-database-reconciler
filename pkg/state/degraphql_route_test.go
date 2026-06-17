@@ -24,11 +24,11 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 			name: "adds a degraphql route to the collection",
 			degraphqlRoute: DegraphqlRoute{
 				DegraphqlRoute: kong.DegraphqlRoute{
-					ID:    kong.String("first"),
-					URI:   kong.String("/foo"),
-					Query: kong.String("query { hello }"),
+					ID:    new("first"),
+					URI:   new("/foo"),
+					Query: new("query { hello }"),
 					Service: &kong.Service{
-						ID: kong.String("some-service"),
+						ID: new("some-service"),
 					},
 					Methods: kong.StringSlice("GET"),
 				},
@@ -39,9 +39,9 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 			name: "adds a degraphql route with complex query to the collection",
 			degraphqlRoute: DegraphqlRoute{
 				DegraphqlRoute: kong.DegraphqlRoute{
-					ID:  kong.String("second"),
-					URI: kong.String("/bar"),
-					Query: kong.String(`query SearchPosts($filters: PostsFilters) {
+					ID:  new("second"),
+					URI: new("/bar"),
+					Query: new(`query SearchPosts($filters: PostsFilters) {
 							posts(filter: $filters) {
 								id
 								title
@@ -49,7 +49,7 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 							}
 							}`),
 					Service: &kong.Service{
-						ID: kong.String("some-service"),
+						ID: new("some-service"),
 					},
 					Methods: kong.StringSlice("GET", "POST"),
 				},
@@ -60,11 +60,11 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 			name: "returns an error when the degraphql route already exists",
 			degraphqlRoute: DegraphqlRoute{
 				DegraphqlRoute: kong.DegraphqlRoute{
-					ID:    kong.String("first"),
-					URI:   kong.String("/foo"),
-					Query: kong.String("query { hello }"),
+					ID:    new("first"),
+					URI:   new("/foo"),
+					Query: new("query { hello }"),
 					Service: &kong.Service{
-						ID: kong.String("some-service"),
+						ID: new("some-service"),
 					},
 					Methods: kong.StringSlice("GET"),
 				},
@@ -75,10 +75,10 @@ func TestDegraphqlRouteAdd(t *testing.T) {
 			name: "returns an error if an id is not provided",
 			degraphqlRoute: DegraphqlRoute{
 				DegraphqlRoute: kong.DegraphqlRoute{
-					URI:   kong.String("/foo"),
-					Query: kong.String("query { hello }"),
+					URI:   new("/foo"),
+					Query: new("query { hello }"),
 					Service: &kong.Service{
-						ID: kong.String("some-service"),
+						ID: new("some-service"),
 					},
 					Methods: kong.StringSlice("GET"),
 				},
@@ -110,11 +110,11 @@ func TestDegraphqlRouteGet(t *testing.T) {
 
 	degraphqlRoute := DegraphqlRoute{
 		DegraphqlRoute: kong.DegraphqlRoute{
-			ID:    kong.String("example"),
-			URI:   kong.String("/foo"),
-			Query: kong.String("query { hello }"),
+			ID:    new("example"),
+			URI:   new("/foo"),
+			Query: new("query { hello }"),
 			Service: &kong.Service{
-				ID: kong.String("some-service"),
+				ID: new("some-service"),
 			},
 			Methods: kong.StringSlice("GET"),
 		},
@@ -143,11 +143,11 @@ func TestDegraphqlRouteUpdate(t *testing.T) {
 
 	degraphqlRoute := DegraphqlRoute{
 		DegraphqlRoute: kong.DegraphqlRoute{
-			ID:    kong.String("example"),
-			URI:   kong.String("/foo"),
-			Query: kong.String("query { hello }"),
+			ID:    new("example"),
+			URI:   new("/foo"),
+			Query: new("query { hello }"),
 			Service: &kong.Service{
-				ID: kong.String("some-service"),
+				ID: new("some-service"),
 			},
 			Methods: kong.StringSlice("GET"),
 		},
@@ -163,7 +163,7 @@ func TestDegraphqlRouteUpdate(t *testing.T) {
 	assert.Equal("query { hello }", *res.Query)
 
 	// Update query field
-	res.Query = kong.String("query { hello world }")
+	res.Query = new("query { hello world }")
 	err = collection.Update(*res)
 	require.NoError(err, "error updating degraphql route")
 
@@ -180,11 +180,11 @@ func TestDegraphqlRouteDelete(t *testing.T) {
 
 	degraphqlRoute := DegraphqlRoute{
 		DegraphqlRoute: kong.DegraphqlRoute{
-			ID:    kong.String("example"),
-			URI:   kong.String("/foo"),
-			Query: kong.String("query { hello }"),
+			ID:    new("example"),
+			URI:   new("/foo"),
+			Query: new("query { hello }"),
 			Service: &kong.Service{
-				ID: kong.String("some-service"),
+				ID: new("some-service"),
 			},
 			Methods: kong.StringSlice("GET"),
 		},
@@ -228,55 +228,55 @@ func populateDegraphqlRoutes(t *testing.T,
 	degraphqlRoutes := []DegraphqlRoute{
 		{
 			DegraphqlRoute: kong.DegraphqlRoute{
-				ID:    kong.String("first"),
-				URI:   kong.String("/foo"),
-				Query: kong.String("query { hello }"),
+				ID:    new("first"),
+				URI:   new("/foo"),
+				Query: new("query { hello }"),
 				Service: &kong.Service{
-					ID: kong.String("some-service"),
+					ID: new("some-service"),
 				},
 				Methods: kong.StringSlice("GET"),
 			},
 		},
 		{
 			DegraphqlRoute: kong.DegraphqlRoute{
-				ID:    kong.String("second"),
-				URI:   kong.String("/bar"),
-				Query: kong.String("query { hello }"),
+				ID:    new("second"),
+				URI:   new("/bar"),
+				Query: new("query { hello }"),
 				Service: &kong.Service{
-					ID: kong.String("some-service"),
+					ID: new("some-service"),
 				},
 				Methods: kong.StringSlice("GET"),
 			},
 		},
 		{
 			DegraphqlRoute: kong.DegraphqlRoute{
-				ID:    kong.String("third"),
-				URI:   kong.String("/foo"),
-				Query: kong.String("query { hello }"),
+				ID:    new("third"),
+				URI:   new("/foo"),
+				Query: new("query { hello }"),
 				Service: &kong.Service{
-					ID: kong.String("some-service"),
+					ID: new("some-service"),
 				},
 				Methods: kong.StringSlice("GET"),
 			},
 		},
 		{
 			DegraphqlRoute: kong.DegraphqlRoute{
-				ID:    kong.String("fourth"),
-				URI:   kong.String("/bar"),
-				Query: kong.String("query { hello }"),
+				ID:    new("fourth"),
+				URI:   new("/bar"),
+				Query: new("query { hello }"),
 				Service: &kong.Service{
-					ID: kong.String("some-service"),
+					ID: new("some-service"),
 				},
 				Methods: kong.StringSlice("GET"),
 			},
 		},
 		{
 			DegraphqlRoute: kong.DegraphqlRoute{
-				ID:    kong.String("fifth"),
-				URI:   kong.String("/foo"),
-				Query: kong.String("query { hello }"),
+				ID:    new("fifth"),
+				URI:   new("/foo"),
+				Query: new("query { hello }"),
 				Service: &kong.Service{
-					ID: kong.String("some-service"),
+					ID: new("some-service"),
 				},
 				Methods: kong.StringSlice("GET"),
 			},

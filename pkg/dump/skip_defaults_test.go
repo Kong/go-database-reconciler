@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	schema_pkg "github.com/kong/go-database-reconciler/pkg/schema"
-	"github.com/kong/go-kong/kong"
 	"github.com/tidwall/gjson"
 )
 
@@ -19,12 +18,12 @@ const (
 
 // Test entities for testing
 type TestEntity struct {
-	Name        *string                `json:"name,omitempty"`
-	Port        *int                   `json:"port,omitempty"`
-	Enabled     *bool                  `json:"enabled,omitempty"`
-	Tags        []string               `json:"tags,omitempty"`
-	Config      map[string]interface{} `json:"config,omitempty"`
-	NestedField *NestedTestEntity      `json:"nested_field,omitempty"`
+	Name        *string           `json:"name,omitempty"`
+	Port        *int              `json:"port,omitempty"`
+	Enabled     *bool             `json:"enabled,omitempty"`
+	Tags        []string          `json:"tags,omitempty"`
+	Config      map[string]any    `json:"config,omitempty"`
+	NestedField *NestedTestEntity `json:"nested_field,omitempty"`
 }
 
 type NestedTestEntity struct {
@@ -32,18 +31,18 @@ type NestedTestEntity struct {
 }
 
 type PluginEntity struct {
-	Name   *string                `json:"name,omitempty"`
-	Config map[string]interface{} `json:"config,omitempty"`
+	Name   *string        `json:"name,omitempty"`
+	Config map[string]any `json:"config,omitempty"`
 }
 
 type VaultEntity struct {
-	Name   *string                `json:"name,omitempty"`
-	Config map[string]interface{} `json:"config,omitempty"`
+	Name   *string        `json:"name,omitempty"`
+	Config map[string]any `json:"config,omitempty"`
 }
 
 type PartialEntity struct {
-	Type   *string                `json:"type,omitempty"`
-	Config map[string]interface{} `json:"config,omitempty"`
+	Type   *string        `json:"type,omitempty"`
+	Config map[string]any `json:"config,omitempty"`
 }
 
 func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
@@ -58,7 +57,7 @@ func TestRemoveDefaultsFromState_EmptyEntities(t *testing.T) {
 
 func TestRemoveDefaultsFromEntity_NonPointer(t *testing.T) {
 	var registry *schema_pkg.Registry
-	entity := TestEntity{Name: kong.String("test")}
+	entity := TestEntity{Name: new("test")}
 	err := removeDefaultsFromEntity(context.Background(), entity, "test", registry)
 	if err == nil {
 		t.Error("Expected error for non-pointer entity, got nil")
@@ -72,7 +71,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 	tests := []struct {
 		name           string
 		schemaJSON     string
-		expectedFields map[string]interface{}
+		expectedFields map[string]any
 	}{
 		{
 			name: "simple schema with defaults",
@@ -117,12 +116,12 @@ func TestParseSchemaForDefaults(t *testing.T) {
 
 				]
 			}`,
-			expectedFields: map[string]interface{}{
+			expectedFields: map[string]any{
 				fieldName:    "default-name",
 				"port":       float64(8080),
 				fieldEnabled: true,
-				"methods":    []interface{}{"GET", "POST"},
-				"nums":       []interface{}{float64(1), float64(2)},
+				"methods":    []any{"GET", "POST"},
+				"nums":       []any{float64(1), float64(2)},
 			},
 		},
 		{
@@ -156,9 +155,9 @@ func TestParseSchemaForDefaults(t *testing.T) {
 					},
 				]
 			}`,
-			expectedFields: map[string]interface{}{
+			expectedFields: map[string]any{
 				fieldName: "default-name",
-				fieldConfig: map[string]interface{}{
+				fieldConfig: map[string]any{
 					fieldTimeout: float64(5000),
 					"retries":    float64(3),
 				},
@@ -182,8 +181,8 @@ func TestParseSchemaForDefaults(t *testing.T) {
 					}
 				}
 			}`,
-			expectedFields: map[string]interface{}{
-				"test": map[string]interface{}{
+			expectedFields: map[string]any{
+				"test": map[string]any{
 					fieldName: "record-default",
 				},
 			},
@@ -193,7 +192,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 			schemaJSON: `{
 				"fields": {}
 			}`,
-			expectedFields: map[string]interface{}{},
+			expectedFields: map[string]any{},
 		},
 		{
 			name: "schema with deprecated shorthand_fields with backward translation",
@@ -253,10 +252,10 @@ func TestParseSchemaForDefaults(t *testing.T) {
 					}
 				]
 			}`,
-			expectedFields: map[string]interface{}{
+			expectedFields: map[string]any{
 				fieldName: "default-name",
-				fieldConfig: map[string]interface{}{
-					"redis": map[string]interface{}{
+				fieldConfig: map[string]any{
+					"redis": map[string]any{
 						"host": "localhost",
 						"port": float64(6379),
 					},
@@ -354,10 +353,10 @@ func TestParseSchemaForDefaults(t *testing.T) {
 					}
 				]
 			}`,
-			expectedFields: map[string]interface{}{
+			expectedFields: map[string]any{
 				fieldName: "default-name",
-				fieldConfig: map[string]interface{}{
-					"redis": map[string]interface{}{
+				fieldConfig: map[string]any{
+					"redis": map[string]any{
 						"host":         "localhost",
 						"port":         float64(6379),
 						"read_timeout": float64(10),
@@ -374,7 +373,7 @@ func TestParseSchemaForDefaults(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			schema := gjson.Parse(tt.schemaJSON)
-			defaultFields := make(map[string]interface{})
+			defaultFields := make(map[string]any)
 			result := schema_pkg.ParseSchemaForDefaults(schema, defaultFields)
 
 			if !reflect.DeepEqual(result, tt.expectedFields) {
@@ -388,7 +387,7 @@ func TestParseEntityWithDefaults(t *testing.T) {
 	tests := []struct {
 		name          string
 		setupEntity   func() *TestEntity
-		defaultFields map[string]interface{}
+		defaultFields map[string]any
 		validateFunc  func(*testing.T, *TestEntity)
 		expectedError bool
 	}{
@@ -396,11 +395,11 @@ func TestParseEntityWithDefaults(t *testing.T) {
 			name: "remove default string field",
 			setupEntity: func() *TestEntity {
 				return &TestEntity{
-					Name: kong.String(""),
-					Port: kong.Int(8080),
+					Name: new(""),
+					Port: new(8080),
 				}
 			},
-			defaultFields: map[string]interface{}{
+			defaultFields: map[string]any{
 				fieldName: "",
 				"port":    3000,
 			},
@@ -418,10 +417,10 @@ func TestParseEntityWithDefaults(t *testing.T) {
 			name: "remove default numeric field",
 			setupEntity: func() *TestEntity {
 				return &TestEntity{
-					Port: kong.Int(3000),
+					Port: new(3000),
 				}
 			},
-			defaultFields: map[string]interface{}{
+			defaultFields: map[string]any{
 				"port": 3000,
 			},
 			validateFunc: func(t *testing.T, entity *TestEntity) {
@@ -435,15 +434,15 @@ func TestParseEntityWithDefaults(t *testing.T) {
 			name: "handle map fields",
 			setupEntity: func() *TestEntity {
 				return &TestEntity{
-					Config: map[string]interface{}{
+					Config: map[string]any{
 						fieldTimeout: 5000,
 						"retries":    3,
 						fieldName:    "custom-config",
 					},
 				}
 			},
-			defaultFields: map[string]interface{}{
-				fieldConfig: map[string]interface{}{
+			defaultFields: map[string]any{
+				fieldConfig: map[string]any{
 					fieldTimeout: 5000,
 				},
 			},
@@ -490,8 +489,8 @@ func TestParseEntityWithDefaults(t *testing.T) {
 func TestCompareSlices(t *testing.T) {
 	tests := []struct {
 		name         string
-		fieldSlice   interface{}
-		defaultSlice interface{}
+		fieldSlice   any
+		defaultSlice any
 		expected     bool
 	}{
 		{
@@ -541,34 +540,34 @@ func TestCompareSlices(t *testing.T) {
 func TestCompareMaps(t *testing.T) {
 	tests := []struct {
 		name       string
-		fieldMap   map[string]interface{}
-		defaultMap map[string]interface{}
-		expected   map[string]interface{}
+		fieldMap   map[string]any
+		defaultMap map[string]any
+		expected   map[string]any
 	}{
 		{
 			name: "remove default values",
-			fieldMap: map[string]interface{}{
+			fieldMap: map[string]any{
 				fieldTimeout: 5000,
 				"retries":    3,
 				fieldName:    "test",
 			},
-			defaultMap: map[string]interface{}{
+			defaultMap: map[string]any{
 				fieldTimeout: 5000,
 				fieldName:    "default",
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"retries": 3,
 				fieldName: "test",
 			},
 		},
 		{
 			name: "nested maps",
-			fieldMap: map[string]interface{}{
-				fieldConfig: map[string]interface{}{
+			fieldMap: map[string]any{
+				fieldConfig: map[string]any{
 					fieldTimeout: 5000,
 					"retries":    3,
 					"protocols":  []string{"http", "https"},
-					"throttling": map[string]interface{}{
+					"throttling": map[string]any{
 						fieldEnabled: true,
 						"max":        100,
 					},
@@ -576,11 +575,11 @@ func TestCompareMaps(t *testing.T) {
 				fieldEnabled: true,
 				"version":    "1.0",
 			},
-			defaultMap: map[string]interface{}{
-				fieldConfig: map[string]interface{}{
+			defaultMap: map[string]any{
+				fieldConfig: map[string]any{
 					fieldTimeout: 5000,
 					"protocols":  []string{"http", "https"},
-					"throttling": map[string]interface{}{
+					"throttling": map[string]any{
 						fieldEnabled: true,
 						"max":        10,
 					},
@@ -588,10 +587,10 @@ func TestCompareMaps(t *testing.T) {
 				fieldEnabled: false,
 				"version":    "1.0",
 			},
-			expected: map[string]interface{}{
-				fieldConfig: map[string]interface{}{
+			expected: map[string]any{
+				fieldConfig: map[string]any{
 					"retries": 3,
-					"throttling": map[string]interface{}{
+					"throttling": map[string]any{
 						"max": 100,
 					},
 				},
@@ -600,46 +599,46 @@ func TestCompareMaps(t *testing.T) {
 		},
 		{
 			name: "all values are defaults",
-			fieldMap: map[string]interface{}{
+			fieldMap: map[string]any{
 				fieldEnabled: false,
 				"version":    "1.0",
-				fieldConfig: map[string]interface{}{
+				fieldConfig: map[string]any{
 					fieldTimeout: 5000,
 					"protocols":  []string{"http", "https"},
 				},
 			},
-			defaultMap: map[string]interface{}{
+			defaultMap: map[string]any{
 				fieldEnabled: false,
 				"version":    "1.0",
-				fieldConfig: map[string]interface{}{
+				fieldConfig: map[string]any{
 					fieldTimeout: 5000,
 					"protocols":  []string{"http", "https"},
 				},
 			},
-			expected: map[string]interface{}{},
+			expected: map[string]any{},
 		},
 		{
 			name: "no values are defaults",
-			fieldMap: map[string]interface{}{
+			fieldMap: map[string]any{
 				fieldEnabled: true,
 				"version":    "2.0",
-				fieldConfig: map[string]interface{}{
+				fieldConfig: map[string]any{
 					fieldTimeout: 6000,
 					"protocols":  []string{"grpc", "https"},
 				},
 			},
-			defaultMap: map[string]interface{}{
+			defaultMap: map[string]any{
 				fieldEnabled: false,
 				"version":    "1.0",
-				fieldConfig: map[string]interface{}{
+				fieldConfig: map[string]any{
 					fieldTimeout: 5000,
 					"protocols":  []string{"http", "https"},
 				},
 			},
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				fieldEnabled: true,
 				"version":    "2.0",
-				fieldConfig: map[string]interface{}{
+				fieldConfig: map[string]any{
 					fieldTimeout: 6000,
 					"protocols":  []string{"grpc", "https"},
 				},
@@ -647,14 +646,14 @@ func TestCompareMaps(t *testing.T) {
 		},
 		{
 			name: "field has nil value",
-			fieldMap: map[string]interface{}{
+			fieldMap: map[string]any{
 				fieldTimeout: 5000,
 				fieldName:    nil,
 			},
-			defaultMap: map[string]interface{}{
+			defaultMap: map[string]any{
 				fieldTimeout: 5000,
 			},
-			expected: map[string]interface{}{},
+			expected: map[string]any{},
 		},
 	}
 
@@ -664,7 +663,7 @@ func TestCompareMaps(t *testing.T) {
 			defaultVal := reflect.ValueOf(tt.defaultMap)
 			result := compareMaps(fieldVal, defaultVal)
 
-			resultMap, ok := result.(map[string]interface{})
+			resultMap, ok := result.(map[string]any)
 			if !ok {
 				t.Errorf("compareMaps() returned non-map type")
 				return

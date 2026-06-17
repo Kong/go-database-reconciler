@@ -27,7 +27,7 @@ func TestRoutesCollection_Add(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						Name:  kong.String("foo"),
+						Name:  new("foo"),
 						Hosts: kong.StringSlice("example.com"),
 					},
 				},
@@ -39,7 +39,7 @@ func TestRoutesCollection_Add(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						ID:    kong.String("id1"),
+						ID:    new("id1"),
 						Hosts: kong.StringSlice("example.com"),
 					},
 				},
@@ -51,8 +51,8 @@ func TestRoutesCollection_Add(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						ID:    kong.String("id2"),
-						Name:  kong.String("bar-name"),
+						ID:    new("id2"),
+						Name:  new("bar-name"),
 						Hosts: kong.StringSlice("example.com"),
 					},
 				},
@@ -64,8 +64,8 @@ func TestRoutesCollection_Add(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						ID:    kong.String("id4"),
-						Name:  kong.String("foo-name"),
+						ID:    new("id4"),
+						Name:  new("foo-name"),
 						Hosts: kong.StringSlice("example.com"),
 					},
 				},
@@ -77,8 +77,8 @@ func TestRoutesCollection_Add(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						ID:    kong.String("id3"),
-						Name:  kong.String("foobar-name"),
+						ID:    new("id3"),
+						Name:  new("foobar-name"),
 						Hosts: kong.StringSlice("example.com"),
 					},
 				},
@@ -89,8 +89,8 @@ func TestRoutesCollection_Add(t *testing.T) {
 	k := routesCollection()
 	route1 := Route{
 		Route: kong.Route{
-			ID:    kong.String("id3"),
-			Name:  kong.String("foo-name"),
+			ID:    new("id3"),
+			Name:  new("foo-name"),
 			Hosts: kong.StringSlice("example.com"),
 		},
 	}
@@ -109,8 +109,8 @@ func TestRouteInsertIgnoreDuplicate(t *testing.T) {
 	collection := routesCollection()
 
 	var r Route
-	r.ID = kong.String("my-id")
-	r.Name = kong.String("first")
+	r.ID = new("my-id")
+	r.Name = new("first")
 	err := collection.Add(r)
 	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(r)
@@ -123,14 +123,14 @@ func TestRoutesCollection_Get(t *testing.T) {
 	}
 	route1 := Route{
 		Route: kong.Route{
-			ID:    kong.String("foo-id"),
+			ID:    new("foo-id"),
 			Hosts: kong.StringSlice("example.com"),
 		},
 	}
 	route2 := Route{
 		Route: kong.Route{
-			ID:    kong.String("bar-id"),
-			Name:  kong.String("bar-name"),
+			ID:    new("bar-id"),
+			Name:  new("bar-name"),
 			Hosts: kong.StringSlice("example.com"),
 		},
 	}
@@ -198,8 +198,8 @@ func TestRoutesInvalidType(t *testing.T) {
 	collection := routesCollection()
 
 	var service Service
-	service.Name = kong.String("my-service")
-	service.ID = kong.String("first")
+	service.Name = new("my-service")
+	service.ID = new("first")
 	txn := collection.db.Txn(true)
 	txn.Insert(routeTableName, &service)
 	txn.Commit()
@@ -215,21 +215,21 @@ func TestRoutesInvalidType(t *testing.T) {
 func TestRoutesCollection_Update(t *testing.T) {
 	route1 := Route{
 		Route: kong.Route{
-			ID:    kong.String("foo-id"),
+			ID:    new("foo-id"),
 			Hosts: kong.StringSlice("example.com"),
 		},
 	}
 	route2 := Route{
 		Route: kong.Route{
-			ID:    kong.String("bar-id"),
-			Name:  kong.String("bar-name"),
+			ID:    new("bar-id"),
+			Name:  new("bar-name"),
 			Hosts: kong.StringSlice("example.com"),
 		},
 	}
 	route3 := Route{
 		Route: kong.Route{
-			ID:    kong.String("foo-id"),
-			Name:  kong.String("name"),
+			ID:    new("foo-id"),
+			Name:  new("name"),
 			Hosts: kong.StringSlice("example.com"),
 		},
 	}
@@ -247,7 +247,7 @@ func TestRoutesCollection_Update(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						Name: kong.String("name"),
+						Name: new("name"),
 					},
 				},
 			},
@@ -258,7 +258,7 @@ func TestRoutesCollection_Update(t *testing.T) {
 			args: args{
 				route: Route{
 					Route: kong.Route{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 					},
 				},
 			},
@@ -301,11 +301,11 @@ func TestRouteGetMemoryReference(t *testing.T) {
 	collection := routesCollection()
 
 	var route Route
-	route.Name = kong.String("my-route")
-	route.ID = kong.String("first")
+	route.Name = new("my-route")
+	route.ID = new("first")
 	route.Hosts = kong.StringSlice("example.com", "demo.example.com")
 	route.Service = &kong.Service{
-		ID: kong.String("service1-id"),
+		ID: new("service1-id"),
 	}
 	assert.NotNil(route.Service)
 	err := collection.Add(route)
@@ -330,11 +330,11 @@ func TestRouteDelete(t *testing.T) {
 	collection := routesCollection()
 
 	var route Route
-	route.Name = kong.String("my-route")
-	route.ID = kong.String("first")
+	route.Name = new("my-route")
+	route.ID = new("first")
 	route.Hosts = kong.StringSlice("example.com", "demo.example.com")
 	route.Service = &kong.Service{
-		ID: kong.String("service1-id"),
+		ID: new("service1-id"),
 	}
 	err := collection.Add(route)
 	require.NoError(t, err)
@@ -356,21 +356,21 @@ func TestRouteGetAll(t *testing.T) {
 	collection := routesCollection()
 
 	var route Route
-	route.Name = kong.String("my-route1")
-	route.ID = kong.String("first")
+	route.Name = new("my-route1")
+	route.ID = new("first")
 	route.Hosts = kong.StringSlice("example.com", "demo.example.com")
 	route.Service = &kong.Service{
-		ID: kong.String("service1-id"),
+		ID: new("service1-id"),
 	}
 	err := collection.Add(route)
 	require.NoError(t, err)
 
 	var route2 Route
-	route2.Name = kong.String("my-route2")
-	route2.ID = kong.String("second")
+	route2.Name = new("my-route2")
+	route2.ID = new("second")
 	route2.Hosts = kong.StringSlice("example.com", "demo.example.com")
 	route2.Service = &kong.Service{
-		ID: kong.String("service1-id"),
+		ID: new("service1-id"),
 	}
 	err = collection.Add(route2)
 	require.NoError(t, err)
@@ -388,49 +388,49 @@ func TestRouteGetAllByServiceID(t *testing.T) {
 	routes := []*Route{
 		{
 			Route: kong.Route{
-				ID: kong.String("route0-id"),
+				ID: new("route0-id"),
 			},
 		},
 		{
 			Route: kong.Route{
-				ID:   kong.String("route1-id"),
-				Name: kong.String("route1-name"),
+				ID:   new("route1-id"),
+				Name: new("route1-name"),
 				Service: &kong.Service{
-					ID: kong.String("service1-id"),
+					ID: new("service1-id"),
 				},
 			},
 		},
 		{
 			Route: kong.Route{
-				ID: kong.String("route2-id"),
+				ID: new("route2-id"),
 				Service: &kong.Service{
-					ID: kong.String("service1-id"),
+					ID: new("service1-id"),
 				},
 			},
 		},
 		{
 			Route: kong.Route{
-				ID:   kong.String("route3-id"),
-				Name: kong.String("route3-name"),
+				ID:   new("route3-id"),
+				Name: new("route3-name"),
 				Service: &kong.Service{
-					ID: kong.String("service2-id"),
+					ID: new("service2-id"),
 				},
 			},
 		},
 		{
 			Route: kong.Route{
-				ID:   kong.String("route4-id"),
-				Name: kong.String("route4-name"),
+				ID:   new("route4-id"),
+				Name: new("route4-name"),
 				Service: &kong.Service{
-					ID: kong.String("service2-id"),
+					ID: new("service2-id"),
 				},
 			},
 		},
 		{
 			Route: kong.Route{
-				ID: kong.String("route5-id"),
+				ID: new("route5-id"),
 				Service: &kong.Service{
-					ID: kong.String("service2-id"),
+					ID: new("service2-id"),
 				},
 			},
 		},

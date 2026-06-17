@@ -27,7 +27,7 @@ func RemoveDefaultsFromState(ctx context.Context, group *errgroup.Group,
 			consumers := cg.Consumers
 			plugins := cg.Plugins
 
-			err := processStateEntities(ctx, []interface{}{consumerGroup}, registry, "consumer_groups")
+			err := processStateEntities(ctx, []any{consumerGroup}, registry, "consumer_groups")
 			if err != nil {
 				return fmt.Errorf("error removing defaults from consumer_groups: %w", err)
 			}
@@ -292,7 +292,7 @@ func processStateEntities[T any](
 
 func removeDefaultsFromEntity(
 	ctx context.Context,
-	entity interface{},
+	entity any,
 	entityType string,
 	registry *schema_pkg.Registry,
 ) error {
@@ -334,7 +334,7 @@ func removeDefaultsFromEntity(
 	return nil
 }
 
-func handleExceptions(entityType string, defaultFields map[string]interface{}) map[string]interface{} {
+func handleExceptions(entityType string, defaultFields map[string]any) map[string]any {
 	// Don't skip default for "algorithm" field in jwt_secrets
 	if entityType == "jwt_secrets" {
 		delete(defaultFields, "algorithm")
@@ -367,7 +367,7 @@ func getEntityIdentifier(v reflect.Value, entityType string) (string, error) {
 	return entityIdentifier, nil
 }
 
-func stripDefaultValuesFromEntity(entity reflect.Value, defaultFields map[string]interface{}) error {
+func stripDefaultValuesFromEntity(entity reflect.Value, defaultFields map[string]any) error {
 	if entity.Kind() != reflect.Struct {
 		return fmt.Errorf("entity is not a struct")
 	}
@@ -452,7 +452,7 @@ func compareNumeric(fieldVal, defaultVal reflect.Value) bool {
 	return fieldFloat == defaultFloat
 }
 
-func compareValues(fieldValue interface{}, defaultValue interface{}) bool {
+func compareValues(fieldValue any, defaultValue any) bool {
 	if fieldValue == nil && defaultValue == nil {
 		return true
 	}
@@ -505,8 +505,8 @@ func compareSlices(fieldSlice, defaultSlice reflect.Value) bool {
 	return true
 }
 
-func compareMaps(fieldMap, defaultMap reflect.Value) interface{} {
-	newMap := make(map[string]interface{})
+func compareMaps(fieldMap, defaultMap reflect.Value) any {
+	newMap := make(map[string]any)
 	for _, key := range fieldMap.MapKeys() {
 		fieldVal := fieldMap.MapIndex(key)
 		defaultVal := defaultMap.MapIndex(key)
@@ -532,7 +532,7 @@ func compareMaps(fieldMap, defaultMap reflect.Value) interface{} {
 
 		if fieldVal.Kind() == reflect.Map && defaultVal.Kind() == reflect.Map {
 			nestedResult := compareMaps(fieldVal, defaultVal)
-			if nestedMap, ok := nestedResult.(map[string]interface{}); ok && len(nestedMap) > 0 {
+			if nestedMap, ok := nestedResult.(map[string]any); ok && len(nestedMap) > 0 {
 				newMap[key.String()] = nestedResult
 			}
 		} else if fieldVal.CanInterface() && defaultVal.CanInterface() &&

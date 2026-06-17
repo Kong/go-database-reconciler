@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -19,10 +20,8 @@ func Confirm(message string) (bool, error) {
 		return false, err
 	}
 	input = strings.ToLower(input)
-	for _, validOption := range validOptions {
-		if input == validOption {
-			return true, nil
-		}
+	if slices.Contains(validOptions, input) {
+		return true, nil
 	}
 	return false, nil
 }

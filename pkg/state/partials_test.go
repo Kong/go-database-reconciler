@@ -33,13 +33,13 @@ func TestPartialAdd(t *testing.T) {
 			name: "adds a partial to the collection",
 			partial: Partial{
 				Partial: kong.Partial{
-					ID:   kong.String("first"),
-					Name: kong.String("my-foo-partial"),
-					Type: kong.String("foo"),
+					ID:   new("first"),
+					Name: new("my-foo-partial"),
+					Type: new("foo"),
 					Config: kong.Configuration{
 						testKey1: "value1",
 						testKey2: []any{"a", "b", "c"},
-						"key3": map[string]interface{}{
+						"key3": map[string]any{
 							"k1": "v1",
 							"k2": "v2",
 							"k3": []any{"a1", "b1"},
@@ -53,13 +53,13 @@ func TestPartialAdd(t *testing.T) {
 			name: "returns an error when the partial already exists - by id",
 			partial: Partial{
 				Partial: kong.Partial{
-					ID:   kong.String("first"),
-					Name: kong.String("my-foo-partial"),
-					Type: kong.String("foo"),
+					ID:   new("first"),
+					Name: new("my-foo-partial"),
+					Type: new("foo"),
 					Config: kong.Configuration{
 						testKey1: "value1",
 						testKey2: []any{"a", "b", "c"},
-						"key3": map[string]interface{}{
+						"key3": map[string]any{
 							"k1": "v1",
 							"k2": "v2",
 							"k3": []any{"a1", "b1"},
@@ -73,12 +73,12 @@ func TestPartialAdd(t *testing.T) {
 			name: "returns an error when the partial already exists - by name",
 			partial: Partial{
 				Partial: kong.Partial{
-					Name: kong.String("my-foo-partial"),
-					Type: kong.String("foo"),
+					Name: new("my-foo-partial"),
+					Type: new("foo"),
 					Config: kong.Configuration{
 						testKey1: "value1",
 						testKey2: []any{"a", "b", "c"},
-						"key3": map[string]interface{}{
+						"key3": map[string]any{
 							"k1": "v1",
 							"k2": "v2",
 							"k3": []any{"a1", "b1"},
@@ -92,12 +92,12 @@ func TestPartialAdd(t *testing.T) {
 			name: "returns an error if an id is not provided",
 			partial: Partial{
 				Partial: kong.Partial{
-					Name: kong.String("my-foo-partial"),
-					Type: kong.String("foo"),
+					Name: new("my-foo-partial"),
+					Type: new("foo"),
 					Config: kong.Configuration{
 						testKey1: "value1",
 						testKey2: []any{"a", "b", "c"},
-						"key3": map[string]interface{}{
+						"key3": map[string]any{
 							"k1": "v1",
 							"k2": "v2",
 							"k3": []any{"a1", "b1"},
@@ -132,9 +132,9 @@ func TestPartialGet(t *testing.T) {
 
 	partial := Partial{
 		Partial: kong.Partial{
-			ID:   kong.String("example"),
-			Name: kong.String("my-foo-partial"),
-			Type: kong.String("foo"),
+			ID:   new("example"),
+			Name: new("my-foo-partial"),
+			Type: new("foo"),
 			Config: kong.Configuration{
 				testKeyGeneric: testValue,
 			},
@@ -166,9 +166,9 @@ func TestPartialUpdate(t *testing.T) {
 
 	partial := Partial{
 		Partial: kong.Partial{
-			ID:   kong.String("example"),
-			Name: kong.String("my-foo-partial"),
-			Type: kong.String("foo"),
+			ID:   new("example"),
+			Name: new("my-foo-partial"),
+			Type: new("foo"),
 			Config: kong.Configuration{
 				testKey1: "value1",
 			},
@@ -208,9 +208,9 @@ func TestPartialDelete(t *testing.T) {
 
 	partial := Partial{
 		Partial: kong.Partial{
-			ID:   kong.String("example"),
-			Name: kong.String("my-foo-partial"),
-			Type: kong.String("foo"),
+			ID:   new("example"),
+			Name: new("my-foo-partial"),
+			Type: new("foo"),
 			Config: kong.Configuration{
 				testKeyGeneric: testValue,
 			},
@@ -256,9 +256,9 @@ func populatePartials(t *testing.T,
 	partials := []Partial{
 		{
 			Partial: kong.Partial{
-				ID:   kong.String("first"),
-				Name: kong.String("my-foo-partial-1"),
-				Type: kong.String("foo"),
+				ID:   new("first"),
+				Name: new("my-foo-partial-1"),
+				Type: new("foo"),
 				Config: kong.Configuration{
 					testKeyGeneric: testValue,
 				},
@@ -266,9 +266,9 @@ func populatePartials(t *testing.T,
 		},
 		{
 			Partial: kong.Partial{
-				ID:   kong.String("second"),
-				Name: kong.String("my-foo-partial-2"),
-				Type: kong.String("foo"),
+				ID:   new("second"),
+				Name: new("my-foo-partial-2"),
+				Type: new("foo"),
 				Config: kong.Configuration{
 					testKeyGeneric: testValue,
 				},
@@ -276,9 +276,9 @@ func populatePartials(t *testing.T,
 		},
 		{
 			Partial: kong.Partial{
-				ID:   kong.String("third"),
-				Name: kong.String("my-foo-partial-3"),
-				Type: kong.String("foo"),
+				ID:   new("third"),
+				Name: new("my-foo-partial-3"),
+				Type: new("foo"),
 				Config: kong.Configuration{
 					testKeyGeneric: testValue,
 				},
@@ -286,9 +286,9 @@ func populatePartials(t *testing.T,
 		},
 		{
 			Partial: kong.Partial{
-				ID:   kong.String("fourth"),
-				Name: kong.String("my-foo-partial-4"),
-				Type: kong.String("foo"),
+				ID:   new("fourth"),
+				Name: new("my-foo-partial-4"),
+				Type: new("foo"),
 				Config: kong.Configuration{
 					testKeyGeneric: testValue,
 				},
@@ -296,9 +296,9 @@ func populatePartials(t *testing.T,
 		},
 		{
 			Partial: kong.Partial{
-				ID:   kong.String("fifth"),
-				Name: kong.String("my-foo-partial-5"),
-				Type: kong.String("foo"),
+				ID:   new("fifth"),
+				Name: new("my-foo-partial-5"),
+				Type: new("foo"),
 				Config: kong.Configuration{
 					testKeyGeneric: testValue,
 				},

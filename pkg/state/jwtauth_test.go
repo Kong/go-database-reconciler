@@ -16,17 +16,17 @@ func TestJWTAuthInsert(t *testing.T) {
 	collection := jwtAuthsCollection()
 
 	var jwtAuth JWTAuth
-	jwtAuth.Key = kong.String("my-key")
-	jwtAuth.ID = kong.String("first")
+	jwtAuth.Key = new("my-key")
+	jwtAuth.ID = new("first")
 	err := collection.Add(jwtAuth)
 	require.Error(t, err)
 
 	var jwtAuth2 JWTAuth
-	jwtAuth2.Key = kong.String("my-key")
-	jwtAuth2.ID = kong.String("first")
+	jwtAuth2.Key = new("my-key")
+	jwtAuth2.ID = new("first")
 	jwtAuth2.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer-id"),
-		Username: kong.String("my-username"),
+		ID:       new("consumer-id"),
+		Username: new("my-username"),
 	}
 	err = collection.Add(jwtAuth2)
 	require.NoError(t, err)
@@ -37,11 +37,11 @@ func TestJWTAuthGet(t *testing.T) {
 	collection := jwtAuthsCollection()
 
 	var jwtAuth JWTAuth
-	jwtAuth.Key = kong.String("my-key")
-	jwtAuth.ID = kong.String("first")
+	jwtAuth.Key = new("my-key")
+	jwtAuth.ID = new("first")
 	jwtAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(jwtAuth)
@@ -68,11 +68,11 @@ func TestJWTAuthUpdate(t *testing.T) {
 	collection := jwtAuthsCollection()
 
 	var jwtAuth JWTAuth
-	jwtAuth.Key = kong.String("my-key")
-	jwtAuth.ID = kong.String("first")
+	jwtAuth.Key = new("my-key")
+	jwtAuth.ID = new("first")
 	jwtAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 
 	err := collection.Add(jwtAuth)
@@ -83,7 +83,7 @@ func TestJWTAuthUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("my-key", *res.Key)
 
-	res.Key = kong.String("my-key2")
+	res.Key = new("my-key2")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -101,11 +101,11 @@ func TestJWTAuthDelete(t *testing.T) {
 	collection := jwtAuthsCollection()
 
 	var jwtAuth JWTAuth
-	jwtAuth.Key = kong.String("my-key1")
-	jwtAuth.ID = kong.String("first")
+	jwtAuth.Key = new("my-key1")
+	jwtAuth.ID = new("first")
 	jwtAuth.Consumer = &kong.Consumer{
-		ID:       kong.String("consumer1-id"),
-		Username: kong.String("consumer1-name"),
+		ID:       new("consumer1-id"),
+		Username: new("consumer1-name"),
 	}
 	err := collection.Add(jwtAuth)
 	require.NoError(t, err)
@@ -156,51 +156,51 @@ func populateWithJWTAuthFixtures(
 	jwtAuths := []JWTAuth{
 		{
 			JWTAuth: kong.JWTAuth{
-				Key: kong.String("my-key11"),
-				ID:  kong.String("first"),
+				Key: new("my-key11"),
+				ID:  new("first"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			JWTAuth: kong.JWTAuth{
-				Key: kong.String("my-key12"),
-				ID:  kong.String("second"),
+				Key: new("my-key12"),
+				ID:  new("second"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			JWTAuth: kong.JWTAuth{
-				Key: kong.String("my-key13"),
-				ID:  kong.String("third"),
+				Key: new("my-key13"),
+				ID:  new("third"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer1-id"),
-					Username: kong.String("consumer1-name"),
+					ID:       new("consumer1-id"),
+					Username: new("consumer1-name"),
 				},
 			},
 		},
 		{
 			JWTAuth: kong.JWTAuth{
-				Key: kong.String("my-key21"),
-				ID:  kong.String("fourth"),
+				Key: new("my-key21"),
+				ID:  new("fourth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},
 		{
 			JWTAuth: kong.JWTAuth{
-				Key: kong.String("my-key22"),
-				ID:  kong.String("fifth"),
+				Key: new("my-key22"),
+				ID:  new("fifth"),
 				Consumer: &kong.Consumer{
-					ID:       kong.String("consumer2-id"),
-					Username: kong.String("consumer2-name"),
+					ID:       new("consumer2-id"),
+					Username: new("consumer2-name"),
 				},
 			},
 		},

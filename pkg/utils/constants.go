@@ -13,38 +13,38 @@ const (
 
 var (
 	serviceDefaults = kong.Service{
-		Protocol:       kong.String("http"),
-		ConnectTimeout: kong.Int(defaultTimeout),
-		WriteTimeout:   kong.Int(defaultTimeout),
-		ReadTimeout:    kong.Int(defaultTimeout),
+		Protocol:       new("http"),
+		ConnectTimeout: new(defaultTimeout),
+		WriteTimeout:   new(defaultTimeout),
+		ReadTimeout:    new(defaultTimeout),
 	}
 	routeDefaults = kong.Route{
-		PreserveHost:  kong.Bool(false),
-		RegexPriority: kong.Int(0),
-		StripPath:     kong.Bool(true),
+		PreserveHost:  new(false),
+		RegexPriority: new(0),
+		StripPath:     new(true),
 		Protocols:     kong.StringSlice("http", "https"),
 	}
 	targetDefaults = kong.Target{
-		Weight: kong.Int(defaultWeight),
+		Weight: new(defaultWeight),
 	}
 	upstreamDefaults = kong.Upstream{
-		Slots: kong.Int(defaultSlots),
+		Slots: new(defaultSlots),
 		Healthchecks: &kong.Healthcheck{
 			Active: &kong.ActiveHealthcheck{
-				Concurrency: kong.Int(defaultConcurrency),
+				Concurrency: new(defaultConcurrency),
 				Healthy: &kong.Healthy{
 					HTTPStatuses: []int{200, 302},
-					Interval:     kong.Int(0),
-					Successes:    kong.Int(0),
+					Interval:     new(0),
+					Successes:    new(0),
 				},
-				HTTPPath: kong.String("/"),
-				Type:     kong.String("http"),
-				Timeout:  kong.Int(1),
+				HTTPPath: new("/"),
+				Type:     new("http"),
+				Timeout:  new(1),
 				Unhealthy: &kong.Unhealthy{
-					HTTPFailures: kong.Int(0),
-					TCPFailures:  kong.Int(0),
-					Timeouts:     kong.Int(0),
-					Interval:     kong.Int(0),
+					HTTPFailures: new(0),
+					TCPFailures:  new(0),
+					Timeouts:     new(0),
+					Interval:     new(0),
 					HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 				},
 			},
@@ -55,19 +55,19 @@ var (
 						206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 						306, 307, 308,
 					},
-					Successes: kong.Int(0),
+					Successes: new(0),
 				},
 				Unhealthy: &kong.Unhealthy{
-					HTTPFailures: kong.Int(0),
-					TCPFailures:  kong.Int(0),
-					Timeouts:     kong.Int(0),
+					HTTPFailures: new(0),
+					TCPFailures:  new(0),
+					Timeouts:     new(0),
 					HTTPStatuses: []int{429, 500, 503},
 				},
 			},
 		},
-		HashOn:           kong.String("none"),
-		HashFallback:     kong.String("none"),
-		HashOnCookiePath: kong.String("/"),
+		HashOn:           new("none"),
+		HashFallback:     new("none"),
+		HashOnCookiePath: new("/"),
 	}
 	consumerGroupPluginDefault = kong.ConsumerGroupPlugin{
 		Config: kong.Configuration{

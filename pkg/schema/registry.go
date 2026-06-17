@@ -33,16 +33,16 @@ func NewRegistry(client *kong.Client, isKonnect bool) *Registry {
 		isKonnect: isKonnect,
 	}
 
-	r.entityCache = NewCache(func(ctx context.Context, entityType string) (map[string]interface{}, error) {
+	r.entityCache = NewCache(func(ctx context.Context, entityType string) (map[string]any, error) {
 		return FetchEntitySchema(ctx, client, isKonnect, entityType)
 	})
-	r.pluginCache = NewCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+	r.pluginCache = NewCache(func(ctx context.Context, pluginName string) (map[string]any, error) {
 		return FetchPluginSchema(ctx, client, pluginName)
 	})
-	r.partialCache = NewCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
+	r.partialCache = NewCache(func(ctx context.Context, partialType string) (map[string]any, error) {
 		return FetchPartialSchema(ctx, client, partialType)
 	})
-	r.vaultCache = NewCache(func(ctx context.Context, vaultType string) (map[string]interface{}, error) {
+	r.vaultCache = NewCache(func(ctx context.Context, vaultType string) (map[string]any, error) {
 		return FetchVaultSchema(ctx, client, vaultType, isKonnect)
 	})
 
@@ -79,19 +79,19 @@ func (r *Registry) GetEntitySchema(ctx context.Context, entityType string) (kong
 
 // GetPluginSchema is a convenience method that fetches the schema for a plugin
 // by its name (e.g. "rate-limiting").
-func (r *Registry) GetPluginSchema(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+func (r *Registry) GetPluginSchema(ctx context.Context, pluginName string) (map[string]any, error) {
 	return r.pluginCache.Get(ctx, pluginName)
 }
 
 // GetPartialSchema is a convenience method that fetches the schema for a partial
 // by its type.
-func (r *Registry) GetPartialSchema(ctx context.Context, partialType string) (map[string]interface{}, error) {
+func (r *Registry) GetPartialSchema(ctx context.Context, partialType string) (map[string]any, error) {
 	return r.partialCache.Get(ctx, partialType)
 }
 
 // GetVaultSchema is a convenience method that fetches the schema for a vault
 // by its type (e.g. "aws", "hcv").
-func (r *Registry) GetVaultSchema(ctx context.Context, vaultType string) (map[string]interface{}, error) {
+func (r *Registry) GetVaultSchema(ctx context.Context, vaultType string) (map[string]any, error) {
 	return r.vaultCache.Get(ctx, vaultType)
 }
 
@@ -102,7 +102,7 @@ func (r *Registry) GetVaultSchema(ctx context.Context, vaultType string) (map[st
 // For most entities entityType and identifier are the same (e.g. "services").
 // For plugins, partials, and vaults, identifier is the specific name/type
 // (e.g. "rate-limiting").
-func (r *Registry) GetDefaults(ctx context.Context, entityType, identifier string) (map[string]interface{}, error) {
+func (r *Registry) GetDefaults(ctx context.Context, entityType, identifier string) (map[string]any, error) {
 	entitySchema, err := r.GetSchema(ctx, entityType, identifier)
 	if err != nil {
 		return nil, err
