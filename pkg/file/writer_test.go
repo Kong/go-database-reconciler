@@ -52,14 +52,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: &FService{
 				Service: kong.Service{
-					Name: kong.String("my-service-1"),
-					ID:   kong.String("my-id-1"),
+					Name: new("my-service-1"),
+					ID:   new("my-id-1"),
 				},
 			},
 			sortable2: &FService{
 				Service: kong.Service{
-					Name: kong.String("my-service-2"),
-					ID:   kong.String("my-id-2"),
+					Name: new("my-service-2"),
+					ID:   new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -68,14 +68,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: &FRoute{
 				Route: kong.Route{
-					Name: kong.String("my-route-1"),
-					ID:   kong.String("my-id-1"),
+					Name: new("my-route-1"),
+					ID:   new("my-id-1"),
 				},
 			},
 			sortable2: &FRoute{
 				Route: kong.Route{
-					Name: kong.String("my-route-2"),
-					ID:   kong.String("my-id-2"),
+					Name: new("my-route-2"),
+					ID:   new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -84,14 +84,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: FUpstream{
 				Upstream: kong.Upstream{
-					Name: kong.String("my-upstream-1"),
-					ID:   kong.String("my-id-1"),
+					Name: new("my-upstream-1"),
+					ID:   new("my-id-1"),
 				},
 			},
 			sortable2: FUpstream{
 				Upstream: kong.Upstream{
-					Name: kong.String("my-upstream-2"),
-					ID:   kong.String("my-id-2"),
+					Name: new("my-upstream-2"),
+					ID:   new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -100,14 +100,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: FTarget{
 				Target: kong.Target{
-					Target: kong.String("my-target-1"),
-					ID:     kong.String("my-id-1"),
+					Target: new("my-target-1"),
+					ID:     new("my-id-1"),
 				},
 			},
 			sortable2: FTarget{
 				Target: kong.Target{
-					Target: kong.String("my-target-2"),
-					ID:     kong.String("my-id-2"),
+					Target: new("my-target-2"),
+					ID:     new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -115,12 +115,12 @@ func Test_compareOrder(t *testing.T) {
 
 		{
 			sortable1: FCertificate{
-				Cert: kong.String("my-certificate-1"),
-				ID:   kong.String("my-id-1"),
+				Cert: new("my-certificate-1"),
+				ID:   new("my-id-1"),
 			},
 			sortable2: FCertificate{
-				Cert: kong.String("my-certificate-2"),
-				ID:   kong.String("my-id-2"),
+				Cert: new("my-certificate-2"),
+				ID:   new("my-id-2"),
 			},
 			expected: true,
 		},
@@ -128,14 +128,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: FCACertificate{
 				CACertificate: kong.CACertificate{
-					Cert: kong.String("my-ca-certificate-1"),
-					ID:   kong.String("my-id-1"),
+					Cert: new("my-ca-certificate-1"),
+					ID:   new("my-id-1"),
 				},
 			},
 			sortable2: FCACertificate{
 				CACertificate: kong.CACertificate{
-					Cert: kong.String("my-ca-certificate-2"),
-					ID:   kong.String("my-id-2"),
+					Cert: new("my-ca-certificate-2"),
+					ID:   new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -144,14 +144,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: FPlugin{
 				Plugin: kong.Plugin{
-					Name: kong.String("my-plugin-1"),
-					ID:   kong.String("my-id-1"),
+					Name: new("my-plugin-1"),
+					ID:   new("my-id-1"),
 				},
 			},
 			sortable2: FPlugin{
 				Plugin: kong.Plugin{
-					Name: kong.String("my-plugin-2"),
-					ID:   kong.String("my-id-2"),
+					Name: new("my-plugin-2"),
+					ID:   new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -160,14 +160,14 @@ func Test_compareOrder(t *testing.T) {
 		{
 			sortable1: &FConsumer{
 				Consumer: kong.Consumer{
-					Username: kong.String("my-consumer-1"),
-					ID:       kong.String("my-id-2"),
+					Username: new("my-consumer-1"),
+					ID:       new("my-id-2"),
 				},
 			},
 			sortable2: &FConsumer{
 				Consumer: kong.Consumer{
-					Username: kong.String("my-consumer-2"),
-					ID:       kong.String("my-id-2"),
+					Username: new("my-consumer-2"),
+					ID:       new("my-id-2"),
 				},
 			},
 			expected: true,
@@ -175,45 +175,45 @@ func Test_compareOrder(t *testing.T) {
 
 		{
 			sortable1: &FServicePackage{
-				Name: kong.String("my-service-package-1"),
-				ID:   kong.String("my-id-1"),
+				Name: new("my-service-package-1"),
+				ID:   new("my-id-1"),
 			},
 			sortable2: &FServicePackage{
-				Name: kong.String("my-service-package-2"),
-				ID:   kong.String("my-id-2"),
+				Name: new("my-service-package-2"),
+				ID:   new("my-id-2"),
 			},
 			expected: true,
 		},
 		{
 			sortable1: &FServiceVersion{
-				Version: kong.String("my-service-version-1"),
-				ID:      kong.String("my-id-1"),
+				Version: new("my-service-version-1"),
+				ID:      new("my-id-1"),
 			},
 			sortable2: &FServiceVersion{
-				Version: kong.String("my-service-version-2"),
-				ID:      kong.String("my-id-2"),
+				Version: new("my-service-version-2"),
+				ID:      new("my-id-2"),
 			},
 			expected: true,
 		},
 		{
 			sortable1: FFilterChain{
 				FilterChain: kong.FilterChain{
-					Name: kong.String("my-filter-chain-1"),
-					ID:   kong.String("my-id-1"),
+					Name: new("my-filter-chain-1"),
+					ID:   new("my-id-1"),
 					Filters: []*kong.Filter{
 						{
-							Name: kong.String("example-filter"),
+							Name: new("example-filter"),
 						},
 					},
 				},
 			},
 			sortable2: FFilterChain{
 				FilterChain: kong.FilterChain{
-					Name: kong.String("my-filter-chain-2"),
-					ID:   kong.String("my-id-2"),
+					Name: new("my-filter-chain-2"),
+					ID:   new("my-id-2"),
 					Filters: []*kong.Filter{
 						{
-							Name: kong.String("example-filter"),
+							Name: new("example-filter"),
 						},
 					},
 				},
@@ -222,12 +222,12 @@ func Test_compareOrder(t *testing.T) {
 		},
 		{
 			sortable1: FCustomEntity{
-				ID:   kong.String("degraphql-route-1"),
-				Type: kong.String("degraphql_routes"),
+				ID:   new("degraphql-route-1"),
+				Type: new("degraphql_routes"),
 			},
 			sortable2: FCustomEntity{
-				ID:   kong.String("degraphql-route-2"),
-				Type: kong.String("degraphql_routes"),
+				ID:   new("degraphql-route-2"),
+				Type: new("degraphql_routes"),
 			},
 			expected: true,
 		},
@@ -278,9 +278,9 @@ func TestWriteKongStateToStdoutStateWithOneService(t *testing.T) {
 	filename := "-"
 	assert := assert.New(t)
 	var service state.Service
-	service.ID = kong.String("first")
-	service.Host = kong.String("example.com")
-	service.Name = kong.String("my-service")
+	service.ID = new("first")
+	service.Host = new("example.com")
+	service.Name = new("my-service")
 	ks.Services.Add(service)
 	// YAML
 	output := captureOutput(func() {
@@ -319,18 +319,18 @@ func TestWriteKongStateToStdoutStateWithOneServiceOneRoute(t *testing.T) {
 	filename := "-"
 	assert := assert.New(t)
 	var service state.Service
-	service.ID = kong.String("first")
-	service.Host = kong.String("example.com")
-	service.Name = kong.String("my-service")
+	service.ID = new("first")
+	service.Host = new("example.com")
+	service.Name = new("my-service")
 	ks.Services.Add(service)
 
 	var route state.Route
-	route.Name = kong.String("my-route")
-	route.ID = kong.String("first")
+	route.Name = new("my-route")
+	route.ID = new("first")
 	route.Hosts = kong.StringSlice("example.com", "demo.example.com")
 	route.Service = &kong.Service{
-		ID:   kong.String(*service.ID),
-		Name: kong.String(*service.Name),
+		ID:   new(*service.ID),
+		Name: new(*service.Name),
 	}
 
 	ks.Routes.Add(route)

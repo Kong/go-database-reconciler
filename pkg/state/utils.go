@@ -32,7 +32,7 @@ const (
 var allIndex = &memdb.IndexSchema{
 	Name: all,
 	Indexer: &memdb.ConditionalIndex{
-		Conditional: func(_ interface{}) (bool, error) {
+		Conditional: func(_ any) (bool, error) {
 			return true, nil
 		},
 	},
@@ -42,8 +42,8 @@ var allIndex = &memdb.IndexSchema{
 // based on search on multiple indexes with same key.
 func multiIndexLookupUsingTxn(txn *memdb.Txn, tableName string,
 	indices []string,
-	args ...interface{},
-) (interface{}, error) {
+	args ...any,
+) (any, error) {
 	for _, indexName := range indices {
 		res, err := txn.First(tableName, indexName, args...)
 		if res == nil && err == nil {

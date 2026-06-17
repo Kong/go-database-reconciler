@@ -27,9 +27,9 @@ func TestSNIsCollection_Add(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -41,9 +41,9 @@ func TestSNIsCollection_Add(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -55,10 +55,10 @@ func TestSNIsCollection_Add(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						ID:   kong.String("id2"),
-						Name: kong.String("bar-name"),
+						ID:   new("id2"),
+						Name: new("bar-name"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -70,10 +70,10 @@ func TestSNIsCollection_Add(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						ID:   kong.String("id4"),
-						Name: kong.String("foo-name"),
+						ID:   new("id4"),
+						Name: new("foo-name"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -85,10 +85,10 @@ func TestSNIsCollection_Add(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						ID:   kong.String("id3"),
-						Name: kong.String("foobar-name"),
+						ID:   new("id3"),
+						Name: new("foobar-name"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -100,10 +100,10 @@ func TestSNIsCollection_Add(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						ID:   kong.String("id3"),
-						Name: kong.String("foobar-name"),
+						ID:   new("id3"),
+						Name: new("foobar-name"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -114,10 +114,10 @@ func TestSNIsCollection_Add(t *testing.T) {
 	k := snisCollection()
 	sni1 := SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("id3"),
-			Name: kong.String("foo-name"),
+			ID:   new("id3"),
+			Name: new("foo-name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
@@ -138,19 +138,19 @@ func TestSNIsCollection_Get(t *testing.T) {
 	}
 	sni1 := SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
 	sni2 := SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
@@ -224,10 +224,10 @@ func TestSNIsInvalidType(t *testing.T) {
 	var sni derivedSNI
 	sni.SNI = SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
@@ -246,28 +246,28 @@ func TestSNIsInvalidType(t *testing.T) {
 func TestSNIsCollection_Update(t *testing.T) {
 	sni1 := SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("foo-name"),
+			ID:   new("foo-id"),
+			Name: new("foo-name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
 	sni2 := SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("bar-id"),
-			Name: kong.String("bar-name"),
+			ID:   new("bar-id"),
+			Name: new("bar-name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
 	sni3 := SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("foo-id"),
-			Name: kong.String("name"),
+			ID:   new("foo-id"),
+			Name: new("name"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("cert1-id"),
+				ID: new("cert1-id"),
 			},
 		},
 	}
@@ -285,9 +285,9 @@ func TestSNIsCollection_Update(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						Name: kong.String("name"),
+						Name: new("name"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -299,9 +299,9 @@ func TestSNIsCollection_Update(t *testing.T) {
 			args: args{
 				sni: SNI{
 					SNI: kong.SNI{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("cert1-id"),
+							ID: new("cert1-id"),
 						},
 					},
 				},
@@ -345,10 +345,10 @@ func TestSNIGetMemoryReference(t *testing.T) {
 	collection := snisCollection()
 
 	var sni SNI
-	sni.Name = kong.String("my-sni")
-	sni.ID = kong.String("first")
+	sni.Name = new("my-sni")
+	sni.ID = new("first")
 	sni.Certificate = &kong.Certificate{
-		ID: kong.String("cert1-id"),
+		ID: new("cert1-id"),
 	}
 	err := collection.Add(sni)
 	require.NoError(t, err)
@@ -368,10 +368,10 @@ func TestSNIDelete(t *testing.T) {
 	collection := snisCollection()
 
 	var sni SNI
-	sni.Name = kong.String("my-sni")
-	sni.ID = kong.String("first")
+	sni.Name = new("my-sni")
+	sni.ID = new("first")
 	sni.Certificate = &kong.Certificate{
-		ID: kong.String("cert1-id"),
+		ID: new("cert1-id"),
 	}
 	err := collection.Add(sni)
 	require.NoError(t, err)
@@ -393,19 +393,19 @@ func TestSNIGetAll(t *testing.T) {
 	collection := snisCollection()
 
 	var sni SNI
-	sni.Name = kong.String("my-sni1")
-	sni.ID = kong.String("first")
+	sni.Name = new("my-sni1")
+	sni.ID = new("first")
 	sni.Certificate = &kong.Certificate{
-		ID: kong.String("cert1-id"),
+		ID: new("cert1-id"),
 	}
 	err := collection.Add(sni)
 	require.NoError(t, err)
 
 	var sni2 SNI
-	sni2.Name = kong.String("my-sni2")
-	sni2.ID = kong.String("second")
+	sni2.Name = new("my-sni2")
+	sni2.ID = new("second")
 	sni2.Certificate = &kong.Certificate{
-		ID: kong.String("cert1-id"),
+		ID: new("cert1-id"),
 	}
 	err = collection.Add(sni2)
 	require.NoError(t, err)
@@ -423,44 +423,44 @@ func TestSNIGetAllByServiceID(t *testing.T) {
 	snis := []*SNI{
 		{
 			SNI: kong.SNI{
-				ID:   kong.String("sni1-id"),
-				Name: kong.String("sni1-name"),
+				ID:   new("sni1-id"),
+				Name: new("sni1-name"),
 				Certificate: &kong.Certificate{
-					ID: kong.String("cert1-id"),
+					ID: new("cert1-id"),
 				},
 			},
 		},
 		{
 			SNI: kong.SNI{
-				ID: kong.String("sni2-id"),
+				ID: new("sni2-id"),
 				Certificate: &kong.Certificate{
-					ID: kong.String("cert1-id"),
+					ID: new("cert1-id"),
 				},
 			},
 		},
 		{
 			SNI: kong.SNI{
-				ID:   kong.String("sni3-id"),
-				Name: kong.String("sni3-name"),
+				ID:   new("sni3-id"),
+				Name: new("sni3-name"),
 				Certificate: &kong.Certificate{
-					ID: kong.String("cert2-id"),
+					ID: new("cert2-id"),
 				},
 			},
 		},
 		{
 			SNI: kong.SNI{
-				ID:   kong.String("sni4-id"),
-				Name: kong.String("sni4-name"),
+				ID:   new("sni4-id"),
+				Name: new("sni4-name"),
 				Certificate: &kong.Certificate{
-					ID: kong.String("cert2-id"),
+					ID: new("cert2-id"),
 				},
 			},
 		},
 		{
 			SNI: kong.SNI{
-				ID: kong.String("sni5-id"),
+				ID: new("sni5-id"),
 				Certificate: &kong.Certificate{
-					ID: kong.String("cert2-id"),
+					ID: new("cert2-id"),
 				},
 			},
 		},

@@ -134,14 +134,14 @@ type Syncer struct {
 
 	droppedEvents []crud.Event
 
-	inFlightOps int32
+	inFlightOps atomic.Int32
 
 	silenceWarnings bool
 	stageDelaySec   int
 
-	createPrintln func(a ...interface{})
-	updatePrintln func(a ...interface{})
-	deletePrintln func(a ...interface{})
+	createPrintln func(a ...any)
+	updatePrintln func(a ...any)
+	deletePrintln func(a ...any)
 
 	kongClient    *kong.Client
 	konnectClient *konnect.Client
@@ -183,9 +183,9 @@ type SyncerOpts struct {
 
 	IsKonnect bool
 
-	CreatePrintln func(a ...interface{})
-	UpdatePrintln func(a ...interface{})
-	DeletePrintln func(a ...interface{})
+	CreatePrintln func(a ...any)
+	UpdatePrintln func(a ...any)
+	DeletePrintln func(a ...any)
 
 	// EnableEntityActions instructs the Syncer to send EntityActions to its resultChan. If enabled, clients must
 	// consume the Syncer.resultChan channel or Syncer.Solve() will block.
@@ -442,24 +442,24 @@ func (sc *Syncer) createUpdate() error {
 }
 
 func (sc *Syncer) queueEvent(e crud.Event) error {
-	atomic.AddInt32(&sc.inFlightOps, 1)
+	sc.inFlightOps.Add(1)
 	select {
 	case sc.eventChan <- e:
 		return nil
 	case <-sc.stopChan:
-		atomic.AddInt32(&sc.inFlightOps, -1)
+		sc.inFlightOps.Add(-1)
 		sc.droppedEvents = append(sc.droppedEvents, e)
 		return errEnqueueFailed
 	}
 }
 
 func (sc *Syncer) eventCompleted() {
-	atomic.AddInt32(&sc.inFlightOps, -1)
+	sc.inFlightOps.Add(-1)
 }
 
 func (sc *Syncer) wait() {
 	time.Sleep(time.Duration(sc.stageDelaySec) * time.Second)
-	for atomic.LoadInt32(&sc.inFlightOps) != 0 {
+	for sc.inFlightOps.Load() != 0 {
 		select {
 		case <-sc.stopChan:
 			return
@@ -501,15 +501,13 @@ func (sc *Syncer) Run(ctx context.Context, parallelism int, action Do) []error {
 	}
 
 	// start the producer
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		err := sc.diff()
 		if err != nil {
 			sc.errChan <- err
 		}
 		close(sc.eventChan)
-		wg.Done()
-	}()
+	})
 
 	// close the error and result chan once all done
 	go func() {
@@ -604,7 +602,7 @@ type Stats struct {
 
 // Generete Diff output for 'sync' and 'diff' commands
 func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
-	defaults ...map[string]interface{},
+	defaults ...map[string]any,
 ) (string, error) {
 	var diffString string
 	var err error
@@ -654,7 +652,7 @@ var entityKindToSchemaName = map[crud.Kind]string{
 // getEntityDefaults fetches the schema for the given entity kind and returns
 // the parsed default fields. Returns nil if the schema cannot be fetched or
 // the entity kind is not mapped.
-func (sc *Syncer) getEntityDefaults(ctx context.Context, e crud.Event) map[string]interface{} {
+func (sc *Syncer) getEntityDefaults(ctx context.Context, e crud.Event) map[string]any {
 	entityType, ok := entityKindToSchemaName[e.Kind]
 	if !ok {
 		return nil
@@ -822,7 +820,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 		}
 
 		c := e.Obj.(state.ConsoleString)
-		objDiff := map[string]interface{}{
+		objDiff := map[string]any{
 			"old": e.OldObj,
 			"new": e.Obj,
 		}
@@ -858,7 +856,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				}
 			}
 		case crud.Update:
-			var entityDefaults map[string]interface{}
+			var entityDefaults map[string]any
 			if sc.skipSchemaDefaults {
 				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
@@ -961,7 +959,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 	for _, e := range sc.droppedEvents {
 		// Convert event to the EntityState in the output.
 		c := e.Obj.(state.ConsoleString)
-		objDiff := map[string]interface{}{
+		objDiff := map[string]any{
 			"old": e.OldObj,
 			"new": e.Obj,
 		}

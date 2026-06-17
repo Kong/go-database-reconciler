@@ -19,11 +19,11 @@ func TestConsumerInsert(t *testing.T) {
 
 	require.Error(t, collection.Add(consumer))
 
-	consumer.ID = kong.String("first")
+	consumer.ID = new("first")
 	require.NoError(t, collection.Add(consumer))
 
 	// re-insert
-	consumer.Username = kong.String("my-name")
+	consumer.Username = new("my-name")
 	require.Error(t, collection.Add(consumer))
 }
 
@@ -31,8 +31,8 @@ func TestConsumerInsertIgnoreDuplicateUsername(t *testing.T) {
 	collection := consumersCollection()
 
 	var consumer Consumer
-	consumer.ID = kong.String("first")
-	consumer.Username = kong.String("my-name")
+	consumer.ID = new("first")
+	consumer.Username = new("my-name")
 	err := collection.Add(consumer)
 	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(consumer)
@@ -43,8 +43,8 @@ func TestConsumerInsertIgnoreDuplicateCustomId(t *testing.T) {
 	collection := consumersCollection()
 
 	var consumer Consumer
-	consumer.ID = kong.String("first")
-	consumer.CustomID = kong.String("my-name")
+	consumer.ID = new("first")
+	consumer.CustomID = new("my-name")
 	err := collection.Add(consumer)
 	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(consumer)
@@ -56,8 +56,8 @@ func TestConsumerGetUpdate(t *testing.T) {
 	collection := consumersCollection()
 
 	var consumer Consumer
-	consumer.ID = kong.String("first")
-	consumer.Username = kong.String("my-name")
+	consumer.ID = new("first")
+	consumer.Username = new("my-name")
 	err := collection.Add(consumer)
 	require.NoError(t, err)
 
@@ -70,14 +70,14 @@ func TestConsumerGetUpdate(t *testing.T) {
 	assert.NotNil(c)
 
 	c.ID = nil
-	c.Username = kong.String("my-updated-name")
+	c.Username = new("my-updated-name")
 	err = collection.Update(*c)
 	require.Error(t, err)
 
-	c.ID = kong.String("does-not-exist")
+	c.ID = new("does-not-exist")
 	require.Error(t, collection.Update(*c))
 
-	c.ID = kong.String("first")
+	c.ID = new("first")
 	require.NoError(t, collection.Update(*c))
 
 	c, err = collection.GetByIDOrUsername("my-name")
@@ -96,15 +96,15 @@ func TestConsumerGetMemoryReference(t *testing.T) {
 	collection := consumersCollection()
 
 	var consumer Consumer
-	consumer.ID = kong.String("first")
-	consumer.Username = kong.String("my-name")
+	consumer.ID = new("first")
+	consumer.Username = new("my-name")
 	err := collection.Add(consumer)
 	require.NoError(t, err)
 
 	c, err := collection.GetByIDOrUsername("first")
 	require.NoError(t, err)
 	assert.NotNil(c)
-	c.Username = kong.String("update-should-not-reflect")
+	c.Username = new("update-should-not-reflect")
 
 	c, err = collection.GetByIDOrUsername("first")
 	require.NoError(t, err)
@@ -117,8 +117,8 @@ func TestConsumersInvalidType(t *testing.T) {
 
 	type c2 Consumer
 	var c c2
-	c.Username = kong.String("my-name")
-	c.ID = kong.String("first")
+	c.Username = new("my-name")
+	c.ID = new("first")
 	txn := collection.db.Txn(true)
 	require.NoError(t, txn.Insert(consumerTableName, &c))
 	txn.Commit()
@@ -136,8 +136,8 @@ func TestConsumerDelete(t *testing.T) {
 	collection := consumersCollection()
 
 	var consumer Consumer
-	consumer.ID = kong.String("first")
-	consumer.Username = kong.String("my-consumer")
+	consumer.ID = new("first")
+	consumer.Username = new("my-consumer")
 	err := collection.Add(consumer)
 	require.NoError(t, err)
 
@@ -163,14 +163,14 @@ func TestConsumerGetAll(t *testing.T) {
 	consumers := []Consumer{
 		{
 			Consumer: kong.Consumer{
-				ID:       kong.String("first"),
-				Username: kong.String("my-consumer1"),
+				ID:       new("first"),
+				Username: new("my-consumer1"),
 			},
 		},
 		{
 			Consumer: kong.Consumer{
-				ID:       kong.String("second"),
-				Username: kong.String("my-consumer2"),
+				ID:       new("second"),
+				Username: new("my-consumer2"),
 			},
 		},
 	}

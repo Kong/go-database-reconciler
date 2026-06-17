@@ -44,25 +44,25 @@ type ConsoleString interface {
 
 // Meta stores metadata for any entity.
 type Meta struct {
-	metaMap map[string]interface{}
+	metaMap map[string]any
 }
 
 func (m *Meta) initMeta() {
 	if m.metaMap == nil {
-		m.metaMap = make(map[string]interface{})
+		m.metaMap = make(map[string]any)
 	}
 }
 
 // AddMeta adds key->obj metadata.
 // It will override the old obj in key is already present.
-func (m *Meta) AddMeta(key string, obj interface{}) {
+func (m *Meta) AddMeta(key string, obj any) {
 	m.initMeta()
 	m.metaMap[key] = obj
 }
 
 // GetMeta returns the obj previously added using AddMeta().
 // It returns nil if key is not present.
-func (m *Meta) GetMeta(key string) interface{} {
+func (m *Meta) GetMeta(key string) any {
 	m.initMeta()
 	return m.metaMap[key]
 }
@@ -646,12 +646,12 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 // The underlying type can be string or int. If it's neither, it panics.
 // This is used to sort the Config field of a Plugin object.
 // The underlying type remains unchanged.
-type EmptyInterfaceUsingUnderlyingType []interface{}
+type EmptyInterfaceUsingUnderlyingType []any
 
 func (e EmptyInterfaceUsingUnderlyingType) Len() int      { return len(e) }
 func (e EmptyInterfaceUsingUnderlyingType) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
 func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
-	toString := func(obj interface{}) string {
+	toString := func(obj any) string {
 		switch v := obj.(type) {
 		case string:
 			return v
@@ -659,7 +659,7 @@ func (e EmptyInterfaceUsingUnderlyingType) Less(i, j int) bool {
 			return strconv.Itoa(v)
 		case float64:
 			return strconv.FormatFloat(v, 'f', -1, 64)
-		case map[string]interface{}, []interface{}:
+		case map[string]any, []any:
 			jsonBytes, err := json.Marshal(v)
 			if err != nil {
 				panic(fmt.Sprintf("error converting map or array to JSON string: %v", err))
@@ -704,21 +704,21 @@ func shouldSort(schema gjson.Result) bool {
 }
 
 // Helper function to sort nested arrays in a map referring to schema
-func sortNestedArraysBasedOnSchema(m map[string]interface{}, schema gjson.Result) map[string]interface{} {
-	sortedMap := make(map[string]interface{}, len(m))
+func sortNestedArraysBasedOnSchema(m map[string]any, schema gjson.Result) map[string]any {
+	sortedMap := make(map[string]any, len(m))
 
 	for k, v := range m {
 		switch value := v.(type) {
-		case []interface{}:
+		case []any:
 			currSchema := getSchemaForFieldName(schema, k)
 			// For list types like array or set, get the element schema
 			elementsSchema := currSchema.Get("elements")
 			// Recursively sort each element if it's a map or array
 			for i, elem := range value {
 				switch elemType := elem.(type) {
-				case map[string]interface{}:
+				case map[string]any:
 					value[i] = sortNestedArraysBasedOnSchema(elemType, elementsSchema)
-				case []interface{}:
+				case []any:
 					value[i] = sortArrayElementsRecursivelyBasedOnSchema(elemType, elementsSchema)
 				}
 			}
@@ -727,7 +727,7 @@ func sortNestedArraysBasedOnSchema(m map[string]interface{}, schema gjson.Result
 				sort.Sort(EmptyInterfaceUsingUnderlyingType(value))
 			}
 			sortedMap[k] = value
-		case map[string]interface{}:
+		case map[string]any:
 			currSchema := getSchemaForFieldName(schema, k)
 			sortedMap[k] = sortNestedArraysBasedOnSchema(value, currSchema)
 		default:
@@ -739,14 +739,14 @@ func sortNestedArraysBasedOnSchema(m map[string]interface{}, schema gjson.Result
 }
 
 // Helper function to sort array elements recursively
-func sortArrayElementsRecursivelyBasedOnSchema(arr []interface{}, parentSchema gjson.Result) []interface{} {
+func sortArrayElementsRecursivelyBasedOnSchema(arr []any, parentSchema gjson.Result) []any {
 	elementsSchema := parentSchema.Get("elements")
 
 	for i, elem := range arr {
 		switch elemType := elem.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			arr[i] = sortNestedArraysBasedOnSchema(elemType, elementsSchema)
-		case []interface{}:
+		case []any:
 			arr[i] = sortArrayElementsRecursivelyBasedOnSchema(elemType, elementsSchema)
 		}
 	}

@@ -26,13 +26,13 @@ var commonCases = []testCase{
 		filterChain: kong.FilterChain{
 			ID: nil,
 			Service: &kong.Service{
-				ID:   kong.String("svc1"),
-				Host: kong.String("example.test"),
+				ID:   new("svc1"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -41,12 +41,12 @@ var commonCases = []testCase{
 	{
 		name: "errors when both Service and Route are nil",
 		filterChain: kong.FilterChain{
-			ID:      kong.String("fc1"),
+			ID:      new("fc1"),
 			Service: nil,
 			Route:   nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -55,18 +55,18 @@ var commonCases = []testCase{
 	{
 		name: "errors when Service and Route are both defined",
 		filterChain: kong.FilterChain{
-			ID: kong.String("fc4"),
+			ID: new("fc4"),
 			Service: &kong.Service{
-				ID:   kong.String("svc3"),
-				Host: kong.String("example.test"),
+				ID:   new("svc3"),
+				Host: new("example.test"),
 			},
 			Route: &kong.Route{
-				ID:    kong.String("r2"),
+				ID:    new("r2"),
 				Hosts: kong.StringSlice("example.com"),
 			},
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -75,10 +75,10 @@ var commonCases = []testCase{
 	{
 		name: "errors when Filters is nil",
 		filterChain: kong.FilterChain{
-			ID: kong.String("fc9"),
+			ID: new("fc9"),
 			Service: &kong.Service{
-				ID:   kong.String("svc6"),
-				Host: kong.String("example.test"),
+				ID:   new("svc6"),
+				Host: new("example.test"),
 			},
 			Route:   nil,
 			Filters: nil,
@@ -88,10 +88,10 @@ var commonCases = []testCase{
 	{
 		name: "errors when Filters is empty",
 		filterChain: kong.FilterChain{
-			ID: kong.String("fc9"),
+			ID: new("fc9"),
 			Service: &kong.Service{
-				ID:   kong.String("svc6"),
-				Host: kong.String("example.test"),
+				ID:   new("svc6"),
+				Host: new("example.test"),
 			},
 			Route:   nil,
 			Filters: []*kong.Filter{},
@@ -105,15 +105,15 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 		{
 			name: "inserts when Service is defined",
 			filterChain: kong.FilterChain{
-				ID: kong.String("fc2"),
+				ID: new("fc2"),
 				Service: &kong.Service{
-					ID:   kong.String("svc2"),
-					Host: kong.String("example.test"),
+					ID:   new("svc2"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -122,15 +122,15 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 		{
 			name: "inserts when Route is defined",
 			filterChain: kong.FilterChain{
-				ID:      kong.String("fc3"),
+				ID:      new("fc3"),
 				Service: nil,
 				Route: &kong.Route{
-					ID:    kong.String("r1"),
+					ID:    new("r1"),
 					Hosts: kong.StringSlice("example.test"),
 				},
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -139,15 +139,15 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 		{
 			name: "errors on duplicate ID",
 			filterChain: kong.FilterChain{
-				ID: kong.String("dupe-filter-id"),
+				ID: new("dupe-filter-id"),
 				Service: &kong.Service{
-					ID:   kong.String("svc4"),
-					Host: kong.String("example.test"),
+					ID:   new("svc4"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -156,15 +156,15 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 		{
 			name: "errors on duplicate service ID",
 			filterChain: kong.FilterChain{
-				ID: kong.String("fc6"),
+				ID: new("fc6"),
 				Service: &kong.Service{
-					ID:   kong.String("dupe-service-id"),
-					Host: kong.String("example.test"),
+					ID:   new("dupe-service-id"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -173,14 +173,14 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 		{
 			name: "errors on duplicate Route ID",
 			filterChain: kong.FilterChain{
-				ID: kong.String("fc7"),
+				ID: new("fc7"),
 				Route: &kong.Route{
-					ID:    kong.String("dupe-route-id"),
+					ID:    new("dupe-route-id"),
 					Hosts: kong.StringSlice("example.test"),
 				},
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -192,15 +192,15 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 
 	dupeByID := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("dupe-filter-id"),
+			ID: new("dupe-filter-id"),
 			Service: &kong.Service{
-				ID:   kong.String("svc5"),
-				Host: kong.String("example.test"),
+				ID:   new("svc5"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -211,15 +211,15 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 
 	dupeByService := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("fc5"),
+			ID: new("fc5"),
 			Service: &kong.Service{
-				ID:   kong.String("dupe-service-id"),
-				Host: kong.String("example.test"),
+				ID:   new("dupe-service-id"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -230,14 +230,14 @@ func TestFilterChainsCollection_Add(t *testing.T) {
 
 	dupeByRoute := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("fc8"),
+			ID: new("fc8"),
 			Route: &kong.Route{
-				ID:    kong.String("dupe-route-id"),
+				ID:    new("dupe-route-id"),
 				Hosts: kong.StringSlice("example.test"),
 			},
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -274,15 +274,15 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 		{
 			name: "errors when the filter chain does not exist",
 			filterChain: kong.FilterChain{
-				ID: kong.String("i-dont-exist"),
+				ID: new("i-dont-exist"),
 				Service: &kong.Service{
-					ID:   kong.String("svc2"),
-					Host: kong.String("example.test"),
+					ID:   new("svc2"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -291,15 +291,15 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 		{
 			name: "errors on duplicate service ID",
 			filterChain: kong.FilterChain{
-				ID: kong.String("fc6"),
+				ID: new("fc6"),
 				Service: &kong.Service{
-					ID:   kong.String("dupe-service-id"),
-					Host: kong.String("example.test"),
+					ID:   new("dupe-service-id"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -308,14 +308,14 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 		{
 			name: "errors on duplicate Route ID",
 			filterChain: kong.FilterChain{
-				ID: kong.String("fc7"),
+				ID: new("fc7"),
 				Route: &kong.Route{
-					ID:    kong.String("dupe-route-id"),
+					ID:    new("dupe-route-id"),
 					Hosts: kong.StringSlice("example.test"),
 				},
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -328,16 +328,16 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 	t.Run("updates existing filter chains", func(t *testing.T) {
 		pre := FilterChain{
 			FilterChain: kong.FilterChain{
-				ID:   kong.String("update-id-1"),
-				Name: kong.String("old-name"),
+				ID:   new("update-id-1"),
+				Name: new("old-name"),
 				Service: &kong.Service{
-					ID:   kong.String("my-service"),
-					Host: kong.String("example.test"),
+					ID:   new("my-service"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -346,16 +346,16 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 
 		post := FilterChain{
 			FilterChain: kong.FilterChain{
-				ID:   kong.String("update-id-1"),
-				Name: kong.String("new-name"),
+				ID:   new("update-id-1"),
+				Name: new("new-name"),
 				Service: &kong.Service{
-					ID:   kong.String("my-service"),
-					Host: kong.String("example.test"),
+					ID:   new("my-service"),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},
@@ -381,10 +381,10 @@ func TestFilterChainsCollection_Update(t *testing.T) {
 			old := FilterChain{
 				FilterChain: kong.FilterChain{
 					ID:   id,
-					Name: kong.String(fmt.Sprintf("%s-pre-update", *id)),
+					Name: new(fmt.Sprintf("%s-pre-update", *id)),
 					Filters: []*kong.Filter{
 						{
-							Name: kong.String("my-filter"),
+							Name: new("my-filter"),
 						},
 					},
 				},
@@ -420,16 +420,16 @@ func TestFilterChainsCollection_Get(t *testing.T) {
 
 	filterChain := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID:   kong.String("get-test"),
-			Name: kong.String("old-name"),
+			ID:   new("get-test"),
+			Name: new("old-name"),
 			Service: &kong.Service{
-				ID:   kong.String("svc9"),
-				Host: kong.String("example.test"),
+				ID:   new("svc9"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -458,15 +458,15 @@ func TestFilterChainsCollection_GetByProp(t *testing.T) {
 
 	serviceChain := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("get-prop-service"),
+			ID: new("get-prop-service"),
 			Service: &kong.Service{
-				ID:   kong.String("get-prop-service-id"),
-				Host: kong.String("example.test"),
+				ID:   new("get-prop-service-id"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -475,14 +475,14 @@ func TestFilterChainsCollection_GetByProp(t *testing.T) {
 
 	routeChain := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("get-prop-route"),
+			ID: new("get-prop-route"),
 			Route: &kong.Route{
-				ID:    kong.String("get-prop-route-id"),
+				ID:    new("get-prop-route-id"),
 				Hosts: kong.StringSlice("example.test"),
 			},
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -515,15 +515,15 @@ func TestFilterChainsCollection_GetAllByServiceID(t *testing.T) {
 
 	serviceChain := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("get-all-service"),
+			ID: new("get-all-service"),
 			Service: &kong.Service{
-				ID:   kong.String("get-all-service-id"),
-				Host: kong.String("example.test"),
+				ID:   new("get-all-service-id"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -550,13 +550,13 @@ func TestFilterChainsCollection_GetAllByRouteID(t *testing.T) {
 
 	routeChain := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("get-all-route"),
+			ID: new("get-all-route"),
 			Route: &kong.Route{
-				ID: kong.String("get-all-route-id"),
+				ID: new("get-all-route-id"),
 			},
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -583,15 +583,15 @@ func TestFilterChainsCollection_Delete(t *testing.T) {
 
 	filterChain := FilterChain{
 		FilterChain: kong.FilterChain{
-			ID: kong.String("delete-test"),
+			ID: new("delete-test"),
 			Service: &kong.Service{
-				ID:   kong.String("my-service"),
-				Host: kong.String("example.test"),
+				ID:   new("my-service"),
+				Host: new("example.test"),
 			},
 			Route: nil,
 			Filters: []*kong.Filter{
 				{
-					Name: kong.String("my-filter"),
+					Name: new("my-filter"),
 				},
 			},
 		},
@@ -614,21 +614,21 @@ func TestFilterChainsCollection_GetAll(t *testing.T) {
 	assert := assert.New(t)
 	collection := filterChainsCollection()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		id := fmt.Sprintf("get-all-%d", i)
 		serviceID := fmt.Sprintf("get-all-service-id-%d", i)
 
 		filterChain := FilterChain{
 			FilterChain: kong.FilterChain{
-				ID: kong.String(id),
+				ID: new(id),
 				Service: &kong.Service{
-					ID:   kong.String(serviceID),
-					Host: kong.String("example.test"),
+					ID:   new(serviceID),
+					Host: new("example.test"),
 				},
 				Route: nil,
 				Filters: []*kong.Filter{
 					{
-						Name: kong.String("my-filter"),
+						Name: new("my-filter"),
 					},
 				},
 			},

@@ -24,9 +24,9 @@ func TestGraphqlRateLimitingCostDecorationAdd(t *testing.T) {
 			name: "adds a decoration to the collection",
 			decoration: GraphqlRateLimitingCostDecoration{
 				GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-					ID:          kong.String("first"),
-					TypePath:    kong.String("Query.users"),
-					AddConstant: kong.Float64(1.0),
+					ID:          new("first"),
+					TypePath:    new("Query.users"),
+					AddConstant: new(1.0),
 				},
 			},
 			wantErr: false,
@@ -35,10 +35,10 @@ func TestGraphqlRateLimitingCostDecorationAdd(t *testing.T) {
 			name: "adds a decoration with all fields to the collection",
 			decoration: GraphqlRateLimitingCostDecoration{
 				GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-					ID:           kong.String("second"),
-					TypePath:     kong.String("Query.posts"),
-					AddConstant:  kong.Float64(2.0),
-					MulConstant:  kong.Float64(1.5),
+					ID:           new("second"),
+					TypePath:     new("Query.posts"),
+					AddConstant:  new(2.0),
+					MulConstant:  new(1.5),
 					AddArguments: kong.StringSlice("limit"),
 					MulArguments: kong.StringSlice("first", "last"),
 				},
@@ -49,9 +49,9 @@ func TestGraphqlRateLimitingCostDecorationAdd(t *testing.T) {
 			name: "returns an error when the decoration already exists",
 			decoration: GraphqlRateLimitingCostDecoration{
 				GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-					ID:          kong.String("first"),
-					TypePath:    kong.String("Query.users"),
-					AddConstant: kong.Float64(1.0),
+					ID:          new("first"),
+					TypePath:    new("Query.users"),
+					AddConstant: new(1.0),
 				},
 			},
 			wantErr: true,
@@ -60,8 +60,8 @@ func TestGraphqlRateLimitingCostDecorationAdd(t *testing.T) {
 			name: "returns an error if an id is not provided",
 			decoration: GraphqlRateLimitingCostDecoration{
 				GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-					TypePath:    kong.String("Query.users"),
-					AddConstant: kong.Float64(1.0),
+					TypePath:    new("Query.users"),
+					AddConstant: new(1.0),
 				},
 			},
 			wantErr: true,
@@ -91,9 +91,9 @@ func TestGraphqlRateLimitingCostDecorationGet(t *testing.T) {
 
 	decoration := GraphqlRateLimitingCostDecoration{
 		GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-			ID:          kong.String("example"),
-			TypePath:    kong.String("Query.users"),
-			AddConstant: kong.Float64(1.0),
+			ID:          new("example"),
+			TypePath:    new("Query.users"),
+			AddConstant: new(1.0),
 		},
 	}
 
@@ -121,9 +121,9 @@ func TestGraphqlRateLimitingCostDecorationGetByTypePath(t *testing.T) {
 
 	decoration := GraphqlRateLimitingCostDecoration{
 		GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-			ID:          kong.String("typepath-example"),
-			TypePath:    kong.String("Query.comments"),
-			AddConstant: kong.Float64(3.0),
+			ID:          new("typepath-example"),
+			TypePath:    new("Query.comments"),
+			AddConstant: new(3.0),
 		},
 	}
 
@@ -155,9 +155,9 @@ func TestGraphqlRateLimitingCostDecorationUpdate(t *testing.T) {
 
 	decoration := GraphqlRateLimitingCostDecoration{
 		GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-			ID:          kong.String("update-example"),
-			TypePath:    kong.String("Query.items"),
-			AddConstant: kong.Float64(1.0),
+			ID:          new("update-example"),
+			TypePath:    new("Query.items"),
+			AddConstant: new(1.0),
 		},
 	}
 
@@ -171,8 +171,8 @@ func TestGraphqlRateLimitingCostDecorationUpdate(t *testing.T) {
 	assert.InDelta(1.0, *res.AddConstant, 0)
 
 	// Update AddConstant field
-	res.AddConstant = kong.Float64(5.0)
-	res.MulConstant = kong.Float64(2.0)
+	res.AddConstant = new(5.0)
+	res.MulConstant = new(2.0)
 	err = collection.Update(*res)
 	require.NoError(err, "error updating decoration")
 
@@ -190,9 +190,9 @@ func TestGraphqlRateLimitingCostDecorationDelete(t *testing.T) {
 
 	decoration := GraphqlRateLimitingCostDecoration{
 		GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-			ID:          kong.String("delete-example"),
-			TypePath:    kong.String("Query.products"),
-			AddConstant: kong.Float64(1.0),
+			ID:          new("delete-example"),
+			TypePath:    new("Query.products"),
+			AddConstant: new(1.0),
 		},
 	}
 
@@ -234,41 +234,41 @@ func populateGraphqlRateLimitingCostDecorations(t *testing.T,
 	decorations := []GraphqlRateLimitingCostDecoration{
 		{
 			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-				ID:          kong.String("populate-first"),
-				TypePath:    kong.String("Query.allUsers"),
-				AddConstant: kong.Float64(1.0),
+				ID:          new("populate-first"),
+				TypePath:    new("Query.allUsers"),
+				AddConstant: new(1.0),
 			},
 		},
 		{
 			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-				ID:          kong.String("populate-second"),
-				TypePath:    kong.String("Query.allPosts"),
-				AddConstant: kong.Float64(2.0),
-				MulConstant: kong.Float64(1.5),
+				ID:          new("populate-second"),
+				TypePath:    new("Query.allPosts"),
+				AddConstant: new(2.0),
+				MulConstant: new(1.5),
 			},
 		},
 		{
 			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-				ID:           kong.String("populate-third"),
-				TypePath:     kong.String("Query.allComments"),
-				AddConstant:  kong.Float64(1.0),
+				ID:           new("populate-third"),
+				TypePath:     new("Query.allComments"),
+				AddConstant:  new(1.0),
 				AddArguments: kong.StringSlice("limit"),
 			},
 		},
 		{
 			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-				ID:           kong.String("populate-fourth"),
-				TypePath:     kong.String("Query.allProducts"),
-				MulConstant:  kong.Float64(2.0),
+				ID:           new("populate-fourth"),
+				TypePath:     new("Query.allProducts"),
+				MulConstant:  new(2.0),
 				MulArguments: kong.StringSlice("first", "last"),
 			},
 		},
 		{
 			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-				ID:           kong.String("populate-fifth"),
-				TypePath:     kong.String("Query.allOrders"),
-				AddConstant:  kong.Float64(3.0),
-				MulConstant:  kong.Float64(2.5),
+				ID:           new("populate-fifth"),
+				TypePath:     new("Query.allOrders"),
+				AddConstant:  new(3.0),
+				MulConstant:  new(2.5),
 				AddArguments: kong.StringSlice("offset"),
 				MulArguments: kong.StringSlice("count"),
 			},

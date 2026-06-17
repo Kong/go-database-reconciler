@@ -21,7 +21,7 @@ func (e *ValidationError) Error() string {
 }
 
 func validate(content []byte) error {
-	var c map[string]interface{}
+	var c map[string]any
 	err := yaml.Unmarshal(content, &c)
 	if err != nil {
 		return fmt.Errorf("unmarshaling file content: %w", err)

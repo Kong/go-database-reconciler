@@ -18,16 +18,16 @@ func TestACLGroupInsert(t *testing.T) {
 	var aclGroup ACLGroup
 	require.Error(t, collection.Add(aclGroup))
 
-	aclGroup.Group = kong.String("my-group")
-	aclGroup.ID = kong.String("first")
+	aclGroup.Group = new("my-group")
+	aclGroup.ID = new("first")
 	err := collection.Add(aclGroup)
 	require.Error(t, err)
 
 	var aclGroup2 ACLGroup
-	aclGroup2.Group = kong.String("my-group")
-	aclGroup2.ID = kong.String("first")
+	aclGroup2.Group = new("my-group")
+	aclGroup2.ID = new("first")
 	aclGroup2.Consumer = &kong.Consumer{
-		ID: kong.String("consumer-id"),
+		ID: new("consumer-id"),
 	}
 	err = collection.Add(aclGroup2)
 	require.NoError(t, err)
@@ -37,13 +37,13 @@ func TestACLGroupInsert(t *testing.T) {
 	require.Error(t, err)
 
 	// re-insert with a different ID
-	aclGroup2.ID = kong.String("second")
+	aclGroup2.ID = new("second")
 	err = collection.Add(aclGroup2)
 	require.Error(t, err)
 
 	// re-insert for different consumer
 	aclGroup2.Consumer = &kong.Consumer{
-		ID: kong.String("consumer2-id"),
+		ID: new("consumer2-id"),
 	}
 	err = collection.Add(aclGroup2)
 	require.NoError(t, err)
@@ -54,10 +54,10 @@ func TestACLGroupGetByID(t *testing.T) {
 	collection := aclGroupsCollection()
 
 	var aclGroup ACLGroup
-	aclGroup.Group = kong.String("my-group")
-	aclGroup.ID = kong.String("first")
+	aclGroup.Group = new("my-group")
+	aclGroup.ID = new("first")
 	aclGroup.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 
 	err := collection.Add(aclGroup)
@@ -101,10 +101,10 @@ func TestACLGroupUpdate(t *testing.T) {
 	collection := aclGroupsCollection()
 
 	var aclGroup ACLGroup
-	aclGroup.Group = kong.String("my-group")
-	aclGroup.ID = kong.String("first")
+	aclGroup.Group = new("my-group")
+	aclGroup.ID = new("first")
 	aclGroup.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 
 	err := collection.Add(aclGroup)
@@ -115,7 +115,7 @@ func TestACLGroupUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("my-group", *res.Group)
 
-	res.Group = kong.String("my-group2")
+	res.Group = new("my-group2")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -133,10 +133,10 @@ func TestACLGroupDelete(t *testing.T) {
 	collection := aclGroupsCollection()
 
 	var aclGroup ACLGroup
-	aclGroup.Group = kong.String("my-group1")
-	aclGroup.ID = kong.String("first")
+	aclGroup.Group = new("my-group1")
+	aclGroup.ID = new("first")
 	aclGroup.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 	err := collection.Add(aclGroup)
 	require.NoError(t, err)
@@ -187,46 +187,46 @@ func populateWithACLGroupFixtures(
 	aclGroups := []ACLGroup{
 		{
 			ACLGroup: kong.ACLGroup{
-				Group: kong.String("my-group11"),
-				ID:    kong.String("first"),
+				Group: new("my-group11"),
+				ID:    new("first"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1-id"),
+					ID: new("consumer1-id"),
 				},
 			},
 		},
 		{
 			ACLGroup: kong.ACLGroup{
-				Group: kong.String("my-group12"),
-				ID:    kong.String("second"),
+				Group: new("my-group12"),
+				ID:    new("second"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1-id"),
+					ID: new("consumer1-id"),
 				},
 			},
 		},
 		{
 			ACLGroup: kong.ACLGroup{
-				Group: kong.String("my-group13"),
-				ID:    kong.String("third"),
+				Group: new("my-group13"),
+				ID:    new("third"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1-id"),
+					ID: new("consumer1-id"),
 				},
 			},
 		},
 		{
 			ACLGroup: kong.ACLGroup{
-				Group: kong.String("my-group21"),
-				ID:    kong.String("fourth"),
+				Group: new("my-group21"),
+				ID:    new("fourth"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer2-id"),
+					ID: new("consumer2-id"),
 				},
 			},
 		},
 		{
 			ACLGroup: kong.ACLGroup{
-				Group: kong.String("my-group22"),
-				ID:    kong.String("fifth"),
+				Group: new("my-group22"),
+				ID:    new("fifth"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer2-id"),
+					ID: new("consumer2-id"),
 				},
 			},
 		},

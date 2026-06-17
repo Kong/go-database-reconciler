@@ -332,7 +332,7 @@ func populateServicePackages(kongState *state.KongState, file *Content,
 			safeDocPath := utils.NameToFilename(*d.Path)
 			fDocument := FDocument{
 				ID:        d.ID,
-				Path:      kong.String(filepath.Join(safePackageName, safeDocPath)),
+				Path:      new(filepath.Join(safePackageName, safeDocPath)),
 				Published: d.Published,
 				Content:   d.Content,
 			}
@@ -373,7 +373,7 @@ func populateServicePackages(kongState *state.KongState, file *Content,
 				safeDocPath := utils.NameToFilename(*d.Path)
 				fDocument := FDocument{
 					ID:        d.ID,
-					Path:      kong.String(filepath.Join(safePackageName, safeVersionName, safeDocPath)),
+					Path:      new(filepath.Join(safePackageName, safeVersionName, safeDocPath)),
 					Published: d.Published,
 					Content:   d.Content,
 				}

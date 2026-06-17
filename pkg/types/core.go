@@ -270,7 +270,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				targetState:        opts.TargetState,
 				kongClient:         opts.KongClient,
 				skipSchemaDefaults: opts.SkipSchemaDefaults,
-				schemasCache: schema.NewCache(func(ctx context.Context, pluginName string) (map[string]interface{}, error) {
+				schemasCache: schema.NewCache(func(ctx context.Context, pluginName string) (map[string]any, error) {
 					return opts.KongClient.Plugins.GetFullSchema(ctx, &pluginName)
 				}),
 			},
@@ -657,7 +657,7 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 				targetState:        opts.TargetState,
 				client:             opts.KongClient,
 				skipSchemaDefaults: opts.SkipSchemaDefaults,
-				schemasCache: schema.NewCache(func(ctx context.Context, partialType string) (map[string]interface{}, error) {
+				schemasCache: schema.NewCache(func(ctx context.Context, partialType string) (map[string]any, error) {
 					return opts.KongClient.Partials.GetFullSchema(ctx, &partialType)
 				}),
 			},

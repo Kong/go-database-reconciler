@@ -3,7 +3,6 @@ package state
 import (
 	"testing"
 
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,25 +16,25 @@ func TestUpstreamInsert(t *testing.T) {
 
 	// name is required
 	var upstream Upstream
-	upstream.ID = kong.String("first")
+	upstream.ID = new("first")
 	err := collection.Add(upstream)
 	require.Error(t, err)
 
 	// happy path
-	upstream.Name = kong.String("my-upstream")
+	upstream.Name = new("my-upstream")
 	require.NoError(t, collection.Add(upstream))
 
 	// ID is required
 	var upstream2 Upstream
-	upstream2.Name = kong.String("my-upstream")
+	upstream2.Name = new("my-upstream")
 	err = collection.Add(upstream2)
 	require.Error(t, err)
 
 	// re-insert
-	upstream2.ID = kong.String("first")
+	upstream2.ID = new("first")
 	require.Error(t, collection.Add(upstream2))
 
-	upstream2.ID = kong.String("same-name-but-different-id")
+	upstream2.ID = new("same-name-but-different-id")
 	require.Error(t, collection.Add(upstream2))
 }
 
@@ -52,8 +51,8 @@ func TestUpstreamGetUpdate(t *testing.T) {
 	assert.Nil(se)
 
 	var upstream Upstream
-	upstream.Name = kong.String("my-upstream")
-	upstream.ID = kong.String("first")
+	upstream.Name = new("my-upstream")
+	upstream.ID = new("first")
 	err = collection.Add(upstream)
 	require.NoError(t, err)
 
@@ -61,7 +60,7 @@ func TestUpstreamGetUpdate(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(se)
 
-	se.Name = kong.String("my-updated-upstream")
+	se.Name = new("my-updated-upstream")
 	err = collection.Update(*se)
 	require.NoError(t, err)
 
@@ -86,15 +85,15 @@ func TestUpstreamGetMemoryReference(t *testing.T) {
 	collection := upstreamsCollection()
 
 	var upstream Upstream
-	upstream.Name = kong.String("my-upstream")
-	upstream.ID = kong.String("first")
+	upstream.Name = new("my-upstream")
+	upstream.ID = new("first")
 	err := collection.Add(upstream)
 	require.NoError(t, err)
 
 	se, err := collection.Get("first")
 	require.NoError(t, err)
 	assert.NotNil(se)
-	se.Slots = kong.Int(1)
+	se.Slots = new(1)
 
 	se, err = collection.Get("my-upstream")
 	require.NoError(t, err)
@@ -108,8 +107,8 @@ func TestUpstreamsInvalidType(t *testing.T) {
 	collection := upstreamsCollection()
 
 	var route Route
-	route.Name = kong.String("my-route")
-	route.ID = kong.String("first")
+	route.Name = new("my-route")
+	route.ID = new("first")
 	txn := collection.db.Txn(true)
 	txn.Insert(upstreamTableName, &route)
 	txn.Commit()
@@ -127,8 +126,8 @@ func TestUpstreamDelete(t *testing.T) {
 	collection := upstreamsCollection()
 
 	var upstream Upstream
-	upstream.Name = kong.String("my-upstream")
-	upstream.ID = kong.String("first")
+	upstream.Name = new("my-upstream")
+	upstream.ID = new("first")
 	err := collection.Add(upstream)
 	require.NoError(t, err)
 
@@ -154,14 +153,14 @@ func TestUpstreamGetAll(t *testing.T) {
 	collection := upstreamsCollection()
 
 	var upstream Upstream
-	upstream.Name = kong.String("my-upstream1")
-	upstream.ID = kong.String("first")
+	upstream.Name = new("my-upstream1")
+	upstream.ID = new("first")
 	err := collection.Add(upstream)
 	require.NoError(t, err)
 
 	var upstream2 Upstream
-	upstream2.Name = kong.String("my-upstream2")
-	upstream2.ID = kong.String("second")
+	upstream2.Name = new("my-upstream2")
+	upstream2.ID = new("second")
 	err = collection.Add(upstream2)
 	require.NoError(t, err)
 

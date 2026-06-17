@@ -96,7 +96,7 @@ func FilenameToName(filename string) string {
 	return strings.ReplaceAll(filename, url.PathEscape(string(os.PathSeparator)), string(os.PathSeparator))
 }
 
-func CallGetAll(obj interface{}) (reflect.Value, error) {
+func CallGetAll(obj any) (reflect.Value, error) {
 	// call GetAll method on entity
 	var result reflect.Value
 	method := reflect.ValueOf(obj).MethodByName("GetAll")
@@ -151,9 +151,9 @@ func KonnectWorkspaceExists(ctx context.Context, client *kong.Client) (bool, err
 // GetConsumerReference returns a username+ID only copy of the input consumer,
 // for use in references from other objects
 func GetConsumerReference(c kong.Consumer) *kong.Consumer {
-	consumer := &kong.Consumer{ID: kong.String(*c.ID)}
+	consumer := &kong.Consumer{ID: new(*c.ID)}
 	if c.Username != nil {
-		consumer.Username = kong.String(*c.Username)
+		consumer.Username = new(*c.Username)
 	}
 	return consumer
 }
@@ -161,9 +161,9 @@ func GetConsumerReference(c kong.Consumer) *kong.Consumer {
 // GetConsumerGroupReference returns a name+ID only copy of the input consumer-group,
 // for use in references from other objects
 func GetConsumerGroupReference(c kong.ConsumerGroup) *kong.ConsumerGroup {
-	consumerGroup := &kong.ConsumerGroup{ID: kong.String(*c.ID)}
+	consumerGroup := &kong.ConsumerGroup{ID: new(*c.ID)}
 	if c.Name != nil {
-		consumerGroup.Name = kong.String(*c.Name)
+		consumerGroup.Name = new(*c.Name)
 	}
 	return consumerGroup
 }
@@ -171,9 +171,9 @@ func GetConsumerGroupReference(c kong.ConsumerGroup) *kong.ConsumerGroup {
 // GetServiceReference returns a name+ID only copy of the input service,
 // for use in references from other objects
 func GetServiceReference(s kong.Service) *kong.Service {
-	service := &kong.Service{ID: kong.String(*s.ID)}
+	service := &kong.Service{ID: new(*s.ID)}
 	if s.Name != nil {
-		service.Name = kong.String(*s.Name)
+		service.Name = new(*s.Name)
 	}
 	return service
 }
@@ -181,9 +181,9 @@ func GetServiceReference(s kong.Service) *kong.Service {
 // GetRouteReference returns a name+ID only copy of the input route,
 // for use in references from other objects
 func GetRouteReference(r kong.Route) *kong.Route {
-	route := &kong.Route{ID: kong.String(*r.ID)}
+	route := &kong.Route{ID: new(*r.ID)}
 	if r.Name != nil {
-		route.Name = kong.String(*r.Name)
+		route.Name = new(*r.Name)
 	}
 	return route
 }
@@ -191,9 +191,9 @@ func GetRouteReference(r kong.Route) *kong.Route {
 // GetPartialReference returns a name+ID only copy of the input partial,
 // for use in references from other objects
 func GetPartialReference(p kong.Partial) *kong.Partial {
-	partial := &kong.Partial{ID: kong.String(*p.ID)}
+	partial := &kong.Partial{ID: new(*p.ID)}
 	if p.Name != nil {
-		partial.Name = kong.String(*p.Name)
+		partial.Name = new(*p.Name)
 	}
 	return partial
 }

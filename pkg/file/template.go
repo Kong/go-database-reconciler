@@ -126,7 +126,7 @@ func renderTemplate(content string, mode RenderEnvVarsMode) (string, error) {
 	counter := 0
 	var allContent bytes.Buffer
 	lines := strings.Split(content, "\n")
-	for i := 0; i < len(lines); i++ {
+	for i := range lines {
 		line := lines[i]
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			line = templateExprPattern.ReplaceAllStringFunc(line, func(match string) string {

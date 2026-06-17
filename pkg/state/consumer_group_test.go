@@ -3,7 +3,6 @@ package state
 import (
 	"testing"
 
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,8 +17,8 @@ func TestConsumerGroupInsert(t *testing.T) {
 
 	require.Error(t, collection.Add(cg))
 
-	cg.ID = kong.String("my-id")
-	cg.Name = kong.String("first")
+	cg.ID = new("my-id")
+	cg.Name = new("first")
 	require.NoError(t, collection.Add(cg))
 
 	// re-insert
@@ -30,8 +29,8 @@ func TestConsumerGroupInsertIgnoreDuplicate(t *testing.T) {
 	collection := consumerGroupsCollection()
 
 	var cg ConsumerGroup
-	cg.ID = kong.String("my-id")
-	cg.Name = kong.String("first")
+	cg.ID = new("my-id")
+	cg.Name = new("first")
 	err := collection.Add(cg)
 	require.NoError(t, err)
 	err = collection.AddIgnoringDuplicates(cg)

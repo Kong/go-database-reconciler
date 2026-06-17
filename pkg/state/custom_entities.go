@@ -3,6 +3,7 @@ package state
 import (
 	"errors"
 	"fmt"
+	"maps"
 
 	memdb "github.com/hashicorp/go-memdb"
 )
@@ -29,9 +30,7 @@ func (k *customEntitiesCollection) Schema() *memdb.TableSchema {
 	}
 
 	if k.customIndexes != nil {
-		for key, index := range k.customIndexes {
-			completeIndex[key] = index
-		}
+		maps.Copy(completeIndex, k.customIndexes)
 	}
 
 	return &memdb.TableSchema{

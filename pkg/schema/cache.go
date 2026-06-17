@@ -6,13 +6,13 @@ import (
 )
 
 // Fetcher is a function that retrieves a schema by identifier from an external source.
-type Fetcher func(ctx context.Context, identifier string) (map[string]interface{}, error)
+type Fetcher func(ctx context.Context, identifier string) (map[string]any, error)
 
 // Cache provides thread-safe caching of schemas keyed by a string identifier.
 // It lazily fetches schemas on first access and returns cached results thereafter.
 type Cache struct {
 	fetcher Fetcher
-	cache   map[string]map[string]interface{}
+	cache   map[string]map[string]any
 	mu      sync.RWMutex
 }
 
@@ -20,12 +20,12 @@ type Cache struct {
 func NewCache(fetcher Fetcher) *Cache {
 	return &Cache{
 		fetcher: fetcher,
-		cache:   make(map[string]map[string]interface{}),
+		cache:   make(map[string]map[string]any),
 	}
 }
 
 // Get returns the cached schema for the given identifier, fetching it on first access.
-func (c *Cache) Get(ctx context.Context, identifier string) (map[string]interface{}, error) {
+func (c *Cache) Get(ctx context.Context, identifier string) (map[string]any, error) {
 	c.mu.RLock()
 	if s, ok := c.cache[identifier]; ok {
 		c.mu.RUnlock()

@@ -31,7 +31,7 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -42,7 +42,7 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 					},
 				},
 			},
@@ -53,8 +53,8 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id2"),
-						Name: kong.String("bar-name"),
+						ID:   new("id2"),
+						Name: new("bar-name"),
 					},
 				},
 			},
@@ -65,8 +65,8 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id3"),
-						Name: kong.String("foo-name"),
+						ID:   new("id3"),
+						Name: new("foo-name"),
 					},
 				},
 			},
@@ -77,8 +77,8 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id3"),
-						Name: kong.String("foobar-name"),
+						ID:   new("id3"),
+						Name: new("foobar-name"),
 					},
 				},
 			},
@@ -89,10 +89,10 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id4-new"),
-						Name: kong.String("key-auth"),
+						ID:   new("id4-new"),
+						Name: new("key-auth"),
 						Route: &kong.Route{
-							ID: kong.String("route1"),
+							ID: new("route1"),
 						},
 					},
 				},
@@ -104,13 +104,13 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id5-new"),
-						Name: kong.String("key-auth"),
+						ID:   new("id5-new"),
+						Name: new("key-auth"),
 						Route: &kong.Route{
-							ID: kong.String("route1"),
+							ID: new("route1"),
 						},
 						Service: &kong.Service{
-							ID: kong.String("svc1"),
+							ID: new("svc1"),
 						},
 					},
 				},
@@ -122,14 +122,14 @@ func TestPluginsCollection_Add(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id"),
-						Name: kong.String("rate-limiting"),
+						ID:   new("id"),
+						Name: new("rate-limiting"),
 						Partials: []*kong.PartialLink{
 							{
 								Partial: &kong.Partial{
-									ID: kong.String("partial-id"),
+									ID: new("partial-id"),
 								},
-								Path: kong.String("config_path"),
+								Path: new("config_path"),
 							},
 						},
 					},
@@ -141,28 +141,28 @@ func TestPluginsCollection_Add(t *testing.T) {
 	k := pluginsCollection()
 	plugin1 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id3"),
-			Name: kong.String("foo-name"),
+			ID:   new("id3"),
+			Name: new("foo-name"),
 		},
 	}
 	plugin2 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id4"),
-			Name: kong.String("key-auth"),
+			ID:   new("id4"),
+			Name: new("key-auth"),
 			Route: &kong.Route{
-				ID: kong.String("route1"),
+				ID: new("route1"),
 			},
 		},
 	}
 	plugin3 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id5"),
-			Name: kong.String("key-auth"),
+			ID:   new("id5"),
+			Name: new("key-auth"),
 			Route: &kong.Route{
-				ID: kong.String("route1"),
+				ID: new("route1"),
 			},
 			Service: &kong.Service{
-				ID: kong.String("svc1"),
+				ID: new("svc1"),
 			},
 		},
 	}
@@ -193,7 +193,7 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -204,7 +204,7 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 					},
 				},
 			},
@@ -215,8 +215,8 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("does-not-exist-yet"),
-						Name: kong.String("bar-name"),
+						ID:   new("does-not-exist-yet"),
+						Name: new("bar-name"),
 					},
 				},
 			},
@@ -227,8 +227,8 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id3"),
-						Name: kong.String("foo-name-new"),
+						ID:   new("id3"),
+						Name: new("foo-name-new"),
 					},
 				},
 			},
@@ -239,10 +239,10 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("new-id"),
-						Name: kong.String("key-auth"),
+						ID:   new("new-id"),
+						Name: new("key-auth"),
 						Route: &kong.Route{
-							ID: kong.String("route1"),
+							ID: new("route1"),
 						},
 					},
 				},
@@ -254,13 +254,13 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("new-id"),
-						Name: kong.String("key-auth"),
+						ID:   new("new-id"),
+						Name: new("key-auth"),
 						Route: &kong.Route{
-							ID: kong.String("route1"),
+							ID: new("route1"),
 						},
 						Service: &kong.Service{
-							ID: kong.String("svc1"),
+							ID: new("svc1"),
 						},
 					},
 				},
@@ -272,14 +272,14 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id5"),
-						Name: kong.String("rate-limiting"),
+						ID:   new("id5"),
+						Name: new("rate-limiting"),
 						Partials: []*kong.PartialLink{
 							{
 								Partial: &kong.Partial{
-									ID: kong.String("partial-id-2"),
+									ID: new("partial-id-2"),
 								},
-								Path: kong.String("config_path"),
+								Path: new("config_path"),
 							},
 						},
 					},
@@ -292,14 +292,14 @@ func TestPluginsCollection_Update(t *testing.T) {
 			args: args{
 				plugin: Plugin{
 					Plugin: kong.Plugin{
-						ID:   kong.String("id5"),
-						Name: kong.String("rate-limiting"),
+						ID:   new("id5"),
+						Name: new("rate-limiting"),
 						Partials: []*kong.PartialLink{
 							{
 								Partial: &kong.Partial{
-									ID: kong.String("partial-id-2"),
+									ID: new("partial-id-2"),
 								},
-								Path: kong.String("config_path_new"),
+								Path: new("config_path_new"),
 							},
 						},
 					},
@@ -311,56 +311,56 @@ func TestPluginsCollection_Update(t *testing.T) {
 	k := pluginsCollection()
 	plugin1 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id1"),
-			Name: kong.String("foo-name"),
+			ID:   new("id1"),
+			Name: new("foo-name"),
 		},
 	}
 	plugin2 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id2"),
-			Name: kong.String("key-auth"),
+			ID:   new("id2"),
+			Name: new("key-auth"),
 			Route: &kong.Route{
-				ID: kong.String("route1"),
+				ID: new("route1"),
 			},
 		},
 	}
 	plugin3 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id3"),
-			Name: kong.String("key-auth"),
+			ID:   new("id3"),
+			Name: new("key-auth"),
 			Route: &kong.Route{
-				ID: kong.String("route1"),
+				ID: new("route1"),
 			},
 			Service: &kong.Service{
-				ID: kong.String("svc1"),
+				ID: new("svc1"),
 			},
 		},
 	}
 	plugin4 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id4"),
-			Name: kong.String("key-auth"),
+			ID:   new("id4"),
+			Name: new("key-auth"),
 			Route: &kong.Route{
-				ID: kong.String("route1"),
+				ID: new("route1"),
 			},
 			Service: &kong.Service{
-				ID: kong.String("svc1"),
+				ID: new("svc1"),
 			},
 			ConsumerGroup: &kong.ConsumerGroup{
-				ID: kong.String("cg1"),
+				ID: new("cg1"),
 			},
 		},
 	}
 	plugin5 := Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("id5"),
-			Name: kong.String("rate-limiting"),
+			ID:   new("id5"),
+			Name: new("rate-limiting"),
 			Partials: []*kong.PartialLink{
 				{
 					Partial: &kong.Partial{
-						ID: kong.String("partial-id-1"),
+						ID: new("partial-id-1"),
 					},
-					Path: kong.String("config_path"),
+					Path: new("config_path"),
 				},
 			},
 		},
@@ -385,11 +385,11 @@ func TestPluginGet(t *testing.T) {
 	collection := pluginsCollection()
 
 	var plugin Plugin
-	plugin.Name = kong.String("my-plugin")
-	plugin.ID = kong.String("first")
+	plugin.Name = new("my-plugin")
+	plugin.ID = new("first")
 	plugin.Service = &kong.Service{
-		ID:   kong.String("service1-id"),
-		Name: kong.String("service1-name"),
+		ID:   new("service1-id"),
+		Name: new("service1-name"),
 	}
 	assert.NotNil(plugin.Service)
 	err := collection.Add(plugin)
@@ -401,8 +401,8 @@ func TestPluginGet(t *testing.T) {
 	assert.NotNil(re)
 	assert.Equal("my-plugin", *re.Name)
 	re.Service = &kong.Service{
-		ID:   kong.String("service2-id"),
-		Name: kong.String("service2-name"),
+		ID:   new("service2-id"),
+		Name: new("service2-name"),
 	}
 
 	re, err = collection.Get("does-not-exists")
@@ -414,57 +414,57 @@ func TestGetPluginByProp(t *testing.T) {
 	plugins := []Plugin{
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("1"),
-				Name: kong.String("key-auth"),
-				Config: map[string]interface{}{
+				ID:   new("1"),
+				Name: new("key-auth"),
+				Config: map[string]any{
 					testKey1: "value1",
 				},
 			},
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("2"),
-				Name: kong.String("key-auth"),
+				ID:   new("2"),
+				Name: new("key-auth"),
 				Service: &kong.Service{
-					ID: kong.String("svc1"),
+					ID: new("svc1"),
 				},
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					testKey2: "value2",
 				},
 			},
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("3"),
-				Name: kong.String("key-auth"),
+				ID:   new("3"),
+				Name: new("key-auth"),
 				Route: &kong.Route{
-					ID: kong.String("route1"),
+					ID: new("route1"),
 				},
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					"key3": "value3",
 				},
 			},
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("4"),
-				Name: kong.String("key-auth"),
+				ID:   new("4"),
+				Name: new("key-auth"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1"),
+					ID: new("consumer1"),
 				},
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					"key4": "value4",
 				},
 			},
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("5"),
-				Name: kong.String("key-auth"),
+				ID:   new("5"),
+				Name: new("key-auth"),
 				ConsumerGroup: &kong.ConsumerGroup{
-					ID: kong.String("cg1"),
+					ID: new("cg1"),
 				},
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					"key5": "value5",
 				},
 			},
@@ -517,8 +517,8 @@ func TestPluginsInvalidType(t *testing.T) {
 	collection := pluginsCollection()
 
 	var service Service
-	service.Name = kong.String("my-service")
-	service.ID = kong.String("first")
+	service.Name = new("my-service")
+	service.ID = new("first")
 	txn := collection.db.Txn(true)
 	txn.Insert(pluginTableName, &service)
 	txn.Commit()
@@ -536,15 +536,15 @@ func TestPluginDelete(t *testing.T) {
 	collection := pluginsCollection()
 
 	var plugin Plugin
-	plugin.ID = kong.String("first")
-	plugin.Name = kong.String("my-plugin")
-	plugin.Config = map[string]interface{}{
+	plugin.ID = new("first")
+	plugin.Name = new("my-plugin")
+	plugin.Config = map[string]any{
 		"foo":   testBar,
 		testBaz: testBar,
 	}
 	plugin.Service = &kong.Service{
-		ID:   kong.String("service1-id"),
-		Name: kong.String("service1-name"),
+		ID:   new("service1-id"),
+		Name: new("service1-name"),
 	}
 	err := collection.Add(plugin)
 	require.NoError(t, err)
@@ -570,13 +570,13 @@ func TestPluginGetAll(t *testing.T) {
 	plugins := []*Plugin{
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("first-id"),
-				Name: kong.String("key-auth"),
+				ID:   new("first-id"),
+				Name: new("key-auth"),
 				Service: &kong.Service{
-					ID:   kong.String("service1-id"),
-					Name: kong.String("service1-name"),
+					ID:   new("service1-id"),
+					Name: new("service1-name"),
 				},
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					"foo":   testBar,
 					testBaz: testBar,
 				},
@@ -584,31 +584,31 @@ func TestPluginGetAll(t *testing.T) {
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("second-id"),
-				Name: kong.String("basic-auth"),
+				ID:   new("second-id"),
+				Name: new("basic-auth"),
 				Service: &kong.Service{
-					ID:   kong.String("service1-id"),
-					Name: kong.String("service1-name"),
+					ID:   new("service1-id"),
+					Name: new("service1-name"),
 				},
 			},
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("third-id"),
-				Name: kong.String("rate-limiting"),
+				ID:   new("third-id"),
+				Name: new("rate-limiting"),
 				Route: &kong.Route{
-					ID:   kong.String("route1-id"),
-					Name: kong.String("route1-name"),
+					ID:   new("route1-id"),
+					Name: new("route1-name"),
 				},
 			},
 		},
 		{
 			Plugin: kong.Plugin{
-				ID:   kong.String("fourth-id"),
-				Name: kong.String("key-auth"),
+				ID:   new("fourth-id"),
+				Name: new("key-auth"),
 				Route: &kong.Route{
-					ID:   kong.String("route1-id"),
-					Name: kong.String("route1-name"),
+					ID:   new("route1-id"),
+					Name: new("route1-name"),
 				},
 			},
 		},

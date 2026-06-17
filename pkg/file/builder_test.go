@@ -39,35 +39,35 @@ var (
 
 var kongDefaults = KongDefaults{
 	Service: &kong.Service{
-		Protocol:       kong.String("http"),
-		ConnectTimeout: kong.Int(defaultTimeout),
-		WriteTimeout:   kong.Int(defaultTimeout),
-		ReadTimeout:    kong.Int(defaultTimeout),
+		Protocol:       new("http"),
+		ConnectTimeout: new(defaultTimeout),
+		WriteTimeout:   new(defaultTimeout),
+		ReadTimeout:    new(defaultTimeout),
 	},
 	Route: &kong.Route{
-		PreserveHost:  kong.Bool(false),
-		RegexPriority: kong.Int(0),
-		StripPath:     kong.Bool(false),
+		PreserveHost:  new(false),
+		RegexPriority: new(0),
+		StripPath:     new(false),
 		Protocols:     kong.StringSlice("http", "https"),
 	},
 	Upstream: &kong.Upstream{
-		Slots: kong.Int(defaultSlots),
+		Slots: new(defaultSlots),
 		Healthchecks: &kong.Healthcheck{
 			Active: &kong.ActiveHealthcheck{
-				Concurrency: kong.Int(defaultConcurrency),
+				Concurrency: new(defaultConcurrency),
 				Healthy: &kong.Healthy{
 					HTTPStatuses: []int{200, 302},
-					Interval:     kong.Int(0),
-					Successes:    kong.Int(0),
+					Interval:     new(0),
+					Successes:    new(0),
 				},
-				HTTPPath: kong.String("/"),
-				Type:     kong.String("http"),
-				Timeout:  kong.Int(1),
+				HTTPPath: new("/"),
+				Type:     new("http"),
+				Timeout:  new(1),
 				Unhealthy: &kong.Unhealthy{
-					HTTPFailures: kong.Int(0),
-					TCPFailures:  kong.Int(0),
-					Timeouts:     kong.Int(0),
-					Interval:     kong.Int(0),
+					HTTPFailures: new(0),
+					TCPFailures:  new(0),
+					Timeouts:     new(0),
+					Interval:     new(0),
 					HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 				},
 			},
@@ -78,22 +78,22 @@ var kongDefaults = KongDefaults{
 						206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 						306, 307, 308,
 					},
-					Successes: kong.Int(0),
+					Successes: new(0),
 				},
 				Unhealthy: &kong.Unhealthy{
-					HTTPFailures: kong.Int(0),
-					TCPFailures:  kong.Int(0),
-					Timeouts:     kong.Int(0),
+					HTTPFailures: new(0),
+					TCPFailures:  new(0),
+					Timeouts:     new(0),
 					HTTPStatuses: []int{429, 500, 503},
 				},
 			},
 		},
-		HashOn:           kong.String("none"),
-		HashFallback:     kong.String("none"),
-		HashOnCookiePath: kong.String("/"),
+		HashOn:           new("none"),
+		HashFallback:     new("none"),
+		HashOnCookiePath: new("/"),
 	},
 	Target: &kong.Target{
-		Weight: kong.Int(defaultWeight),
+		Weight: new(defaultWeight),
 	},
 }
 
@@ -111,8 +111,8 @@ func existingRouteState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Routes.Add(state.Route{
 		Route: kong.Route{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: new("foo"),
 		},
 	})
 	return s
@@ -122,8 +122,8 @@ func existingServiceState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Services.Add(state.Service{
 		Service: kong.Service{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: new("foo"),
 		},
 	})
 	return s
@@ -133,81 +133,81 @@ func existingConsumerCredState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Consumers.Add(state.Consumer{
 		Consumer: kong.Consumer{
-			ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Username: kong.String("foo"),
+			ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Username: new("foo"),
 		},
 	})
 	s.KeyAuths.Add(state.KeyAuth{
 		KeyAuth: kong.KeyAuth{
-			ID:  kong.String("5f1ef1ea-a2a5-4a1b-adbb-b0d3434013e5"),
-			Key: kong.String("foo-apikey"),
+			ID:  new("5f1ef1ea-a2a5-4a1b-adbb-b0d3434013e5"),
+			Key: new("foo-apikey"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
 	s.BasicAuths.Add(state.BasicAuth{
 		BasicAuth: kong.BasicAuth{
-			ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
-			Username: kong.String("basic-username"),
-			Password: kong.String("basic-password"),
+			ID:       new("92f4c849-960b-43af-aad3-f307051408d3"),
+			Username: new("basic-username"),
+			Password: new("basic-password"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
 	s.JWTAuths.Add(state.JWTAuth{
 		JWTAuth: kong.JWTAuth{
-			ID:     kong.String("917b9402-1be0-49d2-b482-ca4dccc2054e"),
-			Key:    kong.String("jwt-key"),
-			Secret: kong.String("jwt-secret"),
+			ID:     new("917b9402-1be0-49d2-b482-ca4dccc2054e"),
+			Key:    new("jwt-key"),
+			Secret: new("jwt-secret"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
 	s.HMACAuths.Add(state.HMACAuth{
 		HMACAuth: kong.HMACAuth{
-			ID:       kong.String("e5d81b73-bf9e-42b0-9d68-30a1d791b9c9"),
-			Username: kong.String("hmac-username"),
-			Secret:   kong.String("hmac-secret"),
+			ID:       new("e5d81b73-bf9e-42b0-9d68-30a1d791b9c9"),
+			Username: new("hmac-username"),
+			Secret:   new("hmac-secret"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
 	s.ACLGroups.Add(state.ACLGroup{
 		ACLGroup: kong.ACLGroup{
-			ID:    kong.String("b7c9352a-775a-4ba5-9869-98e926a3e6cb"),
-			Group: kong.String("foo-group"),
+			ID:    new("b7c9352a-775a-4ba5-9869-98e926a3e6cb"),
+			Group: new("foo-group"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
 	s.Oauth2Creds.Add(state.Oauth2Credential{
 		Oauth2Credential: kong.Oauth2Credential{
-			ID:       kong.String("4eef5285-3d6a-4f6b-b659-8957a940e2ca"),
-			ClientID: kong.String("oauth2-clientid"),
-			Name:     kong.String("oauth2-name"),
+			ID:       new("4eef5285-3d6a-4f6b-b659-8957a940e2ca"),
+			ClientID: new("oauth2-clientid"),
+			Name:     new("oauth2-name"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
 	s.MTLSAuths.Add(state.MTLSAuth{
 		MTLSAuth: kong.MTLSAuth{
-			ID:          kong.String("92f4c829-968b-42af-afd3-f337051508d3"),
-			SubjectName: kong.String("test@example.com"),
+			ID:          new("92f4c829-968b-42af-afd3-f337051508d3"),
+			SubjectName: new("test@example.com"),
 			Consumer: &kong.Consumer{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Username: kong.String("foo"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Username: new("foo"),
 			},
 		},
 	})
@@ -218,8 +218,8 @@ func existingUpstreamState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Upstreams.Add(state.Upstream{
 		Upstream: kong.Upstream{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: new("foo"),
 		},
 	})
 	return s
@@ -229,9 +229,9 @@ func existingCertificateState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Certificates.Add(state.Certificate{
 		Certificate: kong.Certificate{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Cert: kong.String("foo"),
-			Key:  kong.String("bar"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Cert: new("foo"),
+			Key:  new("bar"),
 		},
 	})
 	return s
@@ -241,26 +241,26 @@ func existingCertificateAndSNIState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Certificates.Add(state.Certificate{
 		Certificate: kong.Certificate{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Cert: kong.String("foo"),
-			Key:  kong.String("bar"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Cert: new("foo"),
+			Key:  new("bar"),
 		},
 	})
 	s.SNIs.Add(state.SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("a53e9598-3a5e-4c12-a672-71a4cdcf7a47"),
-			Name: kong.String("foo.example.com"),
+			ID:   new("a53e9598-3a5e-4c12-a672-71a4cdcf7a47"),
+			Name: new("foo.example.com"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 			},
 		},
 	})
 	s.SNIs.Add(state.SNI{
 		SNI: kong.SNI{
-			ID:   kong.String("5f8e6848-4cb9-479a-a27e-860e1a77f875"),
-			Name: kong.String("bar.example.com"),
+			ID:   new("5f8e6848-4cb9-479a-a27e-860e1a77f875"),
+			Name: new("bar.example.com"),
 			Certificate: &kong.Certificate{
-				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 			},
 		},
 	})
@@ -271,8 +271,8 @@ func existingCACertificateState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.CACertificates.Add(state.CACertificate{
 		CACertificate: kong.CACertificate{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Cert: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Cert: new("foo"),
 		},
 	})
 	return s
@@ -282,47 +282,47 @@ func existingPluginState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Consumers.Add(state.Consumer{
 		Consumer: kong.Consumer{
-			ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+			ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 		},
 	})
 	s.Routes.Add(state.Route{
 		Route: kong.Route{
-			ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+			ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 		},
 	})
 	s.ConsumerGroups.Add(state.ConsumerGroup{
 		ConsumerGroup: kong.ConsumerGroup{
-			ID:   kong.String("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
-			Name: kong.String("test-group"),
+			ID:   new("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
+			Name: new("test-group"),
 		},
 	})
 	s.Plugins.Add(state.Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: new("foo"),
 		},
 	})
 	s.Plugins.Add(state.Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
-			Name: kong.String("bar"),
+			ID:   new("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
+			Name: new("bar"),
 			Consumer: &kong.Consumer{
-				ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+				ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 			},
 		},
 	})
 	s.Plugins.Add(state.Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
-			Name: kong.String("foo"),
+			ID:   new("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
+			Name: new("foo"),
 			Consumer: &kong.Consumer{
-				ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+				ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 			},
 			Route: &kong.Route{
-				ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+				ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 			},
 			ConsumerGroup: &kong.ConsumerGroup{
-				ID: kong.String("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
+				ID: new("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
 			},
 		},
 	})
@@ -334,44 +334,44 @@ func existingScopedPluginState() *state.KongState {
 
 	s.Consumers.Add(state.Consumer{
 		Consumer: kong.Consumer{
-			ID: kong.String("cID"),
+			ID: new("cID"),
 		},
 	})
 
 	s.Services.Add(state.Service{
 		Service: kong.Service{
-			ID: kong.String("sID"),
+			ID: new("sID"),
 		},
 	})
 
 	s.Routes.Add(state.Route{
 		Route: kong.Route{
-			ID: kong.String("rID"),
+			ID: new("rID"),
 		},
 	})
 
 	s.ConsumerGroups.Add(state.ConsumerGroup{
 		ConsumerGroup: kong.ConsumerGroup{
-			ID:   kong.String("cgID"),
-			Name: kong.String("foo"),
+			ID:   new("cgID"),
+			Name: new("foo"),
 		},
 	})
 
 	s.Plugins.Add(state.Plugin{
 		Plugin: kong.Plugin{
-			ID:   kong.String("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
-			Name: kong.String("foo"),
+			ID:   new("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
+			Name: new("foo"),
 			Consumer: &kong.Consumer{
-				ID: kong.String("cID"),
+				ID: new("cID"),
 			},
 			Route: &kong.Route{
-				ID: kong.String("rID"),
+				ID: new("rID"),
 			},
 			ConsumerGroup: &kong.ConsumerGroup{
-				ID: kong.String("cgID"),
+				ID: new("cgID"),
 			},
 			Service: &kong.Service{
-				ID: kong.String("sID"),
+				ID: new("sID"),
 			},
 		},
 	})
@@ -383,19 +383,19 @@ func existingTargetsState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.Targets.Add(state.Target{
 		Target: kong.Target{
-			ID:     kong.String("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
-			Target: kong.String("bar"),
+			ID:     new("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
+			Target: new("bar"),
 			Upstream: &kong.Upstream{
-				ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+				ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 			},
 		},
 	})
 	s.Targets.Add(state.Target{
 		Target: kong.Target{
-			ID:     kong.String("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
-			Target: kong.String("foo"),
+			ID:     new("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
+			Target: new("foo"),
 			Upstream: &kong.Upstream{
-				ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+				ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 			},
 		},
 	})
@@ -406,17 +406,17 @@ func existingDocumentState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.ServicePackages.Add(state.ServicePackage{
 		ServicePackage: konnect.ServicePackage{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: new("foo"),
 		},
 	})
 	parent, _ := s.ServicePackages.Get("4bfcb11f-c962-4817-83e5-9433cf20b663")
 	s.Documents.Add(state.Document{
 		Document: konnect.Document{
-			ID:        kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Path:      kong.String("/foo.md"),
-			Published: kong.Bool(true),
-			Content:   kong.String("foo"),
+			ID:        new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Path:      new("/foo.md"),
+			Published: new(true),
+			Content:   new("foo"),
 			Parent:    parent,
 		},
 	})
@@ -427,34 +427,34 @@ func existingFilterChainState() *state.KongState {
 	s, _ := state.NewKongState()
 	s.FilterChains.Add(state.FilterChain{
 		FilterChain: kong.FilterChain{
-			Name:    kong.String("my-service-chain"),
-			ID:      kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
-			Enabled: kong.Bool(true),
+			Name:    new("my-service-chain"),
+			ID:      new("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+			Enabled: new(true),
 			Service: &kong.Service{
-				ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+				ID: new("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
 			},
 			Filters: []*kong.Filter{
 				{
-					Name:    kong.String("my-filter"),
+					Name:    new("my-filter"),
 					Config:  jsonRawMessage(`"config!"`),
-					Enabled: kong.Bool(false),
+					Enabled: new(false),
 				},
 			},
 		},
 	})
 	s.FilterChains.Add(state.FilterChain{
 		FilterChain: kong.FilterChain{
-			Name:    kong.String("my-route-chain"),
-			ID:      kong.String("ac6758a5-41d4-4493-827f-de9df5b75859"),
-			Enabled: kong.Bool(true),
+			Name:    new("my-route-chain"),
+			ID:      new("ac6758a5-41d4-4493-827f-de9df5b75859"),
+			Enabled: new(true),
 			Route: &kong.Route{
-				ID: kong.String("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
+				ID: new("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
 			},
 			Filters: []*kong.Filter{
 				{
-					Name:    kong.String("my-filter"),
+					Name:    new("my-filter"),
 					Config:  jsonRawMessage(`"config!"`),
-					Enabled: kong.Bool(false),
+					Enabled: new(false),
 				},
 			},
 		},
@@ -471,13 +471,13 @@ func existingDegraphqlRouteState(t *testing.T) *state.KongState {
 	s.DegraphqlRoutes.Add(
 		state.DegraphqlRoute{
 			DegraphqlRoute: kong.DegraphqlRoute{
-				ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 				Service: &kong.Service{
-					ID: kong.String(testServiceID),
+					ID: new(testServiceID),
 				},
 				Methods: kong.StringSlice("GET"),
-				URI:     kong.String("/example"),
-				Query:   kong.String("query{ example { foo } }"),
+				URI:     new("/example"),
+				Query:   new("query{ example { foo } }"),
 			},
 		})
 	return s
@@ -491,10 +491,10 @@ func existingGqlCostDecorationState(t *testing.T) *state.KongState {
 	s.GraphqlRateLimitingCostDecorations.Add(
 		state.GraphqlRateLimitingCostDecoration{
 			GraphqlRateLimitingCostDecoration: kong.GraphqlRateLimitingCostDecoration{
-				ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				TypePath: kong.String("Query.users"),
+				ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				TypePath: new("Query.users"),
 				Service: &kong.Service{
-					ID: kong.String(testServiceID),
+					ID: new(testServiceID),
 				},
 				AddConstant: kong.Float64(1),
 				MulConstant: kong.Float64(1),
@@ -511,13 +511,13 @@ func existingPartialState(t *testing.T) *state.KongState {
 	s.Partials.Add(
 		state.Partial{
 			Partial: kong.Partial{
-				ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-				Name: kong.String("existing-partial"),
-				Type: kong.String("foo"),
+				ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Name: new("existing-partial"),
+				Type: new("foo"),
 				Config: kong.Configuration{
 					"key1": "value1",
 					"key2": []any{"a", "b", "c"},
-					"key3": map[string]interface{}{
+					"key3": map[string]any{
 						"k1": "v1",
 						"k2": "v2",
 						"k3": []any{"a1", "b1"},
@@ -536,8 +536,8 @@ func existingConsumerState(t *testing.T) *state.KongState {
 
 	s.Consumers.Add(state.Consumer{
 		Consumer: kong.Consumer{
-			ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Username: kong.String("foo"),
+			ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Username: new("foo"),
 		},
 	})
 
@@ -551,8 +551,8 @@ func existingConsumerGroupState(t *testing.T) *state.KongState {
 
 	s.ConsumerGroups.Add(state.ConsumerGroup{
 		ConsumerGroup: kong.ConsumerGroup{
-			ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name: kong.String("foo"),
+			ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name: new("foo"),
 		},
 	})
 
@@ -567,10 +567,10 @@ func existingKeyState(t *testing.T) *state.KongState {
 	s.Keys.Add(
 		state.Key{
 			Key: kong.Key{
-				ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-				Name: kong.String("foo"),
-				KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-				JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+				ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name: new("foo"),
+				KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+				JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 			},
 		})
 	return s
@@ -584,8 +584,8 @@ func existingKeySetState(t *testing.T) *state.KongState {
 	s.KeySets.Add(
 		state.KeySet{
 			KeySet: kong.KeySet{
-				ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-				Name: kong.String("existing-set"),
+				ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name: new("existing-set"),
 			},
 		})
 	return s
@@ -599,10 +599,10 @@ func existingCustomPluginDefinitionState(t *testing.T) *state.KongState {
 	s.CustomPluginDefinitions.Add(
 		state.CustomPluginDefinition{
 			CustomPluginDefinition: kong.CustomPluginDefinition{
-				ID:      kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-				Name:    kong.String("my-plugin"),
-				Schema:  kong.String("return {}"),
-				Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+				ID:      new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name:    new("my-plugin"),
+				Schema:  new("return {}"),
+				Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 			},
 		})
 	return s
@@ -662,7 +662,7 @@ func Test_stateBuilder_services(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo"),
+								Name: new("foo"),
 							},
 						},
 					},
@@ -672,12 +672,12 @@ func Test_stateBuilder_services(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name:           kong.String("foo"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name:           new("foo"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 						Tags:           kong.StringSlice("tag1"),
 					},
 				},
@@ -693,7 +693,7 @@ func Test_stateBuilder_services(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo"),
+								Name: new("foo"),
 							},
 						},
 					},
@@ -703,12 +703,12 @@ func Test_stateBuilder_services(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:           kong.String("foo"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:           new("foo"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 						Tags:           kong.StringSlice("tag1"),
 					},
 				},
@@ -724,8 +724,8 @@ func Test_stateBuilder_services(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name:     kong.String("foo"),
-								Protocol: kong.String("https"),
+								Name:     new("foo"),
+								Protocol: new("https"),
 								TLSSANs: &kong.SANs{
 									DNSNames: kong.StringSlice("example.com"),
 								},
@@ -738,12 +738,12 @@ func Test_stateBuilder_services(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:           kong.String("foo"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:           new("foo"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 						Tags:           kong.StringSlice("tag1"),
 						TLSSANs: &kong.SANs{
 							DNSNames: kong.StringSlice("example.com"),
@@ -789,7 +789,7 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			args: args{
 				route: FRoute{
 					Route: kong.Route{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -797,11 +797,11 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						ID:            kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:          kong.String("foo"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 					},
 				},
@@ -815,7 +815,7 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			args: args{
 				route: FRoute{
 					Route: kong.Route{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -823,11 +823,11 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						ID:            kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name:          kong.String("foo"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 					},
 				},
@@ -841,7 +841,7 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			args: args{
 				route: FRoute{
 					Route: kong.Route{
-						Name:      kong.String("foo"),
+						Name:      new("foo"),
 						Protocols: kong.StringSlice("grpc"),
 					},
 				},
@@ -850,11 +850,11 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						ID:            kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name:          kong.String("foo"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("grpc"),
 					},
 				},
@@ -902,9 +902,9 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						Target: kong.String("foo"),
+						Target: new("foo"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("952ddf37-e815-40b6-b119-5379a3b1f7be"),
+							ID: new("952ddf37-e815-40b6-b119-5379a3b1f7be"),
 						},
 					},
 				},
@@ -913,11 +913,11 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Targets: []*kong.Target{
 					{
-						ID:     kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Target: kong.String("foo"),
-						Weight: kong.Int(100),
+						ID:     new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Target: new("foo"),
+						Weight: new(100),
 						Upstream: &kong.Upstream{
-							ID: kong.String("952ddf37-e815-40b6-b119-5379a3b1f7be"),
+							ID: new("952ddf37-e815-40b6-b119-5379a3b1f7be"),
 						},
 					},
 				},
@@ -931,15 +931,15 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						Target: kong.String("bar"),
+						Target: new("bar"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+							ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 						},
 					},
 					{
-						Target: kong.String("foo"),
+						Target: new("foo"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+							ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 						},
 					},
 				},
@@ -948,19 +948,19 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Targets: []*kong.Target{
 					{
-						ID:     kong.String("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
-						Target: kong.String("bar"),
-						Weight: kong.Int(100),
+						ID:     new("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
+						Target: new("bar"),
+						Weight: new(100),
 						Upstream: &kong.Upstream{
-							ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+							ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 						},
 					},
 					{
-						ID:     kong.String("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
-						Target: kong.String("foo"),
-						Weight: kong.Int(100),
+						ID:     new("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
+						Target: new("foo"),
+						Weight: new(100),
 						Upstream: &kong.Upstream{
-							ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+							ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 						},
 					},
 				},
@@ -974,10 +974,10 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
-						Target: kong.String("[2001:db8:fd73::e]:1326"),
+						ID:     new("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: new("[2001:db8:fd73::e]:1326"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+							ID: new("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -986,11 +986,11 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Targets: []*kong.Target{
 					{
-						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
-						Target: kong.String("[2001:0db8:fd73:0000:0000:0000:0000:000e]:1326"),
-						Weight: kong.Int(100),
+						ID:     new("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: new("[2001:0db8:fd73:0000:0000:0000:0000:000e]:1326"),
+						Weight: new(100),
 						Upstream: &kong.Upstream{
-							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+							ID: new("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1004,10 +1004,10 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
-						Target: kong.String("::1"),
+						ID:     new("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: new("::1"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+							ID: new("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1016,11 +1016,11 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Targets: []*kong.Target{
 					{
-						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
-						Target: kong.String("[0000:0000:0000:0000:0000:0000:0000:0001]:8000"),
-						Weight: kong.Int(100),
+						ID:     new("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: new("[0000:0000:0000:0000:0000:0000:0000:0001]:8000"),
+						Weight: new(100),
 						Upstream: &kong.Upstream{
-							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+							ID: new("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1034,10 +1034,10 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
-						Target: kong.String("[::1]"),
+						ID:     new("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: new("[::1]"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+							ID: new("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1046,11 +1046,11 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Targets: []*kong.Target{
 					{
-						ID:     kong.String("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
-						Target: kong.String("[0000:0000:0000:0000:0000:0000:0000:0001]:8000"),
-						Weight: kong.Int(100),
+						ID:     new("d6e7f8a9-bcde-1234-5678-9abcdef01234"),
+						Target: new("[0000:0000:0000:0000:0000:0000:0000:0001]:8000"),
+						Weight: new(100),
 						Upstream: &kong.Upstream{
-							ID: kong.String("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+							ID: new("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1064,27 +1064,9 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						Target: kong.String("[invalid:ipv6::address]:1326"),
+						Target: new("[invalid:ipv6::address]:1326"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
-						},
-					},
-				},
-			},
-			wantErr:   true,
-			wantState: &utils.KongRawState{},
-		},
-		{
-			name: "handles invalid IPv6 address correctly",
-			fields: fields{
-				currentState: emptyState(),
-			},
-			args: args{
-				targets: []kong.Target{
-					{
-						Target: kong.String("1:2:3:4"),
-						Upstream: &kong.Upstream{
-							ID: kong.String("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
+							ID: new("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1100,9 +1082,27 @@ func Test_stateBuilder_ingestTargets(t *testing.T) {
 			args: args{
 				targets: []kong.Target{
 					{
-						Target: kong.String("this:is:nuts:!"),
+						Target: new("1:2:3:4"),
 						Upstream: &kong.Upstream{
-							ID: kong.String("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
+							ID: new("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
+						},
+					},
+				},
+			},
+			wantErr:   true,
+			wantState: &utils.KongRawState{},
+		},
+		{
+			name: "handles invalid IPv6 address correctly",
+			fields: fields{
+				currentState: emptyState(),
+			},
+			args: args{
+				targets: []kong.Target{
+					{
+						Target: new("this:is:nuts:!"),
+						Upstream: &kong.Upstream{
+							ID: new("b1c2d3e4-f5a6-7890-abcd-ef1234567890"),
 						},
 					},
 				},
@@ -1152,7 +1152,7 @@ func Test_stateBuilder_ingestPlugins(t *testing.T) {
 				plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("foo"),
+							Name: new("foo"),
 						},
 					},
 				},
@@ -1161,8 +1161,8 @@ func Test_stateBuilder_ingestPlugins(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Plugins: []*kong.Plugin{
 					{
-						ID:     kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:   kong.String("foo"),
+						ID:     new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:   new("foo"),
 						Config: kong.Configuration{},
 					},
 				},
@@ -1177,28 +1177,28 @@ func Test_stateBuilder_ingestPlugins(t *testing.T) {
 				plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("foo"),
+							Name: new("foo"),
 						},
 					},
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("bar"),
+							Name: new("bar"),
 							Consumer: &kong.Consumer{
-								ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+								ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 							},
 						},
 					},
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("foo"),
+							Name: new("foo"),
 							Consumer: &kong.Consumer{
-								ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+								ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 							},
 							Route: &kong.Route{
-								ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+								ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 							},
 							ConsumerGroup: &kong.ConsumerGroup{
-								ID: kong.String("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
+								ID: new("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
 							},
 						},
 					},
@@ -1208,29 +1208,29 @@ func Test_stateBuilder_ingestPlugins(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Plugins: []*kong.Plugin{
 					{
-						ID:     kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name:   kong.String("foo"),
+						ID:     new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name:   new("foo"),
 						Config: kong.Configuration{},
 					},
 					{
-						ID:   kong.String("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
-						Name: kong.String("bar"),
+						ID:   new("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
+						Name: new("bar"),
 						Consumer: &kong.Consumer{
-							ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+							ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 						},
 						Config: kong.Configuration{},
 					},
 					{
-						ID:   kong.String("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
-						Name: kong.String("foo"),
+						ID:   new("53ce0a9c-d518-40ee-b8ab-1ee83a20d382"),
+						Name: new("foo"),
 						Consumer: &kong.Consumer{
-							ID: kong.String("f77ca8c7-581d-45a4-a42c-c003234228e1"),
+							ID: new("f77ca8c7-581d-45a4-a42c-c003234228e1"),
 						},
 						Route: &kong.Route{
-							ID: kong.String("700bc504-b2b1-4abd-bd38-cec92779659e"),
+							ID: new("700bc504-b2b1-4abd-bd38-cec92779659e"),
 						},
 						ConsumerGroup: &kong.ConsumerGroup{
-							ID: kong.String("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
+							ID: new("69ed4618-a653-4b54-8bb6-dc33bd6fe048"),
 						},
 						Config: kong.Configuration{},
 					},
@@ -1269,7 +1269,7 @@ func Test_pluginRelations(t *testing.T) {
 			name: "empty plugin - no relations",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 				},
 			},
 			wantCID:      "",
@@ -1282,18 +1282,18 @@ func Test_pluginRelations(t *testing.T) {
 			name: "entities exist in state - returns IDs",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Consumer: &kong.Consumer{
-						ID: kong.String("cID"),
+						ID: new("cID"),
 					},
 					Route: &kong.Route{
-						ID: kong.String("rID"),
+						ID: new("rID"),
 					},
 					Service: &kong.Service{
-						ID: kong.String("sID"),
+						ID: new("sID"),
 					},
 					ConsumerGroup: &kong.ConsumerGroup{
-						ID: kong.String("cgID"),
+						ID: new("cgID"),
 					},
 				},
 			},
@@ -1307,9 +1307,9 @@ func Test_pluginRelations(t *testing.T) {
 			name: "invalid UUID for consumer - returns empty",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Consumer: &kong.Consumer{
-						ID: kong.String("invalid-not-a-uuid"),
+						ID: new("invalid-not-a-uuid"),
 					},
 				},
 			},
@@ -1323,9 +1323,9 @@ func Test_pluginRelations(t *testing.T) {
 			name: "invalid UUID for route ",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Route: &kong.Route{
-						ID: kong.String("not-a-valid-uuid-route"),
+						ID: new("not-a-valid-uuid-route"),
 					},
 				},
 			},
@@ -1339,9 +1339,9 @@ func Test_pluginRelations(t *testing.T) {
 			name: "invalid UUID for service",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Service: &kong.Service{
-						ID: kong.String("invalid-service-id"),
+						ID: new("invalid-service-id"),
 					},
 				},
 			},
@@ -1355,9 +1355,9 @@ func Test_pluginRelations(t *testing.T) {
 			name: "invalid UUID for consumer group ",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					ConsumerGroup: &kong.ConsumerGroup{
-						ID: kong.String("not-valid-cg-uuid"),
+						ID: new("not-valid-cg-uuid"),
 					},
 				},
 			},
@@ -1371,18 +1371,18 @@ func Test_pluginRelations(t *testing.T) {
 			name: "all invalid UUIDs ",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Consumer: &kong.Consumer{
-						ID: kong.String("bad-consumer-id"),
+						ID: new("bad-consumer-id"),
 					},
 					Route: &kong.Route{
-						ID: kong.String("bad-route-id"),
+						ID: new("bad-route-id"),
 					},
 					Service: &kong.Service{
-						ID: kong.String("bad-service-id"),
+						ID: new("bad-service-id"),
 					},
 					ConsumerGroup: &kong.ConsumerGroup{
-						ID: kong.String("bad-cg-id"),
+						ID: new("bad-cg-id"),
 					},
 				},
 			},
@@ -1396,18 +1396,18 @@ func Test_pluginRelations(t *testing.T) {
 			name: "valid UUID for external entity (not in state) - returns UUID (fallback)",
 			args: args{
 				plugin: &kong.Plugin{
-					Name: kong.String("foo"),
+					Name: new("foo"),
 					Consumer: &kong.Consumer{
-						ID: kong.String("8ca63651-4068-4baa-b2b9-08dc99c29666"),
+						ID: new("8ca63651-4068-4baa-b2b9-08dc99c29666"),
 					},
 					Route: &kong.Route{
-						ID: kong.String("9ca63651-4068-4baa-b2b9-08dc99c29777"),
+						ID: new("9ca63651-4068-4baa-b2b9-08dc99c29777"),
 					},
 					Service: &kong.Service{
-						ID: kong.String("aca63651-4068-4baa-b2b9-08dc99c29888"),
+						ID: new("aca63651-4068-4baa-b2b9-08dc99c29888"),
 					},
 					ConsumerGroup: &kong.ConsumerGroup{
-						ID: kong.String("bca63651-4068-4baa-b2b9-08dc99c29999"),
+						ID: new("bca63651-4068-4baa-b2b9-08dc99c29999"),
 					},
 				},
 			},
@@ -1466,9 +1466,9 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 				filterChains: []FFilterChain{
 					{
 						FilterChain: kong.FilterChain{
-							Name: kong.String("my-filter-chain"),
+							Name: new("my-filter-chain"),
 							Service: &kong.Service{
-								ID: kong.String(testServiceID),
+								ID: new(testServiceID),
 							},
 						},
 					},
@@ -1478,10 +1478,10 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 			wantState: &utils.KongRawState{
 				FilterChains: []*kong.FilterChain{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("my-filter-chain"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("my-filter-chain"),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -1497,14 +1497,14 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 					{
 						FilterChain: kong.FilterChain{
 							Service: &kong.Service{
-								ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+								ID: new("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
 							},
 						},
 					},
 					{
 						FilterChain: kong.FilterChain{
 							Route: &kong.Route{
-								ID: kong.String("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
+								ID: new("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
 							},
 						},
 					},
@@ -1514,15 +1514,15 @@ func Test_stateBuilder_ingestFilterChains(t *testing.T) {
 			wantState: &utils.KongRawState{
 				FilterChains: []*kong.FilterChain{
 					{
-						ID: kong.String("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
+						ID: new("fa7bd007-e0c6-4ef2-b254-e60d3a341b0c"),
 						Service: &kong.Service{
-							ID: kong.String("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
+							ID: new("ba54b737-38aa-49d1-87c4-64e756b0c6f9"),
 						},
 					},
 					{
-						ID: kong.String("ac6758a5-41d4-4493-827f-de9df5b75859"),
+						ID: new("ac6758a5-41d4-4493-827f-de9df5b75859"),
 						Route: &kong.Route{
-							ID: kong.String("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
+							ID: new("ec9b7c35-8e95-4a7c-b0da-4fba8986d1cd"),
 						},
 					},
 				},
@@ -1563,7 +1563,7 @@ func Test_stateBuilder_consumers(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								Username: kong.String("foo"),
+								Username: new("foo"),
 							},
 						},
 					},
@@ -1574,8 +1574,8 @@ func Test_stateBuilder_consumers(t *testing.T) {
 			want: &utils.KongRawState{
 				Consumers: []*kong.Consumer{
 					{
-						ID:       kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Username: kong.String("foo"),
+						ID:       new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Username: new("foo"),
 					},
 				},
 			},
@@ -1587,40 +1587,40 @@ func Test_stateBuilder_consumers(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								Username: kong.String("foo"),
+								Username: new("foo"),
 							},
 							KeyAuths: []*kong.KeyAuth{
 								{
-									Key: kong.String("foo-key"),
+									Key: new("foo-key"),
 								},
 							},
 							BasicAuths: []*kong.BasicAuth{
 								{
-									Username: kong.String("basic-username"),
-									Password: kong.String("basic-password"),
+									Username: new("basic-username"),
+									Password: new("basic-password"),
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
 								{
-									Username: kong.String("hmac-username"),
-									Secret:   kong.String("hmac-secret"),
+									Username: new("hmac-username"),
+									Secret:   new("hmac-secret"),
 								},
 							},
 							JWTAuths: []*kong.JWTAuth{
 								{
-									Key:    kong.String("jwt-key"),
-									Secret: kong.String("jwt-secret"),
+									Key:    new("jwt-key"),
+									Secret: new("jwt-secret"),
 								},
 							},
 							Oauth2Creds: []*kong.Oauth2Credential{
 								{
-									ClientID: kong.String("oauth2-clientid"),
-									Name:     kong.String("oauth2-name"),
+									ClientID: new("oauth2-clientid"),
+									Name:     new("oauth2-name"),
 								},
 							},
 							ACLGroups: []*kong.ACLGroup{
 								{
-									Group: kong.String("foo-group"),
+									Group: new("foo-group"),
 								},
 							},
 						},
@@ -1632,73 +1632,73 @@ func Test_stateBuilder_consumers(t *testing.T) {
 			want: &utils.KongRawState{
 				Consumers: []*kong.Consumer{
 					{
-						ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Username: kong.String("foo"),
+						ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Username: new("foo"),
 					},
 				},
 				KeyAuths: []*kong.KeyAuth{
 					{
-						ID:  kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Key: kong.String("foo-key"),
+						ID:  new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Key: new("foo-key"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-							Username: kong.String("foo"),
+							ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+							Username: new("foo"),
 						},
 					},
 				},
 				BasicAuths: []*kong.BasicAuthOptions{
 					{
 						BasicAuth: kong.BasicAuth{
-							ID:       kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-							Username: kong.String("basic-username"),
-							Password: kong.String("basic-password"),
+							ID:       new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+							Username: new("basic-username"),
+							Password: new("basic-password"),
 							Consumer: &kong.Consumer{
-								ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-								Username: kong.String("foo"),
+								ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+								Username: new("foo"),
 							},
 						},
 					},
 				},
 				HMACAuths: []*kong.HMACAuth{
 					{
-						ID:       kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						Username: kong.String("hmac-username"),
-						Secret:   kong.String("hmac-secret"),
+						ID:       new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Username: new("hmac-username"),
+						Secret:   new("hmac-secret"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-							Username: kong.String("foo"),
+							ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+							Username: new("foo"),
 						},
 					},
 				},
 				JWTAuths: []*kong.JWTAuth{
 					{
-						ID:     kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						Key:    kong.String("jwt-key"),
-						Secret: kong.String("jwt-secret"),
+						ID:     new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						Key:    new("jwt-key"),
+						Secret: new("jwt-secret"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-							Username: kong.String("foo"),
+							ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+							Username: new("foo"),
 						},
 					},
 				},
 				Oauth2Creds: []*kong.Oauth2Credential{
 					{
-						ID:       kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						ClientID: kong.String("oauth2-clientid"),
-						Name:     kong.String("oauth2-name"),
+						ID:       new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						ClientID: new("oauth2-clientid"),
+						Name:     new("oauth2-name"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-							Username: kong.String("foo"),
+							ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+							Username: new("foo"),
 						},
 					},
 				},
 				ACLGroups: []*kong.ACLGroup{
 					{
-						ID:    kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
-						Group: kong.String("foo-group"),
+						ID:    new("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						Group: new("foo-group"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-							Username: kong.String("foo"),
+							ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+							Username: new("foo"),
 						},
 					},
 				},
@@ -1712,7 +1712,7 @@ func Test_stateBuilder_consumers(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								Username: kong.String("foo"),
+								Username: new("foo"),
 							},
 						},
 					},
@@ -1722,8 +1722,8 @@ func Test_stateBuilder_consumers(t *testing.T) {
 			want: &utils.KongRawState{
 				Consumers: []*kong.Consumer{
 					{
-						ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Username: kong.String("foo"),
+						ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Username: new("foo"),
 					},
 				},
 			},
@@ -1735,46 +1735,46 @@ func Test_stateBuilder_consumers(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								Username: kong.String("foo"),
+								Username: new("foo"),
 							},
 							KeyAuths: []*kong.KeyAuth{
 								{
-									Key: kong.String("foo-apikey"),
+									Key: new("foo-apikey"),
 								},
 							},
 							BasicAuths: []*kong.BasicAuth{
 								{
-									Username: kong.String("basic-username"),
-									Password: kong.String("basic-password"),
+									Username: new("basic-username"),
+									Password: new("basic-password"),
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
 								{
-									Username: kong.String("hmac-username"),
-									Secret:   kong.String("hmac-secret"),
+									Username: new("hmac-username"),
+									Secret:   new("hmac-secret"),
 								},
 							},
 							JWTAuths: []*kong.JWTAuth{
 								{
-									Key:    kong.String("jwt-key"),
-									Secret: kong.String("jwt-secret"),
+									Key:    new("jwt-key"),
+									Secret: new("jwt-secret"),
 								},
 							},
 							Oauth2Creds: []*kong.Oauth2Credential{
 								{
-									ClientID: kong.String("oauth2-clientid"),
-									Name:     kong.String("oauth2-name"),
+									ClientID: new("oauth2-clientid"),
+									Name:     new("oauth2-name"),
 								},
 							},
 							ACLGroups: []*kong.ACLGroup{
 								{
-									Group: kong.String("foo-group"),
+									Group: new("foo-group"),
 								},
 							},
 							MTLSAuths: []*kong.MTLSAuth{
 								{
-									ID:          kong.String("533c259e-bf71-4d77-99d2-97944c70a6a4"),
-									SubjectName: kong.String("test@example.com"),
+									ID:          new("533c259e-bf71-4d77-99d2-97944c70a6a4"),
+									SubjectName: new("test@example.com"),
 								},
 							},
 						},
@@ -1786,83 +1786,83 @@ func Test_stateBuilder_consumers(t *testing.T) {
 			want: &utils.KongRawState{
 				Consumers: []*kong.Consumer{
 					{
-						ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Username: kong.String("foo"),
+						ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Username: new("foo"),
 					},
 				},
 				KeyAuths: []*kong.KeyAuth{
 					{
-						ID:  kong.String("5f1ef1ea-a2a5-4a1b-adbb-b0d3434013e5"),
-						Key: kong.String("foo-apikey"),
+						ID:  new("5f1ef1ea-a2a5-4a1b-adbb-b0d3434013e5"),
+						Key: new("foo-apikey"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				BasicAuths: []*kong.BasicAuthOptions{
 					{
 						BasicAuth: kong.BasicAuth{
-							ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
-							Username: kong.String("basic-username"),
-							Password: kong.String("basic-password"),
+							ID:       new("92f4c849-960b-43af-aad3-f307051408d3"),
+							Username: new("basic-username"),
+							Password: new("basic-password"),
 							Consumer: &kong.Consumer{
-								ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-								Username: kong.String("foo"),
+								ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								Username: new("foo"),
 							},
 						},
 					},
 				},
 				HMACAuths: []*kong.HMACAuth{
 					{
-						ID:       kong.String("e5d81b73-bf9e-42b0-9d68-30a1d791b9c9"),
-						Username: kong.String("hmac-username"),
-						Secret:   kong.String("hmac-secret"),
+						ID:       new("e5d81b73-bf9e-42b0-9d68-30a1d791b9c9"),
+						Username: new("hmac-username"),
+						Secret:   new("hmac-secret"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				JWTAuths: []*kong.JWTAuth{
 					{
-						ID:     kong.String("917b9402-1be0-49d2-b482-ca4dccc2054e"),
-						Key:    kong.String("jwt-key"),
-						Secret: kong.String("jwt-secret"),
+						ID:     new("917b9402-1be0-49d2-b482-ca4dccc2054e"),
+						Key:    new("jwt-key"),
+						Secret: new("jwt-secret"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				Oauth2Creds: []*kong.Oauth2Credential{
 					{
-						ID:       kong.String("4eef5285-3d6a-4f6b-b659-8957a940e2ca"),
-						ClientID: kong.String("oauth2-clientid"),
-						Name:     kong.String("oauth2-name"),
+						ID:       new("4eef5285-3d6a-4f6b-b659-8957a940e2ca"),
+						ClientID: new("oauth2-clientid"),
+						Name:     new("oauth2-name"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				ACLGroups: []*kong.ACLGroup{
 					{
-						ID:    kong.String("b7c9352a-775a-4ba5-9869-98e926a3e6cb"),
-						Group: kong.String("foo-group"),
+						ID:    new("b7c9352a-775a-4ba5-9869-98e926a3e6cb"),
+						Group: new("foo-group"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				MTLSAuths: []*kong.MTLSAuth{
 					{
-						ID:          kong.String("533c259e-bf71-4d77-99d2-97944c70a6a4"),
-						SubjectName: kong.String("test@example.com"),
+						ID:          new("533c259e-bf71-4d77-99d2-97944c70a6a4"),
+						SubjectName: new("test@example.com"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
@@ -1875,46 +1875,46 @@ func Test_stateBuilder_consumers(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								Username: kong.String("foo"),
+								Username: new("foo"),
 							},
 							KeyAuths: []*kong.KeyAuth{
 								{
-									Key: kong.String("foo-apikey"),
+									Key: new("foo-apikey"),
 								},
 							},
 							BasicAuths: []*kong.BasicAuth{
 								{
-									Username: kong.String("basic-username"),
-									Password: kong.String("basic-password"),
+									Username: new("basic-username"),
+									Password: new("basic-password"),
 								},
 							},
 							HMACAuths: []*kong.HMACAuth{
 								{
-									Username: kong.String("hmac-username"),
-									Secret:   kong.String("hmac-secret"),
+									Username: new("hmac-username"),
+									Secret:   new("hmac-secret"),
 								},
 							},
 							JWTAuths: []*kong.JWTAuth{
 								{
-									Key:    kong.String("jwt-key"),
-									Secret: kong.String("jwt-secret"),
+									Key:    new("jwt-key"),
+									Secret: new("jwt-secret"),
 								},
 							},
 							Oauth2Creds: []*kong.Oauth2Credential{
 								{
-									ClientID: kong.String("oauth2-clientid"),
-									Name:     kong.String("oauth2-name"),
+									ClientID: new("oauth2-clientid"),
+									Name:     new("oauth2-name"),
 								},
 							},
 							ACLGroups: []*kong.ACLGroup{
 								{
-									Group: kong.String("foo-group"),
+									Group: new("foo-group"),
 								},
 							},
 							MTLSAuths: []*kong.MTLSAuth{
 								{
-									ID:          kong.String("533c259e-bf71-4d77-99d2-97944c70a6a4"),
-									SubjectName: kong.String("test@example.com"),
+									ID:          new("533c259e-bf71-4d77-99d2-97944c70a6a4"),
+									SubjectName: new("test@example.com"),
 								},
 							},
 						},
@@ -1927,83 +1927,83 @@ func Test_stateBuilder_consumers(t *testing.T) {
 			want: &utils.KongRawState{
 				Consumers: []*kong.Consumer{
 					{
-						ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Username: kong.String("foo"),
+						ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Username: new("foo"),
 					},
 				},
 				KeyAuths: []*kong.KeyAuth{
 					{
-						ID:  kong.String("5f1ef1ea-a2a5-4a1b-adbb-b0d3434013e5"),
-						Key: kong.String("foo-apikey"),
+						ID:  new("5f1ef1ea-a2a5-4a1b-adbb-b0d3434013e5"),
+						Key: new("foo-apikey"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				BasicAuths: []*kong.BasicAuthOptions{
 					{
 						BasicAuth: kong.BasicAuth{
-							ID:       kong.String("92f4c849-960b-43af-aad3-f307051408d3"),
-							Username: kong.String("basic-username"),
-							Password: kong.String("basic-password"),
+							ID:       new("92f4c849-960b-43af-aad3-f307051408d3"),
+							Username: new("basic-username"),
+							Password: new("basic-password"),
 							Consumer: &kong.Consumer{
-								ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-								Username: kong.String("foo"),
+								ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								Username: new("foo"),
 							},
 						},
 					},
 				},
 				HMACAuths: []*kong.HMACAuth{
 					{
-						ID:       kong.String("e5d81b73-bf9e-42b0-9d68-30a1d791b9c9"),
-						Username: kong.String("hmac-username"),
-						Secret:   kong.String("hmac-secret"),
+						ID:       new("e5d81b73-bf9e-42b0-9d68-30a1d791b9c9"),
+						Username: new("hmac-username"),
+						Secret:   new("hmac-secret"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				JWTAuths: []*kong.JWTAuth{
 					{
-						ID:     kong.String("917b9402-1be0-49d2-b482-ca4dccc2054e"),
-						Key:    kong.String("jwt-key"),
-						Secret: kong.String("jwt-secret"),
+						ID:     new("917b9402-1be0-49d2-b482-ca4dccc2054e"),
+						Key:    new("jwt-key"),
+						Secret: new("jwt-secret"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				Oauth2Creds: []*kong.Oauth2Credential{
 					{
-						ID:       kong.String("4eef5285-3d6a-4f6b-b659-8957a940e2ca"),
-						ClientID: kong.String("oauth2-clientid"),
-						Name:     kong.String("oauth2-name"),
+						ID:       new("4eef5285-3d6a-4f6b-b659-8957a940e2ca"),
+						ClientID: new("oauth2-clientid"),
+						Name:     new("oauth2-name"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				ACLGroups: []*kong.ACLGroup{
 					{
-						ID:    kong.String("b7c9352a-775a-4ba5-9869-98e926a3e6cb"),
-						Group: kong.String("foo-group"),
+						ID:    new("b7c9352a-775a-4ba5-9869-98e926a3e6cb"),
+						Group: new("foo-group"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
 				MTLSAuths: []*kong.MTLSAuth{
 					{
-						ID:          kong.String("533c259e-bf71-4d77-99d2-97944c70a6a4"),
-						SubjectName: kong.String("test@example.com"),
+						ID:          new("533c259e-bf71-4d77-99d2-97944c70a6a4"),
+						SubjectName: new("test@example.com"),
 						Consumer: &kong.Consumer{
-							ID:       kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Username: kong.String("foo"),
+							ID:       new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Username: new("foo"),
 						},
 					},
 				},
@@ -2046,8 +2046,8 @@ func Test_stateBuilder_certificates(t *testing.T) {
 				targetContent: &Content{
 					Certificates: []FCertificate{
 						{
-							Cert: kong.String("foo"),
-							Key:  kong.String("bar"),
+							Cert: new("foo"),
+							Key:  new("bar"),
 						},
 					},
 				},
@@ -2056,9 +2056,9 @@ func Test_stateBuilder_certificates(t *testing.T) {
 			want: &utils.KongRawState{
 				Certificates: []*kong.Certificate{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Cert: kong.String("foo"),
-						Key:  kong.String("bar"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Cert: new("foo"),
+						Key:  new("bar"),
 					},
 				},
 			},
@@ -2069,8 +2069,8 @@ func Test_stateBuilder_certificates(t *testing.T) {
 				targetContent: &Content{
 					Certificates: []FCertificate{
 						{
-							Cert: kong.String("foo"),
-							Key:  kong.String("bar"),
+							Cert: new("foo"),
+							Key:  new("bar"),
 						},
 					},
 				},
@@ -2079,9 +2079,9 @@ func Test_stateBuilder_certificates(t *testing.T) {
 			want: &utils.KongRawState{
 				Certificates: []*kong.Certificate{
 					{
-						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Cert: kong.String("foo"),
-						Key:  kong.String("bar"),
+						ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Cert: new("foo"),
+						Key:  new("bar"),
 					},
 				},
 			},
@@ -2092,14 +2092,14 @@ func Test_stateBuilder_certificates(t *testing.T) {
 				targetContent: &Content{
 					Certificates: []FCertificate{
 						{
-							Cert: kong.String("foo"),
-							Key:  kong.String("bar"),
+							Cert: new("foo"),
+							Key:  new("bar"),
 							SNIs: []kong.SNI{
 								{
-									Name: kong.String("foo.example.com"),
+									Name: new("foo.example.com"),
 								},
 								{
-									Name: kong.String("bar.example.com"),
+									Name: new("bar.example.com"),
 								},
 							},
 						},
@@ -2110,24 +2110,24 @@ func Test_stateBuilder_certificates(t *testing.T) {
 			want: &utils.KongRawState{
 				Certificates: []*kong.Certificate{
 					{
-						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Cert: kong.String("foo"),
-						Key:  kong.String("bar"),
+						ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Cert: new("foo"),
+						Key:  new("bar"),
 					},
 				},
 				SNIs: []*kong.SNI{
 					{
-						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name: kong.String("foo.example.com"),
+						ID:   new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: new("foo.example.com"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 					{
-						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name: kong.String("bar.example.com"),
+						ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: new("bar.example.com"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 				},
@@ -2139,14 +2139,14 @@ func Test_stateBuilder_certificates(t *testing.T) {
 				targetContent: &Content{
 					Certificates: []FCertificate{
 						{
-							Cert: kong.String("foo"),
-							Key:  kong.String("bar"),
+							Cert: new("foo"),
+							Key:  new("bar"),
 							SNIs: []kong.SNI{
 								{
-									Name: kong.String("foo.example.com"),
+									Name: new("foo.example.com"),
 								},
 								{
-									Name: kong.String("bar.example.com"),
+									Name: new("bar.example.com"),
 								},
 							},
 						},
@@ -2157,24 +2157,24 @@ func Test_stateBuilder_certificates(t *testing.T) {
 			want: &utils.KongRawState{
 				Certificates: []*kong.Certificate{
 					{
-						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Cert: kong.String("foo"),
-						Key:  kong.String("bar"),
+						ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Cert: new("foo"),
+						Key:  new("bar"),
 					},
 				},
 				SNIs: []*kong.SNI{
 					{
-						ID:   kong.String("a53e9598-3a5e-4c12-a672-71a4cdcf7a47"),
-						Name: kong.String("foo.example.com"),
+						ID:   new("a53e9598-3a5e-4c12-a672-71a4cdcf7a47"),
+						Name: new("foo.example.com"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 					{
-						ID:   kong.String("5f8e6848-4cb9-479a-a27e-860e1a77f875"),
-						Name: kong.String("bar.example.com"),
+						ID:   new("5f8e6848-4cb9-479a-a27e-860e1a77f875"),
+						Name: new("bar.example.com"),
 						Certificate: &kong.Certificate{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 				},
@@ -2214,7 +2214,7 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 					CACertificates: []FCACertificate{
 						{
 							CACertificate: kong.CACertificate{
-								Cert: kong.String("foo"),
+								Cert: new("foo"),
 							},
 						},
 					},
@@ -2224,8 +2224,8 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 			want: &utils.KongRawState{
 				CACertificates: []*kong.CACertificate{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Cert: kong.String("foo"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Cert: new("foo"),
 					},
 				},
 			},
@@ -2237,7 +2237,7 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 					CACertificates: []FCACertificate{
 						{
 							CACertificate: kong.CACertificate{
-								Cert: kong.String("foo"),
+								Cert: new("foo"),
 							},
 						},
 					},
@@ -2247,8 +2247,8 @@ func Test_stateBuilder_caCertificates(t *testing.T) {
 			want: &utils.KongRawState{
 				CACertificates: []*kong.CACertificate{
 					{
-						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Cert: kong.String("foo"),
+						ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Cert: new("foo"),
 					},
 				},
 			},
@@ -2290,8 +2290,8 @@ func Test_stateBuilder_upstream(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name:  kong.String("foo"),
-								Slots: kong.Int(42),
+								Name:  new("foo"),
+								Slots: new(42),
 							},
 						},
 					},
@@ -2301,25 +2301,25 @@ func Test_stateBuilder_upstream(t *testing.T) {
 			want: &utils.KongRawState{
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(42),
+						ID:    new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:  new("foo"),
+						Slots: new(42),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -2330,19 +2330,19 @@ func Test_stateBuilder_upstream(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -2357,7 +2357,7 @@ func Test_stateBuilder_upstream(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name: kong.String("foo"),
+								Name: new("foo"),
 							},
 						},
 					},
@@ -2367,25 +2367,25 @@ func Test_stateBuilder_upstream(t *testing.T) {
 			want: &utils.KongRawState{
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(10000),
+						ID:    new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name:  new("foo"),
+						Slots: new(10000),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -2396,19 +2396,19 @@ func Test_stateBuilder_upstream(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -2423,12 +2423,12 @@ func Test_stateBuilder_upstream(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name: kong.String("foo"),
+								Name: new("foo"),
 							},
 						},
 						{
 							Upstream: kong.Upstream{
-								Name: kong.String("bar"),
+								Name: new("bar"),
 							},
 						},
 					},
@@ -2438,25 +2438,25 @@ func Test_stateBuilder_upstream(t *testing.T) {
 			want: &utils.KongRawState{
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(10000),
+						ID:    new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:  new("foo"),
+						Slots: new(10000),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -2467,40 +2467,40 @@ func Test_stateBuilder_upstream(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 					{
-						ID:    kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:  kong.String("bar"),
-						Slots: kong.Int(10000),
+						ID:    new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:  new("bar"),
+						Slots: new(10000),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -2511,19 +2511,19 @@ func Test_stateBuilder_upstream(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -2538,14 +2538,14 @@ func Test_stateBuilder_upstream(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name:  kong.String("foo"),
-								Slots: kong.Int(42),
+								Name:  new("foo"),
+								Slots: new(42),
 								// not actually valid configuration, but this only needs to check that these translate
 								// into the raw state
-								HashOnQueryArg:         kong.String("foo"),
-								HashFallbackQueryArg:   kong.String("foo"),
-								HashOnURICapture:       kong.String("foo"),
-								HashFallbackURICapture: kong.String("foo"),
+								HashOnQueryArg:         new("foo"),
+								HashFallbackQueryArg:   new("foo"),
+								HashOnURICapture:       new("foo"),
+								HashFallbackURICapture: new("foo"),
 							},
 						},
 					},
@@ -2555,25 +2555,25 @@ func Test_stateBuilder_upstream(t *testing.T) {
 			want: &utils.KongRawState{
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(42),
+						ID:    new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:  new("foo"),
+						Slots: new(42),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -2584,23 +2584,23 @@ func Test_stateBuilder_upstream(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:                 kong.String("none"),
-						HashFallback:           kong.String("none"),
-						HashOnCookiePath:       kong.String("/"),
-						HashOnQueryArg:         kong.String("foo"),
-						HashFallbackQueryArg:   kong.String("foo"),
-						HashOnURICapture:       kong.String("foo"),
-						HashFallbackURICapture: kong.String("foo"),
+						HashOn:                 new("none"),
+						HashFallback:           new("none"),
+						HashOnCookiePath:       new("/"),
+						HashOnQueryArg:         new("foo"),
+						HashFallbackQueryArg:   new("foo"),
+						HashOnURICapture:       new("foo"),
+						HashFallbackURICapture: new("foo"),
 					},
 				},
 			},
@@ -2638,11 +2638,11 @@ func Test_stateBuilder_documents(t *testing.T) {
 				targetContent: &Content{
 					ServicePackages: []FServicePackage{
 						{
-							Name: kong.String("foo"),
+							Name: new("foo"),
 							Document: &FDocument{
-								Path:      kong.String("/foo.md"),
-								Published: kong.Bool(true),
-								Content:   kong.String("foo"),
+								Path:      new("/foo.md"),
+								Published: new(true),
+								Content:   new("foo"),
 							},
 						},
 					},
@@ -2652,20 +2652,20 @@ func Test_stateBuilder_documents(t *testing.T) {
 			want: &utils.KonnectRawState{
 				Documents: []*konnect.Document{
 					{
-						ID:        kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Path:      kong.String("/foo.md"),
-						Published: kong.Bool(true),
-						Content:   kong.String("foo"),
+						ID:        new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Path:      new("/foo.md"),
+						Published: new(true),
+						Content:   new("foo"),
 						Parent: &konnect.ServicePackage{
-							ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-							Name: kong.String("foo"),
+							ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							Name: new("foo"),
 						},
 					},
 				},
 				ServicePackages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name: kong.String("foo"),
+						ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -2676,11 +2676,11 @@ func Test_stateBuilder_documents(t *testing.T) {
 				targetContent: &Content{
 					ServicePackages: []FServicePackage{
 						{
-							Name: kong.String("bar"),
+							Name: new("bar"),
 							Document: &FDocument{
-								Path:      kong.String("/bar.md"),
-								Published: kong.Bool(true),
-								Content:   kong.String("bar"),
+								Path:      new("/bar.md"),
+								Published: new(true),
+								Content:   new("bar"),
 							},
 						},
 					},
@@ -2690,20 +2690,20 @@ func Test_stateBuilder_documents(t *testing.T) {
 			want: &utils.KonnectRawState{
 				Documents: []*konnect.Document{
 					{
-						ID:        kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Path:      kong.String("/bar.md"),
-						Published: kong.Bool(true),
-						Content:   kong.String("bar"),
+						ID:        new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Path:      new("/bar.md"),
+						Published: new(true),
+						Content:   new("bar"),
 						Parent: &konnect.ServicePackage{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("bar"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("bar"),
 						},
 					},
 				},
 				ServicePackages: []*konnect.ServicePackage{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("bar"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("bar"),
 					},
 				},
 			},
@@ -2744,56 +2744,56 @@ func Test_stateBuilder_kong370(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo-service"),
+								Name: new("foo-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("foo-route1"),
+										Name: new("foo-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										ID:   kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-										Name: kong.String("foo-route2"),
+										ID:   new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+										Name: new("foo-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("bar-service"),
+								Name: new("bar-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route1"),
+										Name: new("bar-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route2"),
+										Name: new("bar-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("large-payload-service"),
+								Name: new("large-payload-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name:              kong.String("dont-buffer-these"),
-										RequestBuffering:  kong.Bool(false),
-										ResponseBuffering: kong.Bool(false),
+										Name:              new("dont-buffer-these"),
+										RequestBuffering:  new(false),
+										ResponseBuffering: new(false),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name:              kong.String("buffer-these"),
-										RequestBuffering:  kong.Bool(true),
-										ResponseBuffering: kong.Bool(true),
+										Name:              new("buffer-these"),
+										RequestBuffering:  new(true),
+										ResponseBuffering: new(true),
 									},
 								},
 							},
@@ -2802,8 +2802,8 @@ func Test_stateBuilder_kong370(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name:  kong.String("foo"),
-								Slots: kong.Int(42),
+								Name:  new("foo"),
+								Slots: new(42),
 							},
 						},
 					},
@@ -2813,129 +2813,129 @@ func Test_stateBuilder_kong370(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:           kong.String("foo-service"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:           new("foo-service"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 					{
-						ID:             kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:           kong.String("bar-service"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:           new("bar-service"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 					{
-						ID:             kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						Name:           kong.String("large-payload-service"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						Name:           new("large-payload-service"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 				},
 				Routes: []*kong.Route{
 					{
-						ID:            kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:          kong.String("foo-route1"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:          new("foo-route1"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:            kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-						Name:          kong.String("foo-route2"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+						Name:          new("foo-route2"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:            kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:          kong.String("bar-route1"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:          new("bar-route1"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:            kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						Name:          kong.String("bar-route2"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Name:          new("bar-route2"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:            kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						Name:          kong.String("dont-buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						Name:          new("dont-buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(false),
-						ResponseBuffering: kong.Bool(false),
+						RequestBuffering:  new(false),
+						ResponseBuffering: new(false),
 					},
 					{
-						ID:            kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
-						Name:          kong.String("buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						Name:          new("buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(true),
-						ResponseBuffering: kong.Bool(true),
+						RequestBuffering:  new(true),
+						ResponseBuffering: new(true),
 					},
 				},
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(42),
+						ID:    new("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
+						Name:  new("foo"),
+						Slots: new(42),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -2946,19 +2946,19 @@ func Test_stateBuilder_kong370(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -2970,37 +2970,37 @@ func Test_stateBuilder_kong370(t *testing.T) {
 					Info: &Info{
 						Defaults: KongDefaults{
 							Route: &kong.Route{
-								PathHandling:     kong.String("v0"),
-								PreserveHost:     kong.Bool(false),
-								RegexPriority:    kong.Int(0),
-								StripPath:        kong.Bool(false),
+								PathHandling:     new("v0"),
+								PreserveHost:     new(false),
+								RegexPriority:    new(0),
+								StripPath:        new(false),
 								Protocols:        kong.StringSlice("http", "https"),
-								RequestBuffering: kong.Bool(false),
+								RequestBuffering: new(false),
 							},
 							Service: &kong.Service{
-								Protocol:       kong.String("https"),
-								ConnectTimeout: kong.Int(5000),
-								WriteTimeout:   kong.Int(5000),
-								ReadTimeout:    kong.Int(5000),
+								Protocol:       new("https"),
+								ConnectTimeout: new(5000),
+								WriteTimeout:   new(5000),
+								ReadTimeout:    new(5000),
 							},
 							Upstream: &kong.Upstream{
-								Slots: kong.Int(100),
+								Slots: new(100),
 								Healthchecks: &kong.Healthcheck{
 									Active: &kong.ActiveHealthcheck{
-										Concurrency: kong.Int(5),
+										Concurrency: new(5),
 										Healthy: &kong.Healthy{
 											HTTPStatuses: []int{200, 302},
-											Interval:     kong.Int(0),
-											Successes:    kong.Int(0),
+											Interval:     new(0),
+											Successes:    new(0),
 										},
-										HTTPPath: kong.String("/"),
-										Type:     kong.String("http"),
-										Timeout:  kong.Int(1),
+										HTTPPath: new("/"),
+										Type:     new("http"),
+										Timeout:  new(1),
 										Unhealthy: &kong.Unhealthy{
-											HTTPFailures: kong.Int(0),
-											TCPFailures:  kong.Int(0),
-											Timeouts:     kong.Int(0),
-											Interval:     kong.Int(0),
+											HTTPFailures: new(0),
+											TCPFailures:  new(0),
+											Timeouts:     new(0),
+											Interval:     new(0),
 											HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 										},
 									},
@@ -3011,75 +3011,75 @@ func Test_stateBuilder_kong370(t *testing.T) {
 												206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 												306, 307, 308,
 											},
-											Successes: kong.Int(0),
+											Successes: new(0),
 										},
 										Unhealthy: &kong.Unhealthy{
-											HTTPFailures: kong.Int(0),
-											TCPFailures:  kong.Int(0),
-											Timeouts:     kong.Int(0),
+											HTTPFailures: new(0),
+											TCPFailures:  new(0),
+											Timeouts:     new(0),
 											HTTPStatuses: []int{429, 500, 503},
 										},
 									},
 								},
-								HashOn:           kong.String("none"),
-								HashFallback:     kong.String("none"),
-								HashOnCookiePath: kong.String("/"),
+								HashOn:           new("none"),
+								HashFallback:     new("none"),
+								HashOnCookiePath: new("/"),
 							},
 						},
 					},
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo-service"),
+								Name: new("foo-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("foo-route1"),
+										Name: new("foo-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										ID:   kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-										Name: kong.String("foo-route2"),
+										ID:   new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+										Name: new("foo-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("bar-service"),
+								Name: new("bar-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route1"),
+										Name: new("bar-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route2"),
+										Name: new("bar-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("large-payload-service"),
+								Name: new("large-payload-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name:              kong.String("dont-buffer-these"),
-										RequestBuffering:  kong.Bool(false),
-										ResponseBuffering: kong.Bool(false),
+										Name:              new("dont-buffer-these"),
+										RequestBuffering:  new(false),
+										ResponseBuffering: new(false),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name:              kong.String("buffer-these"),
-										RequestBuffering:  kong.Bool(true),
-										ResponseBuffering: kong.Bool(true),
+										Name:              new("buffer-these"),
+										RequestBuffering:  new(true),
+										ResponseBuffering: new(true),
 									},
 								},
 							},
@@ -3088,8 +3088,8 @@ func Test_stateBuilder_kong370(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name:  kong.String("foo"),
-								Slots: kong.Int(42),
+								Name:  new("foo"),
+								Slots: new(42),
 							},
 						},
 					},
@@ -3099,139 +3099,139 @@ func Test_stateBuilder_kong370(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:           kong.String("foo-service"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(5000),
-						WriteTimeout:   kong.Int(5000),
-						ReadTimeout:    kong.Int(5000),
+						ID:             new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:           new("foo-service"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(5000),
+						WriteTimeout:   new(5000),
+						ReadTimeout:    new(5000),
 					},
 					{
-						ID:             kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:           kong.String("bar-service"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(5000),
-						WriteTimeout:   kong.Int(5000),
-						ReadTimeout:    kong.Int(5000),
+						ID:             new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:           new("bar-service"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(5000),
+						WriteTimeout:   new(5000),
+						ReadTimeout:    new(5000),
 					},
 					{
-						ID:             kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						Name:           kong.String("large-payload-service"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(5000),
-						WriteTimeout:   kong.Int(5000),
-						ReadTimeout:    kong.Int(5000),
+						ID:             new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						Name:           new("large-payload-service"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(5000),
+						WriteTimeout:   new(5000),
+						ReadTimeout:    new(5000),
 					},
 				},
 				Routes: []*kong.Route{
 					{
-						ID:               kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:             kong.String("foo-route1"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:             new("foo-route1"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
-						PathHandling:     kong.String("v0"),
+						RequestBuffering: new(false),
+						PathHandling:     new("v0"),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:               kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-						Name:             kong.String("foo-route2"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+						Name:             new("foo-route2"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
-						PathHandling:     kong.String("v0"),
+						RequestBuffering: new(false),
+						PathHandling:     new("v0"),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:               kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:             kong.String("bar-route1"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:             new("bar-route1"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
-						PathHandling:     kong.String("v0"),
+						RequestBuffering: new(false),
+						PathHandling:     new("v0"),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:               kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						Name:             kong.String("bar-route2"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Name:             new("bar-route2"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
-						PathHandling:     kong.String("v0"),
+						RequestBuffering: new(false),
+						PathHandling:     new("v0"),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:            kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						Name:          kong.String("dont-buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						Name:          new("dont-buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
-						PathHandling:  kong.String("v0"),
+						PathHandling:  new("v0"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(false),
-						ResponseBuffering: kong.Bool(false),
+						RequestBuffering:  new(false),
+						ResponseBuffering: new(false),
 					},
 					{
-						ID:            kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
-						Name:          kong.String("buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						Name:          new("buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
-						PathHandling:  kong.String("v0"),
+						PathHandling:  new("v0"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(true),
-						ResponseBuffering: kong.Bool(true),
+						RequestBuffering:  new(true),
+						ResponseBuffering: new(true),
 					},
 				},
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(42),
+						ID:    new("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
+						Name:  new("foo"),
+						Slots: new(42),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(5),
+								Concurrency: new(5),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -3242,19 +3242,19 @@ func Test_stateBuilder_kong370(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -3297,56 +3297,56 @@ func Test_stateBuilder_kong360(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo-service"),
+								Name: new("foo-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("foo-route1"),
+										Name: new("foo-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										ID:   kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-										Name: kong.String("foo-route2"),
+										ID:   new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+										Name: new("foo-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("bar-service"),
+								Name: new("bar-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route1"),
+										Name: new("bar-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route2"),
+										Name: new("bar-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("large-payload-service"),
+								Name: new("large-payload-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name:              kong.String("dont-buffer-these"),
-										RequestBuffering:  kong.Bool(false),
-										ResponseBuffering: kong.Bool(false),
+										Name:              new("dont-buffer-these"),
+										RequestBuffering:  new(false),
+										ResponseBuffering: new(false),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name:              kong.String("buffer-these"),
-										RequestBuffering:  kong.Bool(true),
-										ResponseBuffering: kong.Bool(true),
+										Name:              new("buffer-these"),
+										RequestBuffering:  new(true),
+										ResponseBuffering: new(true),
 									},
 								},
 							},
@@ -3355,8 +3355,8 @@ func Test_stateBuilder_kong360(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name:  kong.String("foo"),
-								Slots: kong.Int(42),
+								Name:  new("foo"),
+								Slots: new(42),
 							},
 						},
 					},
@@ -3366,129 +3366,129 @@ func Test_stateBuilder_kong360(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:           kong.String("foo-service"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:           new("foo-service"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 					{
-						ID:             kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:           kong.String("bar-service"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:           new("bar-service"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 					{
-						ID:             kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						Name:           kong.String("large-payload-service"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						Name:           new("large-payload-service"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 				},
 				Routes: []*kong.Route{
 					{
-						ID:            kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:          kong.String("foo-route1"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:          new("foo-route1"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:            kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-						Name:          kong.String("foo-route2"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+						Name:          new("foo-route2"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:            kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:          kong.String("bar-route1"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:          new("bar-route1"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:            kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						Name:          kong.String("bar-route2"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Name:          new("bar-route2"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:            kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						Name:          kong.String("dont-buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						Name:          new("dont-buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(false),
-						ResponseBuffering: kong.Bool(false),
+						RequestBuffering:  new(false),
+						ResponseBuffering: new(false),
 					},
 					{
-						ID:            kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
-						Name:          kong.String("buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						Name:          new("buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(true),
-						ResponseBuffering: kong.Bool(true),
+						RequestBuffering:  new(true),
+						ResponseBuffering: new(true),
 					},
 				},
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(42),
+						ID:    new("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
+						Name:  new("foo"),
+						Slots: new(42),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(10),
+								Concurrency: new(10),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -3499,19 +3499,19 @@ func Test_stateBuilder_kong360(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -3523,35 +3523,35 @@ func Test_stateBuilder_kong360(t *testing.T) {
 					Info: &Info{
 						Defaults: KongDefaults{
 							Route: &kong.Route{
-								PreserveHost:     kong.Bool(false),
-								StripPath:        kong.Bool(false),
+								PreserveHost:     new(false),
+								StripPath:        new(false),
 								Protocols:        kong.StringSlice("http", "https"),
-								RequestBuffering: kong.Bool(false),
+								RequestBuffering: new(false),
 							},
 							Service: &kong.Service{
-								Protocol:       kong.String("https"),
-								ConnectTimeout: kong.Int(5000),
-								WriteTimeout:   kong.Int(5000),
-								ReadTimeout:    kong.Int(5000),
+								Protocol:       new("https"),
+								ConnectTimeout: new(5000),
+								WriteTimeout:   new(5000),
+								ReadTimeout:    new(5000),
 							},
 							Upstream: &kong.Upstream{
-								Slots: kong.Int(100),
+								Slots: new(100),
 								Healthchecks: &kong.Healthcheck{
 									Active: &kong.ActiveHealthcheck{
-										Concurrency: kong.Int(5),
+										Concurrency: new(5),
 										Healthy: &kong.Healthy{
 											HTTPStatuses: []int{200, 302},
-											Interval:     kong.Int(0),
-											Successes:    kong.Int(0),
+											Interval:     new(0),
+											Successes:    new(0),
 										},
-										HTTPPath: kong.String("/"),
-										Type:     kong.String("http"),
-										Timeout:  kong.Int(1),
+										HTTPPath: new("/"),
+										Type:     new("http"),
+										Timeout:  new(1),
 										Unhealthy: &kong.Unhealthy{
-											HTTPFailures: kong.Int(0),
-											TCPFailures:  kong.Int(0),
-											Timeouts:     kong.Int(0),
-											Interval:     kong.Int(0),
+											HTTPFailures: new(0),
+											TCPFailures:  new(0),
+											Timeouts:     new(0),
+											Interval:     new(0),
 											HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 										},
 									},
@@ -3562,75 +3562,75 @@ func Test_stateBuilder_kong360(t *testing.T) {
 												206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 												306, 307, 308,
 											},
-											Successes: kong.Int(0),
+											Successes: new(0),
 										},
 										Unhealthy: &kong.Unhealthy{
-											HTTPFailures: kong.Int(0),
-											TCPFailures:  kong.Int(0),
-											Timeouts:     kong.Int(0),
+											HTTPFailures: new(0),
+											TCPFailures:  new(0),
+											Timeouts:     new(0),
 											HTTPStatuses: []int{429, 500, 503},
 										},
 									},
 								},
-								HashOn:           kong.String("none"),
-								HashFallback:     kong.String("none"),
-								HashOnCookiePath: kong.String("/"),
+								HashOn:           new("none"),
+								HashFallback:     new("none"),
+								HashOnCookiePath: new("/"),
 							},
 						},
 					},
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo-service"),
+								Name: new("foo-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("foo-route1"),
+										Name: new("foo-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										ID:   kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-										Name: kong.String("foo-route2"),
+										ID:   new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+										Name: new("foo-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("bar-service"),
+								Name: new("bar-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route1"),
+										Name: new("bar-route1"),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name: kong.String("bar-route2"),
+										Name: new("bar-route2"),
 									},
 								},
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("large-payload-service"),
+								Name: new("large-payload-service"),
 							},
 							Routes: []*FRoute{
 								{
 									Route: kong.Route{
-										Name:              kong.String("dont-buffer-these"),
-										RequestBuffering:  kong.Bool(false),
-										ResponseBuffering: kong.Bool(false),
+										Name:              new("dont-buffer-these"),
+										RequestBuffering:  new(false),
+										ResponseBuffering: new(false),
 									},
 								},
 								{
 									Route: kong.Route{
-										Name:              kong.String("buffer-these"),
-										RequestBuffering:  kong.Bool(true),
-										ResponseBuffering: kong.Bool(true),
+										Name:              new("buffer-these"),
+										RequestBuffering:  new(true),
+										ResponseBuffering: new(true),
 									},
 								},
 							},
@@ -3639,8 +3639,8 @@ func Test_stateBuilder_kong360(t *testing.T) {
 					Upstreams: []FUpstream{
 						{
 							Upstream: kong.Upstream{
-								Name:  kong.String("foo"),
-								Slots: kong.Int(42),
+								Name:  new("foo"),
+								Slots: new(42),
 							},
 						},
 					},
@@ -3650,133 +3650,133 @@ func Test_stateBuilder_kong360(t *testing.T) {
 			want: &utils.KongRawState{
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:           kong.String("foo-service"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(5000),
-						WriteTimeout:   kong.Int(5000),
-						ReadTimeout:    kong.Int(5000),
+						ID:             new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:           new("foo-service"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(5000),
+						WriteTimeout:   new(5000),
+						ReadTimeout:    new(5000),
 					},
 					{
-						ID:             kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:           kong.String("bar-service"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(5000),
-						WriteTimeout:   kong.Int(5000),
-						ReadTimeout:    kong.Int(5000),
+						ID:             new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:           new("bar-service"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(5000),
+						WriteTimeout:   new(5000),
+						ReadTimeout:    new(5000),
 					},
 					{
-						ID:             kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						Name:           kong.String("large-payload-service"),
-						Protocol:       kong.String("https"),
-						ConnectTimeout: kong.Int(5000),
-						WriteTimeout:   kong.Int(5000),
-						ReadTimeout:    kong.Int(5000),
+						ID:             new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						Name:           new("large-payload-service"),
+						Protocol:       new("https"),
+						ConnectTimeout: new(5000),
+						WriteTimeout:   new(5000),
+						ReadTimeout:    new(5000),
 					},
 				},
 				Routes: []*kong.Route{
 					{
-						ID:               kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:             kong.String("foo-route1"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:             new("foo-route1"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
+						RequestBuffering: new(false),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:               kong.String("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
-						Name:             kong.String("foo-route2"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("d125e79a-297c-414b-bc00-ad3a87be6c2b"),
+						Name:             new("foo-route2"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
+						RequestBuffering: new(false),
 						Service: &kong.Service{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-service"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-service"),
 						},
 					},
 					{
-						ID:               kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:             kong.String("bar-route1"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:             new("bar-route1"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
+						RequestBuffering: new(false),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:               kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						Name:             kong.String("bar-route2"),
-						PreserveHost:     kong.Bool(false),
-						RegexPriority:    kong.Int(0),
-						StripPath:        kong.Bool(false),
+						ID:               new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Name:             new("bar-route2"),
+						PreserveHost:     new(false),
+						RegexPriority:    new(0),
+						StripPath:        new(false),
 						Protocols:        kong.StringSlice("http", "https"),
-						RequestBuffering: kong.Bool(false),
+						RequestBuffering: new(false),
 						Service: &kong.Service{
-							ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-							Name: kong.String("bar-service"),
+							ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							Name: new("bar-service"),
 						},
 					},
 					{
-						ID:            kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						Name:          kong.String("dont-buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						Name:          new("dont-buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(false),
-						ResponseBuffering: kong.Bool(false),
+						RequestBuffering:  new(false),
+						ResponseBuffering: new(false),
 					},
 					{
-						ID:            kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
-						Name:          kong.String("buffer-these"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						ID:            new("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						Name:          new("buffer-these"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 						Service: &kong.Service{
-							ID:   kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-							Name: kong.String("large-payload-service"),
+							ID:   new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+							Name: new("large-payload-service"),
 						},
-						RequestBuffering:  kong.Bool(true),
-						ResponseBuffering: kong.Bool(true),
+						RequestBuffering:  new(true),
+						ResponseBuffering: new(true),
 					},
 				},
 				Upstreams: []*kong.Upstream{
 					{
-						ID:    kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
-						Name:  kong.String("foo"),
-						Slots: kong.Int(42),
+						ID:    new("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
+						Name:  new("foo"),
+						Slots: new(42),
 						Healthchecks: &kong.Healthcheck{
 							Active: &kong.ActiveHealthcheck{
-								Concurrency: kong.Int(5),
+								Concurrency: new(5),
 								Healthy: &kong.Healthy{
 									HTTPStatuses: []int{200, 302},
-									Interval:     kong.Int(0),
-									Successes:    kong.Int(0),
+									Interval:     new(0),
+									Successes:    new(0),
 								},
-								HTTPPath: kong.String("/"),
-								Type:     kong.String("http"),
-								Timeout:  kong.Int(1),
+								HTTPPath: new("/"),
+								Type:     new("http"),
+								Timeout:  new(1),
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
-									Interval:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
+									Interval:     new(0),
 									HTTPStatuses: []int{429, 404, 500, 501, 502, 503, 504, 505},
 								},
 							},
@@ -3787,19 +3787,19 @@ func Test_stateBuilder_kong360(t *testing.T) {
 										206, 207, 208, 226, 300, 301, 302, 303, 304, 305,
 										306, 307, 308,
 									},
-									Successes: kong.Int(0),
+									Successes: new(0),
 								},
 								Unhealthy: &kong.Unhealthy{
-									HTTPFailures: kong.Int(0),
-									TCPFailures:  kong.Int(0),
-									Timeouts:     kong.Int(0),
+									HTTPFailures: new(0),
+									TCPFailures:  new(0),
+									Timeouts:     new(0),
 									HTTPStatuses: []int{429, 500, 503},
 								},
 							},
 						},
-						HashOn:           kong.String("none"),
-						HashFallback:     kong.String("none"),
-						HashOnCookiePath: kong.String("/"),
+						HashOn:           new("none"),
+						HashFallback:     new("none"),
+						HashOnCookiePath: new("/"),
 					},
 				},
 			},
@@ -3847,7 +3847,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 			},
 			args: args{
 				plugin: &FPlugin{
-					ConfigSource: kong.String("foo"),
+					ConfigSource: new("foo"),
 				},
 			},
 			wantErr: true,
@@ -3866,7 +3866,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 			},
 			args: args{
 				plugin: &FPlugin{
-					ConfigSource: kong.String("foo"),
+					ConfigSource: new("foo"),
 					Plugin: kong.Plugin{
 						Config: kong.Configuration{
 							"k1": "v1",
@@ -3876,7 +3876,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				},
 			},
 			result: FPlugin{
-				ConfigSource: kong.String("foo"),
+				ConfigSource: new("foo"),
 				Plugin: kong.Plugin{
 					Config: kong.Configuration{
 						"k1":  "v1",
@@ -3893,7 +3893,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				targetContent: &Content{
 					PluginConfigs: map[string]kong.Configuration{
 						"redis-shared": {
-							"redis": map[string]interface{}{
+							"redis": map[string]any{
 								"host":     "redis.example.com",
 								"port":     float64(6379),
 								"password": "secret",
@@ -3904,10 +3904,10 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 			},
 			args: args{
 				plugin: &FPlugin{
-					ConfigSource: kong.String("redis-shared"),
+					ConfigSource: new("redis-shared"),
 					Plugin: kong.Plugin{
 						Config: kong.Configuration{
-							"redis": map[string]interface{}{
+							"redis": map[string]any{
 								"host": "override.example.com",
 							},
 						},
@@ -3915,10 +3915,10 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				},
 			},
 			result: FPlugin{
-				ConfigSource: kong.String("redis-shared"),
+				ConfigSource: new("redis-shared"),
 				Plugin: kong.Plugin{
 					Config: kong.Configuration{
-						"redis": map[string]interface{}{
+						"redis": map[string]any{
 							"host":     "override.example.com",
 							"port":     float64(6379),
 							"password": "secret",
@@ -3934,8 +3934,8 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				targetContent: &Content{
 					PluginConfigs: map[string]kong.Configuration{
 						"shared": {
-							"level1": map[string]interface{}{
-								"level2": map[string]interface{}{
+							"level1": map[string]any{
+								"level2": map[string]any{
 									"a": "from-config",
 									"b": "from-config",
 								},
@@ -3947,11 +3947,11 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 			},
 			args: args{
 				plugin: &FPlugin{
-					ConfigSource: kong.String("shared"),
+					ConfigSource: new("shared"),
 					Plugin: kong.Plugin{
 						Config: kong.Configuration{
-							"level1": map[string]interface{}{
-								"level2": map[string]interface{}{
+							"level1": map[string]any{
+								"level2": map[string]any{
 									"a": "from-plugin",
 								},
 							},
@@ -3960,11 +3960,11 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				},
 			},
 			result: FPlugin{
-				ConfigSource: kong.String("shared"),
+				ConfigSource: new("shared"),
 				Plugin: kong.Plugin{
 					Config: kong.Configuration{
-						"level1": map[string]interface{}{
-							"level2": map[string]interface{}{
+						"level1": map[string]any{
+							"level2": map[string]any{
 								"a": "from-plugin",
 								"b": "from-config",
 							},
@@ -3981,7 +3981,7 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				targetContent: &Content{
 					PluginConfigs: map[string]kong.Configuration{
 						"shared": {
-							"redis": map[string]interface{}{
+							"redis": map[string]any{
 								"host": "redis.example.com",
 								"port": float64(6379),
 							},
@@ -3992,10 +3992,10 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 			},
 			args: args{
 				plugin: &FPlugin{
-					ConfigSource: kong.String("shared"),
+					ConfigSource: new("shared"),
 					Plugin: kong.Plugin{
 						Config: kong.Configuration{
-							"redis": map[string]interface{}{
+							"redis": map[string]any{
 								"host": "override.example.com",
 							},
 						},
@@ -4003,10 +4003,10 @@ func Test_stateBuilder_fillPluginConfig(t *testing.T) {
 				},
 			},
 			result: FPlugin{
-				ConfigSource: kong.String("shared"),
+				ConfigSource: new("shared"),
 				Plugin: kong.Plugin{
 					Config: kong.Configuration{
-						"redis": map[string]interface{}{
+						"redis": map[string]any{
 							"host": "override.example.com",
 							"port": float64(6379),
 						},
@@ -4042,47 +4042,47 @@ func Test_getStripPathBasedOnProtocols(t *testing.T) {
 		{
 			name: "true strip_path and grpc protocols",
 			route: kong.Route{
-				Protocols: []*string{kong.String("grpc")},
-				StripPath: kong.Bool(true),
+				Protocols: []*string{new("grpc")},
+				StripPath: new(true),
 			},
 			wantErr: true,
 		},
 		{
 			name: "true strip_path and grpcs protocol",
 			route: kong.Route{
-				Protocols: []*string{kong.String("grpcs")},
-				StripPath: kong.Bool(true),
+				Protocols: []*string{new("grpcs")},
+				StripPath: new(true),
 			},
 			wantErr: true,
 		},
 		{
 			name: "no strip_path and http protocol",
 			route: kong.Route{
-				Protocols: []*string{kong.String("http")},
+				Protocols: []*string{new("http")},
 			},
 			expectedStripPath: nil,
 		},
 		{
 			name: "no strip_path and grpc protocol",
 			route: kong.Route{
-				Protocols: []*string{kong.String("grpc")},
+				Protocols: []*string{new("grpc")},
 			},
-			expectedStripPath: kong.Bool(false),
+			expectedStripPath: new(false),
 		},
 		{
 			name: "no strip_path and grpcs protocol",
 			route: kong.Route{
-				Protocols: []*string{kong.String("grpcs")},
+				Protocols: []*string{new("grpcs")},
 			},
-			expectedStripPath: kong.Bool(false),
+			expectedStripPath: new(false),
 		},
 		{
 			name: "false strip_path and grpc protocol",
 			route: kong.Route{
-				Protocols: []*string{kong.String("grpc")},
-				StripPath: kong.Bool(false),
+				Protocols: []*string{new("grpc")},
+				StripPath: new(false),
 			},
-			expectedStripPath: kong.Bool(false),
+			expectedStripPath: new(false),
 		},
 	}
 	for _, tt := range tests {
@@ -4124,7 +4124,7 @@ func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 			args: args{
 				route: FRoute{
 					Route: kong.Route{
-						Name: kong.String("foo"),
+						Name: new("foo"),
 					},
 				},
 			},
@@ -4132,10 +4132,10 @@ func Test_stateBuilder_ingestRouteKonnectTraditionalRoute(t *testing.T) {
 			wantState: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						Name:          kong.String("foo"),
-						PreserveHost:  kong.Bool(false),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 					},
 				},
@@ -4191,8 +4191,8 @@ func Test_stateBuilder_expressionRoutes_kong360(t *testing.T) {
 					Routes: []FRoute{
 						{
 							Route: kong.Route{
-								Name:       kong.String("foo"),
-								Expression: kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
+								Name:       new("foo"),
+								Expression: new(`'(http.path == "/test") || (http.path ^= "/test/")'`),
 							},
 						},
 					},
@@ -4202,11 +4202,11 @@ func Test_stateBuilder_expressionRoutes_kong360(t *testing.T) {
 			want: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						Name:         kong.String("foo"),
-						PreserveHost: kong.Bool(false),
-						Expression:   kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
+						Name:         new("foo"),
+						PreserveHost: new(false),
+						Expression:   new(`'(http.path == "/test") || (http.path ^= "/test/")'`),
 						Priority:     kong.Uint64(0),
-						StripPath:    kong.Bool(false),
+						StripPath:    new(false),
 						Protocols:    kong.StringSlice("http", "https"),
 					},
 				},
@@ -4260,8 +4260,8 @@ func Test_stateBuilder_expressionRoutes_kong370(t *testing.T) {
 					Routes: []FRoute{
 						{
 							Route: kong.Route{
-								Name:       kong.String("foo"),
-								Expression: kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
+								Name:       new("foo"),
+								Expression: new(`'(http.path == "/test") || (http.path ^= "/test/")'`),
 							},
 						},
 					},
@@ -4271,12 +4271,12 @@ func Test_stateBuilder_expressionRoutes_kong370(t *testing.T) {
 			want: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						Name:          kong.String("foo"),
-						PreserveHost:  kong.Bool(false),
-						Expression:    kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						Expression:    new(`'(http.path == "/test") || (http.path ^= "/test/")'`),
 						Priority:      kong.Uint64(0),
-						RegexPriority: kong.Int(0),
-						StripPath:     kong.Bool(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
 						Protocols:     kong.StringSlice("http", "https"),
 					},
 				},
@@ -4327,8 +4327,8 @@ func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 					Routes: []FRoute{
 						{
 							Route: kong.Route{
-								Name:       kong.String("foo"),
-								Expression: kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
+								Name:       new("foo"),
+								Expression: new(`'(http.path == "/test") || (http.path ^= "/test/")'`),
 							},
 						},
 					},
@@ -4338,11 +4338,11 @@ func Test_stateBuilder_expressionRoutes_kong370_withKonnect(t *testing.T) {
 			want: &utils.KongRawState{
 				Routes: []*kong.Route{
 					{
-						Name:         kong.String("foo"),
-						PreserveHost: kong.Bool(false),
-						Expression:   kong.String(`'(http.path == "/test") || (http.path ^= "/test/")'`),
+						Name:         new("foo"),
+						PreserveHost: new(false),
+						Expression:   new(`'(http.path == "/test") || (http.path ^= "/test/")'`),
 						Priority:     kong.Uint64(0),
-						StripPath:    kong.Bool(false),
+						StripPath:    new(false),
 						Protocols:    kong.StringSlice("http", "https"),
 					},
 				},
@@ -4391,11 +4391,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":   kong.String("/foo"),
-								"query": kong.String("query { foo { bar }}"),
-								primaryRelationService: map[string]interface{}{
+								"uri":   new("/foo"),
+								"query": new("query { foo { bar }}"),
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -4407,11 +4407,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: []*kong.DegraphqlRoute{
 					{
-						ID:    kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						URI:   kong.String("/foo"),
-						Query: kong.String("query { foo { bar }}"),
+						ID:    new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						URI:   new("/foo"),
+						Query: new("query { foo { bar }}"),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 						Methods: kong.StringSlice("GET"),
 					},
@@ -4424,11 +4424,11 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":   kong.String("/example"),
-								"query": kong.String("query{ example { foo } }"),
-								primaryRelationService: map[string]interface{}{
+								"uri":   new("/example"),
+								"query": new("query{ example { foo } }"),
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -4440,13 +4440,13 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: []*kong.DegraphqlRoute{
 					{
-						ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 						Methods: kong.StringSlice("GET"),
-						URI:     kong.String("/example"),
-						Query:   kong.String("query{ example { foo } }"),
+						URI:     new("/example"),
+						Query:   new("query{ example { foo } }"),
 					},
 				},
 			},
@@ -4458,23 +4458,23 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("foo"),
+								Name: new("foo"),
 							},
 						},
 					},
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri": kong.String("/foo"),
-								"query": kong.String(`query SearchPosts($filters: PostsFilters) {
+								"uri": new("/foo"),
+								"query": new(`query SearchPosts($filters: PostsFilters) {
 		      								posts(filter: $filters) {
 		        								id
 		        								title
 		        								author
 		      								}
 										}`),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"name": "foo",
 								},
 								"methods": kong.StringSlice("GET", "POST"),
@@ -4487,13 +4487,13 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: []*kong.DegraphqlRoute{
 					{
-						ID: kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						ID: new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
 						Service: &kong.Service{
-							ID: kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+							ID: new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
 						},
 						Methods: kong.StringSlice("GET", "POST"),
-						URI:     kong.String("/foo"),
-						Query: kong.String(`query SearchPosts($filters: PostsFilters) {
+						URI:     new("/foo"),
+						Query: new(`query SearchPosts($filters: PostsFilters) {
 		      								posts(filter: $filters) {
 		        								id
 		        								title
@@ -4504,12 +4504,12 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 				},
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:           kong.String("foo"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:           new("foo"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 				},
 			},
@@ -4533,32 +4533,32 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("service1"),
+								Name: new("service1"),
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("service2"),
+								Name: new("service2"),
 							},
 						},
 					},
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":   kong.String("/foo"),
-								"query": kong.String("query { foo }"),
-								primaryRelationService: map[string]interface{}{
+								"uri":   new("/foo"),
+								"query": new("query { foo }"),
+								primaryRelationService: map[string]any{
 									"name": "service1",
 								},
 							},
 						},
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":   kong.String("/bar"),
-								"query": kong.String("query { bar }"),
-								primaryRelationService: map[string]interface{}{
+								"uri":   new("/bar"),
+								"query": new("query { bar }"),
+								primaryRelationService: map[string]any{
 									"name": "service2",
 								},
 								"methods": kong.StringSlice("POST", "PUT"),
@@ -4571,40 +4571,40 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 			want: &utils.KongRawState{
 				DegraphqlRoutes: []*kong.DegraphqlRoute{
 					{
-						ID:    kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						URI:   kong.String("/foo"),
-						Query: kong.String("query { foo }"),
+						ID:    new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						URI:   new("/foo"),
+						Query: new("query { foo }"),
 						Service: &kong.Service{
-							ID: kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+							ID: new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
 						},
 						Methods: kong.StringSlice("GET"),
 					},
 					{
-						ID:    kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						URI:   kong.String("/bar"),
-						Query: kong.String("query { bar }"),
+						ID:    new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						URI:   new("/bar"),
+						Query: new("query { bar }"),
 						Service: &kong.Service{
-							ID: kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+							ID: new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
 						},
 						Methods: kong.StringSlice("POST", "PUT"),
 					},
 				},
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:           kong.String("service1"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:           new("service1"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 					{
-						ID:             kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						Name:           kong.String("service2"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						Name:           new("service2"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 				},
 			},
@@ -4615,10 +4615,10 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri":   kong.String("/foo"),
-								"query": kong.String("query{ example { foo } }"),
+								"uri":   new("/foo"),
+								"query": new("query{ example { foo } }"),
 							},
 						},
 					},
@@ -4637,10 +4637,10 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"query": kong.String("query{ example { foo } }"),
-								primaryRelationService: map[string]interface{}{
+								"query": new("query{ example { foo } }"),
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -4661,10 +4661,10 @@ func Test_stateBuilder_ingestCustomEntities(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("degraphql_routes"),
+							Type: new("degraphql_routes"),
 							Fields: CustomEntityConfiguration{
-								"uri": kong.String("/foo"),
-								primaryRelationService: map[string]interface{}{
+								"uri": new("/foo"),
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -4728,12 +4728,12 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 					ConsumerGroups: []FConsumerGroupObject{
 						{
 							ConsumerGroup: kong.ConsumerGroup{
-								Name: kong.String("foo-group"),
+								Name: new("foo-group"),
 							},
 							Consumers: nil,
 							Plugins: []*kong.ConsumerGroupPlugin{
 								{
-									Name: kong.String("rate-limiting-advanced"),
+									Name: new("rate-limiting-advanced"),
 									Config: kong.Configuration{
 										testLimit:     []any{float64(100)},
 										"window_size": []any{float64(60)},
@@ -4746,7 +4746,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("rate-limiting-advanced"),
+								Name: new("rate-limiting-advanced"),
 								Config: kong.Configuration{
 									"consumer_groups":         []any{string("foo-group")},
 									"dictionary_name":         string("kong_rate_limiting_counters"),
@@ -4802,14 +4802,14 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 				ConsumerGroups: []*kong.ConsumerGroupObject{
 					{
 						ConsumerGroup: &kong.ConsumerGroup{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-group"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-group"),
 						},
 						Consumers: nil,
 						Plugins: []*kong.ConsumerGroupPlugin{
 							{
-								ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-								Name: kong.String("rate-limiting-advanced"),
+								ID:   new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+								Name: new("rate-limiting-advanced"),
 								Config: kong.Configuration{
 									testLimit:     []any{float64(100)},
 									"window_size": []any{float64(60)},
@@ -4821,8 +4821,8 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 				},
 				Plugins: []*kong.Plugin{
 					{
-						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name: kong.String("rate-limiting-advanced"),
+						ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: new("rate-limiting-advanced"),
 						Config: kong.Configuration{
 							"consumer_groups":         []any{string("foo-group")},
 							"dictionary_name":         string("kong_rate_limiting_counters"),
@@ -4888,12 +4888,12 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 					ConsumerGroups: []FConsumerGroupObject{
 						{
 							ConsumerGroup: kong.ConsumerGroup{
-								Name: kong.String("foo-group"),
+								Name: new("foo-group"),
 							},
 							Consumers: nil,
 							Plugins: []*kong.ConsumerGroupPlugin{
 								{
-									Name: kong.String("rate-limiting-advanced"),
+									Name: new("rate-limiting-advanced"),
 									Config: kong.Configuration{
 										testLimit:     []any{float64(100)},
 										"window_size": []any{float64(60)},
@@ -4906,7 +4906,7 @@ func Test_stateBuilder_ConsumerGroupPolicyOverrides(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("rate-limiting-advanced"),
+								Name: new("rate-limiting-advanced"),
 								Config: kong.Configuration{
 									"consumer_groups":         []any{string("foo-group")},
 									"dictionary_name":         string("kong_rate_limiting_counters"),
@@ -5006,9 +5006,9 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 				},
 				Plugins: []FPlugin{
 					{
-						ConfigSource: kong.String("oidc"),
+						ConfigSource: new("oidc"),
 						Plugin: kong.Plugin{
-							Name: kong.String("openid-connect"),
+							Name: new("openid-connect"),
 						},
 					},
 				},
@@ -5023,7 +5023,7 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name:   kong.String("openid-connect"),
+							Name:   new("openid-connect"),
 							Config: kong.Configuration{},
 						},
 					},
@@ -5037,7 +5037,7 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("openid-connect"),
+							Name: new("openid-connect"),
 							Config: kong.Configuration{
 								"cache_tokens_salt": nil,
 							},
@@ -5054,7 +5054,7 @@ func Test_stateBuilder_validateOpenIDConnectPlugin(t *testing.T) {
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("openid-connect"),
+							Name: new("openid-connect"),
 							Config: kong.Configuration{
 								"cache_tokens_salt": "",
 							},
@@ -5098,7 +5098,7 @@ func Test_stateBuilder_validateRateLimitingAdvancedDiagnosticSeverity(t *testing
 		Plugins: []FPlugin{
 			{
 				Plugin: kong.Plugin{
-					Name: kong.String("rate-limiting-advanced"),
+					Name: new("rate-limiting-advanced"),
 					Config: kong.Configuration{
 						"consumer_groups":         []any{"foo-group"},
 						"enforce_consumer_groups": true,
@@ -5155,12 +5155,12 @@ func Test_stateBuilder_partials(t *testing.T) {
 					Partials: []FPartial{
 						{
 							Partial: kong.Partial{
-								Name: kong.String("my-foo-partial"),
-								Type: kong.String("foo"),
+								Name: new("my-foo-partial"),
+								Type: new("foo"),
 								Config: kong.Configuration{
 									"key1": "value1",
 									"key2": []any{"a", "b", "c"},
-									"key3": map[string]interface{}{
+									"key3": map[string]any{
 										"k1": "v1",
 										"k2": "v2",
 										"k3": []any{"a1", "b1"},
@@ -5175,13 +5175,13 @@ func Test_stateBuilder_partials(t *testing.T) {
 			want: &utils.KongRawState{
 				Partials: []*kong.Partial{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("my-foo-partial"),
-						Type: kong.String("foo"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("my-foo-partial"),
+						Type: new("foo"),
 						Config: kong.Configuration{
 							"key1": "value1",
 							"key2": []any{"a", "b", "c"},
-							"key3": map[string]interface{}{
+							"key3": map[string]any{
 								"k1": "v1",
 								"k2": "v2",
 								"k3": []any{"a1", "b1"},
@@ -5198,12 +5198,12 @@ func Test_stateBuilder_partials(t *testing.T) {
 					Partials: []FPartial{
 						{
 							Partial: kong.Partial{
-								Name: kong.String("existing-partial"),
-								Type: kong.String("foo"),
+								Name: new("existing-partial"),
+								Type: new("foo"),
 								Config: kong.Configuration{
 									"key1": "value1",
 									"key2": []any{"a", "b", "c"},
-									"key3": map[string]interface{}{
+									"key3": map[string]any{
 										"k1": "v1",
 										"k2": "v2",
 										"k3": []any{"a1", "b1"},
@@ -5218,13 +5218,13 @@ func Test_stateBuilder_partials(t *testing.T) {
 			want: &utils.KongRawState{
 				Partials: []*kong.Partial{
 					{
-						ID:   kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						Name: kong.String("existing-partial"),
-						Type: kong.String("foo"),
+						ID:   new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name: new("existing-partial"),
+						Type: new("foo"),
 						Config: kong.Configuration{
 							"key1": "value1",
 							"key2": []any{"a", "b", "c"},
-							"key3": map[string]interface{}{
+							"key3": map[string]any{
 								"k1": "v1",
 								"k2": "v2",
 								"k3": []any{"a1", "b1"},
@@ -5241,9 +5241,9 @@ func Test_stateBuilder_partials(t *testing.T) {
 					Partials: []FPartial{
 						{
 							Partial: kong.Partial{
-								ID:   kong.String("provided-id"),
-								Name: kong.String("test-partial"),
-								Type: kong.String("foo"),
+								ID:   new("provided-id"),
+								Name: new("test-partial"),
+								Type: new("foo"),
 							},
 						},
 					},
@@ -5253,9 +5253,9 @@ func Test_stateBuilder_partials(t *testing.T) {
 			want: &utils.KongRawState{
 				Partials: []*kong.Partial{
 					{
-						ID:   kong.String("provided-id"),
-						Name: kong.String("test-partial"),
-						Type: kong.String("foo"),
+						ID:   new("provided-id"),
+						Name: new("test-partial"),
+						Type: new("foo"),
 					},
 				},
 			},
@@ -5267,14 +5267,14 @@ func Test_stateBuilder_partials(t *testing.T) {
 					Partials: []FPartial{
 						{
 							Partial: kong.Partial{
-								Name: kong.String("foo-partial"),
-								Type: kong.String("foo"),
+								Name: new("foo-partial"),
+								Type: new("foo"),
 							},
 						},
 						{
 							Partial: kong.Partial{
-								Name: kong.String("bar-partial"),
-								Type: kong.String("bar"),
+								Name: new("bar-partial"),
+								Type: new("bar"),
 							},
 						},
 					},
@@ -5284,14 +5284,14 @@ func Test_stateBuilder_partials(t *testing.T) {
 			want: &utils.KongRawState{
 				Partials: []*kong.Partial{
 					{
-						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name: kong.String("foo-partial"),
-						Type: kong.String("foo"),
+						ID:   new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: new("foo-partial"),
+						Type: new("foo"),
 					},
 					{
-						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name: kong.String("bar-partial"),
-						Type: kong.String("bar"),
+						ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: new("bar-partial"),
+						Type: new("bar"),
 					},
 				},
 			},
@@ -5348,9 +5348,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("key-auth"),
+								Name: new("key-auth"),
 								Consumer: &kong.Consumer{
-									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+									ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 								},
 							},
 						},
@@ -5361,9 +5361,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			want: []FPlugin{
 				{
 					Plugin: kong.Plugin{
-						Name: kong.String("key-auth"),
+						Name: new("key-auth"),
 						Consumer: &kong.Consumer{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 				},
@@ -5376,9 +5376,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("rate-limiting"),
+								Name: new("rate-limiting"),
 								Service: &kong.Service{
-									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+									ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 								},
 							},
 						},
@@ -5389,9 +5389,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			want: []FPlugin{
 				{
 					Plugin: kong.Plugin{
-						Name: kong.String("rate-limiting"),
+						Name: new("rate-limiting"),
 						Service: &kong.Service{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 				},
@@ -5404,9 +5404,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("cors"),
+								Name: new("cors"),
 								Route: &kong.Route{
-									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+									ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 								},
 							},
 						},
@@ -5417,9 +5417,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			want: []FPlugin{
 				{
 					Plugin: kong.Plugin{
-						Name: kong.String("cors"),
+						Name: new("cors"),
 						Route: &kong.Route{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 				},
@@ -5432,9 +5432,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("rate-limiting"),
+								Name: new("rate-limiting"),
 								ConsumerGroup: &kong.ConsumerGroup{
-									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+									ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 								},
 							},
 						},
@@ -5445,9 +5445,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			want: []FPlugin{
 				{
 					Plugin: kong.Plugin{
-						Name: kong.String("rate-limiting"),
+						Name: new("rate-limiting"),
 						ConsumerGroup: &kong.ConsumerGroup{
-							ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 						},
 					},
 				},
@@ -5460,13 +5460,13 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("custom-plugin"),
+								Name: new("custom-plugin"),
 								Partials: []*kong.PartialLink{
 									{
 										Partial: &kong.Partial{
-											ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+											ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 										},
-										Path: kong.String("config.custom_path"),
+										Path: new("config.custom_path"),
 									},
 								},
 							},
@@ -5478,13 +5478,13 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			want: []FPlugin{
 				{
 					Plugin: kong.Plugin{
-						Name: kong.String("custom-plugin"),
+						Name: new("custom-plugin"),
 						Partials: []*kong.PartialLink{
 							{
 								Partial: &kong.Partial{
-									ID: kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+									ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
 								},
-								Path: kong.String("config.custom_path"),
+								Path: new("config.custom_path"),
 							},
 						},
 					},
@@ -5498,9 +5498,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("key-auth"),
+								Name: new("key-auth"),
 								Consumer: &kong.Consumer{
-									ID: kong.String("non-existent"),
+									ID: new("non-existent"),
 								},
 							},
 						},
@@ -5517,9 +5517,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("key-auth"),
+								Name: new("key-auth"),
 								Service: &kong.Service{
-									ID: kong.String("non-existent"),
+									ID: new("non-existent"),
 								},
 							},
 						},
@@ -5536,9 +5536,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("key-auth"),
+								Name: new("key-auth"),
 								Route: &kong.Route{
-									ID: kong.String("non-existent"),
+									ID: new("non-existent"),
 								},
 							},
 						},
@@ -5555,9 +5555,9 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("key-auth"),
+								Name: new("key-auth"),
 								ConsumerGroup: &kong.ConsumerGroup{
-									ID: kong.String("non-existent"),
+									ID: new("non-existent"),
 								},
 							},
 						},
@@ -5574,7 +5574,7 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("custom-plugin"),
+								Name: new("custom-plugin"),
 								Partials: []*kong.PartialLink{
 									{
 										Partial: &kong.Partial{},
@@ -5595,11 +5595,11 @@ func Test_stateBuilder_plugins(t *testing.T) {
 					Plugins: []FPlugin{
 						{
 							Plugin: kong.Plugin{
-								Name: kong.String("custom-plugin"),
+								Name: new("custom-plugin"),
 								Partials: []*kong.PartialLink{
 									{
 										Partial: &kong.Partial{
-											ID: kong.String("non-existent"),
+											ID: new("non-existent"),
 										},
 									},
 								},
@@ -5654,18 +5654,18 @@ func Test_stateBuilder_keys(t *testing.T) {
 					Keys: []FKey{
 						{
 							Key: kong.Key{
-								Name: kong.String("foo"),
-								KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-								JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+								Name: new("foo"),
+								KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+								JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 							},
 						},
 						{
 							Key: kong.Key{
-								Name: kong.String("my-pem-key"),
-								KID:  kong.String("my-pem-key"),
+								Name: new("my-pem-key"),
+								KID:  new("my-pem-key"),
 								PEM: &kong.PEM{
-									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
-									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+									PrivateKey: new("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+									PublicKey:  new("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 								},
 							},
 						},
@@ -5676,18 +5676,18 @@ func Test_stateBuilder_keys(t *testing.T) {
 			want: &utils.KongRawState{
 				Keys: []*kong.Key{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("foo"),
-						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("foo"),
+						KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+						JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 					},
 					{
-						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name: kong.String("my-pem-key"),
-						KID:  kong.String("my-pem-key"),
+						ID:   new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: new("my-pem-key"),
+						KID:  new("my-pem-key"),
 						PEM: &kong.PEM{
-							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
-							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+							PrivateKey: new("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+							PublicKey:  new("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 						},
 					},
 				},
@@ -5700,9 +5700,9 @@ func Test_stateBuilder_keys(t *testing.T) {
 					Keys: []FKey{
 						{
 							Key: kong.Key{
-								Name: kong.String("foo"),
-								KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-								JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+								Name: new("foo"),
+								KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+								JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 							},
 						},
 					},
@@ -5712,10 +5712,10 @@ func Test_stateBuilder_keys(t *testing.T) {
 			want: &utils.KongRawState{
 				Keys: []*kong.Key{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("foo"),
-						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("foo"),
+						KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+						JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 					},
 				},
 			},
@@ -5766,31 +5766,31 @@ func Test_stateBuilder_keySets(t *testing.T) {
 					KeySets: []FKeySet{
 						{
 							KeySet: kong.KeySet{
-								Name: kong.String("set-1"),
+								Name: new("set-1"),
 							},
 						},
 					},
 					Keys: []FKey{
 						{
 							Key: kong.Key{
-								Name: kong.String("foo"),
-								KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-								JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+								Name: new("foo"),
+								KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+								JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 								Set: &kong.KeySet{
-									Name: kong.String("set-1"),
+									Name: new("set-1"),
 								},
 							},
 						},
 						{
 							Key: kong.Key{
-								Name: kong.String("my-pem-key"),
-								KID:  kong.String("my-pem-key"),
+								Name: new("my-pem-key"),
+								KID:  new("my-pem-key"),
 								PEM: &kong.PEM{
-									PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
-									PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+									PrivateKey: new("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+									PublicKey:  new("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 								},
 								Set: &kong.KeySet{
-									Name: kong.String("set-1"),
+									Name: new("set-1"),
 								},
 							},
 						},
@@ -5801,30 +5801,30 @@ func Test_stateBuilder_keySets(t *testing.T) {
 			want: &utils.KongRawState{
 				KeySets: []*kong.KeySet{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("set-1"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("set-1"),
 					},
 				},
 				Keys: []*kong.Key{
 					{
-						ID:   kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name: kong.String("foo"),
-						KID:  kong.String("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
-						JWK:  kong.String("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
+						ID:   new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name: new("foo"),
+						KID:  new("vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4"),
+						JWK:  new("{\"kid\":\"vsR8NCNV_1_LB06LqudGa2r-T0y4Z6VQVYue9IQz6A4\",\"kty\":\"RSA\",\"alg\":\"A256GCM\",\"n\":\"v2KAzzfruqctVHaE9WSCWIg1xAhMwxTIK-i56WNqPtpWBo9AqxcVea8NyVctEjUNq_mix5CklNy3ru7ARh7rBG_LU65fzs4fY_uYalul3QZSnr61Gj-cTUB3Gy4PhA63yXCbYRR3gDy6WR_wfis1MS61j0R_AjgXuVufmmC0F7R9qSWfR8ft0CbQgemEHY3ddKeW7T7fKv1jnRwYAkl5B_xtvxRFIYT-uR9NNftixNpUIW7q8qvOH7D9icXOg4_wIVxTRe5QiRYwEFoUbV1V9bFtu5FLal0vZnLaWwg5tA6enhzBpxJNdrS0v1RcPpyeNP-9r3cUDGmeftwz9v95UQ\",\"e\":\"AQAB\"}"), //nolint:lll
 						Set: &kong.KeySet{
-							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							ID: new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						},
 					},
 					{
-						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name: kong.String("my-pem-key"),
-						KID:  kong.String("my-pem-key"),
+						ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: new("my-pem-key"),
+						KID:  new("my-pem-key"),
 						PEM: &kong.PEM{
-							PrivateKey: kong.String("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
-							PublicKey:  kong.String("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
+							PrivateKey: new("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD\n-----END PRIVATE KEY-----\n"), //nolint:lll
+							PublicKey:  new("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----\n"),          //nolint:lll
 						},
 						Set: &kong.KeySet{
-							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							ID: new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						},
 					},
 				},
@@ -5837,7 +5837,7 @@ func Test_stateBuilder_keySets(t *testing.T) {
 					KeySets: []FKeySet{
 						{
 							KeySet: kong.KeySet{
-								Name: kong.String("existing-set"),
+								Name: new("existing-set"),
 							},
 						},
 					},
@@ -5847,8 +5847,8 @@ func Test_stateBuilder_keySets(t *testing.T) {
 			want: &utils.KongRawState{
 				KeySets: []*kong.KeySet{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("existing-set"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("existing-set"),
 					},
 				},
 			},
@@ -5889,9 +5889,9 @@ func existingClonedPluginDefinitionState(t *testing.T) *state.KongState {
 	s.ClonedPluginDefinitions.Add(
 		state.ClonedPluginDefinition{
 			ClonedPluginDefinition: kong.ClonedPluginDefinition{
-				ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-				Name: kong.String("file-log-clone"),
-				Ref:  kong.String("file-log"),
+				ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+				Name: new("file-log-clone"),
+				Ref:  new("file-log"),
 			},
 		})
 	return s
@@ -5915,8 +5915,8 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 					ClonedPluginDefinitions: []FClonedPluginDefinition{
 						{
 							ClonedPluginDefinition: kong.ClonedPluginDefinition{
-								Name: kong.String("file-log-clone"),
-								Ref:  kong.String("file-log"),
+								Name: new("file-log-clone"),
+								Ref:  new("file-log"),
 							},
 						},
 					},
@@ -5926,9 +5926,9 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("file-log-clone"),
-						Ref:  kong.String("file-log"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("file-log-clone"),
+						Ref:  new("file-log"),
 					},
 				},
 			},
@@ -5940,16 +5940,16 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 					ClonedPluginDefinitions: []FClonedPluginDefinition{
 						{
 							ClonedPluginDefinition: kong.ClonedPluginDefinition{
-								Name:     kong.String("file-log-clone"),
-								Ref:      kong.String("file-log"),
-								Priority: kong.Int(50000),
+								Name:     new("file-log-clone"),
+								Ref:      new("file-log"),
+								Priority: new(50000),
 								Tags:     kong.StringSlice("t1", "t2"),
 							},
 						},
 						{
 							ClonedPluginDefinition: kong.ClonedPluginDefinition{
-								Name: kong.String("http-log-clone"),
-								Ref:  kong.String("http-log"),
+								Name: new("http-log-clone"),
+								Ref:  new("http-log"),
 							},
 						},
 					},
@@ -5959,16 +5959,16 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
 					{
-						ID:       kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:     kong.String("file-log-clone"),
-						Ref:      kong.String("file-log"),
-						Priority: kong.Int(50000),
+						ID:       new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:     new("file-log-clone"),
+						Ref:      new("file-log"),
+						Priority: new(50000),
 						Tags:     kong.StringSlice("t1", "t2"),
 					},
 					{
-						ID:   kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name: kong.String("http-log-clone"),
-						Ref:  kong.String("http-log"),
+						ID:   new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name: new("http-log-clone"),
+						Ref:  new("http-log"),
 					},
 				},
 			},
@@ -5980,8 +5980,8 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 					ClonedPluginDefinitions: []FClonedPluginDefinition{
 						{
 							ClonedPluginDefinition: kong.ClonedPluginDefinition{
-								Name: kong.String("file-log-clone"),
-								Ref:  kong.String("file-log"),
+								Name: new("file-log-clone"),
+								Ref:  new("file-log"),
 							},
 						},
 					},
@@ -5991,9 +5991,9 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
 					{
-						ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name: kong.String("file-log-clone"),
-						Ref:  kong.String("file-log"),
+						ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name: new("file-log-clone"),
+						Ref:  new("file-log"),
 					},
 				},
 			},
@@ -6005,9 +6005,9 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 					ClonedPluginDefinitions: []FClonedPluginDefinition{
 						{
 							ClonedPluginDefinition: kong.ClonedPluginDefinition{
-								ID:   kong.String("1234abcd-0000-0000-0000-000000000000"),
-								Name: kong.String("file-log-clone"),
-								Ref:  kong.String("file-log"),
+								ID:   new("1234abcd-0000-0000-0000-000000000000"),
+								Name: new("file-log-clone"),
+								Ref:  new("file-log"),
 							},
 						},
 					},
@@ -6017,9 +6017,9 @@ func Test_stateBuilder_clonedPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				ClonedPluginDefinitions: []*kong.ClonedPluginDefinition{
 					{
-						ID:   kong.String("1234abcd-0000-0000-0000-000000000000"),
-						Name: kong.String("file-log-clone"),
-						Ref:  kong.String("file-log"),
+						ID:   new("1234abcd-0000-0000-0000-000000000000"),
+						Name: new("file-log-clone"),
+						Ref:  new("file-log"),
 					},
 				},
 			},
@@ -6080,8 +6080,8 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								ID:       kong.String("existing-consumer-id"),
-								Username: kong.String("test-user"),
+								ID:       new("existing-consumer-id"),
+								Username: new("test-user"),
 								Tags:     kong.StringSlice("lookup-tag"),
 							},
 						},
@@ -6091,16 +6091,16 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 				lookupTagsConsumers: []string{"lookup-tag"},
 			},
 			args: args{
-				cgID: kong.String("cg-123"),
+				cgID: new("cg-123"),
 				c: &FConsumer{
 					Consumer: kong.Consumer{
-						Username: kong.String("test-user"),
+						Username: new("test-user"),
 					},
 				},
 			},
 			want: &kong.Consumer{
-				ID:       kong.String("existing-consumer-id"),
-				Username: kong.String("test-user"),
+				ID:       new("existing-consumer-id"),
+				Username: new("test-user"),
 				Tags:     kong.StringSlice("lookup-tag"),
 			},
 			wantErr: false,
@@ -6112,8 +6112,8 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								ID:       kong.String("existing-consumer-id"),
-								CustomID: kong.String("custom-123"),
+								ID:       new("existing-consumer-id"),
+								CustomID: new("custom-123"),
 								Tags:     kong.StringSlice("lookup-tag"),
 							},
 						},
@@ -6123,16 +6123,16 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 				lookupTagsConsumers: []string{"lookup-tag"},
 			},
 			args: args{
-				cgID: kong.String("cg-123"),
+				cgID: new("cg-123"),
 				c: &FConsumer{
 					Consumer: kong.Consumer{
-						CustomID: kong.String("custom-123"),
+						CustomID: new("custom-123"),
 					},
 				},
 			},
 			want: &kong.Consumer{
-				ID:       kong.String("existing-consumer-id"),
-				CustomID: kong.String("custom-123"),
+				ID:       new("existing-consumer-id"),
+				CustomID: new("custom-123"),
 				Tags:     kong.StringSlice("lookup-tag"),
 			},
 			wantErr: false,
@@ -6144,12 +6144,12 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 					Consumers: []FConsumer{
 						{
 							Consumer: kong.Consumer{
-								ID:       kong.String("existing-consumer-id"),
-								Username: kong.String("test-user"),
+								ID:       new("existing-consumer-id"),
+								Username: new("test-user"),
 							},
 							Groups: []*kong.ConsumerGroup{
 								{
-									ID:   kong.String("cg-123"),
+									ID:   new("cg-123"),
 									Tags: kong.StringSlice("cg-lookup-tag"),
 								},
 							},
@@ -6161,17 +6161,17 @@ func Test_stateBuilder_ingestConsumerGroupConsumer(t *testing.T) {
 				checkIntermediateState:   true,
 			},
 			args: args{
-				cgID: kong.String("cg-123"),
+				cgID: new("cg-123"),
 				c: &FConsumer{
 					Consumer: kong.Consumer{
-						ID:       kong.String("existing-consumer-id"),
-						Username: kong.String("test-user"),
+						ID:       new("existing-consumer-id"),
+						Username: new("test-user"),
 					},
 				},
 			},
 			want: &kong.Consumer{
-				ID:       kong.String("existing-consumer-id"),
-				Username: kong.String("test-user"),
+				ID:       new("existing-consumer-id"),
+				Username: new("test-user"),
 			},
 			wantErr: false,
 		},
@@ -6234,13 +6234,13 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 					ConsumerGroups: []FConsumerGroupObject{
 						{
 							ConsumerGroup: kong.ConsumerGroup{
-								Name: kong.String("foo-group"),
+								Name: new("foo-group"),
 							},
 							Consumers: nil,
 							Plugins: []*kong.ConsumerGroupPlugin{
 								{
-									Name:         kong.String("rate-limiting-advanced"),
-									InstanceName: kong.String("custom-instance-name"),
+									Name:         new("rate-limiting-advanced"),
+									InstanceName: new("custom-instance-name"),
 									Config: kong.Configuration{
 										testLimit:     []any{float64(100)},
 										"window_size": []any{float64(60)},
@@ -6257,24 +6257,24 @@ func Test_InstanceName_ConsumerGroupPlugin(t *testing.T) {
 				ConsumerGroups: []*kong.ConsumerGroupObject{
 					{
 						ConsumerGroup: &kong.ConsumerGroup{
-							ID:   kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-							Name: kong.String("foo-group"),
+							ID:   new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							Name: new("foo-group"),
 						},
 						Consumers: nil,
 					},
 				},
 				Plugins: []*kong.Plugin{
 					{
-						ID:           kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:         kong.String("rate-limiting-advanced"),
-						InstanceName: kong.String("custom-instance-name"),
+						ID:           new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:         new("rate-limiting-advanced"),
+						InstanceName: new("custom-instance-name"),
 						Config: kong.Configuration{
 							testLimit:     []any{float64(100)},
 							"window_size": []any{float64(60)},
 							"window_type": string("fixed"),
 						},
 						ConsumerGroup: &kong.ConsumerGroup{
-							ID: kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+							ID: new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
 						},
 					},
 				},
@@ -6333,14 +6333,14 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"type_path":     "Query.allFields",
 								"add_constant":  float64(5),
 								"mul_constant":  float64(3),
-								"add_arguments": []*string{kong.String("skip"), kong.String("take")},
-								"mul_arguments": []*string{kong.String("count"), kong.String("size")},
-								primaryRelationService: map[string]interface{}{
+								"add_arguments": []*string{new("skip"), new("take")},
+								"mul_arguments": []*string{new("count"), new("size")},
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6352,14 +6352,14 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:           kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						TypePath:     kong.String("Query.allFields"),
+						ID:           new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						TypePath:     new("Query.allFields"),
 						AddConstant:  kong.Float64(5),
 						MulConstant:  kong.Float64(3),
-						AddArguments: []*string{kong.String("skip"), kong.String("take")},
-						MulArguments: []*string{kong.String("count"), kong.String("size")},
+						AddArguments: []*string{new("skip"), new("take")},
+						MulArguments: []*string{new("count"), new("size")},
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6371,12 +6371,12 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
-								"type_path":    kong.String("Query.users"),
+								"type_path":    new("Query.users"),
 								"add_constant": kong.Float64(1),
 								"mul_constant": kong.Float64(1),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6388,12 +6388,12 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:          kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-						TypePath:    kong.String("Query.users"),
+						ID:          new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						TypePath:    new("Query.users"),
 						AddConstant: kong.Float64(1),
 						MulConstant: kong.Float64(1),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6405,11 +6405,11 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
-								"type_path":    kong.String("Mutation.createUser"),
+								"type_path":    new("Mutation.createUser"),
 								"add_constant": kong.Float64(10),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6421,11 +6421,11 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:          kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						TypePath:    kong.String("Mutation.createUser"),
+						ID:          new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						TypePath:    new("Mutation.createUser"),
 						AddConstant: kong.Float64(10),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6438,32 +6438,32 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 					Services: []FService{
 						{
 							Service: kong.Service{
-								Name: kong.String("service1"),
+								Name: new("service1"),
 							},
 						},
 						{
 							Service: kong.Service{
-								Name: kong.String("service2"),
+								Name: new("service2"),
 							},
 						},
 					},
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
-								"type_path":    kong.String("Query.users"),
+								"type_path":    new("Query.users"),
 								"add_constant": kong.Float64(1),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"name": "service1",
 								},
 							},
 						},
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
-								"type_path":    kong.String("Query.posts"),
+								"type_path":    new("Query.posts"),
 								"mul_constant": kong.Float64(3),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"name": "service2",
 								},
 							},
@@ -6475,38 +6475,38 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:          kong.String("083f61d3-75bc-42b4-9df4-f91929e18fda"),
-						TypePath:    kong.String("Query.users"),
+						ID:          new("083f61d3-75bc-42b4-9df4-f91929e18fda"),
+						TypePath:    new("Query.users"),
 						AddConstant: kong.Float64(1),
 						Service: &kong.Service{
-							ID: kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+							ID: new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
 						},
 					},
 					{
-						ID:          kong.String("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
-						TypePath:    kong.String("Query.posts"),
+						ID:          new("9e6f82e5-4e74-4e81-a79e-4bbd6fe34cdc"),
+						TypePath:    new("Query.posts"),
 						MulConstant: kong.Float64(3),
 						Service: &kong.Service{
-							ID: kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+							ID: new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
 						},
 					},
 				},
 				Services: []*kong.Service{
 					{
-						ID:             kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:           kong.String("service1"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:           new("service1"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 					{
-						ID:             kong.String("0cc0d614-4c88-4535-841a-cbe0709b0758"),
-						Name:           kong.String("service2"),
-						Protocol:       kong.String("http"),
-						ConnectTimeout: kong.Int(60000),
-						WriteTimeout:   kong.Int(60000),
-						ReadTimeout:    kong.Int(60000),
+						ID:             new("0cc0d614-4c88-4535-841a-cbe0709b0758"),
+						Name:           new("service2"),
+						Protocol:       new("http"),
+						ConnectTimeout: new(60000),
+						WriteTimeout:   new(60000),
+						ReadTimeout:    new(60000),
 					},
 				},
 			},
@@ -6517,10 +6517,10 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"add_constant": kong.Float64(1),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6541,7 +6541,7 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type:   kong.String("graphql_ratelimiting_cost_decorations"),
+							Type:   new("graphql_ratelimiting_cost_decorations"),
 							Fields: nil,
 						},
 					},
@@ -6560,11 +6560,11 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"type_path":    "Query.addConstantOnly",
 								"add_constant": float64(10),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6576,11 +6576,11 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:          kong.String("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
-						TypePath:    kong.String("Query.addConstantOnly"),
+						ID:          new("ba843ee8-d63e-4c4f-be1c-ebea546d8fac"),
+						TypePath:    new("Query.addConstantOnly"),
 						AddConstant: kong.Float64(10),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6592,11 +6592,11 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"type_path":    "Query.mulConstantOnly",
 								"mul_constant": float64(2.5),
-								primaryRelationService: map[string]interface{}{
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6608,11 +6608,11 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:          kong.String("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
-						TypePath:    kong.String("Query.mulConstantOnly"),
-						MulConstant: kong.Float64(2.5),
+						ID:          new("13dd1aac-04ce-4ea2-877c-5579cfa2c78e"),
+						TypePath:    new("Query.mulConstantOnly"),
+						MulConstant: new(2.5),
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6624,12 +6624,12 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"type_path":     "Query.withAddArguments",
 								"add_constant":  float64(1),
-								"add_arguments": []*string{kong.String(testLimit), kong.String("offset")},
-								primaryRelationService: map[string]interface{}{
+								"add_arguments": []*string{new(testLimit), new("offset")},
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6641,12 +6641,12 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:           kong.String("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
-						TypePath:     kong.String("Query.withAddArguments"),
+						ID:           new("1b0bafae-881b-42a7-9110-8a42ed3c903c"),
+						TypePath:     new("Query.withAddArguments"),
 						AddConstant:  kong.Float64(1),
-						AddArguments: []*string{kong.String(testLimit), kong.String("offset")},
+						AddArguments: []*string{new(testLimit), new("offset")},
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6658,12 +6658,12 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 				targetContent: &Content{
 					CustomEntities: []FCustomEntity{
 						{
-							Type: kong.String("graphql_ratelimiting_cost_decorations"),
+							Type: new("graphql_ratelimiting_cost_decorations"),
 							Fields: CustomEntityConfiguration{
 								"type_path":     "Query.withMulArguments",
 								"mul_constant":  float64(2),
-								"mul_arguments": []*string{kong.String("first"), kong.String("last")},
-								primaryRelationService: map[string]interface{}{
+								"mul_arguments": []*string{new("first"), new("last")},
+								primaryRelationService: map[string]any{
 									"id": testServiceID,
 								},
 							},
@@ -6675,12 +6675,12 @@ func Test_stateBuilder_ingestGqlRateLimitingCostDecoration(t *testing.T) {
 			want: &utils.KongRawState{
 				GraphqlRateLimitingCostDecorations: []*kong.GraphqlRateLimitingCostDecoration{
 					{
-						ID:           kong.String("aa43465a-7862-4616-978a-ed0ce3c6c4f3"),
-						TypePath:     kong.String("Query.withMulArguments"),
+						ID:           new("aa43465a-7862-4616-978a-ed0ce3c6c4f3"),
+						TypePath:     new("Query.withMulArguments"),
 						MulConstant:  kong.Float64(2),
-						MulArguments: []*string{kong.String("first"), kong.String("last")},
+						MulArguments: []*string{new("first"), new("last")},
 						Service: &kong.Service{
-							ID: kong.String(testServiceID),
+							ID: new(testServiceID),
 						},
 					},
 				},
@@ -6726,9 +6726,9 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 					CustomPluginDefinitions: []FCustomPluginDefinition{
 						{
 							CustomPluginDefinition: kong.CustomPluginDefinition{
-								Name:    kong.String("my-plugin"),
-								Schema:  kong.String("return {}"),
-								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+								Name:    new("my-plugin"),
+								Schema:  new("return {}"),
+								Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 							},
 						},
 					},
@@ -6738,10 +6738,10 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
 					{
-						ID:      kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:    kong.String("my-plugin"),
-						Schema:  kong.String("return {}"),
-						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+						ID:      new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:    new("my-plugin"),
+						Schema:  new("return {}"),
+						Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 					},
 				},
 			},
@@ -6753,17 +6753,17 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 					CustomPluginDefinitions: []FCustomPluginDefinition{
 						{
 							CustomPluginDefinition: kong.CustomPluginDefinition{
-								Name:    kong.String("my-plugin"),
-								Schema:  kong.String("return {}"),
-								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+								Name:    new("my-plugin"),
+								Schema:  new("return {}"),
+								Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 								Tags:    kong.StringSlice("t1", "t2"),
 							},
 						},
 						{
 							CustomPluginDefinition: kong.CustomPluginDefinition{
-								Name:    kong.String("other-plugin"),
-								Schema:  kong.String("return {}"),
-								Handler: kong.String("return { PRIORITY = 500, VERSION = \"0.1.0\" }"),
+								Name:    new("other-plugin"),
+								Schema:  new("return {}"),
+								Handler: new("return { PRIORITY = 500, VERSION = \"0.1.0\" }"),
 							},
 						},
 					},
@@ -6773,17 +6773,17 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
 					{
-						ID:      kong.String("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
-						Name:    kong.String("my-plugin"),
-						Schema:  kong.String("return {}"),
-						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+						ID:      new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:    new("my-plugin"),
+						Schema:  new("return {}"),
+						Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 						Tags:    kong.StringSlice("t1", "t2"),
 					},
 					{
-						ID:      kong.String("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
-						Name:    kong.String("other-plugin"),
-						Schema:  kong.String("return {}"),
-						Handler: kong.String("return { PRIORITY = 500, VERSION = \"0.1.0\" }"),
+						ID:      new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:    new("other-plugin"),
+						Schema:  new("return {}"),
+						Handler: new("return { PRIORITY = 500, VERSION = \"0.1.0\" }"),
 					},
 				},
 			},
@@ -6795,9 +6795,9 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 					CustomPluginDefinitions: []FCustomPluginDefinition{
 						{
 							CustomPluginDefinition: kong.CustomPluginDefinition{
-								Name:    kong.String("my-plugin"),
-								Schema:  kong.String("return {}"),
-								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+								Name:    new("my-plugin"),
+								Schema:  new("return {}"),
+								Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 							},
 						},
 					},
@@ -6807,10 +6807,10 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
 					{
-						ID:      kong.String("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
-						Name:    kong.String("my-plugin"),
-						Schema:  kong.String("return {}"),
-						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+						ID:      new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:    new("my-plugin"),
+						Schema:  new("return {}"),
+						Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 					},
 				},
 			},
@@ -6822,10 +6822,10 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 					CustomPluginDefinitions: []FCustomPluginDefinition{
 						{
 							CustomPluginDefinition: kong.CustomPluginDefinition{
-								ID:      kong.String("1234abcd-0000-0000-0000-000000000000"),
-								Name:    kong.String("my-plugin"),
-								Schema:  kong.String("return {}"),
-								Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+								ID:      new("1234abcd-0000-0000-0000-000000000000"),
+								Name:    new("my-plugin"),
+								Schema:  new("return {}"),
+								Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 							},
 						},
 					},
@@ -6835,10 +6835,10 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 			want: &utils.KongRawState{
 				CustomPluginDefinitions: []*kong.CustomPluginDefinition{
 					{
-						ID:      kong.String("1234abcd-0000-0000-0000-000000000000"),
-						Name:    kong.String("my-plugin"),
-						Schema:  kong.String("return {}"),
-						Handler: kong.String("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
+						ID:      new("1234abcd-0000-0000-0000-000000000000"),
+						Name:    new("my-plugin"),
+						Schema:  new("return {}"),
+						Handler: new("return { PRIORITY = 1000, VERSION = \"1.0.0\" }"),
 					},
 				},
 			},

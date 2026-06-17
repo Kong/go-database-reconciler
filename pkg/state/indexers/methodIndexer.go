@@ -3,6 +3,7 @@ package indexers
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // MethodIndexer is used to create an index based on a string returned
@@ -15,7 +16,7 @@ type MethodIndexer struct {
 
 // FromObject take Obj and returns index key formed using
 // the fields.
-func (s *MethodIndexer) FromObject(obj interface{}) (bool, []byte, error) {
+func (s *MethodIndexer) FromObject(obj any) (bool, []byte, error) {
 	v := reflect.ValueOf(obj)
 
 	method := v.MethodByName(s.Method)
@@ -32,17 +33,17 @@ func (s *MethodIndexer) FromObject(obj interface{}) (bool, []byte, error) {
 }
 
 // FromArgs takes in a string and returns its byte form.
-func (s *MethodIndexer) FromArgs(args ...interface{}) ([]byte, error) {
-	blob := ""
+func (s *MethodIndexer) FromArgs(args ...any) ([]byte, error) {
+	var blob strings.Builder
 	for _, arg := range args {
 		s, ok := arg.(string)
 		if !ok {
 			return nil, fmt.Errorf("argument must be a string: %#v", arg)
 		}
-		blob += s
+		blob.WriteString(s)
 	}
-	if blob == "" {
+	if blob.String() == "" {
 		return nil, fmt.Errorf("empty args is not a valid value")
 	}
-	return []byte(blob), nil
+	return []byte(blob.String()), nil
 }

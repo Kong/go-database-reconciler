@@ -129,7 +129,7 @@ func Test_getReaders(t *testing.T) {
 	}
 }
 
-func sortSlices(x, y interface{}) bool {
+func sortSlices(x, y any) bool {
 	var xName, yName string
 	switch xEntity := x.(type) {
 	case FService:
@@ -214,14 +214,14 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name: kong.String("svc2"),
-							Host: kong.String("2.example.com"),
+							Name: new("svc2"),
+							Host: new("2.example.com"),
 							Tags: kong.StringSlice("<"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r2"),
+									Name:  new("r2"),
 									Paths: kong.StringSlice("/r2"),
 								},
 							},
@@ -231,12 +231,12 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("prometheus"),
+							Name: new("prometheus"),
 						},
 					},
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("pre-function"),
+							Name: new("pre-function"),
 							Config: kong.Configuration{
 								"log": `
 function parse_traceid(str)str = string.sub(str,1,8)
@@ -283,14 +283,14 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name: kong.String("svc2"),
-							Host: kong.String("2.example.com"),
+							Name: new("svc2"),
+							Host: new("2.example.com"),
 							Tags: kong.StringSlice("<"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r2"),
+									Name:  new("r2"),
 									Paths: kong.StringSlice("/r2"),
 								},
 							},
@@ -300,12 +300,12 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("prometheus"),
+							Name: new("prometheus"),
 						},
 					},
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("pre-function"),
+							Name: new("pre-function"),
 							Config: kong.Configuration{
 								"log": "kong.log.set_serialize_value('trace_id', 1))\n",
 							},
@@ -315,12 +315,12 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Consumers: []FConsumer{
 					{
 						Consumer: kong.Consumer{
-							Username: kong.String("foo"),
+							Username: new("foo"),
 						},
 					},
 					{
 						Consumer: kong.Consumer{
-							Username: kong.String("bar"),
+							Username: new("bar"),
 						},
 					},
 				},
@@ -337,13 +337,13 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name: kong.String("svc2"),
-							Host: kong.String("2.example.com"),
+							Name: new("svc2"),
+							Host: new("2.example.com"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r2"),
+									Name:  new("r2"),
 									Paths: kong.StringSlice("/r2"),
 								},
 							},
@@ -351,14 +351,14 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 					},
 					{
 						Service: kong.Service{
-							Name: kong.String("svc1"),
-							Host: kong.String("1.example.com"),
+							Name: new("svc1"),
+							Host: new("1.example.com"),
 							Tags: kong.StringSlice("team-svc1"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r1"),
+									Name:  new("r1"),
 									Paths: kong.StringSlice("/r1"),
 								},
 							},
@@ -366,13 +366,13 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 					},
 					{
 						Service: kong.Service{
-							Name: kong.String("service-with-filter-chain"),
-							Host: kong.String("test"),
+							Name: new("service-with-filter-chain"),
+							Host: new("test"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:      kong.String("route-with-filter-chain"),
+									Name:      new("route-with-filter-chain"),
 									Hosts:     kong.StringSlice("test"),
 									Protocols: kong.StringSlice("http"),
 								},
@@ -381,15 +381,15 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 										FilterChain: kong.FilterChain{
 											Filters: []*kong.Filter{
 												{
-													Name:   kong.String("filter-1"),
+													Name:   new("filter-1"),
 													Config: kong.JSONRawMessage(`{"add":{"headers":["x-foo:123456"]}}`),
 												},
 												{
-													Name:   kong.String("filter-2"),
+													Name:   new("filter-2"),
 													Config: kong.JSONRawMessage(`"my config"`),
 												},
 												{
-													Name: kong.String("filter-3"),
+													Name: new("filter-3"),
 												},
 											},
 										},
@@ -402,13 +402,13 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 								FilterChain: kong.FilterChain{
 									Filters: []*kong.Filter{
 										{
-											Name:   kong.String("filter-1"),
+											Name:   new("filter-1"),
 											Config: kong.JSONRawMessage(`{"add":{"headers":["x-foo:123456"]}}`),
 										},
 										{
-											Name:    kong.String("filter-2"),
+											Name:    new("filter-2"),
 											Config:  kong.JSONRawMessage(`"{\n  \"test\": 123\n}\n"`),
-											Enabled: kong.Bool(true),
+											Enabled: new(true),
 										},
 									},
 								},
@@ -419,24 +419,24 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Consumers: []FConsumer{
 					{
 						Consumer: kong.Consumer{
-							Username: kong.String("foo"),
+							Username: new("foo"),
 						},
 					},
 					{
 						Consumer: kong.Consumer{
-							Username: kong.String("bar"),
+							Username: new("bar"),
 						},
 					},
 					{
 						Consumer: kong.Consumer{
-							Username: kong.String("harry"),
+							Username: new("harry"),
 						},
 					},
 				},
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("prometheus"),
+							Name: new("prometheus"),
 						},
 					},
 				},
@@ -459,19 +459,19 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 			name: "same workspaces",
 			args: args{[]string{"testdata/sameworkspace"}},
 			want: &Content{
-				FormatVersion: *kong.String("1.1"),
-				Workspace:     *kong.String("bar"),
+				FormatVersion: *new("1.1"),
+				Workspace:     *new("bar"),
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name: kong.String("svc2"),
-							Host: kong.String("2.example.com"),
+							Name: new("svc2"),
+							Host: new("2.example.com"),
 							Tags: kong.StringSlice("team-svc2"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r2"),
+									Name:  new("r2"),
 									Paths: kong.StringSlice("/r2"),
 								},
 							},
@@ -479,14 +479,14 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 					},
 					{
 						Service: kong.Service{
-							Name: kong.String("svc1"),
-							Host: kong.String("1.example.com"),
+							Name: new("svc1"),
+							Host: new("1.example.com"),
 							Tags: kong.StringSlice("team-svc1"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r1"),
+									Name:  new("r1"),
 									Paths: kong.StringSlice("/r1"),
 								},
 							},
@@ -504,14 +504,14 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Upstreams: []FUpstream{
 					{
 						Upstream: kong.Upstream{
-							Name:      kong.String("upstream1"),
-							Algorithm: kong.String("round-robin"),
+							Name:      new("upstream1"),
+							Algorithm: new("round-robin"),
 						},
 						Targets: []*FTarget{
 							{
 								Target: kong.Target{
-									Target: kong.String("198.51.100.11:80"),
-									Weight: kong.Int(0),
+									Target: new("198.51.100.11:80"),
+									Weight: new(0),
 								},
 							},
 						},
@@ -524,19 +524,19 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 			name: "shared workspace",
 			args: args{[]string{"testdata/sharedworkspace"}},
 			want: &Content{
-				FormatVersion: *kong.String("1.1"),
-				Workspace:     *kong.String("bar"),
+				FormatVersion: *new("1.1"),
+				Workspace:     *new("bar"),
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name: kong.String("svc1"),
-							Host: kong.String("1.example.com"),
+							Name: new("svc1"),
+							Host: new("1.example.com"),
 							Tags: kong.StringSlice("team-svc1"),
 						},
 						Routes: []*FRoute{
 							{
 								Route: kong.Route{
-									Name:  kong.String("r1"),
+									Name:  new("r1"),
 									Paths: kong.StringSlice("/r1"),
 								},
 							},
@@ -556,9 +556,9 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name:    kong.String("svc1"),
-							Host:    kong.String("mockbin.org"),
-							Enabled: kong.Bool(true),
+							Name:    new("svc1"),
+							Host:    new("mockbin.org"),
+							Enabled: new(true),
 						},
 					},
 				},
@@ -583,9 +583,9 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Services: []FService{
 					{
 						Service: kong.Service{
-							Name:         kong.String("svc1"),
-							Host:         kong.String("mockbin.org"),
-							WriteTimeout: kong.Int(1337),
+							Name:         new("svc1"),
+							Host:         new("mockbin.org"),
+							WriteTimeout: new(1337),
 						},
 					},
 				},
@@ -610,7 +610,7 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 				Plugins: []FPlugin{
 					{
 						Plugin: kong.Plugin{
-							Name: kong.String("foofloat"),
+							Name: new("foofloat"),
 							Config: kong.Configuration{
 								"foo": float64(1337),
 							},
@@ -653,20 +653,20 @@ kong.log.set_serialize_value("span_id", parse_traceid(ngx.ctx.KONG_SPANS[1].span
 }
 
 func Test_yamlUnmarshal(t *testing.T) {
-	stringToInterfaceMap := map[string]interface{}{}
 	bytes1 := `
 versions:
   v1:
     enabled: false
 `
-	mapOfMap := map[string]interface{}{}
+	mapOfMap := map[string]any{}
 	err := yamlUnmarshal([]byte(bytes1), &mapOfMap)
 	if err != nil {
 		t.Errorf("yamlUnmarshal() error = %v (should be nil)", err)
 	}
 	subMap := mapOfMap["versions"]
-	if reflect.TypeOf(subMap) != reflect.TypeOf(stringToInterfaceMap) {
-		t.Errorf("yamlUnmarshal() expected type: %T, got: %T", stringToInterfaceMap, subMap)
+
+	if reflect.TypeOf(subMap) != reflect.TypeFor[map[string]any]() {
+		t.Errorf("yamlUnmarshal() expected type: %T, got: %T", map[string]any{}, subMap)
 	}
 
 	bytes2 := `
@@ -674,14 +674,14 @@ versions:
 - enabled: false
   version: 1
 `
-	mapOfArrayOfMap := map[string]interface{}{}
+	mapOfArrayOfMap := map[string]any{}
 	err = yamlUnmarshal([]byte(bytes2), &mapOfArrayOfMap)
 	if err != nil {
 		t.Errorf("yamlUnmarshal() error = %v (should be nil)", err)
 	}
-	array := mapOfArrayOfMap["versions"].([]interface{})
+	array := mapOfArrayOfMap["versions"].([]any)
 	element := array[0]
-	if reflect.TypeOf(element) != reflect.TypeOf(stringToInterfaceMap) {
-		t.Errorf("yamlUnmarshal() expected type: %T, got: %T", stringToInterfaceMap, element)
+	if reflect.TypeOf(element) != reflect.TypeFor[map[string]any]() {
+		t.Errorf("yamlUnmarshal() expected type: %T, got: %T", map[string]any{}, element)
 	}
 }

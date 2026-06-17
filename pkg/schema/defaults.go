@@ -3,13 +3,14 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"sync"
 
 	"github.com/tidwall/gjson"
 )
 
 var (
-	defaultsCache   = map[string]interface{}{}
+	defaultsCache   = map[string]any{}
 	defaultsCacheMu sync.Mutex
 )
 
@@ -19,13 +20,13 @@ var (
 // If cacheKey is non-empty, results are cached and subsequent calls with the
 // same key return the cached value. Use a key like "entityType::identifier"
 // (e.g. "plugins::rate-limiting") to avoid collisions.
-func GetDefaultsFromSchema(schema map[string]interface{}, cacheKey string) (map[string]interface{}, error) {
+func GetDefaultsFromSchema(schema map[string]any, cacheKey string) (map[string]any, error) {
 	if cacheKey != "" {
 		defaultsCacheMu.Lock()
 		defer defaultsCacheMu.Unlock()
 
 		if cached, exists := defaultsCache[cacheKey]; exists {
-			return cached.(map[string]interface{}), nil
+			return cached.(map[string]any), nil
 		}
 	}
 
@@ -34,7 +35,7 @@ func GetDefaultsFromSchema(schema map[string]interface{}, cacheKey string) (map[
 		return nil, err
 	}
 	gjsonSchema := gjson.ParseBytes(jsonb)
-	defaults := ParseSchemaForDefaults(gjsonSchema, make(map[string]interface{}))
+	defaults := ParseSchemaForDefaults(gjsonSchema, make(map[string]any))
 	if defaults == nil {
 		return nil, fmt.Errorf("error parsing schema for defaults")
 	}
@@ -50,7 +51,7 @@ func GetDefaultsFromSchema(schema map[string]interface{}, cacheKey string) (map[
 func ResetDefaultsCache() {
 	defaultsCacheMu.Lock()
 	defer defaultsCacheMu.Unlock()
-	defaultsCache = map[string]interface{}{}
+	defaultsCache = map[string]any{}
 }
 
 // ParseSchemaForDefaults walks a gjson schema result and extracts all fields
@@ -61,7 +62,7 @@ func ResetDefaultsCache() {
 //   - Nested "record" type fields (recursive)
 //   - "shorthand_fields" with "translate_backwards" or "deprecation.replaced_with" paths
 //   - Konnect's "value" wrapper for credentials
-func ParseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interface{}) map[string]interface{} {
+func ParseSchemaForDefaults(schema gjson.Result, defaultFields map[string]any) map[string]any {
 	schemaFields := schema.Get("fields")
 	if schemaFields.Type == gjson.Null {
 		schemaFields = schema.Get("properties")
@@ -89,7 +90,7 @@ func ParseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 		}
 
 		if fieldSchema.Get("fields").Exists() || fieldSchema.Get("properties").Exists() {
-			nestedMap := ParseSchemaForDefaults(fieldSchema, make(map[string]interface{}))
+			nestedMap := ParseSchemaForDefaults(fieldSchema, make(map[string]any))
 			if nestedMap == nil {
 				return false
 			}
@@ -151,9 +152,7 @@ func ParseSchemaForDefaults(schema gjson.Result, defaultFields map[string]interf
 	// which doesn't match gateway schema or internal go-kong representation.
 	// Merge values from "value" field to the defaultFields map directly.
 	if valueMap, ok := defaultFields["value"]; ok {
-		for k, v := range valueMap.(map[string]interface{}) {
-			defaultFields[k] = v
-		}
+		maps.Copy(defaultFields, valueMap.(map[string]any))
 		delete(defaultFields, "value")
 	}
 

@@ -15,7 +15,7 @@ var (
 	DisableOutput bool
 )
 
-func conditionalPrintf(fn func(string, ...interface{}), format string, a ...interface{}) {
+func conditionalPrintf(fn func(string, ...any), format string, a ...any) {
 	if DisableOutput {
 		return
 	}
@@ -24,7 +24,7 @@ func conditionalPrintf(fn func(string, ...interface{}), format string, a ...inte
 	fn(format, a...)
 }
 
-func conditionalPrintln(fn func(...interface{}), a ...interface{}) {
+func conditionalPrintln(fn func(...any), a ...any) {
 	if DisableOutput {
 		return
 	}
@@ -33,7 +33,7 @@ func conditionalPrintln(fn func(...interface{}), a ...interface{}) {
 	fn(a...)
 }
 
-func conditionalPrintlnCustomWriter(fn func(io.Writer, ...interface{}), w io.Writer, a ...interface{}) {
+func conditionalPrintlnCustomWriter(fn func(io.Writer, ...any), w io.Writer, a ...any) {
 	if DisableOutput {
 		return
 	}
@@ -43,7 +43,7 @@ func conditionalPrintlnCustomWriter(fn func(io.Writer, ...interface{}), w io.Wri
 }
 
 func conditionalPrintfCustomWriter(
-	fn func(io.Writer, string, ...interface{}), w io.Writer, format string, a ...interface{},
+	fn func(io.Writer, string, ...any), w io.Writer, format string, a ...any,
 ) {
 	if DisableOutput {
 		return
@@ -59,17 +59,17 @@ var (
 	updatePrintf = color.New(color.FgYellow).PrintfFunc()
 
 	// CreatePrintf is fmt.Printf with red as foreground color.
-	CreatePrintf = func(format string, a ...interface{}) {
+	CreatePrintf = func(format string, a ...any) {
 		conditionalPrintf(createPrintf, format, a...)
 	}
 
 	// DeletePrintf is fmt.Printf with green as foreground color.
-	DeletePrintf = func(format string, a ...interface{}) {
+	DeletePrintf = func(format string, a ...any) {
 		conditionalPrintf(deletePrintf, format, a...)
 	}
 
 	// UpdatePrintf is fmt.Printf with yellow as foreground color.
-	UpdatePrintf = func(format string, a ...interface{}) {
+	UpdatePrintf = func(format string, a ...any) {
 		conditionalPrintf(updatePrintf, format, a...)
 	}
 
@@ -81,33 +81,33 @@ var (
 	updateFprintf  = color.New(color.FgYellow).FprintfFunc()
 
 	// CreatePrintln is fmt.Println with red as foreground color.
-	CreatePrintln = func(a ...interface{}) {
+	CreatePrintln = func(a ...any) {
 		conditionalPrintln(createPrintln, a...)
 	}
 
 	// DeletePrintln is fmt.Println with green as foreground color.
-	DeletePrintln = func(a ...interface{}) {
+	DeletePrintln = func(a ...any) {
 		conditionalPrintln(deletePrintln, a...)
 	}
 
 	// UpdatePrintln is fmt.Println with yellow as foreground color.
-	UpdatePrintln = func(a ...interface{}) {
+	UpdatePrintln = func(a ...any) {
 		conditionalPrintln(updatePrintln, a...)
 	}
 
-	BluePrintLn = func(a ...interface{}) {
+	BluePrintLn = func(a ...any) {
 		conditionalPrintln(bluePrintln, a...)
 	}
 
 	// UpdatePrintlnStdErr is fmt.Println with yellow as foreground color.
 	// It prints to stderr, instead of stdout
-	UpdatePrintlnStdErr = func(a ...interface{}) {
+	UpdatePrintlnStdErr = func(a ...any) {
 		conditionalPrintlnCustomWriter(updateFprintln, os.Stderr, a...)
 	}
 
 	// UpdatePrintfStdErr is fmt.Printf with yellow as foreground color.
 	// It prints to stderr, instead of stdout
-	UpdatePrintfStdErr = func(format string, a ...interface{}) {
+	UpdatePrintfStdErr = func(format string, a ...any) {
 		conditionalPrintfCustomWriter(updateFprintf, os.Stderr, format, a...)
 	}
 )

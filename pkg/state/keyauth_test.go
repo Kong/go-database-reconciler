@@ -16,25 +16,25 @@ func TestKeyAuthInsert(t *testing.T) {
 	collection := keyAuthsCollection()
 
 	var keyAuth KeyAuth
-	keyAuth.Key = kong.String("my-secret-apikey")
-	keyAuth.ID = kong.String("first")
+	keyAuth.Key = new("my-secret-apikey")
+	keyAuth.ID = new("first")
 	err := collection.Add(keyAuth)
 	require.Error(t, err)
 
 	var keyAuth2 KeyAuth
-	keyAuth2.Key = kong.String("my-secret-apikey")
-	keyAuth2.ID = kong.String("first")
+	keyAuth2.Key = new("my-secret-apikey")
+	keyAuth2.ID = new("first")
 	keyAuth2.Consumer = &kong.Consumer{
-		ID: kong.String("consumer-id"),
+		ID: new("consumer-id"),
 	}
 	err = collection.Add(keyAuth2)
 	require.NoError(t, err)
 
 	// same API key
-	keyAuth2.Key = kong.String("my-secret-apikey")
-	keyAuth2.ID = kong.String("second")
+	keyAuth2.Key = new("my-secret-apikey")
+	keyAuth2.ID = new("second")
 	keyAuth2.Consumer = &kong.Consumer{
-		ID: kong.String("consumer-id"),
+		ID: new("consumer-id"),
 	}
 	err = collection.Add(keyAuth2)
 	require.Error(t, err)
@@ -49,10 +49,10 @@ func TestKeyAuthGet(t *testing.T) {
 	collection := keyAuthsCollection()
 
 	var keyAuth KeyAuth
-	keyAuth.Key = kong.String("my-apikey")
-	keyAuth.ID = kong.String("first")
+	keyAuth.Key = new("my-apikey")
+	keyAuth.ID = new("first")
 	keyAuth.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 
 	err := collection.Add(keyAuth)
@@ -86,10 +86,10 @@ func TestKeyAuthUpdate(t *testing.T) {
 
 	require.Error(t, collection.Add(keyAuth))
 
-	keyAuth.Key = kong.String("my-apikey")
-	keyAuth.ID = kong.String("first")
+	keyAuth.Key = new("my-apikey")
+	keyAuth.ID = new("first")
 	keyAuth.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 
 	err := collection.Add(keyAuth)
@@ -100,7 +100,7 @@ func TestKeyAuthUpdate(t *testing.T) {
 	assert.NotNil(res)
 	assert.Equal("my-apikey", *res.Key)
 
-	res.Key = kong.String("my-apikey2")
+	res.Key = new("my-apikey2")
 	err = collection.Update(*res)
 	require.NoError(t, err)
 
@@ -118,10 +118,10 @@ func TestKeyAuthDelete(t *testing.T) {
 	collection := keyAuthsCollection()
 
 	var keyAuth KeyAuth
-	keyAuth.Key = kong.String("my-apikey1")
-	keyAuth.ID = kong.String("first")
+	keyAuth.Key = new("my-apikey1")
+	keyAuth.ID = new("first")
 	keyAuth.Consumer = &kong.Consumer{
-		ID: kong.String("consumer1-id"),
+		ID: new("consumer1-id"),
 	}
 	err := collection.Add(keyAuth)
 	require.NoError(t, err)
@@ -178,46 +178,46 @@ func populateWithKeyAuthFixtures(
 	keyAuths := []KeyAuth{
 		{
 			KeyAuth: kong.KeyAuth{
-				Key: kong.String("my-apikey11"),
-				ID:  kong.String("first"),
+				Key: new("my-apikey11"),
+				ID:  new("first"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1-id"),
+					ID: new("consumer1-id"),
 				},
 			},
 		},
 		{
 			KeyAuth: kong.KeyAuth{
-				Key: kong.String("my-apikey12"),
-				ID:  kong.String("second"),
+				Key: new("my-apikey12"),
+				ID:  new("second"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1-id"),
+					ID: new("consumer1-id"),
 				},
 			},
 		},
 		{
 			KeyAuth: kong.KeyAuth{
-				Key: kong.String("my-apikey13"),
-				ID:  kong.String("third"),
+				Key: new("my-apikey13"),
+				ID:  new("third"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer1-id"),
+					ID: new("consumer1-id"),
 				},
 			},
 		},
 		{
 			KeyAuth: kong.KeyAuth{
-				Key: kong.String("my-apikey21"),
-				ID:  kong.String("fourth"),
+				Key: new("my-apikey21"),
+				ID:  new("fourth"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer2-id"),
+					ID: new("consumer2-id"),
 				},
 			},
 		},
 		{
 			KeyAuth: kong.KeyAuth{
-				Key: kong.String("my-apikey22"),
-				ID:  kong.String("fifth"),
+				Key: new("my-apikey22"),
+				ID:  new("fifth"),
 				Consumer: &kong.Consumer{
-					ID: kong.String("consumer2-id"),
+					ID: new("consumer2-id"),
 				},
 			},
 		},
@@ -234,10 +234,10 @@ func TestKeyAuthInvalidType(t *testing.T) {
 	collection := keyAuthsCollection()
 
 	var hmacAuth HMACAuth
-	hmacAuth.Username = kong.String("my-hmacAuth")
-	hmacAuth.ID = kong.String("first")
+	hmacAuth.Username = new("my-hmacAuth")
+	hmacAuth.ID = new("first")
 	hmacAuth.Consumer = &kong.Consumer{
-		ID: kong.String("consumer-id"),
+		ID: new("consumer-id"),
 	}
 	txn := collection.db.Txn(true)
 	require.NoError(t, txn.Insert("key-auth", &hmacAuth))

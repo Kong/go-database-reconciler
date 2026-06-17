@@ -86,7 +86,7 @@ type stateBuilder struct {
 // It is a variable for testing purpose, to override and supply
 // a deterministic UUID generator.
 var uuid = func() *string {
-	return kong.String(utils.UUID())
+	return new(utils.UUID())
 }
 
 var ErrWorkspaceNotFound = fmt.Errorf("workspace not found")
@@ -197,7 +197,7 @@ func (b *stateBuilder) keys() {
 				b.err = err
 				return
 			} else {
-				k.ID = kong.String(*key.ID)
+				k.ID = new(*key.ID)
 			}
 		}
 		utils.MustMergeTags(&k.Key, b.selectTags)
@@ -246,7 +246,7 @@ func (b *stateBuilder) keySets() {
 				b.err = err
 				return
 			} else {
-				k.ID = kong.String(*set.ID)
+				k.ID = new(*set.ID)
 			}
 		}
 		utils.MustMergeTags(&k.KeySet, b.selectTags)
@@ -273,7 +273,7 @@ func (b *stateBuilder) clonedPluginDefinitions() {
 				b.err = err
 				return
 			} else {
-				cpd.ID = kong.String(*existing.ID)
+				cpd.ID = new(*existing.ID)
 			}
 		}
 		utils.MustMergeTags(&cpd.ClonedPluginDefinition, b.selectTags)
@@ -295,7 +295,7 @@ func (b *stateBuilder) customPluginDefinitions() {
 				b.err = err
 				return
 			} else {
-				cpd.ID = kong.String(*existing.ID)
+				cpd.ID = new(*existing.ID)
 			}
 		}
 		utils.MustMergeTags(&cpd.CustomPluginDefinition, b.selectTags)
@@ -338,7 +338,7 @@ func (b *stateBuilder) addConsumerGroupPlugins(
 			} else if err != nil {
 				return err
 			} else {
-				plugin.ID = kong.String(*current.ID)
+				plugin.ID = new(*current.ID)
 			}
 		}
 		b.defaulter.MustSet(plugin)
@@ -367,7 +367,7 @@ func (b *stateBuilder) partials() {
 				b.err = err
 				return
 			} else {
-				p.ID = kong.String(*partial.ID)
+				p.ID = new(*partial.ID)
 			}
 		}
 
@@ -460,7 +460,7 @@ func (b *stateBuilder) consumerGroups() {
 				b.err = err
 				return
 			} else {
-				cg.ID = kong.String(*current.ID)
+				cg.ID = new(*current.ID)
 			}
 		}
 
@@ -573,7 +573,7 @@ func (b *stateBuilder) certificates() {
 				b.err = err
 				return
 			} else {
-				c.ID = kong.String(*cert.ID)
+				c.ID = new(*cert.ID)
 			}
 		}
 		utils.MustMergeTags(&c, b.selectTags)
@@ -592,7 +592,7 @@ func (b *stateBuilder) certificates() {
 		// snis associated with the certificate
 		var snis []kong.SNI
 		for _, sni := range snisFromCert {
-			sni.Certificate = &kong.Certificate{ID: kong.String(*c.ID)}
+			sni.Certificate = &kong.Certificate{ID: new(*c.ID)}
 			snis = append(snis, sni)
 		}
 		if err := b.ingestSNIs(snis); err != nil {
@@ -611,7 +611,7 @@ func (b *stateBuilder) ingestSNIs(snis []kong.SNI) error {
 			} else if err != nil {
 				return err
 			} else {
-				sni.ID = kong.String(*currentSNI.ID)
+				sni.ID = new(*currentSNI.ID)
 			}
 		}
 		utils.MustMergeTags(&sni, b.selectTags)
@@ -654,7 +654,7 @@ func (b *stateBuilder) caCertificates() {
 				b.err = err
 				return
 			} else {
-				c.ID = kong.String(*cert.ID)
+				c.ID = new(*cert.ID)
 			}
 		}
 		utils.MustMergeTags(&c.CACertificate, b.selectTags)
@@ -771,7 +771,7 @@ func (b *stateBuilder) ingestConsumerGroupConsumer(cgID *string, c *FConsumer) (
 		} else if err != nil {
 			return nil, err
 		} else {
-			c.ID = kong.String(*consumer.ID)
+			c.ID = new(*consumer.ID)
 		}
 	}
 	utils.MustMergeTags(&c.Consumer, b.selectTags)
@@ -841,7 +841,7 @@ func (b *stateBuilder) consumers() {
 				b.err = err
 				return
 			} else {
-				c.ID = kong.String(*consumer.ID)
+				c.ID = new(*consumer.ID)
 			}
 		}
 
@@ -1059,7 +1059,7 @@ func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
 			} else if err != nil {
 				return err
 			} else {
-				cred.ID = kong.String(*existingCred.ID)
+				cred.ID = new(*existingCred.ID)
 			}
 		}
 		if b.kongVersion.GTE(utils.Kong140Version) {
@@ -1082,7 +1082,7 @@ func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuthOptions) error {
 			} else if err != nil {
 				return err
 			} else {
-				cred.ID = kong.String(*existingCred.ID)
+				cred.ID = new(*existingCred.ID)
 			}
 		}
 		if b.kongVersion.GTE(utils.Kong140Version) {
@@ -1092,7 +1092,7 @@ func (b *stateBuilder) ingestBasicAuths(creds []kong.BasicAuthOptions) error {
 			cred.CreatedAt = existingCred.CreatedAt
 		}
 		if b.skipHashForBasicAuth {
-			cred.SkipHash = kong.Bool(true)
+			cred.SkipHash = new(true)
 		}
 
 		b.rawState.BasicAuths = append(b.rawState.BasicAuths, &cred)
@@ -1109,7 +1109,7 @@ func (b *stateBuilder) ingestHMACAuths(creds []kong.HMACAuth) error {
 			} else if err != nil {
 				return err
 			} else {
-				cred.ID = kong.String(*existingCred.ID)
+				cred.ID = new(*existingCred.ID)
 			}
 		}
 		if b.kongVersion.GTE(utils.Kong140Version) {
@@ -1132,7 +1132,7 @@ func (b *stateBuilder) ingestJWTAuths(creds []kong.JWTAuth) error {
 			} else if err != nil {
 				return err
 			} else {
-				cred.ID = kong.String(*existingCred.ID)
+				cred.ID = new(*existingCred.ID)
 			}
 		}
 		if b.kongVersion.GTE(utils.Kong140Version) {
@@ -1155,7 +1155,7 @@ func (b *stateBuilder) ingestOauth2Creds(creds []kong.Oauth2Credential) error {
 			} else if err != nil {
 				return err
 			} else {
-				cred.ID = kong.String(*existingCred.ID)
+				cred.ID = new(*existingCred.ID)
 			}
 		}
 		if b.kongVersion.GTE(utils.Kong140Version) {
@@ -1180,7 +1180,7 @@ func (b *stateBuilder) ingestACLGroups(creds []kong.ACLGroup) error {
 			} else if err != nil {
 				return err
 			} else {
-				cred.ID = kong.String(*existingCred.ID)
+				cred.ID = new(*existingCred.ID)
 			}
 		}
 		if b.kongVersion.GTE(utils.Kong140Version) {
@@ -1221,7 +1221,7 @@ func (b *stateBuilder) konnect() {
 				b.err = err
 				return
 			} else {
-				targetSP.ID = kong.String(*currentSP.ID)
+				targetSP.ID = new(*currentSP.ID)
 			}
 		}
 
@@ -1247,7 +1247,7 @@ func (b *stateBuilder) konnect() {
 					b.err = err
 					return
 				} else {
-					targetKonnectDoc.ID = kong.String(*currentDoc.ID)
+					targetKonnectDoc.ID = new(*currentDoc.ID)
 				}
 			}
 			b.konnectRawState.Documents = append(b.konnectRawState.Documents, &targetKonnectDoc)
@@ -1268,7 +1268,7 @@ func (b *stateBuilder) konnect() {
 					b.err = err
 					return
 				} else {
-					targetKonnectSV.ID = kong.String(*currentSV.ID)
+					targetKonnectSV.ID = new(*currentSV.ID)
 					if currentSV.ControlPlaneServiceRelation != nil {
 						targetRelationID = *currentSV.ControlPlaneServiceRelation.ID
 					}
@@ -1304,7 +1304,7 @@ func (b *stateBuilder) konnect() {
 						b.err = err
 						return
 					} else {
-						targetKonnectDoc.ID = kong.String(*currentDoc.ID)
+						targetKonnectDoc.ID = new(*currentDoc.ID)
 					}
 				}
 				b.konnectRawState.Documents = append(b.konnectRawState.Documents, &targetKonnectDoc)
@@ -1362,7 +1362,7 @@ func (b *stateBuilder) ingestService(s *FService) error {
 		} else if err != nil {
 			return err
 		} else {
-			s.ID = kong.String(*svc.ID)
+			s.ID = new(*svc.ID)
 		}
 	}
 
@@ -1515,7 +1515,7 @@ func (b *stateBuilder) vaults() {
 				b.err = err
 				return
 			} else {
-				v.ID = kong.String(*vault.ID)
+				v.ID = new(*vault.ID)
 			}
 		}
 		utils.MustMergeTags(&v.Vault, b.selectTags)
@@ -1557,7 +1557,7 @@ func (b *stateBuilder) rbacRoles() {
 				b.err = err
 				return
 			} else {
-				r.ID = kong.String(*role.ID)
+				r.ID = new(*role.ID)
 			}
 		}
 		if role != nil {
@@ -1566,7 +1566,7 @@ func (b *stateBuilder) rbacRoles() {
 		b.rawState.RBACRoles = append(b.rawState.RBACRoles, &r.RBACRole)
 		// rbac endpoint permissions for the role
 		for _, ep := range r.EndpointPermissions {
-			ep.Role = &kong.RBACRole{ID: kong.String(*r.ID)}
+			ep.Role = &kong.RBACRole{ID: new(*r.ID)}
 			b.rawState.RBACEndpointPermissions = append(b.rawState.RBACEndpointPermissions, &ep.RBACEndpointPermission)
 		}
 	}
@@ -1650,7 +1650,7 @@ func (b *stateBuilder) upstreams() {
 				b.err = err
 				return
 			} else {
-				u.ID = kong.String(*ups.ID)
+				u.ID = new(*ups.ID)
 			}
 		}
 		utils.MustMergeTags(&u.Upstream, b.selectTags)
@@ -1664,7 +1664,7 @@ func (b *stateBuilder) upstreams() {
 		// targets for the upstream
 		var targets []kong.Target
 		for _, t := range u.Targets {
-			t.Upstream = &kong.Upstream{ID: kong.String(*u.ID)}
+			t.Upstream = &kong.Upstream{ID: new(*u.ID)}
 			targets = append(targets, t.Target)
 		}
 		if err := b.ingestTargets(targets); err != nil {
@@ -1682,7 +1682,7 @@ func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 			if err != nil {
 				return err
 			}
-			t.Target = kong.String(normalizedTarget)
+			t.Target = new(normalizedTarget)
 		}
 
 		if utils.Empty(t.ID) {
@@ -1692,7 +1692,7 @@ func (b *stateBuilder) ingestTargets(targets []kong.Target) error {
 			} else if err != nil {
 				return err
 			} else {
-				t.ID = kong.String(*target.ID)
+				t.ID = new(*target.ID)
 			}
 		}
 		utils.MustMergeTags(&t, b.selectTags)
@@ -1816,7 +1816,7 @@ func (b *stateBuilder) validatePlugin(p FPlugin) error {
 		var consumerGroupsFound bool
 		if groups, ok := p.Config["consumer_groups"]; ok {
 			// if groups is an array of length > 0, then consumer_groups is set
-			if groupsArray, ok := groups.([]interface{}); ok && len(groupsArray) > 0 {
+			if groupsArray, ok := groups.([]any); ok && len(groupsArray) > 0 {
 				consumerGroupsFound = true
 			}
 		}
@@ -1852,7 +1852,7 @@ func (b *stateBuilder) validatePlugin(p FPlugin) error {
 	return nil
 }
 
-func isEmptyPluginConfigValue(value interface{}) bool {
+func isEmptyPluginConfigValue(value any) bool {
 	switch v := value.(type) {
 	case nil:
 		return true
@@ -1877,7 +1877,7 @@ func getStripPathBasedOnProtocols(route kong.Route) (*bool, error) {
 				return nil, fmt.Errorf("schema violation (strip_path: cannot set " +
 					"'strip_path' when 'protocols' is 'grpc' or 'grpcs')")
 			}
-			return kong.Bool(false), nil
+			return new(false), nil
 		}
 	}
 	return route.StripPath, nil
@@ -1897,7 +1897,7 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 		} else if err != nil {
 			return err
 		} else {
-			r.ID = kong.String(*route.ID)
+			r.ID = new(*route.ID)
 		}
 	}
 
@@ -2008,14 +2008,14 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 			} else if err != nil {
 				return err
 			} else {
-				p.ID = kong.String(*plugin.ID)
+				p.ID = new(*plugin.ID)
 			}
 		}
 		if p.Partials != nil {
 			p.Partials = b.findLinkedPartials(&p.Plugin)
 		}
 		if p.Config == nil {
-			p.Config = make(map[string]interface{})
+			p.Config = make(map[string]any)
 		}
 		p.Config = ensureJSON(p.Config)
 		err = b.fillPluginConfig(&p)
@@ -2058,7 +2058,7 @@ func (b *stateBuilder) fillPluginConfig(plugin *FPlugin) error {
 // For nested maps, it recurses rather than replacing the entire object,
 // so that plugin-level values always take precedence over config-source values
 // at every level of nesting.
-func mergePluginConfig(dst, src map[string]interface{}) {
+func mergePluginConfig(dst, src map[string]any) {
 	for k, v := range src {
 		existing, ok := dst[k]
 		if !ok {
@@ -2068,8 +2068,8 @@ func mergePluginConfig(dst, src map[string]interface{}) {
 
 		// checking if both existing and new values are maps;
 		// if so, we need to merge them recursively
-		dstMap, dstIsMap := existing.(map[string]interface{})
-		srcMap, srcIsMap := v.(map[string]interface{})
+		dstMap, dstIsMap := existing.(map[string]any)
+		srcMap, srcIsMap := v.(map[string]any)
 		if dstIsMap && srcIsMap {
 			mergePluginConfig(dstMap, srcMap)
 		}
@@ -2217,7 +2217,7 @@ func fillPartialPaths(target, current []*kong.PartialLink) {
 			continue
 		}
 		if cur, ok := currentByID[*t.ID]; ok && cur.Path != nil {
-			t.Path = kong.String(*cur.Path)
+			t.Path = new(*cur.Path)
 		}
 	}
 }
@@ -2232,7 +2232,7 @@ func (b *stateBuilder) ingestFilterChains(filterChains []FFilterChain) error {
 			} else if err != nil {
 				return err
 			} else {
-				f.ID = kong.String(*filterChain.ID)
+				f.ID = new(*filterChain.ID)
 			}
 		}
 		if filterChain != nil {
@@ -2303,10 +2303,10 @@ func (b *stateBuilder) ingestDeGraphqlRoute(degraphqlRouteEntity FCustomEntity) 
 			b.err = err
 			return
 		} else {
-			degraphqlRoute.ID = kong.String(*d.ID)
+			degraphqlRoute.ID = new(*d.ID)
 		}
 	} else {
-		degraphqlRoute.ID = kong.String(*degraphqlRoute.ID)
+		degraphqlRoute.ID = new(*degraphqlRoute.ID)
 	}
 
 	b.rawState.DegraphqlRoutes = append(b.rawState.DegraphqlRoutes, &degraphqlRoute.DegraphqlRoute)
@@ -2323,7 +2323,7 @@ func (b *stateBuilder) copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRo
 	}
 
 	if fcEntity.Fields["service"] != nil {
-		if service, ok := fcEntity.Fields["service"].(map[string]interface{}); ok {
+		if service, ok := fcEntity.Fields["service"].(map[string]any); ok {
 			var serviceID string
 			var serviceName string
 			s, ok := service["id"].(string)
@@ -2344,7 +2344,7 @@ func (b *stateBuilder) copyToDegraphqlRoute(fcEntity FCustomEntity) (DegraphqlRo
 			}
 
 			degraphqlRoute.Service = &kong.Service{
-				ID: kong.String(serviceID),
+				ID: new(serviceID),
 			}
 		}
 	}
@@ -2402,10 +2402,10 @@ func (b *stateBuilder) ingestGraphqlRateLimitingCostDecoration(entity FCustomEnt
 			b.err = err
 			return
 		} else {
-			decoration.ID = kong.String(*d.ID)
+			decoration.ID = new(*d.ID)
 		}
 	} else {
-		decoration.ID = kong.String(*decoration.ID)
+		decoration.ID = new(*decoration.ID)
 	}
 
 	b.rawState.GraphqlRateLimitingCostDecorations = append(
@@ -2430,7 +2430,7 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 
 	// Extract service reference from fields if present
 	if fcEntity.Fields["service"] != nil {
-		if svc, ok := fcEntity.Fields["service"].(map[string]interface{}); ok {
+		if svc, ok := fcEntity.Fields["service"].(map[string]any); ok {
 			var serviceID string
 			var serviceName string
 			if id, ok := svc["id"].(string); ok {
@@ -2450,7 +2450,7 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 			}
 
 			decoration.Service = &kong.Service{
-				ID: kong.String(serviceID),
+				ID: new(serviceID),
 			}
 		}
 	}
@@ -2459,7 +2459,7 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 		if tp, ok := fcEntity.Fields["type_path"].(*string); ok {
 			decoration.TypePath = tp
 		} else if tp, ok := fcEntity.Fields["type_path"].(string); ok {
-			decoration.TypePath = kong.String(tp)
+			decoration.TypePath = new(tp)
 		}
 	}
 
@@ -2472,7 +2472,7 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 		if ac, ok := fcEntity.Fields["add_constant"].(*float64); ok {
 			decoration.AddConstant = ac
 		} else if ac, ok := fcEntity.Fields["add_constant"].(float64); ok {
-			decoration.AddConstant = kong.Float64(ac)
+			decoration.AddConstant = new(ac)
 		}
 	}
 
@@ -2480,7 +2480,7 @@ func (b *stateBuilder) copyToGraphqlRateLimitingCostDecoration(
 		if mc, ok := fcEntity.Fields["mul_constant"].(*float64); ok {
 			decoration.MulConstant = mc
 		} else if mc, ok := fcEntity.Fields["mul_constant"].(float64); ok {
-			decoration.MulConstant = kong.Float64(mc)
+			decoration.MulConstant = new(mc)
 		}
 	}
 

@@ -9,84 +9,84 @@ import (
 
 func TestZeroOutID(t *testing.T) {
 	type args struct {
-		obj     interface{}
+		obj     any
 		altName *string
 		withID  bool
 	}
 	tests := []struct {
 		name        string
 		args        args
-		expectedObj interface{}
+		expectedObj any
 	}{
 		{
 			name: "zeros out ID when name is set",
 			args: args{
 				obj: &kong.Service{
-					ID:   kong.String("foo-id"),
-					Name: kong.String("foo-name"),
+					ID:   new("foo-id"),
+					Name: new("foo-name"),
 				},
-				altName: kong.String("Name"),
+				altName: new("Name"),
 				withID:  false,
 			},
 			expectedObj: &kong.Service{
-				Name: kong.String("foo-name"),
+				Name: new("foo-name"),
 			},
 		},
 		{
 			name: "does not error out if ID is already zero value",
 			args: args{
 				obj: &kong.Service{
-					Name: kong.String("foo-name"),
+					Name: new("foo-name"),
 				},
-				altName: kong.String("Name"),
+				altName: new("Name"),
 				withID:  false,
 			},
 			expectedObj: &kong.Service{
-				Name: kong.String("foo-name"),
+				Name: new("foo-name"),
 			},
 		},
 		{
 			name: "does not error out if provided value is not a pointer",
 			args: args{
 				obj: kong.Service{
-					ID:   kong.String("foo-id"),
-					Name: kong.String("foo-name"),
+					ID:   new("foo-id"),
+					Name: new("foo-name"),
 				},
-				altName: kong.String("Name"),
+				altName: new("Name"),
 				withID:  false,
 			},
 			expectedObj: kong.Service{
-				ID:   kong.String("foo-id"),
-				Name: kong.String("foo-name"),
+				ID:   new("foo-id"),
+				Name: new("foo-name"),
 			},
 		},
 		{
 			name: "does not zero out ID when withID is set to true",
 			args: args{
 				obj: &kong.Service{
-					ID:   kong.String("foo-id"),
-					Name: kong.String("foo-name"),
+					ID:   new("foo-id"),
+					Name: new("foo-name"),
 				},
-				altName: kong.String("Name"),
+				altName: new("Name"),
 				withID:  true,
 			},
 			expectedObj: &kong.Service{
-				ID:   kong.String("foo-id"),
-				Name: kong.String("foo-name"),
+				ID:   new("foo-id"),
+				Name: new("foo-name"),
 			},
 		},
 		{
 			name: "does not zero out ID when altName is not provided",
 			args: args{
 				obj: &kong.Service{
-					ID:   kong.String("foo-id"),
-					Name: kong.String("foo-name"),
+					ID:   new("foo-id"),
+					Name: new("foo-name"),
 				},
 				withID: false,
 			},
 			expectedObj: &kong.Service{
-				ID:   kong.String("foo-id"),
-				Name: kong.String("foo-name"),
+				ID:   new("foo-id"),
+				Name: new("foo-name"),
 			},
 		},
 	}
@@ -103,26 +103,26 @@ func TestZeroOutID(t *testing.T) {
 
 func TestZeroOutTimestamps(t *testing.T) {
 	type args struct {
-		obj interface{}
+		obj any
 	}
 	tests := []struct {
 		name        string
 		args        args
-		expectedObj interface{}
+		expectedObj any
 	}{
 		{
 			name: "clears timestamps when set",
 			args: args{
 				obj: &kong.Service{
-					ID:        kong.String("foo-id"),
-					Name:      kong.String("foo-name"),
-					CreatedAt: kong.Int(42),
-					UpdatedAt: kong.Int(42),
+					ID:        new("foo-id"),
+					Name:      new("foo-name"),
+					CreatedAt: new(42),
+					UpdatedAt: new(42),
 				},
 			},
 			expectedObj: &kong.Service{
-				ID:   kong.String("foo-id"),
-				Name: kong.String("foo-name"),
+				ID:   new("foo-id"),
+				Name: new("foo-name"),
 			},
 		},
 	}

@@ -34,7 +34,7 @@ type RLAOverride struct {
 }
 
 type konnectResponseObj struct {
-	Item kong.ConsumerGroup `json:"item,omitempty" yaml:"item,omitempty"`
+	Item kong.ConsumerGroup `json:"item" yaml:"item,omitempty"`
 	Page *PageOpt
 }
 
@@ -48,14 +48,14 @@ type konnectRLAObj struct {
 }
 
 type konnectRLAResponseObj struct {
-	Item konnectRLAObj `json:"item,omitempty" yaml:"item,omitempty"`
+	Item konnectRLAObj `json:"item" yaml:"item,omitempty"`
 }
 
 func isEmptyString(s *string) bool {
 	return s == nil || strings.TrimSpace(*s) == ""
 }
 
-func CreateConsumerGroup(ctx context.Context, client *kong.Client, entity interface{}) (*kong.ConsumerGroup, error) {
+func CreateConsumerGroup(ctx context.Context, client *kong.Client, entity any) (*kong.ConsumerGroup, error) {
 	endpoint := "/v1/consumer-groups"
 	req, err := client.NewRequest(http.MethodPost, endpoint, nil, entity)
 	if err != nil {
@@ -70,7 +70,7 @@ func CreateConsumerGroup(ctx context.Context, client *kong.Client, entity interf
 }
 
 func UpdateConsumerGroup(ctx context.Context, client *kong.Client,
-	cgID *string, entity interface{},
+	cgID *string, entity any,
 ) (*kong.ConsumerGroup, error) {
 	if isEmptyString(cgID) {
 		return nil, fmt.Errorf("update consumer-group: consumer-group ID cannot be nil")
@@ -158,7 +158,7 @@ func upsertRateLimitingAdvancedPlugin(
 		rlaConfig["retry_after_jitter_max"] = rla.Item.RetryAfterJitterMax
 	}
 	return &kong.ConsumerGroupRLA{
-		Plugin:        kong.String("rate-limiting-advanced"),
+		Plugin:        new("rate-limiting-advanced"),
 		ConsumerGroup: rla.Item.ConsumerGroupID,
 		Config:        rlaConfig,
 	}, nil
@@ -225,7 +225,7 @@ func GetConsumerGroupRateLimitingAdvancedPlugin(
 	}
 	return &kong.ConsumerGroupPlugin{
 		ID:   rla.Item.ID,
-		Name: kong.String("rate-limiting-advanced"),
+		Name: new("rate-limiting-advanced"),
 		ConsumerGroup: &kong.ConsumerGroup{
 			ID: cgID,
 		},

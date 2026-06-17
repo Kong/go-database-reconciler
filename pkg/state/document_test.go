@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kong/go-database-reconciler/pkg/konnect"
-	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,9 +27,9 @@ func TestDocumentCollection_Add(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						Path: kong.String("foo"),
+						Path: new("foo"),
 						Parent: &konnect.ServiceVersion{
-							ID: kong.String("abc"),
+							ID: new("abc"),
 						},
 					},
 				},
@@ -42,9 +41,9 @@ func TestDocumentCollection_Add(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						ID: kong.String("id1"),
+						ID: new("id1"),
 						Parent: &konnect.ServiceVersion{
-							ID: kong.String("abc"),
+							ID: new("abc"),
 						},
 					},
 				},
@@ -56,8 +55,8 @@ func TestDocumentCollection_Add(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						ID:   kong.String("id1"),
-						Path: kong.String("foo"),
+						ID:   new("id1"),
+						Path: new("foo"),
 					},
 				},
 			},
@@ -68,11 +67,11 @@ func TestDocumentCollection_Add(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						ID:   kong.String("id2"),
-						Path: kong.String("bar"),
+						ID:   new("id2"),
+						Path: new("bar"),
 						Parent: &konnect.ServiceVersion{
-							ID:      kong.String("whatever"),
-							Version: kong.String("abc"),
+							ID:      new("whatever"),
+							Version: new("abc"),
 						},
 					},
 				},
@@ -84,11 +83,11 @@ func TestDocumentCollection_Add(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						ID:   kong.String("id3"),
-						Path: kong.String("bar"),
+						ID:   new("id3"),
+						Path: new("bar"),
 						Parent: &konnect.ServicePackage{
-							ID:   kong.String("whatever"),
-							Name: kong.String("abc"),
+							ID:   new("whatever"),
+							Name: new("abc"),
 						},
 					},
 				},
@@ -100,10 +99,10 @@ func TestDocumentCollection_Add(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						ID:   kong.String("id4"),
-						Path: kong.String("abc"),
+						ID:   new("id4"),
+						Path: new("abc"),
 						Parent: &konnect.ServicePackage{
-							ID: kong.String("id1"),
+							ID: new("id1"),
 						},
 					},
 				},
@@ -114,10 +113,10 @@ func TestDocumentCollection_Add(t *testing.T) {
 	k := documentCollection()
 	d1 := Document{
 		Document: konnect.Document{
-			ID:   kong.String("id4"),
-			Path: kong.String("abc"),
+			ID:   new("id4"),
+			Path: new("abc"),
 			Parent: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
@@ -139,19 +138,19 @@ func TestDocumentCollection_GetByParent(t *testing.T) {
 	}
 	d1 := Document{
 		Document: konnect.Document{
-			ID:   kong.String("foo-id"),
-			Path: kong.String("path"),
+			ID:   new("foo-id"),
+			Path: new("path"),
 			Parent: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
 	d2 := Document{
 		Document: konnect.Document{
-			ID:   kong.String("bar-id"),
-			Path: kong.String("path"),
+			ID:   new("bar-id"),
+			Path: new("path"),
 			Parent: &konnect.ServiceVersion{
-				ID: kong.String("id2"),
+				ID: new("id2"),
 			},
 		},
 	}
@@ -166,7 +165,7 @@ func TestDocumentCollection_GetByParent(t *testing.T) {
 			args: args{
 				pathOrID: "foo-id",
 				parent: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 			want:    &d1,
@@ -177,7 +176,7 @@ func TestDocumentCollection_GetByParent(t *testing.T) {
 			args: args{
 				pathOrID: "path",
 				parent: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 			want:    &d1,
@@ -196,7 +195,7 @@ func TestDocumentCollection_GetByParent(t *testing.T) {
 			args: args{
 				pathOrID: "baz-id",
 				parent: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 			want:    nil,
@@ -231,28 +230,28 @@ func TestDocumentCollection_GetByParent(t *testing.T) {
 func TestDocumentCollection_Update(t *testing.T) {
 	d1 := Document{
 		Document: konnect.Document{
-			ID:   kong.String("foo-id"),
-			Path: kong.String("foo-path"),
+			ID:   new("foo-id"),
+			Path: new("foo-path"),
 			Parent: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
 	d2 := Document{
 		Document: konnect.Document{
-			ID:   kong.String("bar-id"),
-			Path: kong.String("bar-path"),
+			ID:   new("bar-id"),
+			Path: new("bar-path"),
 			Parent: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
 	d3 := Document{
 		Document: konnect.Document{
-			ID:   kong.String("foo-id"),
-			Path: kong.String("new-foo-path"),
+			ID:   new("foo-id"),
+			Path: new("new-foo-path"),
 			Parent: &konnect.ServicePackage{
-				ID: kong.String("id1"),
+				ID: new("id1"),
 			},
 		},
 	}
@@ -270,9 +269,9 @@ func TestDocumentCollection_Update(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						Path: kong.String("name"),
+						Path: new("name"),
 						Parent: &konnect.ServicePackage{
-							ID: kong.String("id1"),
+							ID: new("id1"),
 						},
 					},
 				},
@@ -284,7 +283,7 @@ func TestDocumentCollection_Update(t *testing.T) {
 			args: args{
 				document: Document{
 					Document: konnect.Document{
-						ID: kong.String("does-not-exist"),
+						ID: new("does-not-exist"),
 					},
 				},
 			},
@@ -324,10 +323,10 @@ func TestDocumentDeleteByParent(t *testing.T) {
 	collection := documentCollection()
 
 	var document Document
-	document.Path = kong.String("my-document")
-	document.ID = kong.String("first")
+	document.Path = new("my-document")
+	document.ID = new("first")
 	document.Parent = &konnect.ServicePackage{
-		ID: kong.String("package-id1"),
+		ID: new("package-id1"),
 	}
 	err := collection.Add(document)
 	require.NoError(t, err)
@@ -348,19 +347,19 @@ func TestDocumentGetAll(t *testing.T) {
 	collection := documentCollection()
 
 	var d1 Document
-	d1.Path = kong.String("my-d1")
-	d1.ID = kong.String("first")
+	d1.Path = new("my-d1")
+	d1.ID = new("first")
 	d1.Parent = &konnect.ServicePackage{
-		ID: kong.String("id1"),
+		ID: new("id1"),
 	}
 	err := collection.Add(d1)
 	require.NoError(t, err)
 
 	var d2 Document
-	d2.Path = kong.String("my-d2")
-	d2.ID = kong.String("second")
+	d2.Path = new("my-d2")
+	d2.ID = new("second")
 	d2.Parent = &konnect.ServicePackage{
-		ID: kong.String("id1"),
+		ID: new("id1"),
 	}
 	err = collection.Add(d2)
 	require.NoError(t, err)
@@ -378,46 +377,46 @@ func TestDocumentGetAllByParent(t *testing.T) {
 	documents := []*Document{
 		{
 			Document: konnect.Document{
-				ID:   kong.String("d1-id"),
-				Path: kong.String("d1-path"),
+				ID:   new("d1-id"),
+				Path: new("d1-path"),
 				Parent: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 		},
 		{
 			Document: konnect.Document{
-				ID:   kong.String("d2-id"),
-				Path: kong.String("d2-path"),
+				ID:   new("d2-id"),
+				Path: new("d2-path"),
 				Parent: &konnect.ServicePackage{
-					ID: kong.String("id1"),
+					ID: new("id1"),
 				},
 			},
 		},
 		{
 			Document: konnect.Document{
-				ID:   kong.String("d3-id"),
-				Path: kong.String("d3-path"),
+				ID:   new("d3-id"),
+				Path: new("d3-path"),
 				Parent: &konnect.ServicePackage{
-					ID: kong.String("id2"),
+					ID: new("id2"),
 				},
 			},
 		},
 		{
 			Document: konnect.Document{
-				ID:   kong.String("d4-id"),
-				Path: kong.String("d4-path"),
+				ID:   new("d4-id"),
+				Path: new("d4-path"),
 				Parent: &konnect.ServicePackage{
-					ID: kong.String("id2"),
+					ID: new("id2"),
 				},
 			},
 		},
 		{
 			Document: konnect.Document{
-				ID:   kong.String("d5-id"),
-				Path: kong.String("d5-path"),
+				ID:   new("d5-id"),
+				Path: new("d5-path"),
 				Parent: &konnect.ServicePackage{
-					ID: kong.String("id2"),
+					ID: new("id2"),
 				},
 			},
 		},
@@ -428,11 +427,11 @@ func TestDocumentGetAllByParent(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	documents, err := collection.GetAllByParent(&konnect.ServicePackage{ID: kong.String("id1")})
+	documents, err := collection.GetAllByParent(&konnect.ServicePackage{ID: new("id1")})
 	require.NoError(t, err)
 	assert.Len(documents, 2)
 
-	documents, err = collection.GetAllByParent(&konnect.ServicePackage{ID: kong.String("id2")})
+	documents, err = collection.GetAllByParent(&konnect.ServicePackage{ID: new("id2")})
 	require.NoError(t, err)
 	assert.Len(documents, 3)
 }
