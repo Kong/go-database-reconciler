@@ -4,13 +4,6 @@ import (
 	"fmt"
 )
 
-const (
-	baseEndpointUS          = "https://global.api.konghq"
-	baseEndpointPrivateLink = "https://global.svc.konghq"
-	authEndpoint            = "/api/auth"
-	authEndpointV2          = "/kauth/api/v1/authenticate"
-)
-
 type ParentInfoer interface {
 	URL() string
 	Key() string

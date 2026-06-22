@@ -49,12 +49,10 @@ func getTestClient() (*kong.Client, error) {
 	}
 	konnectConfig := utils.KonnectConfig{
 		Address:          os.Getenv("DECK_KONNECT_ADDR"),
-		Email:            os.Getenv("DECK_KONNECT_EMAIL"),
-		Password:         os.Getenv("DECK_KONNECT_PASSWORD"),
 		Token:            os.Getenv("DECK_KONNECT_TOKEN"),
 		ControlPlaneName: controlPlaneName,
 	}
-	if (konnectConfig.Email != "" && konnectConfig.Password != "") || konnectConfig.Token != "" {
+	if konnectConfig.Token != "" {
 		return cmd.GetKongClientForKonnectMode(ctx, &konnectConfig)
 	}
 	return utils.GetKongClient(utils.KongClientConfig{
@@ -65,9 +63,7 @@ func getTestClient() (*kong.Client, error) {
 func runWhenKonnect(t *testing.T) {
 	t.Helper()
 
-	if os.Getenv("DECK_KONNECT_EMAIL") == "" &&
-		os.Getenv("DECK_KONNECT_PASSWORD") == "" &&
-		os.Getenv("DECK_KONNECT_TOKEN") == "" {
+	if os.Getenv("DECK_KONNECT_TOKEN") == "" {
 		t.Skip("non-Konnect test instance, skipping")
 	}
 }
@@ -75,9 +71,7 @@ func runWhenKonnect(t *testing.T) {
 func skipWhenKonnect(t *testing.T) {
 	t.Helper()
 
-	if os.Getenv("DECK_KONNECT_EMAIL") != "" ||
-		os.Getenv("DECK_KONNECT_PASSWORD") != "" ||
-		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+	if os.Getenv("DECK_KONNECT_TOKEN") != "" {
 		t.Skip("non-Kong test instance, skipping")
 	}
 }
@@ -85,9 +79,7 @@ func skipWhenKonnect(t *testing.T) {
 func runWhenKongOrKonnect(t *testing.T, kongSemverRange string) {
 	t.Helper()
 
-	if os.Getenv("DECK_KONNECT_EMAIL") != "" &&
-		os.Getenv("DECK_KONNECT_PASSWORD") != "" &&
-		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+	if os.Getenv("DECK_KONNECT_TOKEN") != "" {
 		return
 	}
 	kong.RunWhenKong(t, kongSemverRange)
@@ -96,9 +88,7 @@ func runWhenKongOrKonnect(t *testing.T, kongSemverRange string) {
 func runWhenEnterpriseOrKonnect(t *testing.T, kongSemverRange string) {
 	t.Helper()
 
-	if os.Getenv("DECK_KONNECT_EMAIL") != "" &&
-		os.Getenv("DECK_KONNECT_PASSWORD") != "" &&
-		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+	if os.Getenv("DECK_KONNECT_TOKEN") != "" {
 		return
 	}
 	kong.RunWhenEnterprise(t, kongSemverRange, kong.RequiredFeatures{})
