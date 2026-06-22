@@ -122,7 +122,10 @@ func (s *AuthService) LoginV2(ctx context.Context, email,
 	)
 
 	if token != "" {
+		// PATs are passed directly in each request's Authorization header;
+		// no auth handshake or org-info lookup is required.
 		s.client.token = token
+		return authResponse, nil
 	} else if email != "" && password != "" {
 		authResponse, err = s.sessionAuth(ctx, email, password)
 		if err != nil {
