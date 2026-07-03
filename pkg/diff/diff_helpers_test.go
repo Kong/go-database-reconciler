@@ -238,6 +238,80 @@ func Test_MaskEnvVarsValues(t *testing.T) {
  redis_database: [masked]
  retries: [masked]`,
 		},
+		{
+			name: "PEM cert is masked when DECK_CLIENT_CERT env var is set (quoted with escaped newlines)",
+			envVars: map[string]string{
+				"DECK_CLIENT_CERT": `"-----BEGIN CERTIFICATE-----\nMIIABC\n-----END CERTIFICATE-----"`,
+			},
+			args: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+   "cert": "-----BEGIN CERTIFICATE-----
+MIIABC
+-----END CERTIFICATE-----"
+ }`,
+			want: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+   "cert": "[masked]"
+ }`,
+		},
+		{
+			name: "rotated PEM cert - old value in minus line is masked even though it is not the current env var value",
+			envVars: map[string]string{
+				"DECK_CLIENT_CERT": `"-----BEGIN CERTIFICATE-----\nNEWCERT\n-----END CERTIFICATE-----"`,
+			},
+			args: ` {
+-  "cert": "-----BEGIN CERTIFICATE-----
+OLDCERT
+-----END CERTIFICATE-----",
++  "cert": "-----BEGIN CERTIFICATE-----
+NEWCERT
+-----END CERTIFICATE-----"
+ }`,
+			want: ` {
+-  "cert": "[masked]",
++  "cert": "[masked]"
+ }`,
+		},
+		{
+			name: "cert and private key both masked when both DECK_CLIENT_CERT and DECK_CLIENT_KEY are set",
+			envVars: map[string]string{
+				"DECK_CLIENT_CERT": `"-----BEGIN CERTIFICATE-----\nMIIABC\n-----END CERTIFICATE-----"`,
+				"DECK_CLIENT_KEY":  `"-----BEGIN PRIVATE KEY-----\nMIIEABC\n-----END PRIVATE KEY-----"`,
+			},
+			args: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+-  "cert": "-----BEGIN CERTIFICATE-----
+MIIABC
+-----END CERTIFICATE-----",
+-  "key": "-----BEGIN PRIVATE KEY-----
+MIIEABC
+-----END PRIVATE KEY-----"
+ }`,
+			want: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+-  "cert": "[masked]",
+-  "key": "[masked]"
+ }`,
+		},
+		{
+			name: "non-PEM secret alongside PEM cert - both masked, non-secret fields untouched",
+			envVars: map[string]string{
+				"DECK_CLIENT_CERT":    `"-----BEGIN CERTIFICATE-----\nMIIABC\n-----END CERTIFICATE-----"`,
+				"DECK_REDIS_PASSWORD": "supersecretredispassword",
+			},
+			args: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+   "redis_password": "supersecretredispassword",
+   "cert": "-----BEGIN CERTIFICATE-----
+MIIABC
+-----END CERTIFICATE-----"
+ }`,
+			want: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+   "redis_password": "[masked]",
+   "cert": "[masked]"
+ }`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

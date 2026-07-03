@@ -193,6 +193,113 @@ func parseDeckEnvVars() []EnvVar {
 
 const maskedValue = "[masked]"
 
+// normalizeForPEMDetection strips surrounding double-quotes and converts literal
+// \n escapes to real newlines so we can find PEM headers in env var values.
+func normalizeForPEMDetection(v string) string {
+	if len(v) >= 2 && v[0] == '"' && v[len(v)-1] == '"' {
+		v = v[1 : len(v)-1]
+	}
+	return strings.ReplaceAll(v, `\n`, "\n")
+}
+
+// pemTypeFromValue extracts the PEM type (e.g. "CERTIFICATE", "PRIVATE KEY")
+// from an env var value, or returns "" if no PEM header is found.
+func pemTypeFromValue(v string) string {
+	normalized := normalizeForPEMDetection(v)
+	_, after, found := strings.Cut(normalized, "-----BEGIN ")
+	if !found {
+		return ""
+	}
+	pemType, _, found := strings.Cut(after, "-----")
+	if !found {
+		return ""
+	}
+	return pemType
+}
+
+// maskPEMBlocks finds PEM blocks (-----BEGIN X----- to -----END X-----) in the
+// diff output and replaces them with [masked] if their type matches any DECK_* env var.
+// This handles multiline PEM content that single-line matching cannot catch.
+func maskPEMBlocks(diffString string, envVars []EnvVar) string {
+	pemTypes := make(map[string]bool)
+	for _, ev := range envVars {
+		if t := pemTypeFromValue(ev.Value); t != "" {
+			pemTypes[t] = true
+		}
+	}
+	if len(pemTypes) == 0 {
+		return diffString
+	}
+
+	lines := strings.Split(diffString, "\n")
+	result := make([]string, 0, len(lines))
+	i := 0
+	for i < len(lines) {
+		line := lines[i]
+
+		prefix, after, found := strings.Cut(line, "-----BEGIN ")
+		if !found {
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		pemType, _, found := strings.Cut(after, "-----")
+		if !found {
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		if !pemTypes[pemType] {
+			// Not a type we're managing via env vars — leave it alone.
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		// Sensitive PEM block found. Preserve the prefix (diff marker + field name +
+		// opening quote) that appears before the -----BEGIN marker.
+		endTag := "-----END " + pemType + "-----"
+		startI := i // remember start in case the block is malformed
+		i++
+
+		// Consume lines until (and including) the matching END marker.
+		endFound := false
+		for i < len(lines) {
+			if strings.Contains(lines[i], endTag) {
+				i++
+				endFound = true
+				break
+			}
+			i++
+		}
+		if !endFound {
+			// Malformed / unterminated PEM — do not mask; re-emit all consumed lines.
+			for j := startI; j < i; j++ {
+				result = append(result, lines[j])
+			}
+			continue
+		}
+
+		// Preserve trailing syntax (closing quote, optional comma) from the last
+		// consumed line so that the surrounding JSON/YAML structure stays valid.
+		suffix := ""
+		if i > 0 {
+			trimLast := strings.TrimSpace(lines[i-1])
+			switch {
+			case strings.HasSuffix(trimLast, `",`):
+				suffix = `",`
+			case strings.HasSuffix(trimLast, `"`):
+				suffix = `"`
+			}
+		}
+
+		result = append(result, prefix+maskedValue+suffix)
+	}
+	return strings.Join(result, "\n")
+}
+
 // Compiled patterns for identifying values in diff output.
 var (
 	// jsonKeyPattern detects JSON-formatted output by matching a quoted key
@@ -215,14 +322,19 @@ var (
 	arrayElemPattern = regexp.MustCompile(`^([+\- ]*\s+)"((?:[^"\\]|\\.)*)"`)
 )
 
-// MaskEnvVarValue masks DECK_ env var values in diff output using position-aware
-// regex and word-boundary matching to avoid corrupting unrelated content like UUIDs.
+// MaskEnvVarValue masks DECK_ env var values in diff output.
+// Phase 1: masks multiline PEM blocks (certs/keys) using BEGIN/END markers.
+// Phase 2: masks single-line values using position-aware regex matching.
 func MaskEnvVarValue(diffString string) string {
 	envVars := parseDeckEnvVars()
 	if len(envVars) == 0 {
 		return diffString
 	}
 
+	// Phase 1: mask multiline PEM blocks before any line-by-line processing.
+	diffString = maskPEMBlocks(diffString, envVars)
+
+	// Phase 2: mask single-line secret values.
 	// Build sorted list of values (longest first) for substring replacement
 	var secrets []string
 	seen := make(map[string]bool, len(envVars))
