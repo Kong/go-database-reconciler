@@ -213,6 +213,11 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 		return nil, err
 	}
 
+	err = populateAIModels(kongState, file, config)
+	if err != nil {
+		return nil, err
+	}
+
 	err = populateDegraphqlRoutes(kongState, file)
 	if err != nil {
 		return nil, err
@@ -1030,6 +1035,25 @@ func populateLicenses(kongState *state.KongState, file *Content,
 	}
 	sort.SliceStable(file.Licenses, func(i, j int) bool {
 		return compareOrder(file.Licenses[i], file.Licenses[j])
+	})
+	return nil
+}
+
+func populateAIModels(kongState *state.KongState, file *Content,
+	config WriteConfig,
+) error {
+	aiModels, err := kongState.AIModels.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, am := range aiModels {
+		am := FAIModel{AIModel: am.AIModel}
+		utils.ZeroOutID(&am, am.Name, config.WithID)
+		utils.ZeroOutTimestamps(&am)
+		file.AIModels = append(file.AIModels, am)
+	}
+	sort.SliceStable(file.AIModels, func(i, j int) bool {
+		return compareOrder(file.AIModels[i], file.AIModels[j])
 	})
 	return nil
 }

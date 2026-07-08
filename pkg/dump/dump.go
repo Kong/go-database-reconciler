@@ -674,6 +674,21 @@ func getProxyConfiguration(ctx context.Context, group *errgroup.Group,
 		})
 	}
 
+	group.Go(func() error {
+		aiModels, err := GetAllAIModels(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("ai-models: %w", err)
+		}
+
+		aiModels, err = excludeKonnectManagedEntities(aiModels)
+		if err != nil {
+			return fmt.Errorf("ai-models: %w", err)
+		}
+
+		state.AIModels = aiModels
+		return nil
+	})
+
 	// If SkipCustomEntitiesWithSelectorTags is true and SelectorTags is not empty,
 	// we want to skip custom entities. This is because custom entities don't support
 	// tagging and including them in the state results in errors while attempting a
@@ -1713,6 +1728,34 @@ func GetAllLicenses(
 	}
 
 	return licenses, nil
+}
+
+// GetAllAIModels queries Kong for all the AI Models using client.
+func GetAllAIModels(
+	ctx context.Context, client *kong.Client, tags []string,
+) ([]*kong.AIModel, error) {
+	var aiModels []*kong.AIModel
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.AIModels.List(ctx, opt)
+		if kong.IsNotFoundErr(err) || kong.IsForbiddenErr(err) {
+			return aiModels, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		aiModels = append(aiModels, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+
+	return aiModels, nil
 }
 
 // GetAllCustomEntitiesWithType quries Kong for all Custom entities with the given type.

@@ -1499,6 +1499,7 @@ func (b *stateBuilder) enterprise() {
 	if b.includeLicenses && !b.isKonnect {
 		b.licenses()
 	}
+	b.aiModels()
 }
 
 func (b *stateBuilder) vaults() {
@@ -1540,6 +1541,32 @@ func (b *stateBuilder) licenses() {
 		}
 
 		b.rawState.Licenses = append(b.rawState.Licenses, &l.License)
+	}
+}
+
+func (b *stateBuilder) aiModels() {
+	if b.err != nil {
+		return
+	}
+
+	for _, am := range b.targetContent.AIModels {
+		aiModel, err := b.currentState.AIModels.Get(*am.Name)
+		if utils.Empty(am.ID) {
+			if errors.Is(err, state.ErrNotFound) {
+				am.ID = uuid()
+			} else if err != nil {
+				b.err = err
+				return
+			} else {
+				am.ID = new(*aiModel.ID)
+			}
+		}
+		if aiModel != nil {
+			am.CreatedAt = aiModel.CreatedAt
+		}
+
+		utils.MustMergeTags(&am.AIModel, b.selectTags)
+		b.rawState.AIModels = append(b.rawState.AIModels, &am.AIModel)
 	}
 }
 

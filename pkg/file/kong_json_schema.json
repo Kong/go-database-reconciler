@@ -27,6 +27,13 @@
     "_workspace": {
       "type": "string"
     },
+    "ai_models": {
+       "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FAIModel"
+      },
+      "type": "array"
+    },
     "ca_certificates": {
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -417,6 +424,34 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "FAIModel": {
+      "required": [
+        "alias"
+      ],
+      "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "updated_at": {
+          "type": "integer"
+        }
+      }
     },
     "FCACertificate": {
       "required": [

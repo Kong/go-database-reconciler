@@ -925,6 +925,23 @@ func (c FLicense) sortKey() string {
 	return ""
 }
 
+// FAIModel represents an AI Model in Kong.
+// +k8s:deepcopy-gen=true
+type FAIModel struct {
+	kong.AIModel `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (c FAIModel) sortKey() string {
+	if c.Name != nil {
+		return *c.Name
+	}
+	if c.ID != nil {
+		return *c.ID
+	}
+	return ""
+}
+
 // This struct could be used for any custom entity for plugins
 // Based on "Type", the entity can be serialized into its
 // apt struct.
@@ -1374,6 +1391,8 @@ type Content struct {
 	Vaults []FVault `json:"vaults,omitempty" yaml:"vaults,omitempty"`
 
 	Licenses []FLicense `json:"licenses,omitempty" yaml:"licenses,omitempty"`
+
+	AIModels []FAIModel `json:"ai_models,omitempty" yaml:"ai_models,omitempty"`
 
 	CustomEntities []FCustomEntity `json:"custom_entities,omitempty" yaml:"custom_entities,omitempty"`
 

@@ -301,6 +301,14 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, c := range raw.AIModels {
+		utils.ZeroOutTimestamps(c)
+		err := kongState.AIModels.Add(AIModel{AIModel: *c})
+		if err != nil {
+			return fmt.Errorf("inserting ai model definition into state: %w", err)
+		}
+	}
+
 	for _, p := range raw.Partials {
 		utils.ZeroOutTimestamps(p)
 		err := kongState.Partials.Add(Partial{Partial: *p})
