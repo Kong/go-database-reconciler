@@ -1012,6 +1012,9 @@
         "service": {
           "type": "string"
         },
+        "model": {
+          "type": "string"
+        },
         "tags": {
           "items": {
             "type": "string"
