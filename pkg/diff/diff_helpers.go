@@ -2,6 +2,7 @@ package diff
 
 import (
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"regexp"
@@ -193,6 +194,19 @@ func parseDeckEnvVars() []EnvVar {
 
 const maskedValue = "[masked]"
 
+func isJWK(v string) bool {
+	trimmed := strings.TrimSpace(v)
+	if !strings.HasPrefix(trimmed, "{") {
+		return false
+	}
+	var obj map[string]any
+	if err := json.Unmarshal([]byte(trimmed), &obj); err != nil {
+		return false
+	}
+	_, hasKty := obj["kty"]
+	return hasKty
+}
+
 // normalizeForPEMDetection strips surrounding double-quotes and converts literal
 // \n escapes to real newlines so we can find PEM headers in env var values.
 func normalizeForPEMDetection(v string) string {
@@ -202,24 +216,23 @@ func normalizeForPEMDetection(v string) string {
 	return strings.ReplaceAll(v, `\n`, "\n")
 }
 
-// pemTypeFromValue extracts the PEM type (e.g. "CERTIFICATE", "PRIVATE KEY")
-// from an env var value, or returns "" if no PEM header is found.
+// pemTypeFromValue extracts the PEM block type (e.g. "CERTIFICATE", "PRIVATE KEY")
 func pemTypeFromValue(v string) string {
 	normalized := normalizeForPEMDetection(v)
-	_, after, found := strings.Cut(normalized, "-----BEGIN ")
-	if !found {
+	block, _ := pem.Decode([]byte(normalized))
+	if block == nil {
 		return ""
 	}
-	pemType, _, found := strings.Cut(after, "-----")
-	if !found {
-		return ""
-	}
-	return pemType
+	return block.Type
 }
 
-// maskPEMBlocks finds PEM blocks (-----BEGIN X----- to -----END X-----) in the
-// diff output and replaces them with [masked] if their type matches any DECK_* env var.
-// This handles multiline PEM content that single-line matching cannot catch.
+var jwkPattern = regexp.MustCompile(
+	`\{(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*` +
+		`"kty"\s*:\s*"[^"]*"` +
+		`(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*\}`,
+)
+
+// maskPEMBlocks finds PEM blocks in the diff output and replaces them with [masked]
 func maskPEMBlocks(diffString string, envVars []EnvVar) string {
 	pemTypes := make(map[string]bool)
 	for _, ev := range envVars {
@@ -231,73 +244,17 @@ func maskPEMBlocks(diffString string, envVars []EnvVar) string {
 		return diffString
 	}
 
-	lines := strings.Split(diffString, "\n")
-	result := make([]string, 0, len(lines))
-	i := 0
-	for i < len(lines) {
-		line := lines[i]
-
-		prefix, after, found := strings.Cut(line, "-----BEGIN ")
-		if !found {
-			result = append(result, line)
-			i++
-			continue
-		}
-
-		pemType, _, found := strings.Cut(after, "-----")
-		if !found {
-			result = append(result, line)
-			i++
-			continue
-		}
-
-		if !pemTypes[pemType] {
-			// Not a type we're managing via env vars — leave it alone.
-			result = append(result, line)
-			i++
-			continue
-		}
-
-		// Sensitive PEM block found. Preserve the prefix (diff marker + field name +
-		// opening quote) that appears before the -----BEGIN marker.
-		endTag := "-----END " + pemType + "-----"
-		startI := i // remember start in case the block is malformed
-		i++
-
-		// Consume lines until (and including) the matching END marker.
-		endFound := false
-		for i < len(lines) {
-			if strings.Contains(lines[i], endTag) {
-				i++
-				endFound = true
-				break
-			}
-			i++
-		}
-		if !endFound {
-			// Malformed / unterminated PEM — do not mask; re-emit all consumed lines.
-			for j := startI; j < i; j++ {
-				result = append(result, lines[j])
-			}
-			continue
-		}
-
-		// Preserve trailing syntax (closing quote, optional comma) from the last
-		// consumed line so that the surrounding JSON/YAML structure stays valid.
-		suffix := ""
-		if i > 0 {
-			trimLast := strings.TrimSpace(lines[i-1])
-			switch {
-			case strings.HasSuffix(trimLast, `",`):
-				suffix = `",`
-			case strings.HasSuffix(trimLast, `"`):
-				suffix = `"`
-			}
-		}
-
-		result = append(result, prefix+maskedValue+suffix)
+	// For each sensitive PEM type, replace all blocks of that type with [masked]
+	for pemType := range pemTypes {
+		// Pattern: -----BEGIN <TYPE>----- ... -----END <TYPE)-----
+		pattern := regexp.MustCompile(
+			`(?s)(.*?)-----BEGIN\s+` + regexp.QuoteMeta(pemType) +
+				`\s*-----.*?-----END\s+` + regexp.QuoteMeta(pemType) +
+				`\s*-----(["',]*)`,
+		)
+		diffString = pattern.ReplaceAllString(diffString, `$1`+maskedValue+`$2`)
 	}
-	return strings.Join(result, "\n")
+	return diffString
 }
 
 // Compiled patterns for identifying values in diff output.
@@ -322,19 +279,30 @@ var (
 	arrayElemPattern = regexp.MustCompile(`^([+\- ]*\s+)"((?:[^"\\]|\\.)*)"`)
 )
 
+// maskJWKValues masks JSON Web Key (JWK) values in the diff using regex pattern matching.
+// Finds objects with "kty" field (defining characteristic of JWK per RFC 7517).
+func maskJWKValues(diffString string, envVars []EnvVar) string {
+	// Skip if no JWK env vars
+	for _, ev := range envVars {
+		if isJWK(ev.Value) {
+			return jwkPattern.ReplaceAllString(diffString, maskedValue)
+		}
+	}
+	return diffString
+}
+
 // MaskEnvVarValue masks DECK_ env var values in diff output.
 // Phase 1: masks multiline PEM blocks (certs/keys) using BEGIN/END markers.
-// Phase 2: masks single-line values using position-aware regex matching.
+// Phase 2: masks JSON Web Key (JWK) values using regex pattern matching.
+// Phase 3: masks single-line values using position-aware regex matching.
 func MaskEnvVarValue(diffString string) string {
 	envVars := parseDeckEnvVars()
 	if len(envVars) == 0 {
 		return diffString
 	}
 
-	// Phase 1: mask multiline PEM blocks before any line-by-line processing.
 	diffString = maskPEMBlocks(diffString, envVars)
-
-	// Phase 2: mask single-line secret values.
+	diffString = maskJWKValues(diffString, envVars)
 	// Build sorted list of values (longest first) for substring replacement
 	var secrets []string
 	seen := make(map[string]bool, len(envVars))
