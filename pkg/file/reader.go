@@ -131,6 +131,10 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 		builder.lookupTagsPartials = dumpConfig.LookUpSelectorTagsPartials
 	}
 
+	if len(dumpConfig.LookUpSelectorTagsAIModels) > 0 {
+		builder.lookupTagsAIModels = dumpConfig.LookUpSelectorTagsAIModels
+	}
+
 	if fileContent.Transform != nil && !*fileContent.Transform {
 		return nil, ErrorTransformFalseNotSupported
 	}

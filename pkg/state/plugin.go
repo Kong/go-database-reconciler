@@ -17,6 +17,7 @@ const (
 	pluginsByRouteID         = "pluginsByRouteID"
 	pluginsByConsumerID      = "pluginsByConsumerID"
 	pluginsByConsumerGroupID = "pluginsByConsumerGroupID"
+	pluginsByModelID         = "pluginsByModelID"
 )
 
 var pluginTableSchema = &memdb.TableSchema{
@@ -81,6 +82,18 @@ var pluginTableSchema = &memdb.TableSchema{
 			},
 			AllowMissing: true,
 		},
+		pluginsByModelID: {
+			Name: pluginsByModelID,
+			Indexer: &indexers.SubFieldIndexer{
+				Fields: []indexers.Field{
+					{
+						Struct: "Model",
+						Sub:    "ID",
+					},
+				},
+			},
+			AllowMissing: true,
+		},
 		// combined foreign fields
 		// FIXME bug: collision if svc/route/consumer has the same ID
 		// and same type of plugin is created. Consider the case when only
@@ -107,6 +120,10 @@ var pluginTableSchema = &memdb.TableSchema{
 					},
 					{
 						Struct: "ConsumerGroup",
+						Sub:    "ID",
+					},
+					{
+						Struct: "Model",
 						Sub:    "ID",
 					},
 				},
@@ -150,7 +167,7 @@ func insertPlugin(txn *memdb.Txn, plugin Plugin) error {
 	}
 
 	// err out if another plugin with exact same combination is present
-	sID, rID, cID, cgID := "", "", "", ""
+	sID, rID, cID, cgID, mID := "", "", "", "", ""
 	if plugin.Service != nil && !utils.Empty(plugin.Service.ID) {
 		sID = *plugin.Service.ID
 	}
@@ -163,7 +180,11 @@ func insertPlugin(txn *memdb.Txn, plugin Plugin) error {
 	if plugin.ConsumerGroup != nil && !utils.Empty(plugin.ConsumerGroup.ID) {
 		cgID = *plugin.ConsumerGroup.ID
 	}
-	_, err = getPluginBy(txn, *plugin.Name, sID, rID, cID, cgID)
+	if plugin.Model != nil && !utils.Empty(plugin.Model.ID) {
+		mID = *plugin.Model.ID
+	}
+
+	_, err = getPluginBy(txn, *plugin.Name, sID, rID, cID, cgID, mID)
 	if err == nil {
 		return fmt.Errorf("inserting plugin %v: %w", plugin.Console(), ErrAlreadyExists)
 	} else if !errors.Is(err, ErrNotFound) {
@@ -214,7 +235,7 @@ func (k *PluginsCollection) GetAllByName(name string) ([]*Plugin, error) {
 	return k.getAllPluginsBy(nameIndex, name)
 }
 
-func getPluginBy(txn *memdb.Txn, name, svcID, routeID, consumerID, consumerGroupID string) (
+func getPluginBy(txn *memdb.Txn, name, svcID, routeID, consumerID, consumerGroupID, modelID string) (
 	*Plugin, error,
 ) {
 	if name == "" {
@@ -222,7 +243,7 @@ func getPluginBy(txn *memdb.Txn, name, svcID, routeID, consumerID, consumerGroup
 	}
 
 	res, err := txn.First(pluginTableName, "fields",
-		name, svcID, routeID, consumerID, consumerGroupID)
+		name, svcID, routeID, consumerID, consumerGroupID, modelID)
 	if err != nil {
 		return nil, err
 	}
@@ -243,12 +264,12 @@ func getPluginBy(txn *memdb.Txn, name, svcID, routeID, consumerID, consumerGroup
 // searched.
 // name is required.
 func (k *PluginsCollection) GetByProp(
-	name, serviceID, routeID, consumerID, consumerGroupID string,
+	name, serviceID, routeID, consumerID, consumerGroupID, modelID string,
 ) (*Plugin, error) {
 	txn := k.db.Txn(false)
 	defer txn.Abort()
 
-	return getPluginBy(txn, name, serviceID, routeID, consumerID, consumerGroupID)
+	return getPluginBy(txn, name, serviceID, routeID, consumerID, consumerGroupID, modelID)
 }
 
 func (k *PluginsCollection) getAllPluginsBy(index, identifier string) (
@@ -306,6 +327,14 @@ func (k *PluginsCollection) GetAllByConsumerGroupID(id string) ([]*Plugin,
 	error,
 ) {
 	return k.getAllPluginsBy(pluginsByConsumerGroupID, id)
+}
+
+// GetAllByModelID returns all plugins referencing a model
+// by its id.
+func (k *PluginsCollection) GetAllByModelID(id string) ([]*Plugin,
+	error,
+) {
+	return k.getAllPluginsBy(pluginsByModelID, id)
 }
 
 // Update updates a plugin

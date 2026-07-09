@@ -1263,6 +1263,7 @@ func Test_pluginRelations(t *testing.T) {
 		wantRID      string
 		wantSID      string
 		wantCGID     string
+		wantMID      string
 		currentState *state.KongState
 	}{
 		{
@@ -1276,6 +1277,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "",
 			wantSID:      "",
 			wantCGID:     "",
+			wantMID:      "",
 			currentState: emptyState(),
 		},
 		{
@@ -1301,6 +1303,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "rID",
 			wantSID:      "sID",
 			wantCGID:     "cgID",
+			wantMID:      "",
 			currentState: existingScopedPluginState(),
 		},
 		{
@@ -1317,6 +1320,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "",
 			wantSID:      "",
 			wantCGID:     "",
+			wantMID:      "",
 			currentState: emptyState(),
 		},
 		{
@@ -1333,6 +1337,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "",
 			wantSID:      "",
 			wantCGID:     "",
+			wantMID:      "",
 			currentState: emptyState(),
 		},
 		{
@@ -1349,6 +1354,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "",
 			wantSID:      "",
 			wantCGID:     "",
+			wantMID:      "",
 			currentState: emptyState(),
 		},
 		{
@@ -1365,6 +1371,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "",
 			wantSID:      "",
 			wantCGID:     "",
+			wantMID:      "",
 			currentState: emptyState(),
 		},
 		{
@@ -1390,6 +1397,7 @@ func Test_pluginRelations(t *testing.T) {
 			wantRID:      "",
 			wantSID:      "",
 			wantCGID:     "",
+			wantMID:      "",
 			currentState: emptyState(),
 		},
 		{
@@ -1425,7 +1433,7 @@ func Test_pluginRelations(t *testing.T) {
 				currentState: tt.currentState,
 				intermediate: intermediate,
 			}
-			gotCID, gotRID, gotSID, gotCGID := b.pluginRelations(tt.args.plugin)
+			gotCID, gotRID, gotSID, gotCGID, gotMID := b.pluginRelations(tt.args.plugin)
 			if gotCID != tt.wantCID {
 				t.Errorf("pluginRelations() gotCID = %v, want %v", gotCID, tt.wantCID)
 			}
@@ -1437,6 +1445,9 @@ func Test_pluginRelations(t *testing.T) {
 			}
 			if gotCGID != tt.wantCGID {
 				t.Errorf("pluginRelations() gotCGID = %v, want %v", gotCGID, tt.wantCGID)
+			}
+			if gotMID != tt.wantMID {
+				t.Errorf("pluginRelations() gotMID = %v, want %v", gotMID, tt.wantMID)
 			}
 		})
 	}

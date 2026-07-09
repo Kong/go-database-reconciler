@@ -1013,7 +1013,15 @@
           "type": "string"
         },
         "model": {
-          "type": "string"
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
         },
         "tags": {
           "items": {

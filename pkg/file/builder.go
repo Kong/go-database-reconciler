@@ -48,6 +48,7 @@ type stateBuilder struct {
 	lookupTagsRoutes         []string
 	lookupTagsServices       []string
 	lookupTagsPartials       []string
+	lookupTagsAIModels       []string
 	skipCACerts              bool
 	skipDefaults             bool
 	includeLicenses          bool
@@ -150,6 +151,7 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.upstreams()
 	b.consumerGroups()
 	b.consumers()
+	b.aiModels()
 	b.plugins()
 	b.filterChains()
 	b.keySets()
@@ -1499,7 +1501,6 @@ func (b *stateBuilder) enterprise() {
 	if b.includeLicenses && !b.isKonnect {
 		b.licenses()
 	}
-	b.aiModels()
 }
 
 func (b *stateBuilder) vaults() {
@@ -1566,6 +1567,13 @@ func (b *stateBuilder) aiModels() {
 		}
 
 		utils.MustMergeTags(&am.AIModel, b.selectTags)
+
+		err = b.intermediate.AIModels.AddIgnoringDuplicates(state.AIModel{AIModel: am.AIModel})
+		if err != nil {
+			b.err = err
+			return
+		}
+
 		b.rawState.AIModels = append(b.rawState.AIModels, &am.AIModel)
 	}
 }
@@ -1786,6 +1794,19 @@ func (b *stateBuilder) plugins() {
 				return
 			}
 			p.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
+		}
+
+		if p.Model != nil && !utils.Empty(p.Model.ID) {
+			model, err := b.intermediate.AIModels.Get(*p.Model.ID)
+			if errors.Is(err, state.ErrNotFound) {
+				b.err = fmt.Errorf("AI model %v for plugin %v: %w",
+					p.Model.FriendlyName(), *p.Name, err)
+				return
+			} else if err != nil {
+				b.err = err
+				return
+			}
+			p.Model = utils.GetAIModelReference(model.AIModel)
 		}
 
 		plugins = append(plugins, p)
@@ -2026,9 +2047,9 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
-		cID, rID, sID, cgID := b.pluginRelations(&p.Plugin)
+		cID, rID, sID, cgID, mID := b.pluginRelations(&p.Plugin)
 		plugin, err := b.currentState.Plugins.GetByProp(*p.Name,
-			sID, rID, cID, cgID)
+			sID, rID, cID, cgID, mID)
 		if utils.Empty(p.ID) {
 			if errors.Is(err, state.ErrNotFound) {
 				p.ID = uuid()
@@ -2040,6 +2061,9 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		}
 		if p.Partials != nil {
 			p.Partials = b.findLinkedPartials(&p.Plugin)
+		}
+		if p.Model != nil {
+			p.Model = b.findLinkedAIModels(&p.Plugin)
 		}
 		if p.Config == nil {
 			p.Config = make(map[string]any)
@@ -2103,7 +2127,7 @@ func mergePluginConfig(dst, src map[string]any) {
 	}
 }
 
-func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID string) {
+func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID, mID string) {
 	if plugin.Consumer != nil && !utils.Empty(plugin.Consumer.ID) {
 		consumer, err := b.currentState.Consumers.GetByIDOrUsername(*plugin.Consumer.ID)
 		if err != nil && !errors.Is(err, state.ErrNotFound) {
@@ -2180,8 +2204,27 @@ func (b *stateBuilder) pluginRelations(plugin *kong.Plugin) (cID, rID, sID, cgID
 			cgID = *plugin.ConsumerGroup.ID
 		}
 	}
+	if plugin.Model != nil && !utils.Empty(plugin.Model.ID) {
+		model, err := b.currentState.AIModels.Get(*plugin.Model.ID)
+		if err != nil && !errors.Is(err, state.ErrNotFound) {
+			b.err = err
+		}
 
-	return cID, rID, sID, cgID
+		if model == nil {
+			model, err = b.intermediate.AIModels.Get(*plugin.Model.ID)
+			if err != nil && !errors.Is(err, state.ErrNotFound) {
+				b.err = err
+			}
+		}
+
+		if model != nil {
+			mID = *model.ID
+		} else if utils.IsValidUUID(*plugin.Model.ID) {
+			mID = *plugin.Model.ID
+		}
+	}
+
+	return cID, rID, sID, cgID, mID
 }
 
 func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLink {
@@ -2220,6 +2263,38 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 	}
 
 	return pluginPartials
+}
+
+func (b *stateBuilder) findLinkedAIModels(plugin *kong.Plugin) *kong.AIModel {
+	if plugin.Model == nil {
+		return nil
+	}
+
+	var findID *string
+	if !utils.Empty(plugin.Model.ID) {
+		findID = plugin.Model.ID
+	} else if !utils.Empty(plugin.Model.Name) {
+		findID = plugin.Model.Name
+	}
+
+	if utils.Empty(findID) {
+		return nil
+	}
+
+	pmodel, err := b.intermediate.AIModels.Get(*findID)
+	if errors.Is(err, state.ErrNotFound) {
+		b.err = fmt.Errorf("AI model %v for plugin %v: %w",
+			plugin.Model.FriendlyName(), *plugin.Name, err)
+		return nil
+	} else if err != nil {
+		b.err = err
+		return nil
+	}
+
+	return &kong.AIModel{
+		ID:   pmodel.ID,
+		Name: pmodel.Name,
+	}
 }
 
 // fillPartialPaths copies the auto-generated Path from corresponding current-state

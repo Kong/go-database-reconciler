@@ -59,7 +59,7 @@ type Config struct {
 	LookUpSelectorTagsRoutes         []string
 	LookUpSelectorTagsServices       []string
 	LookUpSelectorTagsPartials       []string
-
+	LookUpSelectorTagsAIModels       []string
 	// KonnectControlPlane
 	KonnectControlPlane string
 

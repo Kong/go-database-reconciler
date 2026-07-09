@@ -515,6 +515,7 @@ type foo struct {
 	Consumer      string               `json:"consumer,omitempty" yaml:",omitempty"`
 	ConsumerGroup string               `json:"consumer_group,omitempty" yaml:",omitempty"`
 	Route         string               `json:"route,omitempty" yaml:",omitempty"`
+	Model         *kong.AIModel        `json:"model,omitempty" yaml:",omitempty"`
 	Enabled       *bool                `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 	RunOn         *string              `json:"run_on,omitempty" yaml:"run_on,omitempty"`
 	Condition     *string              `json:"condition,omitempty" yaml:"condition,omitempty"`
@@ -566,6 +567,9 @@ func copyToFoo(p FPlugin) foo {
 	}
 	if p.Service != nil {
 		f.Service = *p.Service.ID
+	}
+	if p.Model != nil {
+		f.Model = p.Model
 	}
 	if p.ConsumerGroup != nil {
 		f.ConsumerGroup = *p.ConsumerGroup.ID
@@ -619,6 +623,9 @@ func copyFromFoo(f foo, p *FPlugin) {
 		p.Route = &kong.Route{
 			ID: new(f.Route),
 		}
+	}
+	if f.Model != nil {
+		p.Model = f.Model
 	}
 	if f.Service != "" {
 		p.Service = &kong.Service{
@@ -813,6 +820,7 @@ type LookUpSelectorTags struct {
 	Partials       []string `json:"partials,omitempty" yaml:"partials,omitempty"`
 	Routes         []string `json:"routes,omitempty" yaml:"routes,omitempty"`
 	Services       []string `json:"services,omitempty" yaml:"services,omitempty"`
+	AIModels       []string `json:"ai_models,omitempty" yaml:"ai_models,omitempty"`
 }
 
 // Konnect contains configuration specific to Konnect.

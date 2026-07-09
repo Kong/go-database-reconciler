@@ -60,6 +60,31 @@ func (k *AIModelsCollection) Add(amd AIModel) error {
 	return nil
 }
 
+func (k *AIModelsCollection) AddIgnoringDuplicates(amd AIModel) error {
+	// Detect duplicates
+	if !utils.Empty(amd.ID) {
+		cg, err := k.Get(*amd.ID)
+		if cg != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	if !utils.Empty(amd.Name) {
+		cg, err := k.Get(*amd.Name)
+		if cg != nil {
+			return nil
+		}
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+	}
+
+	return k.Add(amd)
+}
+
 func getAIModel(txn *memdb.Txn, IDs ...string) (*AIModel, error) {
 	for _, id := range IDs {
 		res, err := multiIndexLookupUsingTxn(txn, aiModelDefinitionTableName,

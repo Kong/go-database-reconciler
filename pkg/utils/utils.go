@@ -168,6 +168,14 @@ func GetConsumerGroupReference(c kong.ConsumerGroup) *kong.ConsumerGroup {
 	return consumerGroup
 }
 
+func GetAIModelReference(m kong.AIModel) *kong.AIModel {
+	model := &kong.AIModel{ID: new(*m.ID)}
+	if m.Name != nil {
+		model.Name = new(*m.Name)
+	}
+	return model
+}
+
 // GetServiceReference returns a name+ID only copy of the input service,
 // for use in references from other objects
 func GetServiceReference(s kong.Service) *kong.Service {
