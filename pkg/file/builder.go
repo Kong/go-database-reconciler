@@ -146,12 +146,12 @@ func (b *stateBuilder) build() (*utils.KongRawState, *utils.KonnectRawState, err
 	b.clonedPluginDefinitions()
 	b.customPluginDefinitions()
 	b.partials()
+	b.aiModels()
 	b.services()
 	b.routes()
 	b.upstreams()
 	b.consumerGroups()
 	b.consumers()
-	b.aiModels()
 	b.plugins()
 	b.filterChains()
 	b.keySets()
@@ -2047,6 +2047,10 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
+		if p.Model != nil {
+			// For the next step GetByProp to succeed - model ID needs to be known.
+			p.Model = b.findLinkedAIModel(&p.Plugin)
+		}
 		cID, rID, sID, cgID, mID := b.pluginRelations(&p.Plugin)
 		plugin, err := b.currentState.Plugins.GetByProp(*p.Name,
 			sID, rID, cID, cgID, mID)
@@ -2061,9 +2065,6 @@ func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 		}
 		if p.Partials != nil {
 			p.Partials = b.findLinkedPartials(&p.Plugin)
-		}
-		if p.Model != nil {
-			p.Model = b.findLinkedAIModels(&p.Plugin)
 		}
 		if p.Config == nil {
 			p.Config = make(map[string]any)
@@ -2265,7 +2266,7 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 	return pluginPartials
 }
 
-func (b *stateBuilder) findLinkedAIModels(plugin *kong.Plugin) *kong.AIModel {
+func (b *stateBuilder) findLinkedAIModel(plugin *kong.Plugin) *kong.AIModel {
 	if plugin.Model == nil {
 		return nil
 	}

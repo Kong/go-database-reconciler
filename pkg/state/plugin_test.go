@@ -469,6 +469,33 @@ func TestGetPluginByProp(t *testing.T) {
 				},
 			},
 		},
+		{
+			Plugin: kong.Plugin{
+				ID:   new("6"),
+				Name: new("key-auth"),
+				Model: &kong.AIModel{
+					ID: new("model-ai-1"),
+				},
+				Config: map[string]any{
+					"key6": "value6",
+				},
+			},
+		},
+		{
+			Plugin: kong.Plugin{
+				ID:   new("7"),
+				Name: new("key-auth"),
+				Route: &kong.Route{
+					ID: new("route-ai-2"),
+				},
+				Model: &kong.AIModel{
+					ID: new("model-ai-2"),
+				},
+				Config: map[string]any{
+					"key7": "value7",
+				},
+			},
+		},
 	}
 	assert := assert.New(t)
 	collection := pluginsCollection()
@@ -509,6 +536,16 @@ func TestGetPluginByProp(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value5", plugin.Config["key5"])
+
+	plugin, err = collection.GetByProp("key-auth", "", "", "", "", "model-ai-1")
+	require.NoError(t, err)
+	assert.NotNil(plugin)
+	assert.Equal("value6", plugin.Config["key6"])
+
+	plugin, err = collection.GetByProp("key-auth", "", "route-ai-2", "", "", "model-ai-2")
+	require.NoError(t, err)
+	assert.NotNil(plugin)
+	assert.Equal("value7", plugin.Config["key7"])
 }
 
 func TestPluginsInvalidType(t *testing.T) {

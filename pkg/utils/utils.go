@@ -196,6 +196,16 @@ func GetRouteReference(r kong.Route) *kong.Route {
 	return route
 }
 
+// GetModelReference returns a name+ID only copy of the input model,
+// for use in references from other objects
+func GetModelReference(m kong.AIModel) *kong.AIModel {
+	model := &kong.AIModel{ID: new(*m.ID)}
+	if m.Name != nil {
+		model.Name = new(*m.Name)
+	}
+	return model
+}
+
 // GetPartialReference returns a name+ID only copy of the input partial,
 // for use in references from other objects
 func GetPartialReference(p kong.Partial) *kong.Partial {
