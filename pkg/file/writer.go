@@ -440,6 +440,9 @@ func getFRouteFromRoute(r *state.Route, kongState *state.KongState, config Write
 			continue
 		}
 		p.Route = nil
+		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+			return nil, err
+		}
 		utils.ZeroOutID(p, p.Name, config.WithID)
 		utils.ZeroOutTimestamps(p)
 		route.Plugins = append(route.Plugins, &FPlugin{Plugin: p.Plugin})
@@ -484,6 +487,9 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 			continue
 		}
 		p.Service = nil
+		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+			return nil, err
+		}
 		utils.ZeroOutID(p, p.Name, config.WithID)
 		utils.ZeroOutTimestamps(p)
 		s.Plugins = append(s.Plugins, &FPlugin{Plugin: p.Plugin})
@@ -536,6 +542,28 @@ func populateServicelessRoutes(kongState *state.KongState, file *Content,
 	sort.SliceStable(file.Routes, func(i, j int) bool {
 		return compareOrder(file.Routes[i], file.Routes[j])
 	})
+	return nil
+}
+
+// resolvePluginModelReference rewrites a plugin's Model reference from the raw
+// model ID to the model's name, so the dumped file uses a human-friendly,
+// portable reference. Unlike service/route/consumer references, a model
+// reference does not nest the plugin under a parent, so it must be resolved
+// wherever a plugin is serialized (top-level and nested). It is a no-op when
+// the plugin has no linked model, or when content is being sanitized.
+func resolvePluginModelReference(kongState *state.KongState, p *kong.Plugin, config WriteConfig) error {
+	if p.Model == nil || utils.Empty(p.Model.ID) {
+		return nil
+	}
+	mID := *p.Model.ID
+	model, err := kongState.AIModels.Get(mID)
+	if err != nil {
+		return fmt.Errorf("unable to get AI model %s for plugin %s: %w", mID, *p.Name, err)
+	}
+	if !utils.Empty(model.Name) && !config.SanitizeContent {
+		mID = *model.Name
+	}
+	p.Model.ID = &mID
 	return nil
 }
 
@@ -600,6 +628,11 @@ func populatePlugins(kongState *state.KongState, file *Content,
 				cgID = *cg.Name
 			}
 			p.ConsumerGroup.ID = &cgID
+		}
+		// Model is not counted as an association: it does not nest the plugin
+		// under a parent entity, it is emitted as a string reference on the plugin.
+		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+			return err
 		}
 		if associations == 0 || associations > 1 {
 			utils.ZeroOutID(p, p.Name, config.WithID)
@@ -788,6 +821,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 		for _, p := range plugins {
 			if p.Service != nil || p.Route != nil || p.ConsumerGroup != nil {
 				continue
+			}
+			p.Consumer = nil
+			if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+				return err
 			}
 			utils.ZeroOutID(p, p.Name, config.WithID)
 			utils.ZeroOutTimestamps(p)

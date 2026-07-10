@@ -3,6 +3,7 @@ package file
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/blang/semver/v4"
 	"github.com/kong/go-database-reconciler/pkg/dump"
@@ -57,6 +58,20 @@ func GetContentFromFilesWithEnvVars(filenames []string, mode RenderEnvVarsMode) 
 		return nil, ErrorFilenameEmpty
 	}
 	return getContent(filenames, mode)
+}
+
+// GetContentFromReader reads and validates a single Content from reader, applying
+// the same template rendering (per mode) and schema validation as
+// GetContentFromFilesWithEnvVars, without requiring a file on disk.
+func GetContentFromReader(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
+	content, err := readContent(reader, mode)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateEmptyContent(*content); err != nil {
+		return nil, err
+	}
+	return content, nil
 }
 
 // GetForKonnect processes the fileContent and renders a RawState and KonnectRawState
