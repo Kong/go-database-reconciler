@@ -515,7 +515,7 @@ type foo struct {
 	Consumer      string               `json:"consumer,omitempty" yaml:",omitempty"`
 	ConsumerGroup string               `json:"consumer_group,omitempty" yaml:",omitempty"`
 	Route         string               `json:"route,omitempty" yaml:",omitempty"`
-	Model         *kong.AIModel        `json:"model,omitempty" yaml:",omitempty"`
+	Model         string               `json:"model,omitempty" yaml:",omitempty"`
 	Enabled       *bool                `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 	RunOn         *string              `json:"run_on,omitempty" yaml:"run_on,omitempty"`
 	Condition     *string              `json:"condition,omitempty" yaml:"condition,omitempty"`
@@ -568,8 +568,8 @@ func copyToFoo(p FPlugin) foo {
 	if p.Service != nil {
 		f.Service = *p.Service.ID
 	}
-	if p.Model != nil {
-		f.Model = p.Model
+	if p.Model != nil && p.Model.ID != nil {
+		f.Model = *p.Model.ID
 	}
 	if p.ConsumerGroup != nil {
 		f.ConsumerGroup = *p.ConsumerGroup.ID
@@ -624,8 +624,10 @@ func copyFromFoo(f foo, p *FPlugin) {
 			ID: new(f.Route),
 		}
 	}
-	if f.Model != nil {
-		p.Model = f.Model
+	if f.Model != "" {
+		p.Model = &kong.AIModel{
+			ID: new(f.Model),
+		}
 	}
 	if f.Service != "" {
 		p.Service = &kong.Service{
