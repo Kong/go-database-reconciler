@@ -182,6 +182,17 @@ func (r1 *Route) EqualWithOpts(r2 *Route, ignoreID,
 	sort.Slice(r1Copy.Tags, func(i, j int) bool { return *(r1Copy.Tags[i]) < *(r1Copy.Tags[j]) })
 	sort.Slice(r2Copy.Tags, func(i, j int) bool { return *(r2Copy.Tags[i]) < *(r2Copy.Tags[j]) })
 
+	// A nil Headers map and an empty (non-nil) one are semantically identical,
+	// but reflect.DeepEqual below treats them as different, causing deck to
+	// report a spurious update every time (e.g. "headers: {}" in the desired
+	// state vs. Headers == nil as returned by Kong).
+	if len(r1Copy.Headers) == 0 {
+		r1Copy.Headers = nil
+	}
+	if len(r2Copy.Headers) == 0 {
+		r2Copy.Headers = nil
+	}
+
 	if ignoreID {
 		r1Copy.ID = nil
 		r2Copy.ID = nil

@@ -153,6 +153,34 @@ func TestRouteEqual(t *testing.T) {
 	assert.True(r1.EqualWithOpts(&r2, true, true, false))
 }
 
+// A nil Headers map (as returned by Kong, which has no way to distinguish
+// "no headers" from "explicitly empty headers") and a non-nil empty map (as
+// produced by unmarshaling `headers: {}` from YAML) must compare equal.
+func TestRouteEqual_HeadersNilVsEmpty(t *testing.T) {
+	assert := assert.New(t)
+
+	var r1, r2 Route
+	r1.ID = new(testFoo)
+	r2.ID = new(testFoo)
+
+	r1.Headers = nil
+	r2.Headers = map[string][]string{}
+	assert.True(r1.Equal(&r2))
+	assert.True(r1.EqualWithOpts(&r2, false, false, false))
+
+	// both nil is still equal
+	r2.Headers = nil
+	assert.True(r1.Equal(&r2))
+
+	// both empty is still equal
+	r1.Headers = map[string][]string{}
+	assert.True(r1.Equal(&r2))
+
+	// an actual header value is still a real difference
+	r2.Headers = map[string][]string{"x-my-header": {"foo"}}
+	assert.False(r1.Equal(&r2))
+}
+
 func TestUpstreamEqual(t *testing.T) {
 	assert := assert.New(t)
 
