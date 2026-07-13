@@ -58,7 +58,7 @@ func (s *aiModelDefinitionCRUD) Delete(ctx context.Context, arg ...crud.Arg) (cr
 func (s *aiModelDefinitionCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	amd := aiModelDefinitionFromStruct(event)
-	updated, err := s.client.AIModels.Update(ctx, &amd.AIModel)
+	updated, err := s.client.AIModels.Create(ctx, &amd.AIModel)
 	if err != nil {
 		return nil, err
 	}
