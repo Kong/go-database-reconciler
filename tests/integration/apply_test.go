@@ -237,6 +237,7 @@ func Test_Apply_NestedEntity(t *testing.T) {
 
 func Test_Apply_Service_Route(t *testing.T) {
 	setup(t)
+	runWhenKongOrKonnect(t, ">=2.8.0")
 	client, err := getTestClient()
 	require.NoError(t, err)
 	ctx := t.Context()
@@ -246,7 +247,6 @@ func Test_Apply_Service_Route(t *testing.T) {
 		initialStateFile string
 		updateStateFile  string
 		expectedState    utils.KongRawState
-		runWhen          func(t *testing.T)
 	}{
 		{
 			name:             "route addition and update for a service",
