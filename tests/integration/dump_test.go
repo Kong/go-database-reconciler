@@ -592,3 +592,43 @@ func Test_Dump_Plugin_Conditional(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func Test_Dump_AIModels(t *testing.T) {
+	setup(t)
+	runWhenAIGateway(t, ">=2.0.0")
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name         string
+		dumpFlags    []string
+		expectedFile string
+	}{
+		{
+			name:         "dump includes all ai models",
+			dumpFlags:    []string{"-o", "-"},
+			expectedFile: "testdata/dump/010-ai-models/expected.yaml",
+		},
+		{
+			name:         "select tags filter ai models",
+			dumpFlags:    []string{"--select-tag", "select-me", "-o", "-"},
+			expectedFile: "testdata/dump/010-ai-models/expected-select-me.yaml",
+		},
+	}
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync("testdata/sync/050-ai-models/kong.yaml"))
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			output, err := dump(tc.dumpFlags...)
+			require.NoError(t, err)
+
+			expected, err := readFile(tc.expectedFile)
+			require.NoError(t, err)
+			assert.Equal(t, expected, output)
+		})
+	}
+}

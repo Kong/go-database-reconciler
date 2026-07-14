@@ -1,0 +1,7 @@
+_format_version: "3.0"
+ai_models:
+- name: anthropic-claude
+  alias: claude-3-5-sonnet
+  tags:
+  - tag1
+  - tag2
