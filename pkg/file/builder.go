@@ -48,7 +48,6 @@ type stateBuilder struct {
 	lookupTagsRoutes         []string
 	lookupTagsServices       []string
 	lookupTagsPartials       []string
-	lookupTagsAIModels       []string
 	skipCACerts              bool
 	skipDefaults             bool
 	includeLicenses          bool

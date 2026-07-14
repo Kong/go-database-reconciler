@@ -81,6 +81,14 @@ jobs:
     uses: ./.github/workflows/integration.yaml
     secrets: inherit
 
+  ai-gateway-integration-tests:
+    needs:
+    - should-run-with-secrets
+    - up-to-date
+    if: needs.should-run-with-secrets.outputs.result == 'true' && needs.up-to-date.outputs.status != 'true'
+    uses: ./.github/workflows/integration-ai-gateway.yaml
+    secrets: inherit
+
   # We need this step to fail the workflow if any of the previous steps failed or were cancelled.
   # It allows to use this particular job as a required check for PRs.
   # Ref: https://github.com/orgs/community/discussions/26822#discussioncomment-3305794
@@ -91,6 +99,7 @@ jobs:
       - codegen
       - integration-tests
       - enterprise-integration-tests
+      - ai-gateway-integration-tests
     if: always()
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

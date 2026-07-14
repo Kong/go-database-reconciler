@@ -1,0 +1,48 @@
+name: AI Gateway Integration Test
+run-name: AI Gateway Integration Test, branch:${{ github.ref_name }}, triggered by @${{ github.actor }}
+
+concurrency:
+  # Run only for most recent commit in PRs but for all tags and commits on main
+  # Ref: https://docs.github.com/en/actions/using-jobs/using-concurrency
+  group: integration-ai-gateway-${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+
+jobs:
+  integration:
+    strategy:
+      matrix:
+        kong_image:
+        - 'kong/kong-ai-gateway-dev:29019036398-31e991be3666685cf27cfa3858438beaf7e52dae'
+    env:
+      KONG_ANONYMOUS_REPORTS: "off"
+      KONG_IMAGE: ${{ matrix.kong_image }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+      - name: Login to Docker Hub
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          username: ${{secrets.DOCKER_ORG_NAME}}
+          password: ${{secrets.DOCKER_ORG_TOKEN}}
+      - uses: Kong/kong-license@bfa1c17600a68d879042f44a9ec3fb5b60f4fad5
+        id: license
+        with:
+          op-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      - name: Setup Kong
+        env:
+          KONG_LICENSE_DATA: ${{ steps.license.outputs.license }}
+        run: make setup-kong-ee
+      - name: Run integration tests
+        env:
+          KONG_LICENSE_DATA: ${{ steps.license.outputs.license }}
+        run: make test-integration
