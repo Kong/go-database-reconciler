@@ -23,6 +23,7 @@ var (
 
 	Kong140Version = semver.MustParse("1.4.0")
 	Kong300Version = semver.MustParse("3.0.0")
+	Kong200Version = semver.MustParse("2.0.0")
 	Kong340Version = semver.MustParse("3.4.0")
 	Kong370Version = semver.MustParse("3.7.0")
 )

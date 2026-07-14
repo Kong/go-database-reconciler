@@ -386,16 +386,29 @@ services:
 
 func Test_getFormatVersion(t *testing.T) {
 	tests := []struct {
-		name        string
-		kongVersion string
-		expected    string
-		expectedErr string
-		wantErr     bool
+		name            string
+		kongVersion     string
+		isKongAIGateway bool
+		expected        string
+		expectedErr     string
+		wantErr         bool
 	}{
 		{
 			name:        "3.0.0 version",
 			kongVersion: "3.0.0",
 			expected:    "3.0",
+		},
+		{
+			name:            "2.x AI Gateway uses 3.0 format",
+			kongVersion:     "2.8.0",
+			isKongAIGateway: true,
+			expected:        "3.0",
+		},
+		{
+			name:            "2.x non-AI Gateway uses 1.1 format",
+			kongVersion:     "2.8.0",
+			isKongAIGateway: false,
+			expected:        "1.1",
 		},
 		{
 			name:        "3.0.0.0 version",
@@ -426,7 +439,7 @@ func Test_getFormatVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, err := getFormatVersion(tt.kongVersion)
+			res, err := getFormatVersion(tt.kongVersion, tt.isKongAIGateway)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got error = %v, expected error = %v", err, tt.wantErr)
 			}

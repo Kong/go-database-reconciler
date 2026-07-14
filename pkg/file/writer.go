@@ -28,6 +28,11 @@ type WriteConfig struct {
 	IsConsumerGroupPolicyOverrideSet bool
 	SanitizeContent                  bool
 	IncludePluginDefinitions         bool
+	// IsKongAIGateway indicates the target is an AI Gateway instance. AI Gateway
+	// reports a 2.x Kong version but expects the 3.0 file format, so callers that
+	// have a live Kong client should set this (e.g. by inspecting the Server
+	// header) rather than having the writer make network calls itself.
+	IsKongAIGateway bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
@@ -81,13 +86,16 @@ func compareConsumerGroupPlugin(p1, p2 *kong.ConsumerGroupPlugin) bool {
 	return strings.Compare(i1, i2) < 0
 }
 
-func getFormatVersion(kongVersion string) (string, error) {
+func getFormatVersion(kongVersion string, isKongAIGateway bool) (string, error) {
 	parsedKongVersion, err := utils.ParseKongVersion(kongVersion)
 	if err != nil {
 		return "", fmt.Errorf("parsing Kong version: %w", err)
 	}
 	formatVersion := "1.1"
 	if parsedKongVersion.GTE(utils.Kong300Version) {
+		formatVersion = "3.0"
+	} else if parsedKongVersion.GTE(utils.Kong200Version) && isKongAIGateway {
+		// While AI Gateway reports a 2.x version, it uses the Kong 3.x file format.
 		formatVersion = "3.0"
 	}
 	return formatVersion, nil
@@ -116,7 +124,7 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	var err error
 
 	file.Workspace = config.Workspace
-	formatVersion, err := getFormatVersion(config.KongVersion)
+	formatVersion, err := getFormatVersion(config.KongVersion, config.IsKongAIGateway)
 	if err != nil {
 		return nil, fmt.Errorf("get format version: %w", err)
 	}

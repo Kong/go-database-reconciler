@@ -2304,17 +2304,17 @@ type AIModel struct {
 }
 
 // Identifier returns the entity name or ID.
-func (a *AIModel) Identifier() string {
-	if a.Name != nil {
-		return *a.Name
+func (a1 *AIModel) Identifier() string {
+	if a1.Name != nil {
+		return *a1.Name
 	}
 
-	return *a.ID
+	return *a1.ID
 }
 
 // Console returns an entity's identity in a human readable string.
-func (a *AIModel) Console() string {
-	return a.Identifier()
+func (a1 *AIModel) Console() string {
+	return a1.Identifier()
 }
 
 // Equal returns true if a1 and a2 are equal.
