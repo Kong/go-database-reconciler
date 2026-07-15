@@ -1,0 +1,25 @@
+_format_version: "3.0"
+ai_models:
+- name: openai-gpt
+  alias: gpt-4o
+  tags:
+  - tag1
+  - select-me
+plugins:
+- name: ai-proxy-advanced
+  model: openai-gpt
+  config:
+    llm_format: anthropic
+    targets:
+    - route_type: llm/v1/chat
+      logging:
+        log_statistics: true
+        log_payloads: false
+      auth:
+        header_name: Authorization
+        header_value: Bearer test-api-key
+      model:
+        provider: huggingface
+        name: meta-llama/Llama-3.3-70B-Instruct
+  tags:
+  - plugin-tag1

@@ -11504,3 +11504,88 @@ func Test_Sync_PluginConfigNestedMerge(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func Test_Sync_AIModels(t *testing.T) {
+	setup(t)
+	runWhenAIGateway(t, ">=2.0.0")
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name          string
+		kongFile      string
+		wantErr       bool
+		expectedState utils.KongRawState
+		ignoreFields  []cmp.Option
+	}{
+		{
+			name:     "creates ai models",
+			kongFile: "testdata/sync/050-ai-models/kong.yaml",
+			expectedState: utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						Name:  kong.String("openai-gpt"),
+						Alias: kong.String("gpt-4o"),
+						Tags:  kong.StringSlice("select-me", "tag1", "tag2"),
+					},
+					{
+						Name:  kong.String("anthropic-claude"),
+						Alias: kong.String("claude-3-5-sonnet"),
+						Tags:  kong.StringSlice("tag1", "tag2"),
+					},
+				},
+			},
+		},
+		{
+			name:     "creates an ai model and links it to a plugin",
+			kongFile: "testdata/sync/050-ai-models/kong-with-plugin.yaml",
+			expectedState: utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						Name:  kong.String("openai-gpt"),
+						Alias: kong.String("gpt-4o"),
+						Tags:  kong.StringSlice("select-me", "tag1"),
+					},
+				},
+				Plugins: []*kong.Plugin{
+					{
+						Name:    kong.String("ai-proxy-advanced"),
+						Enabled: kong.Bool(true),
+						Tags:    kong.StringSlice("plugin-tag1"),
+					},
+				},
+			},
+			ignoreFields: []cmp.Option{
+				// Config, Protocols and the resolved Model reference are populated
+				// with defaults/generated IDs by Kong, so they are not asserted here.
+				cmpopts.IgnoreFields(kong.Plugin{}, "Config", "Protocols", "Model"),
+			},
+		},
+		{
+			name:     "fails with invalid model ref",
+			kongFile: "testdata/sync/050-ai-models/kong-fake.yaml",
+			wantErr:  true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+
+			err := sync(tc.kongFile)
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			testKongState(t, client, false, tc.expectedState, tc.ignoreFields)
+
+			// re-sync is idempotent
+			err = sync(tc.kongFile)
+			require.NoError(t, err, "re-sync should not error")
+		})
+	}
+}

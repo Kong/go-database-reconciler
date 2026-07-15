@@ -147,12 +147,16 @@ func main() {
 	// custom plugin definitions
 	schema.Definitions["FCustomPluginDefinition"].Required = []string{nameField, "schema", "handler"}
 
+	// AI model definitions
+	schema.Definitions["FAIModel"].Required = []string{nameField, "alias"}
+
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
 	schema.Definitions["FPlugin"].Properties["consumer"] = stringType
 	schema.Definitions["FPlugin"].Properties["service"] = stringType
 	schema.Definitions["FPlugin"].Properties["route"] = stringType
 	schema.Definitions["FPlugin"].Properties["consumer_group"] = stringType
+	schema.Definitions["FPlugin"].Properties["model"] = stringType
 
 	schema.Definitions["FFilterChain"].Properties["service"] = stringType
 	schema.Definitions["FFilterChain"].Properties["route"] = stringType

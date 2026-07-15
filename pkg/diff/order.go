@@ -47,6 +47,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.KeySet,
 		types.ClonedPluginDefinition,
 		types.CustomPluginDefinition,
+		types.AIModel,
 	},
 	{
 		types.ConsumerGroup,

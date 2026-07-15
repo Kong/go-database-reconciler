@@ -34,6 +34,7 @@ type KongState struct {
 	KeySets                 *KeySetsCollection
 	ClonedPluginDefinitions *ClonedPluginDefinitionsCollection
 	CustomPluginDefinitions *CustomPluginDefinitionsCollection
+	AIModels                *AIModelsCollection
 
 	KeyAuths                           *KeyAuthsCollection
 	HMACAuths                          *HMACAuthsCollection
@@ -89,6 +90,7 @@ func NewKongState() (*KongState, error) {
 			keySetTableName:                 keySetTableSchema,
 			clonedPluginDefinitionTableName: clonedPluginDefinitionTableSchema,
 			customPluginDefinitionTableName: customPluginDefinitionTableSchema,
+			aiModelDefinitionTableName:      aiModelDefinitionTableSchema,
 
 			degraphqlRouteTemp.TableName():                    degraphqlRouteTemp.Schema(),
 			graphqlRateLimitingCostDecorationTemp.TableName(): graphqlRateLimitingCostDecorationTemp.Schema(),
@@ -140,6 +142,7 @@ func NewKongState() (*KongState, error) {
 	state.KeySets = (*KeySetsCollection)(&state.common)
 	state.ClonedPluginDefinitions = (*ClonedPluginDefinitionsCollection)(&state.common)
 	state.CustomPluginDefinitions = (*CustomPluginDefinitionsCollection)(&state.common)
+	state.AIModels = (*AIModelsCollection)(&state.common)
 
 	state.DegraphqlRoutes = newDegraphqlRoutesCollection(state.common)
 	state.GraphqlRateLimitingCostDecorations = newGraphqlRateLimitingCostDecorationsCollection(state.common)

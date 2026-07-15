@@ -627,3 +627,19 @@ func (crud customPluginDefinitionPostAction) Delete(_ context.Context, args ...c
 func (crud customPluginDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.CustomPluginDefinitions.Update(*args[0].(*state.CustomPluginDefinition))
 }
+
+type aiModelDefinitionPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud aiModelDefinitionPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.AIModels.Add(*args[0].(*state.AIModel))
+}
+
+func (crud aiModelDefinitionPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.AIModels.Delete(*((args[0].(*state.AIModel)).ID))
+}
+
+func (crud aiModelDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.AIModels.Update(*args[0].(*state.AIModel))
+}
