@@ -2046,10 +2046,6 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 
 func (b *stateBuilder) ingestPlugins(plugins []FPlugin) error {
 	for _, p := range plugins {
-		if p.Model != nil {
-			// For the next step GetByProp to succeed - model ID needs to be known.
-			p.Model = b.findLinkedAIModel(&p.Plugin)
-		}
 		cID, rID, sID, cgID, mID := b.pluginRelations(&p.Plugin)
 		plugin, err := b.currentState.Plugins.GetByProp(*p.Name,
 			sID, rID, cID, cgID, mID)
@@ -2263,38 +2259,6 @@ func (b *stateBuilder) findLinkedPartials(plugin *kong.Plugin) []*kong.PartialLi
 	}
 
 	return pluginPartials
-}
-
-func (b *stateBuilder) findLinkedAIModel(plugin *kong.Plugin) *kong.AIModel {
-	if plugin.Model == nil {
-		return nil
-	}
-
-	var findID *string
-	if !utils.Empty(plugin.Model.ID) {
-		findID = plugin.Model.ID
-	} else if !utils.Empty(plugin.Model.Name) {
-		findID = plugin.Model.Name
-	}
-
-	if utils.Empty(findID) {
-		return nil
-	}
-
-	pmodel, err := b.intermediate.AIModels.Get(*findID)
-	if errors.Is(err, state.ErrNotFound) {
-		b.err = fmt.Errorf("AI model %v for plugin %v: %w",
-			plugin.Model.FriendlyName(), *plugin.Name, err)
-		return nil
-	} else if err != nil {
-		b.err = err
-		return nil
-	}
-
-	return &kong.AIModel{
-		ID:   pmodel.ID,
-		Name: pmodel.Name,
-	}
 }
 
 // fillPartialPaths copies the auto-generated Path from corresponding current-state

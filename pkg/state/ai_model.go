@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	aiModelDefinitionTableName = "aiModelDefinition"
+	aiModelDefinitionTableName = "aiModel"
 )
 
 var aiModelDefinitionTableSchema = &memdb.TableSchema{

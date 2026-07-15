@@ -529,6 +529,24 @@ func existingPartialState(t *testing.T) *state.KongState {
 	return s
 }
 
+func existingAIModelState(t *testing.T) *state.KongState {
+	t.Helper()
+	s, err := state.NewKongState()
+	require.NoError(t, err, "error in getting new kongState")
+
+	s.AIModels.Add(
+		state.AIModel{
+			AIModel: kong.AIModel{
+				ID:        new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+				Name:      new("existing-ai-model"),
+				Alias:     new("gpt-4o"),
+				CreatedAt: new(int64(1234567890)),
+			},
+		})
+
+	return s
+}
+
 func existingConsumerState(t *testing.T) *state.KongState {
 	t.Helper()
 	s, err := state.NewKongState()
@@ -5338,6 +5356,162 @@ func Test_stateBuilder_partials(t *testing.T) {
 	}
 }
 
+func Test_stateBuilder_aiModels(t *testing.T) {
+	assert := assert.New(t)
+	testRand = rand.New(rand.NewSource(42))
+	type fields struct {
+		currentState  *state.KongState
+		targetContent *Content
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *utils.KongRawState
+	}{
+		{
+			name: "creates new AI model when not found in current state",
+			fields: fields{
+				targetContent: &Content{
+					AIModels: []FAIModel{
+						{
+							AIModel: kong.AIModel{
+								Name:  new("my-ai-model"),
+								Alias: new("gpt-4o"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						ID:    new("538c7f96-b164-4f1b-97bb-9f4bb472e89f"),
+						Name:  new("my-ai-model"),
+						Alias: new("gpt-4o"),
+					},
+				},
+			},
+		},
+		{
+			name: "uses existing AI model ID and created_at when found in current state",
+			fields: fields{
+				targetContent: &Content{
+					AIModels: []FAIModel{
+						{
+							AIModel: kong.AIModel{
+								Name:  new("existing-ai-model"),
+								Alias: new("gpt-4o"),
+							},
+						},
+					},
+				},
+				currentState: existingAIModelState(t),
+			},
+			want: &utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						ID:        new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						Name:      new("existing-ai-model"),
+						Alias:     new("gpt-4o"),
+						CreatedAt: new(int64(1234567890)),
+					},
+				},
+			},
+		},
+		{
+			name: "maintains provided ID if already set",
+			fields: fields{
+				targetContent: &Content{
+					AIModels: []FAIModel{
+						{
+							AIModel: kong.AIModel{
+								ID:    new("provided-id"),
+								Name:  new("test-ai-model"),
+								Alias: new("claude-opus-4"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						ID:    new("provided-id"),
+						Name:  new("test-ai-model"),
+						Alias: new("claude-opus-4"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles multiple AI models if provided",
+			fields: fields{
+				targetContent: &Content{
+					AIModels: []FAIModel{
+						{
+							AIModel: kong.AIModel{
+								Name:  new("foo-ai-model"),
+								Alias: new("gpt-4o"),
+							},
+						},
+						{
+							AIModel: kong.AIModel{
+								Name:  new("bar-ai-model"),
+								Alias: new("claude-opus-4"),
+							},
+						},
+					},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						ID:    new("5b1484f2-5209-49d9-b43e-92ba09dd9d52"),
+						Name:  new("foo-ai-model"),
+						Alias: new("gpt-4o"),
+					},
+					{
+						ID:    new("dfd79b4d-7642-4b61-ba0c-9f9f0d3ba55b"),
+						Name:  new("bar-ai-model"),
+						Alias: new("claude-opus-4"),
+					},
+				},
+			},
+		},
+		{
+			name: "handles empty AI model entities",
+			fields: fields{
+				targetContent: &Content{
+					AIModels: []FAIModel{},
+				},
+				currentState: emptyState(),
+			},
+			want: &utils.KongRawState{
+				AIModels: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(_ *testing.T) {
+			ctx := context.Background()
+			b := &stateBuilder{
+				targetContent: tt.fields.targetContent,
+				currentState:  tt.fields.currentState,
+				kongVersion:   kong3100Version,
+			}
+			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)
+			b.defaulter = d
+			b.build()
+
+			assert.Equal(tt.want, b.rawState)
+		})
+	}
+}
+
 func Test_stateBuilder_plugins(t *testing.T) {
 	assert := assert.New(t)
 	testRand = rand.New(rand.NewSource(42))
@@ -5503,6 +5677,62 @@ func Test_stateBuilder_plugins(t *testing.T) {
 			},
 		},
 		{
+			name: "processes plugin with AI model reference by ID",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: new("ai-proxy"),
+								Model: &kong.AIModel{
+									ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingAIModelState(t),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: new("ai-proxy"),
+						Model: &kong.AIModel{
+							ID: new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "processes plugin with AI model reference by name",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: new("ai-proxy"),
+								Model: &kong.AIModel{
+									Name: new("existing-ai-model"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: existingAIModelState(t),
+			},
+			want: []FPlugin{
+				{
+					Plugin: kong.Plugin{
+						Name: new("ai-proxy"),
+						Model: &kong.AIModel{
+							Name: new("existing-ai-model"),
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "error when consumer not found",
 			fields: fields{
 				targetContent: &Content{
@@ -5520,6 +5750,25 @@ func Test_stateBuilder_plugins(t *testing.T) {
 				intermediate: emptyState(),
 			},
 			wantErr: "consumer non-existent for plugin key-auth: entity not found",
+		},
+		{
+			name: "error when linked AI model is not found",
+			fields: fields{
+				targetContent: &Content{
+					Plugins: []FPlugin{
+						{
+							Plugin: kong.Plugin{
+								Name: new("ai-proxy"),
+								Model: &kong.AIModel{
+									ID: new("non-existent"),
+								},
+							},
+						},
+					},
+				},
+				intermediate: emptyState(),
+			},
+			wantErr: "AI model non-existent for plugin ai-proxy: entity not found",
 		},
 		{
 			name: "error when service not found",
