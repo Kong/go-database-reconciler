@@ -2306,3 +2306,58 @@ func (c1 *CustomPluginDefinition) EqualWithOpts(c2 *CustomPluginDefinition, igno
 	}
 	return reflect.DeepEqual(c1Copy, c2Copy)
 }
+
+// AIModel represents an AI model definition in Kong.
+// It adds some helper methods along with Meta to the original AIModel object.
+type AIModel struct {
+	kong.AIModel `yaml:",inline"`
+	Meta
+}
+
+// Identifier returns the entity name or ID.
+func (a1 *AIModel) Identifier() string {
+	if a1.Name != nil {
+		return *a1.Name
+	}
+
+	return *a1.ID
+}
+
+// Console returns an entity's identity in a human readable string.
+func (a1 *AIModel) Console() string {
+	return a1.Identifier()
+}
+
+// Equal returns true if a1 and a2 are equal.
+func (a1 *AIModel) Equal(a2 *AIModel) bool {
+	return a1.EqualWithOpts(a2, false, false)
+}
+
+// EqualWithOpts returns true if a1 and a2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+// If ignoreTS is set to true, timestamp fields will be ignored.
+func (a1 *AIModel) EqualWithOpts(a2 *AIModel, ignoreID, ignoreTS bool) bool {
+	a1Copy := a1.DeepCopy()
+	a2Copy := a2.DeepCopy()
+
+	if len(a1Copy.Tags) == 0 {
+		a1Copy.Tags = nil
+	}
+	if len(a2Copy.Tags) == 0 {
+		a2Copy.Tags = nil
+	}
+	sort.Slice(a1Copy.Tags, func(i, j int) bool { return *(a1Copy.Tags[i]) < *(a1Copy.Tags[j]) })
+	sort.Slice(a2Copy.Tags, func(i, j int) bool { return *(a2Copy.Tags[i]) < *(a2Copy.Tags[j]) })
+
+	if ignoreID {
+		a1Copy.ID = nil
+		a2Copy.ID = nil
+	}
+	if ignoreTS {
+		a1Copy.CreatedAt = nil
+		a2Copy.CreatedAt = nil
+		a1Copy.UpdatedAt = nil
+		a2Copy.UpdatedAt = nil
+	}
+	return reflect.DeepEqual(a1Copy, a2Copy)
+}

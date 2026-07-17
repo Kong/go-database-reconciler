@@ -1,0 +1,13 @@
+_format_version: "3.0"
+ai_models:
+- alias: claude-3-5-sonnet
+  name: anthropic-claude
+  tags:
+  - tag1
+  - tag2
+- alias: gpt-4o
+  name: openai-gpt
+  tags:
+  - tag1
+  - tag2
+  - select-me

@@ -469,6 +469,33 @@ func TestGetPluginByProp(t *testing.T) {
 				},
 			},
 		},
+		{
+			Plugin: kong.Plugin{
+				ID:   new("6"),
+				Name: new("key-auth"),
+				Model: &kong.AIModel{
+					ID: new("model-ai-1"),
+				},
+				Config: map[string]any{
+					"key6": "value6",
+				},
+			},
+		},
+		{
+			Plugin: kong.Plugin{
+				ID:   new("7"),
+				Name: new("key-auth"),
+				Route: &kong.Route{
+					ID: new("route-ai-2"),
+				},
+				Model: &kong.AIModel{
+					ID: new("model-ai-2"),
+				},
+				Config: map[string]any{
+					"key7": "value7",
+				},
+			},
+		},
 	}
 	assert := assert.New(t)
 	collection := pluginsCollection()
@@ -477,38 +504,48 @@ func TestGetPluginByProp(t *testing.T) {
 		require.NoError(t, collection.Add(p))
 	}
 
-	plugin, err := collection.GetByProp("", "", "", "", "")
+	plugin, err := collection.GetByProp("", "", "", "", "", "")
 	assert.Nil(plugin)
 	require.Error(t, err)
 
-	plugin, err = collection.GetByProp("foo", "", "", "", "")
+	plugin, err = collection.GetByProp("foo", "", "", "", "", "")
 	assert.Nil(plugin)
 	assert.Equal(ErrNotFound, err)
 
-	plugin, err = collection.GetByProp("key-auth", "", "", "", "")
+	plugin, err = collection.GetByProp("key-auth", "", "", "", "", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value1", plugin.Config[testKey1])
 
-	plugin, err = collection.GetByProp("key-auth", "svc1", "", "", "")
+	plugin, err = collection.GetByProp("key-auth", "svc1", "", "", "", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value2", plugin.Config[testKey2])
 
-	plugin, err = collection.GetByProp("key-auth", "", "route1", "", "")
+	plugin, err = collection.GetByProp("key-auth", "", "route1", "", "", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value3", plugin.Config["key3"])
 
-	plugin, err = collection.GetByProp("key-auth", "", "", "consumer1", "")
+	plugin, err = collection.GetByProp("key-auth", "", "", "consumer1", "", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value4", plugin.Config["key4"])
 
-	plugin, err = collection.GetByProp("key-auth", "", "", "", "cg1")
+	plugin, err = collection.GetByProp("key-auth", "", "", "", "cg1", "")
 	require.NoError(t, err)
 	assert.NotNil(plugin)
 	assert.Equal("value5", plugin.Config["key5"])
+
+	plugin, err = collection.GetByProp("key-auth", "", "", "", "", "model-ai-1")
+	require.NoError(t, err)
+	assert.NotNil(plugin)
+	assert.Equal("value6", plugin.Config["key6"])
+
+	plugin, err = collection.GetByProp("key-auth", "", "route-ai-2", "", "", "model-ai-2")
+	require.NoError(t, err)
+	assert.NotNil(plugin)
+	assert.Equal("value7", plugin.Config["key7"])
 }
 
 func TestPluginsInvalidType(t *testing.T) {

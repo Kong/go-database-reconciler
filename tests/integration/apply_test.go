@@ -237,6 +237,7 @@ func Test_Apply_NestedEntity(t *testing.T) {
 
 func Test_Apply_Service_Route(t *testing.T) {
 	setup(t)
+	runWhenKongOrKonnect(t, ">=2.8.0")
 	client, err := getTestClient()
 	require.NoError(t, err)
 	ctx := t.Context()
@@ -246,7 +247,6 @@ func Test_Apply_Service_Route(t *testing.T) {
 		initialStateFile string
 		updateStateFile  string
 		expectedState    utils.KongRawState
-		runWhen          func(t *testing.T)
 	}{
 		{
 			name:             "route addition and update for a service",
@@ -591,3 +591,62 @@ func Test_Apply_Plugin_Conditional(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func Test_Apply_AIModels(t *testing.T) {
+	setup(t)
+	runWhenAIGateway(t, ">=2.0.0")
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	tests := []struct {
+		name          string
+		initialFile   string
+		updateFile    string
+		expectedState utils.KongRawState
+	}{
+		{
+			name:        "updates ai model alias and tags",
+			initialFile: "testdata/apply/009-ai-models/initial.yaml",
+			updateFile:  "testdata/apply/009-ai-models/update.yaml",
+			expectedState: utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						Name:  kong.String("openai-gpt"),
+						Alias: kong.String("gpt-4o-mini"),
+						Tags:  kong.StringSlice("tag1", "tag2", "updated-tag"),
+					},
+				},
+			},
+		},
+		{
+			name:        "adds a new ai model without removing existing ones",
+			initialFile: "testdata/apply/009-ai-models/initial.yaml",
+			updateFile:  "testdata/apply/009-ai-models/add-model.yaml",
+			expectedState: utils.KongRawState{
+				AIModels: []*kong.AIModel{
+					{
+						Name:  kong.String("openai-gpt"),
+						Alias: kong.String("gpt-4o"),
+						Tags:  kong.StringSlice("tag1", "tag2"),
+					},
+					{
+						Name:  kong.String("anthropic-claude"),
+						Alias: kong.String("claude-3-5-sonnet"),
+						Tags:  kong.StringSlice("tag1", "tag2"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mustResetKongState(ctx, t, client, deckDump.Config{})
+			require.NoError(t, sync(tc.initialFile))
+			require.NoError(t, apply(tc.updateFile))
+			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}

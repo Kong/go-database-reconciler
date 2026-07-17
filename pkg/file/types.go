@@ -515,6 +515,7 @@ type foo struct {
 	Consumer      string               `json:"consumer,omitempty" yaml:",omitempty"`
 	ConsumerGroup string               `json:"consumer_group,omitempty" yaml:",omitempty"`
 	Route         string               `json:"route,omitempty" yaml:",omitempty"`
+	Model         string               `json:"model,omitempty" yaml:",omitempty"`
 	Enabled       *bool                `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 	RunOn         *string              `json:"run_on,omitempty" yaml:"run_on,omitempty"`
 	Condition     *string              `json:"condition,omitempty" yaml:"condition,omitempty"`
@@ -567,6 +568,9 @@ func copyToFoo(p FPlugin) foo {
 	if p.Service != nil {
 		f.Service = *p.Service.ID
 	}
+	if p.Model != nil && p.Model.ID != nil {
+		f.Model = *p.Model.ID
+	}
 	if p.ConsumerGroup != nil {
 		f.ConsumerGroup = *p.ConsumerGroup.ID
 	}
@@ -618,6 +622,11 @@ func copyFromFoo(f foo, p *FPlugin) {
 	if f.Route != "" {
 		p.Route = &kong.Route{
 			ID: new(f.Route),
+		}
+	}
+	if f.Model != "" {
+		p.Model = &kong.AIModel{
+			ID: new(f.Model),
 		}
 	}
 	if f.Service != "" {
@@ -813,6 +822,7 @@ type LookUpSelectorTags struct {
 	Partials       []string `json:"partials,omitempty" yaml:"partials,omitempty"`
 	Routes         []string `json:"routes,omitempty" yaml:"routes,omitempty"`
 	Services       []string `json:"services,omitempty" yaml:"services,omitempty"`
+	AIModels       []string `json:"ai_models,omitempty" yaml:"ai_models,omitempty"`
 }
 
 // Konnect contains configuration specific to Konnect.
@@ -919,6 +929,23 @@ type FLicense struct {
 
 // sortKey is used for sorting.
 func (c FLicense) sortKey() string {
+	if c.ID != nil {
+		return *c.ID
+	}
+	return ""
+}
+
+// FAIModel represents an AI Model in Kong.
+// +k8s:deepcopy-gen=true
+type FAIModel struct {
+	kong.AIModel `yaml:",inline,omitempty"`
+}
+
+// sortKey is used for sorting.
+func (c FAIModel) sortKey() string {
+	if c.Name != nil {
+		return *c.Name
+	}
 	if c.ID != nil {
 		return *c.ID
 	}
@@ -1374,6 +1401,8 @@ type Content struct {
 	Vaults []FVault `json:"vaults,omitempty" yaml:"vaults,omitempty"`
 
 	Licenses []FLicense `json:"licenses,omitempty" yaml:"licenses,omitempty"`
+
+	AIModels []FAIModel `json:"ai_models,omitempty" yaml:"ai_models,omitempty"`
 
 	CustomEntities []FCustomEntity `json:"custom_entities,omitempty" yaml:"custom_entities,omitempty"`
 
