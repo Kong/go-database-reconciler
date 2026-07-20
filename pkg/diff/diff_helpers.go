@@ -239,9 +239,13 @@ func NewEnvVarCache() *EnvVarCache {
 	}
 
 	// Precompile the (expensive) PEM block patterns once, one per sensitive type.
+	// Note: we intentionally do NOT capture the text preceding the block. RE2's
+	// unanchored search already locates the block efficiently, and ReplaceAll
+	// leaves unmatched (preceding) text in place — capturing it would force
+	// submatch tracking and re-substitution of the entire prefix on every block.
 	for pemType := range pemTypes {
 		cache.PEMPatterns = append(cache.PEMPatterns, regexp.MustCompile(
-			`(?s)(.*?)-----BEGIN\s+`+regexp.QuoteMeta(pemType)+
+			`(?s)-----BEGIN\s+`+regexp.QuoteMeta(pemType)+
 				`\s*-----.*?-----END\s+`+regexp.QuoteMeta(pemType)+
 				`\s*-----(["',]*)`,
 		))
@@ -311,10 +315,12 @@ var jwkPattern = regexp.MustCompile(
 )
 
 // maskPEMBlocksWithCache finds PEM blocks in the diff output and replaces them
-// with [masked], using the precompiled patterns from the cache.
+// with [masked], using the precompiled patterns from the cache. Text before the
+// block is preserved automatically by ReplaceAll; the trailing quotes/commas
+// captured in group 1 are re-appended after the mask.
 func maskPEMBlocksWithCache(diffString string, cache *EnvVarCache) string {
 	for _, pattern := range cache.PEMPatterns {
-		diffString = pattern.ReplaceAllString(diffString, `$1`+maskedValue+`$2`)
+		diffString = pattern.ReplaceAllString(diffString, maskedValue+`$1`)
 	}
 	return diffString
 }
@@ -370,13 +376,8 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 		diffString = maskPEMBlocksWithCache(diffString, cache)
 	}
 
-	// Only apply JWK masking if JWK is in env vars AND the diff contains JWK markers
-	if hasJWKMarker {
-		diffString = jwkPattern.ReplaceAllString(diffString, maskedValue)
-	}
-
-	// Early exit if no secrets to mask
-	if !hasSecrets {
+	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
+	if !hasJWKMarker && !hasSecrets {
 		return diffString
 	}
 
@@ -395,8 +396,17 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 
 	lines := strings.Split(diffString, "\n")
 	for i, line := range lines {
-		// Skip lines that don't contain any suspicious patterns - fast path for majority of lines
-		if !containsAnySecret(line, cache.Secrets) {
+		// JWK masking runs independently of secrets, but only on the (few) lines
+		// that actually contain a "kty" marker. This keeps the expensive JWK regex
+		// off the ~85% of lines that can never match, instead of scanning the whole
+		// concatenated diff in one pass.
+		if hasJWKMarker && strings.Contains(line, `"kty"`) {
+			line = jwkPattern.ReplaceAllString(line, maskedValue)
+		}
+
+		// Skip lines that don't contain any secret - fast path for the majority.
+		if !hasSecrets || !containsAnySecret(line, cache.Secrets) {
+			lines[i] = line
 			continue
 		}
 
