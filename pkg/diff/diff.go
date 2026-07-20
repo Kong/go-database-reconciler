@@ -166,6 +166,10 @@ type Syncer struct {
 	// schemaRegistry is the central schema manager used for fetching and caching
 	// all entity schemas (plugins, partials, vaults, generic entities).
 	schemaRegistry *schema.Registry
+
+	// envVarCache holds precomputed environment variable data to avoid redundant
+	// parsing, sorting, and regex compilation during masking operations.
+	envVarCache *EnvVarCache
 }
 
 type SyncerOpts struct {
@@ -602,7 +606,14 @@ type Stats struct {
 
 // Generete Diff output for 'sync' and 'diff' commands
 func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
-	defaults ...map[string]any,
+	defaults ...map[string]any) (string, error) {
+	return generateDiffStringWithCache(e, isDelete, noMaskValues, nil, defaults...)
+}
+
+// generateDiffStringWithCache is like generateDiffString but uses a precomputed
+// environment variable cache to avoid redundant masking computations.
+func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
+	envVarCache *EnvVarCache, defaults ...map[string]any,
 ) (string, error) {
 	var diffString string
 	var err error
@@ -623,7 +634,11 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
 		return "", err
 	}
 	if !noMaskValues {
-		diffString = MaskEnvVarValue(diffString)
+		if envVarCache == nil {
+			diffString = MaskEnvVarValue(diffString)
+		} else {
+			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
+		}
 	}
 	return diffString, err
 }
@@ -696,6 +711,14 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 	// TODO https://github.com/Kong/go-database-reconciler/issues/22/
 	// this can probably be extracted to clients (only deck uses it) by having clients count events through the result
 	// channel, rather than returning them from Solve.
+
+	// Precompute environment variables once before processing any events.
+	// This avoids redundant parsing, sorting, and regex compilation during
+	// potentially thousands of masking operations.
+	if !sc.noMaskValues {
+		sc.envVarCache = NewEnvVarCache()
+	}
+
 	stats := Stats{
 		CreateOps: &utils.AtomicInt32Counter{},
 		UpdateOps: &utils.AtomicInt32Counter{},
@@ -860,7 +883,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if sc.skipSchemaDefaults {
 				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
-			diffString, err := generateDiffString(e, false, sc.noMaskValues, entityDefaults)
+			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
 			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
 			// prints and JSON blob building will be moved to the deck client.
