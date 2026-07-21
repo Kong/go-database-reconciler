@@ -379,14 +379,6 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	if !hasJWKMarker && !hasSecrets {
 		return diffString
 	}
-	// Only apply PEM masking if both patterns are present AND the diff actually contains PEM markers
-	if hasPEMMarker {
-		diffString = maskPEMBlocksWithCache(diffString, cache)
-	}
-	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
-	if !hasJWKMarker && !hasSecrets {
-		return diffString
-	}
 
 	maskFn := func(s string) string {
 		for _, re := range cache.SecretPatterns {
