@@ -364,6 +364,11 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	if len(cache.EnvVars) == 0 {
 		return diffString
 	}
+	// Early exit: check if diff contains any markers for secrets/PEM/JWK
+	hasSecrets := len(cache.Secrets) > 0
+	hasPEM := len(cache.PEMPatterns) > 0
+	hasPEMMarker := hasPEM && (strings.Contains(diffString, "-----BEGIN") || strings.Contains(diffString, "-----END"))
+	hasJWKMarker := cache.HasJWK && strings.Contains(diffString, `"kty"`)
 
 	// Early exit: check if diff contains any markers for secrets/PEM/JWK
 	hasSecrets := len(cache.Secrets) > 0
@@ -376,6 +381,14 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 		diffString = maskPEMBlocksWithCache(diffString, cache)
 	}
 
+	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
+	if !hasJWKMarker && !hasSecrets {
+		return diffString
+	}
+	// Only apply PEM masking if both patterns are present AND the diff actually contains PEM markers
+	if hasPEMMarker {
+		diffString = maskPEMBlocksWithCache(diffString, cache)
+	}
 	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
 	if !hasJWKMarker && !hasSecrets {
 		return diffString

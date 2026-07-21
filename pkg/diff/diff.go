@@ -26,7 +26,7 @@ import (
 
 // TODO https://github.com/Kong/go-database-reconciler/issues/22 Body is an any type field. It is set here
 // but apparently never used. It only ever contains the "old"/"new" map with the old and new object from
-// the event above. We use the event directly in generateDiffString, so it's not clear what its intended
+// the event above. We use the event directly in generateDiffStringWithCache, so it's not clear what its intended
 // purpose was. We should probably do a breaking change to either remove it or change it to a more
 // structured type. The latter makes sense if we want downstream to be able to calculate its own diffs
 // from structs for whatever reason, e.g. to print a partial diff rather than the complete diff string.
@@ -604,13 +604,7 @@ type Stats struct {
 	DeleteOps *utils.AtomicInt32Counter
 }
 
-// Generete Diff output for 'sync' and 'diff' commands
-func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
-	defaults ...map[string]any) (string, error) {
-	return generateDiffStringWithCache(e, isDelete, noMaskValues, nil, defaults...)
-}
-
-// generateDiffStringWithCache is like generateDiffString but uses a precomputed
+// generateDiffStringWithCache is like prev generateDiffString but uses a precomputed
 // environment variable cache to avoid redundant masking computations.
 func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
 	envVarCache *EnvVarCache, defaults ...map[string]any,
