@@ -498,6 +498,194 @@ func maskEnvVarValueBaseline(diffString string) string {
 	return strings.Join(lines, "\n")
 }
 
+// maskEnvVarValueMain simulates the MAIN branch implementation (no caching at all).
+// This is the baseline to compare against the current optimized implementation.
+func maskEnvVarValueMain(diffString string) string {
+	envVars := parseDeckEnvVars()
+	if len(envVars) == 0 {
+		return diffString
+	}
+
+	// Build sorted list of values (longest first) for substring replacement
+	var secrets []string
+	seen := make(map[string]bool, len(envVars))
+	for _, ev := range envVars {
+		if ev.Value != "" && !seen[ev.Value] {
+			secrets = append(secrets, ev.Value)
+			seen[ev.Value] = true
+		}
+	}
+	if len(secrets) == 0 {
+		return diffString
+	}
+	sort.Slice(secrets, func(i, j int) bool {
+		return len(secrets[i]) > len(secrets[j])
+	})
+
+	// Pre-compile word-boundary patterns once for all secrets (main branch does this per call)
+	secretPatterns := make([]*regexp.Regexp, len(secrets))
+	for idx, secret := range secrets {
+		secretPatterns[idx] = regexp.MustCompile(`\b` + regexp.QuoteMeta(secret) + `\b`)
+	}
+
+	maskFn := func(s string) string {
+		for _, re := range secretPatterns {
+			s = re.ReplaceAllString(s, maskedValue)
+		}
+		return s
+	}
+
+	isJSON := jsonKeyPattern.MatchString(diffString)
+
+	lines := strings.Split(diffString, "\n")
+	for i, line := range lines {
+		result := kvPattern.ReplaceAllStringFunc(line, func(match string) string {
+			sub := kvPattern.FindStringSubmatch(match)
+			if sub == nil {
+				return match
+			}
+			switch {
+			case sub[1] != "":
+				masked := maskFn(sub[1])
+				if masked != sub[1] {
+					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + masked + `"`
+				}
+			case sub[2] != "":
+				if seen[sub[2]] {
+					if isJSON {
+						return `: "` + maskedValue + `"`
+					}
+					return ": " + maskedValue
+				}
+			case sub[3] != "":
+				masked := maskFn(sub[3])
+				if masked != sub[3] {
+					return ": " + masked
+				}
+			}
+			return match
+		})
+
+		if result == line {
+			result = arrayElemPattern.ReplaceAllStringFunc(line, func(match string) string {
+				sub := arrayElemPattern.FindStringSubmatch(match)
+				if sub == nil {
+					return match
+				}
+				masked := maskFn(sub[2])
+				if masked == sub[2] {
+					return match
+				}
+				quoted := `"` + sub[2] + `"`
+				suffix := match[len(sub[1])+len(quoted):]
+				return sub[1] + `"` + masked + `"` + suffix
+			})
+		}
+
+		lines[i] = result
+	}
+	return strings.Join(lines, "\n")
+}
+
+// TestMainVsOptimized compares the main branch implementation (no caching) vs
+// the current optimized version (with pre-computed cache). This shows the real-world
+// performance improvement from adding the EnvVarCache optimization.
+func TestMainVsOptimized(t *testing.T) {
+	tests := []struct {
+		name      string
+		setupFunc func(*testing.T)
+		buildFunc func(int) string
+		numEvents int
+	}{
+		{
+			name: "Main_vs_Optimized_SmallConfig_5K",
+			setupFunc: func(t *testing.T) {
+				t.Setenv("DECK_REDIS_HOST", "redis.internal.example.com")
+				t.Setenv("DECK_REDIS_PASSWORD", "super_secret_redis_pass_12345")
+				t.Setenv("DECK_API_KEY", "sk-1234567890abcdefghijklmnop")
+				t.Setenv("DECK_OAUTH_SECRET", "oauth_client_secret_xyz_789")
+				t.Setenv("DECK_DATABASE_URL", "postgres://user:pass@db.internal:5432/mydb")
+				t.Setenv("DECK_AUTH_TOKEN", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+			},
+			buildFunc: buildRealisticDiffForBenchmark,
+			numEvents: 5000,
+		},
+		{
+			name: "Main_vs_Optimized_LargeConfig_50K",
+			setupFunc: func(t *testing.T) {
+				t.Setenv("DECK_REDIS_HOST", "redis.internal.example.com")
+				t.Setenv("DECK_REDIS_PASSWORD", "super_secret_redis_pass_12345")
+				t.Setenv("DECK_API_KEY", "sk-1234567890abcdefghijklmnop")
+				t.Setenv("DECK_OAUTH_SECRET", "oauth_client_secret_xyz_789")
+				t.Setenv("DECK_DATABASE_URL", "postgres://user:pass@db.internal:5432/mydb")
+				t.Setenv("DECK_AUTH_TOKEN", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+			},
+			buildFunc: buildRealisticDiffForBenchmark,
+			numEvents: 50000,
+		},
+		{
+			name: "Main_vs_Optimized_WithPEM_10K",
+			setupFunc: func(t *testing.T) {
+				t.Setenv("DECK_REDIS_HOST", "redis.internal.example.com")
+				t.Setenv("DECK_REDIS_PASSWORD", "super_secret_redis_pass_12345")
+				t.Setenv("DECK_API_KEY", "sk-1234567890abcdefghijklmnop")
+				t.Setenv("DECK_OAUTH_SECRET", "oauth_client_secret_xyz_789")
+				t.Setenv("DECK_DATABASE_URL", "postgres://user:pass@db.internal:5432/mydb")
+				t.Setenv("DECK_AUTH_TOKEN", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+				t.Setenv("DECK_CLIENT_CERT", `"-----BEGIN CERTIFICATE-----
+MIIErDCCApSgAwIBAgIUaZRSadvXi4QaZssfTWp+gNNzU0kwDQYJKoZIhvcNAQEL
+BQAwSTEUMBIGA1UEAwwLZXhhbXBsZS5jb20xCzAJBgNVBAYTAkdCMRAwDgYDVQQI
+-----END CERTIFICATE-----"`)
+				t.Setenv("DECK_CLIENT_KEY", `"-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDMW0C8u/cKBVjx
+tiRTdd3BP5cefnksKlABZ2gvIrB+fEJTQRdDppaNxVN4dADFHBsaMPekOeRopiTa
+-----END PRIVATE KEY-----"`)
+			},
+			buildFunc: buildRealisticDiffForBenchmarkWithPEM,
+			numEvents: 10000,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupFunc(t)
+
+			diffData := tt.buildFunc(tt.numEvents)
+
+			// Warm up
+			_ = maskEnvVarValueMain(diffData)
+			cache := NewEnvVarCache()
+			_ = maskEnvVarValueWithCache(diffData, cache)
+
+			// Measure MAIN branch (no caching)
+			mainStart := time.Now()
+			for i := 0; i < 2; i++ {
+				_ = maskEnvVarValueMain(diffData)
+			}
+			mainDuration := time.Since(mainStart)
+			mainAverage := mainDuration / 2
+
+			// Measure CURRENT (with cache)
+			cache = NewEnvVarCache()
+			currentStart := time.Now()
+			for i := 0; i < 2; i++ {
+				_ = maskEnvVarValueWithCache(diffData, cache)
+			}
+			currentDuration := time.Since(currentStart)
+			currentAverage := currentDuration / 2
+
+			// Calculate improvement
+			speedup := float64(mainAverage) / float64(currentAverage)
+
+			t.Logf("Performance Comparison for %s:", tt.name)
+			t.Logf("  Scenario: %d events", tt.numEvents)
+			t.Logf("  Main branch (no caching):  %v per run", mainAverage)
+			t.Logf("  Current (with cache):      %v per run", currentAverage)
+			t.Logf("  Improvement: %.2f×", speedup)
+		})
+	}
+}
+
 // TestTotalPerformanceImprovement compares performance before ANY optimizations
 // (baseline: no caching, no early termination, no lazy checks) vs now with all
 // optimizations (caching + early termination + lazy pattern matching).
