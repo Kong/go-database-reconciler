@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 )
 
 // assertMasked runs the masking function once (outside the timed loop) and
@@ -371,4 +372,228 @@ func maskEnvVarValueNoCache(diffString string) string {
 		lines[i] = result
 	}
 	return strings.Join(lines, "\n")
+}
+
+// maskEnvVarValueBaseline simulates the BASELINE approach BEFORE any optimizations:
+// - No caching (recompiles regex on every call)
+// - No early termination checks (always processes PEM/JWK even if not present)
+// - No lazy pattern matching (scans entire diff at once)
+// - No containsAnySecret pre-check (applies regex to every line)
+// This represents the code before this PR's optimizations were introduced.
+func maskEnvVarValueBaseline(diffString string) string {
+	envVars := parseDeckEnvVars()
+	if len(envVars) == 0 {
+		return diffString
+	}
+
+	// Baseline: no optimization - recompile and detect everything on every call
+	var secrets []string
+	pemTypes := make(map[string]bool)
+	hasJWK := false
+	seen := make(map[string]bool, len(envVars))
+
+	for _, ev := range envVars {
+		if ev.Value != "" && !seen[ev.Value] {
+			secrets = append(secrets, ev.Value)
+			seen[ev.Value] = true
+		}
+		if t := pemTypeFromValue(ev.Value); t != "" {
+			pemTypes[t] = true
+		}
+		if isJWK(ev.Value) {
+			hasJWK = true
+		}
+	}
+
+	// Phase 1: ALWAYS try PEM masking (no early exit check)
+	for pemType := range pemTypes {
+		pattern := regexp.MustCompile(
+			`(?s)(.*?)-----BEGIN\s+` + regexp.QuoteMeta(pemType) +
+				`\s*-----.*?-----END\s+` + regexp.QuoteMeta(pemType) +
+				`\s*-----(["',]*)`)
+		diffString = pattern.ReplaceAllString(diffString, `$1`+maskedValue+`$2`)
+	}
+
+	// Phase 2: ALWAYS try JWK masking (no early exit check)
+	if hasJWK {
+		jwk := regexp.MustCompile(
+			`\{(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*` +
+				`"kty"\s*:\s*"[^"]*"` +
+				`(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*\}`,
+		)
+		diffString = jwk.ReplaceAllString(diffString, maskedValue)
+	}
+
+	if len(secrets) == 0 {
+		return diffString
+	}
+
+	sort.Slice(secrets, func(i, j int) bool {
+		return len(secrets[i]) > len(secrets[j])
+	})
+
+	// Recompile all secret patterns on every call (no caching)
+	secretPatterns := make([]*regexp.Regexp, len(secrets))
+	for idx, secret := range secrets {
+		secretPatterns[idx] = regexp.MustCompile(`\b` + regexp.QuoteMeta(secret) + `\b`)
+	}
+
+	maskFn := func(s string) string {
+		for _, re := range secretPatterns {
+			s = re.ReplaceAllString(s, maskedValue)
+		}
+		return s
+	}
+
+	isJSON := jsonKeyPattern.MatchString(diffString)
+
+	// Baseline: process EVERY line with regex (no containsAnySecret pre-check)
+	lines := strings.Split(diffString, "\n")
+	for i, line := range lines {
+		result := kvPattern.ReplaceAllStringFunc(line, func(match string) string {
+			sub := kvPattern.FindStringSubmatch(match)
+			if sub == nil {
+				return match
+			}
+			switch {
+			case sub[1] != "":
+				masked := maskFn(sub[1])
+				if masked != sub[1] {
+					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + masked + `"`
+				}
+			case sub[2] != "":
+				if seen[sub[2]] {
+					if isJSON {
+						return `: "` + maskedValue + `"`
+					}
+					return ": " + maskedValue
+				}
+			case sub[3] != "":
+				masked := maskFn(sub[3])
+				if masked != sub[3] {
+					return ": " + masked
+				}
+			}
+			return match
+		})
+
+		if result == line {
+			result = arrayElemPattern.ReplaceAllStringFunc(line, func(match string) string {
+				sub := arrayElemPattern.FindStringSubmatch(match)
+				if sub == nil {
+					return match
+				}
+				masked := maskFn(sub[2])
+				if masked == sub[2] {
+					return match
+				}
+				quoted := `"` + sub[2] + `"`
+				suffix := match[len(sub[1])+len(quoted):]
+				return sub[1] + `"` + masked + `"` + suffix
+			})
+		}
+
+		lines[i] = result
+	}
+	return strings.Join(lines, "\n")
+}
+
+// TestTotalPerformanceImprovement compares performance before ANY optimizations
+// (baseline: no caching, no early termination, no lazy checks) vs now with all
+// optimizations (caching + early termination + lazy pattern matching).
+// This logs timing data for CI to verify the total impact of ALL changes combined.
+func TestTotalPerformanceImprovement(t *testing.T) {
+	tests := []struct {
+		name      string
+		setupFunc func(*testing.T)
+		buildFunc func(int) string
+		numEvents int
+	}{
+		{
+			name: "Baseline_vs_Optimized_SmallConfig_5K",
+			setupFunc: func(t *testing.T) {
+				t.Setenv("DECK_REDIS_HOST", "redis.internal.example.com")
+				t.Setenv("DECK_REDIS_PASSWORD", "super_secret_redis_pass_12345")
+				t.Setenv("DECK_API_KEY", "sk-1234567890abcdefghijklmnop")
+				t.Setenv("DECK_OAUTH_SECRET", "oauth_client_secret_xyz_789")
+				t.Setenv("DECK_DATABASE_URL", "postgres://user:pass@db.internal:5432/mydb")
+				t.Setenv("DECK_AUTH_TOKEN", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+			},
+			buildFunc: buildRealisticDiffForBenchmark,
+			numEvents: 5000,
+		},
+		{
+			name: "Baseline_vs_Optimized_LargeConfig_50K",
+			setupFunc: func(t *testing.T) {
+				t.Setenv("DECK_REDIS_HOST", "redis.internal.example.com")
+				t.Setenv("DECK_REDIS_PASSWORD", "super_secret_redis_pass_12345")
+				t.Setenv("DECK_API_KEY", "sk-1234567890abcdefghijklmnop")
+				t.Setenv("DECK_OAUTH_SECRET", "oauth_client_secret_xyz_789")
+				t.Setenv("DECK_DATABASE_URL", "postgres://user:pass@db.internal:5432/mydb")
+				t.Setenv("DECK_AUTH_TOKEN", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+			},
+			buildFunc: buildRealisticDiffForBenchmark,
+			numEvents: 50000,
+		},
+		{
+			name: "Baseline_vs_Optimized_WithPEM_10K",
+			setupFunc: func(t *testing.T) {
+				t.Setenv("DECK_REDIS_HOST", "redis.internal.example.com")
+				t.Setenv("DECK_REDIS_PASSWORD", "super_secret_redis_pass_12345")
+				t.Setenv("DECK_API_KEY", "sk-1234567890abcdefghijklmnop")
+				t.Setenv("DECK_OAUTH_SECRET", "oauth_client_secret_xyz_789")
+				t.Setenv("DECK_DATABASE_URL", "postgres://user:pass@db.internal:5432/mydb")
+				t.Setenv("DECK_AUTH_TOKEN", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+				t.Setenv("DECK_CLIENT_CERT", `"-----BEGIN CERTIFICATE-----
+MIIErDCCApSgAwIBAgIUaZRSadvXi4QaZssfTWp+gNNzU0kwDQYJKoZIhvcNAQEL
+BQAwSTEUMBIGA1UEAwwLZXhhbXBsZS5jb20xCzAJBgNVBAYTAkdCMRAwDgYDVQQI
+-----END CERTIFICATE-----"`)
+				t.Setenv("DECK_CLIENT_KEY", `"-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDMW0C8u/cKBVjx
+tiRTdd3BP5cefnksKlABZ2gvIrB+fEJTQRdDppaNxVN4dADFHBsaMPekOeRopiTa
+-----END PRIVATE KEY-----"`)
+			},
+			buildFunc: buildRealisticDiffForBenchmarkWithPEM,
+			numEvents: 10000,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupFunc(t)
+
+			diffData := tt.buildFunc(tt.numEvents)
+
+			// Warm up (ensures JIT compilation)
+			_ = maskEnvVarValueBaseline(diffData)
+			cache := NewEnvVarCache()
+			_ = maskEnvVarValueWithCache(diffData, cache)
+
+			// Measure BASELINE approach (no optimizations at all)
+			baselineStart := time.Now()
+			for i := 0; i < 2; i++ {
+				_ = maskEnvVarValueBaseline(diffData)
+			}
+			baselineDuration := time.Since(baselineStart)
+			baselineAverage := baselineDuration / 2
+
+			// Measure OPTIMIZED approach (with caching + early termination + lazy checks)
+			cache = NewEnvVarCache()
+			optimizedStart := time.Now()
+			for i := 0; i < 2; i++ {
+				_ = maskEnvVarValueWithCache(diffData, cache)
+			}
+			optimizedDuration := time.Since(optimizedStart)
+			optimizedAverage := optimizedDuration / 2
+
+			// Calculate total speedup
+			totalSpeedup := float64(baselineAverage) / float64(optimizedAverage)
+
+			t.Logf("Total Performance Impact for %s:", tt.name)
+			t.Logf("  Scenario: %d events", tt.numEvents)
+			t.Logf("  Baseline (no optimizations):         %v per run", baselineAverage)
+			t.Logf("  Optimized (caching+early exit+lazy): %v per run", optimizedAverage)
+			t.Logf("  Total Speedup: %.2f×", totalSpeedup)
+		})
+	}
 }
