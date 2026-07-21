@@ -374,6 +374,7 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	if hasPEMMarker {
 		diffString = maskPEMBlocksWithCache(diffString, cache)
 	}
+
 	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
 	if !hasJWKMarker && !hasSecrets {
 		return diffString
@@ -459,6 +460,8 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	return strings.Join(lines, "\n")
 }
 
+// containsAnySecret checks if a line contains any of the secrets using simple string matching.
+// This avoids expensive regex operations on lines that don't need masking.
 func containsAnySecret(line string, secrets []string) bool {
 	for _, secret := range secrets {
 		if strings.Contains(line, secret) {
