@@ -104,6 +104,19 @@ func runWhenEnterpriseOrKonnect(t *testing.T, kongSemverRange string) {
 	kong.RunWhenEnterprise(t, kongSemverRange, kong.RequiredFeatures{})
 }
 
+func runWhenAIGateway(t *testing.T, kongSemverRange string) {
+	t.Helper()
+
+	// Skip for konnect since AI Gateway is not supported for konnect
+	if os.Getenv("DECK_KONNECT_EMAIL") != "" &&
+		os.Getenv("DECK_KONNECT_PASSWORD") != "" &&
+		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+		return
+	}
+
+	kong.RunWhenAIGateway(t, kongSemverRange)
+}
+
 func runWhen(t *testing.T, mode string, semverRange string) {
 	t.Helper()
 
@@ -116,6 +129,8 @@ func runWhen(t *testing.T, mode string, semverRange string) {
 		kong.RunWhenEnterprise(t, semverRange, kong.RequiredFeatures{})
 	case "konnect":
 		runWhenKonnect(t)
+	case "ai-gateway":
+		runWhenAIGateway(t, semverRange)
 	}
 }
 
@@ -202,6 +217,10 @@ func sortSlices(x, y any) bool {
 		yEntity := y.(*kong.ClonedPluginDefinition)
 		xName = *xEntity.Name
 		yName = *yEntity.Name
+	case *kong.AIModel:
+		yEntity := y.(*kong.AIModel)
+		xName = *xEntity.Name
+		yName = *yEntity.Name
 	}
 	return xName < yName
 }
@@ -256,6 +275,7 @@ func testKongState(t *testing.T, client *kong.Client, isKonnect bool,
 		cmpopts.IgnoreFields(kong.KeySet{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.Partial{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.IgnoreFields(kong.ClonedPluginDefinition{}, "ID", "CreatedAt", "UpdatedAt"),
+		cmpopts.IgnoreFields(kong.AIModel{}, "ID", "CreatedAt", "UpdatedAt"),
 		cmpopts.SortSlices(sortSlices),
 		cmpopts.SortSlices(func(a, b *string) bool { return *a < *b }),
 		cmpopts.EquateEmpty(),

@@ -121,9 +121,9 @@ func (d *pluginDiffer) Deletes(handler func(crud.Event) error) error {
 func (d *pluginDiffer) deletePlugin(plugin *state.Plugin) (*crud.Event, error) {
 	plugin = &state.Plugin{Plugin: *plugin.DeepCopy()}
 	name := *plugin.Name
-	serviceID, routeID, consumerID, consumerGroupID := foreignNames(plugin)
+	serviceID, routeID, consumerID, consumerGroupID, modelID := foreignNames(plugin)
 	_, err := d.targetState.Plugins.GetByProp(
-		name, serviceID, routeID, consumerID, consumerGroupID,
+		name, serviceID, routeID, consumerID, consumerGroupID, modelID,
 	)
 	if errors.Is(err, state.ErrNotFound) {
 		return &crud.Event{
@@ -162,9 +162,9 @@ func (d *pluginDiffer) CreateAndUpdates(handler func(crud.Event) error) error {
 func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, error) {
 	plugin = &state.Plugin{Plugin: *plugin.DeepCopy()}
 	name := *plugin.Name
-	serviceID, routeID, consumerID, consumerGroupID := foreignNames(plugin)
+	serviceID, routeID, consumerID, consumerGroupID, modelID := foreignNames(plugin)
 	currentPlugin, err := d.currentState.Plugins.GetByProp(
-		name, serviceID, routeID, consumerID, consumerGroupID,
+		name, serviceID, routeID, consumerID, consumerGroupID, modelID,
 	)
 	if errors.Is(err, state.ErrNotFound) {
 		// plugin not present, create it
@@ -229,7 +229,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 	return nil, nil
 }
 
-func foreignNames(p *state.Plugin) (serviceID, routeID, consumerID, consumerGroupID string) {
+func foreignNames(p *state.Plugin) (serviceID, routeID, consumerID, consumerGroupID, modelID string) {
 	if p == nil {
 		return
 	}
@@ -244,6 +244,9 @@ func foreignNames(p *state.Plugin) (serviceID, routeID, consumerID, consumerGrou
 	}
 	if p.ConsumerGroup != nil && p.ConsumerGroup.ID != nil {
 		consumerGroupID = *p.ConsumerGroup.ID
+	}
+	if p.Model != nil && p.Model.ID != nil {
+		modelID = *p.Model.ID
 	}
 	return
 }

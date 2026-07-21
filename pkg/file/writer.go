@@ -28,6 +28,11 @@ type WriteConfig struct {
 	IsConsumerGroupPolicyOverrideSet bool
 	SanitizeContent                  bool
 	IncludePluginDefinitions         bool
+	// IsKongAIGateway indicates the target is an AI Gateway instance. AI Gateway
+	// reports a 2.x Kong version but expects the 3.0 file format, so callers that
+	// have a live Kong client should set this (e.g. by inspecting the Server
+	// header) rather than having the writer make network calls itself.
+	IsKongAIGateway bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
@@ -81,13 +86,16 @@ func compareConsumerGroupPlugin(p1, p2 *kong.ConsumerGroupPlugin) bool {
 	return strings.Compare(i1, i2) < 0
 }
 
-func getFormatVersion(kongVersion string) (string, error) {
+func getFormatVersion(kongVersion string, isKongAIGateway bool) (string, error) {
 	parsedKongVersion, err := utils.ParseKongVersion(kongVersion)
 	if err != nil {
 		return "", fmt.Errorf("parsing Kong version: %w", err)
 	}
 	formatVersion := "1.1"
 	if parsedKongVersion.GTE(utils.Kong300Version) {
+		formatVersion = "3.0"
+	} else if parsedKongVersion.GTE(utils.Kong200Version) && isKongAIGateway {
+		// While AI Gateway reports a 2.x version, it uses the Kong 3.x file format.
 		formatVersion = "3.0"
 	}
 	return formatVersion, nil
@@ -116,7 +124,7 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	var err error
 
 	file.Workspace = config.Workspace
-	formatVersion, err := getFormatVersion(config.KongVersion)
+	formatVersion, err := getFormatVersion(config.KongVersion, config.IsKongAIGateway)
 	if err != nil {
 		return nil, fmt.Errorf("get format version: %w", err)
 	}
@@ -209,6 +217,11 @@ func KongStateToContent(kongState *state.KongState, config WriteConfig) (*Conten
 	}
 
 	err = populateLicenses(kongState, file, config)
+	if err != nil {
+		return nil, err
+	}
+
+	err = populateAIModels(kongState, file, config)
 	if err != nil {
 		return nil, err
 	}
@@ -435,6 +448,9 @@ func getFRouteFromRoute(r *state.Route, kongState *state.KongState, config Write
 			continue
 		}
 		p.Route = nil
+		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+			return nil, err
+		}
 		utils.ZeroOutID(p, p.Name, config.WithID)
 		utils.ZeroOutTimestamps(p)
 		route.Plugins = append(route.Plugins, &FPlugin{Plugin: p.Plugin})
@@ -479,6 +495,9 @@ func fetchService(id string, kongState *state.KongState, config WriteConfig) (*F
 			continue
 		}
 		p.Service = nil
+		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+			return nil, err
+		}
 		utils.ZeroOutID(p, p.Name, config.WithID)
 		utils.ZeroOutTimestamps(p)
 		s.Plugins = append(s.Plugins, &FPlugin{Plugin: p.Plugin})
@@ -531,6 +550,28 @@ func populateServicelessRoutes(kongState *state.KongState, file *Content,
 	sort.SliceStable(file.Routes, func(i, j int) bool {
 		return compareOrder(file.Routes[i], file.Routes[j])
 	})
+	return nil
+}
+
+// resolvePluginModelReference rewrites a plugin's Model reference from the raw
+// model ID to the model's name, so the dumped file uses a human-friendly,
+// portable reference. Unlike service/route/consumer references, a model
+// reference does not nest the plugin under a parent, so it must be resolved
+// wherever a plugin is serialized (top-level and nested). It is a no-op when
+// the plugin has no linked model, or when content is being sanitized.
+func resolvePluginModelReference(kongState *state.KongState, p *kong.Plugin, config WriteConfig) error {
+	if p.Model == nil || utils.Empty(p.Model.ID) {
+		return nil
+	}
+	mID := *p.Model.ID
+	model, err := kongState.AIModels.Get(mID)
+	if err != nil {
+		return fmt.Errorf("unable to get AI model %s for plugin %s: %w", mID, *p.Name, err)
+	}
+	if !utils.Empty(model.Name) && !config.SanitizeContent {
+		mID = *model.Name
+	}
+	p.Model.ID = &mID
 	return nil
 }
 
@@ -595,6 +636,11 @@ func populatePlugins(kongState *state.KongState, file *Content,
 				cgID = *cg.Name
 			}
 			p.ConsumerGroup.ID = &cgID
+		}
+		// Model is not counted as an association: it does not nest the plugin
+		// under a parent entity, it is emitted as a string reference on the plugin.
+		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+			return err
 		}
 		if associations == 0 || associations > 1 {
 			utils.ZeroOutID(p, p.Name, config.WithID)
@@ -783,6 +829,10 @@ func populateConsumers(kongState *state.KongState, file *Content,
 		for _, p := range plugins {
 			if p.Service != nil || p.Route != nil || p.ConsumerGroup != nil {
 				continue
+			}
+			p.Consumer = nil
+			if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
+				return err
 			}
 			utils.ZeroOutID(p, p.Name, config.WithID)
 			utils.ZeroOutTimestamps(p)
@@ -1030,6 +1080,25 @@ func populateLicenses(kongState *state.KongState, file *Content,
 	}
 	sort.SliceStable(file.Licenses, func(i, j int) bool {
 		return compareOrder(file.Licenses[i], file.Licenses[j])
+	})
+	return nil
+}
+
+func populateAIModels(kongState *state.KongState, file *Content,
+	config WriteConfig,
+) error {
+	aiModels, err := kongState.AIModels.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, am := range aiModels {
+		am := FAIModel{AIModel: am.AIModel}
+		utils.ZeroOutID(&am, am.Name, config.WithID)
+		utils.ZeroOutTimestamps(&am)
+		file.AIModels = append(file.AIModels, am)
+	}
+	sort.SliceStable(file.AIModels, func(i, j int) bool {
+		return compareOrder(file.AIModels[i], file.AIModels[j])
 	})
 	return nil
 }

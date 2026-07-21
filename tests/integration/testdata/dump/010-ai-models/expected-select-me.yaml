@@ -1,0 +1,12 @@
+_format_version: "3.0"
+_info:
+  defaults: {}
+  select_tags:
+  - select-me
+ai_models:
+- alias: gpt-4o
+  name: openai-gpt
+  tags:
+  - tag1
+  - tag2
+  - select-me

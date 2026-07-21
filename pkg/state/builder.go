@@ -46,6 +46,18 @@ func ensureRoute(kongState *KongState, routeID string) (bool, *kong.Route, error
 	return true, utils.GetRouteReference(r.Route), nil
 }
 
+func ensureModel(kongState *KongState, modelID string) (bool, *kong.AIModel, error) {
+	m, err := kongState.AIModels.Get(modelID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return false, nil, nil
+		}
+		return false, nil, fmt.Errorf("looking up model %q: %w", modelID, err)
+
+	}
+	return true, utils.GetModelReference(m.AIModel), nil
+}
+
 func ensureConsumer(kongState *KongState, consumerID string) (bool, *kong.Consumer, error) {
 	c, err := kongState.Consumers.GetByIDOrUsername(consumerID)
 	if err != nil {
@@ -301,6 +313,14 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 		}
 	}
 
+	for _, c := range raw.AIModels {
+		utils.ZeroOutTimestamps(c)
+		err := kongState.AIModels.Add(AIModel{AIModel: *c})
+		if err != nil {
+			return fmt.Errorf("inserting ai model definition into state: %w", err)
+		}
+	}
+
 	for _, p := range raw.Partials {
 		utils.ZeroOutTimestamps(p)
 		err := kongState.Partials.Add(Partial{Partial: *p})
@@ -326,6 +346,15 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			}
 			if ok {
 				p.Route = r
+			}
+		}
+		if p.Model != nil && !utils.Empty(p.Model.ID) {
+			ok, m, err := ensureModel(kongState, *p.Model.ID)
+			if err != nil {
+				return err
+			}
+			if ok {
+				p.Model = m
 			}
 		}
 		if p.Consumer != nil && !utils.Empty(p.Consumer.ID) {

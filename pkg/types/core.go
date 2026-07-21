@@ -151,6 +151,9 @@ const (
 
 	// CustomPluginDefinition identifies a CustomPluginDefinition in Kong.
 	CustomPluginDefinition EntityType = "custom-plugin"
+
+	// AIModel identifies an AIModel in Kong.
+	AIModel EntityType = "ai-model"
 )
 
 // AllTypes represents all types defined in the
@@ -187,6 +190,8 @@ var AllTypes = []EntityType{
 	ClonedPluginDefinition,
 
 	CustomPluginDefinition,
+
+	AIModel,
 }
 
 func entityTypeToKind(t EntityType) crud.Kind {
@@ -718,6 +723,21 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &customPluginDefinitionDiffer{
 				kind:         entityTypeToKind(CustomPluginDefinition),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case AIModel:
+		return entityImpl{
+			typ: AIModel,
+			crudActions: &aiModelDefinitionCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &aiModelDefinitionPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &aiModelDefinitionDiffer{
+				kind:         entityTypeToKind(AIModel),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

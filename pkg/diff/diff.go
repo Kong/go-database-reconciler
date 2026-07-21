@@ -311,6 +311,8 @@ func (sc *Syncer) init() error {
 		types.ClonedPluginDefinition,
 
 		types.CustomPluginDefinition,
+
+		types.AIModel,
 	}
 
 	sc.entityDiffers = map[types.EntityType]types.Differ{}

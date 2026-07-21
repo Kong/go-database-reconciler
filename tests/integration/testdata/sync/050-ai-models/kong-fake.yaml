@@ -1,0 +1,11 @@
+_format_version: "3.0"
+plugins:
+- name: ai-proxy
+  model: non-existent-model
+  config:
+    route_type: llm/v1/chat
+    auth:
+      header_name: Authorization
+      header_value: Bearer my-api-key
+  tags:
+  - plugin-tag1

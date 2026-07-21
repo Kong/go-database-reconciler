@@ -23,6 +23,7 @@ var (
 
 	Kong140Version = semver.MustParse("1.4.0")
 	Kong300Version = semver.MustParse("3.0.0")
+	Kong200Version = semver.MustParse("2.0.0")
 	Kong340Version = semver.MustParse("3.4.0")
 	Kong370Version = semver.MustParse("3.7.0")
 )
@@ -168,6 +169,14 @@ func GetConsumerGroupReference(c kong.ConsumerGroup) *kong.ConsumerGroup {
 	return consumerGroup
 }
 
+func GetAIModelReference(m kong.AIModel) *kong.AIModel {
+	model := &kong.AIModel{ID: new(*m.ID)}
+	if m.Name != nil {
+		model.Name = new(*m.Name)
+	}
+	return model
+}
+
 // GetServiceReference returns a name+ID only copy of the input service,
 // for use in references from other objects
 func GetServiceReference(s kong.Service) *kong.Service {
@@ -186,6 +195,16 @@ func GetRouteReference(r kong.Route) *kong.Route {
 		route.Name = new(*r.Name)
 	}
 	return route
+}
+
+// GetModelReference returns a name+ID only copy of the input model,
+// for use in references from other objects
+func GetModelReference(m kong.AIModel) *kong.AIModel {
+	model := &kong.AIModel{ID: new(*m.ID)}
+	if m.Name != nil {
+		model.Name = new(*m.Name)
+	}
+	return model
 }
 
 // GetPartialReference returns a name+ID only copy of the input partial,
