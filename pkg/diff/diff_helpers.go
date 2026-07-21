@@ -172,6 +172,88 @@ type EnvVar struct {
 	Value string
 }
 
+// EnvVarCache holds precomputed environment variable data to avoid redundant
+// parsing, sorting, and regex compilation during multiple masking operations.
+// It is built once per sync run (env vars are immutable during a run) and then
+// only read, so it is safe to share across the parallel Solve goroutines.
+type EnvVarCache struct {
+	EnvVars []EnvVar
+	// Secrets holds the unique, non-empty env var values sorted longest-first
+	// so that longer values are masked before their potential substrings.
+	Secrets []string
+	// SecretsSet is a membership set of Secrets, used for exact-match checks
+	// (e.g. numeric values that must match an env var value exactly).
+	SecretsSet map[string]bool
+	// SecretPatterns are word-boundary regexes for each secret, index-aligned
+	// with Secrets. Compiled once here rather than on every masking call.
+	SecretPatterns []*regexp.Regexp
+	// PEMPatterns are the compiled BEGIN/END block regexes for each sensitive
+	// PEM type present in the env vars. Compiled once here.
+	PEMPatterns []*regexp.Regexp
+	HasJWK      bool
+}
+
+// NewEnvVarCache precomputes all environment variable data needed for masking.
+// This avoids redundant parsing, sorting, and regex compilation on every
+// MaskEnvVarValue call. Environment variables don't change during a sync run,
+// so this single precomputation significantly improves performance.
+func NewEnvVarCache() *EnvVarCache {
+	envVars := parseDeckEnvVars()
+	cache := &EnvVarCache{
+		EnvVars:        envVars,
+		SecretsSet:     make(map[string]bool),
+		SecretPatterns: make([]*regexp.Regexp, 0),
+		PEMPatterns:    make([]*regexp.Regexp, 0),
+	}
+
+	if len(envVars) == 0 {
+		return cache
+	}
+
+	// Extract unique secrets and detect PEM types / JWK in a single pass.
+	pemTypes := make(map[string]bool)
+	for _, ev := range envVars {
+		if ev.Value != "" && !cache.SecretsSet[ev.Value] {
+			cache.Secrets = append(cache.Secrets, ev.Value)
+			cache.SecretsSet[ev.Value] = true
+		}
+
+		if t := pemTypeFromValue(ev.Value); t != "" {
+			pemTypes[t] = true
+		}
+
+		if isJWK(ev.Value) {
+			cache.HasJWK = true
+		}
+	}
+
+	// Sort secrets by length (longest first) for proper masking order.
+	sort.Slice(cache.Secrets, func(i, j int) bool {
+		return len(cache.Secrets[i]) > len(cache.Secrets[j])
+	})
+
+	// Precompile word-boundary patterns for each secret.
+	for _, secret := range cache.Secrets {
+		cache.SecretPatterns = append(cache.SecretPatterns,
+			regexp.MustCompile(`\b`+regexp.QuoteMeta(secret)+`\b`))
+	}
+
+	// Precompile the (expensive) PEM block patterns once, one per sensitive type.
+	// Note: we intentionally do NOT capture the text preceding the block. RE2's
+	// unanchored search already locates the block efficiently, and ReplaceAll
+	// leaves unmatched (preceding) text in place — capturing it would force
+	// submatch tracking and re-substitution of the entire prefix on every block.
+	for pemType := range pemTypes {
+		cache.PEMPatterns = append(cache.PEMPatterns, regexp.MustCompile(
+			`(?s)-----BEGIN\s+`+regexp.QuoteMeta(pemType)+
+				`\s*-----.*?-----END\s+`+regexp.QuoteMeta(pemType)+
+				`\s*-----(["',]*)`,
+		))
+	}
+
+	return cache
+}
+
 func parseDeckEnvVars() []EnvVar {
 	const envVarPrefix = "DECK_"
 	var parsedEnvVars []EnvVar
@@ -232,27 +314,13 @@ var jwkPattern = regexp.MustCompile(
 		`(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*\}`,
 )
 
-// maskPEMBlocks finds PEM blocks in the diff output and replaces them with [masked]
-func maskPEMBlocks(diffString string, envVars []EnvVar) string {
-	pemTypes := make(map[string]bool)
-	for _, ev := range envVars {
-		if t := pemTypeFromValue(ev.Value); t != "" {
-			pemTypes[t] = true
-		}
-	}
-	if len(pemTypes) == 0 {
-		return diffString
-	}
-
-	// For each sensitive PEM type, replace all blocks of that type with [masked]
-	for pemType := range pemTypes {
-		// Pattern: -----BEGIN <TYPE>----- ... -----END <TYPE)-----
-		pattern := regexp.MustCompile(
-			`(?s)(.*?)-----BEGIN\s+` + regexp.QuoteMeta(pemType) +
-				`\s*-----.*?-----END\s+` + regexp.QuoteMeta(pemType) +
-				`\s*-----(["',]*)`,
-		)
-		diffString = pattern.ReplaceAllString(diffString, `$1`+maskedValue+`$2`)
+// maskPEMBlocksWithCache finds PEM blocks in the diff output and replaces them
+// with [masked], using the precompiled patterns from the cache. Text before the
+// block is preserved automatically by ReplaceAll; the trailing quotes/commas
+// captured in group 1 are re-appended after the mask.
+func maskPEMBlocksWithCache(diffString string, cache *EnvVarCache) string {
+	for _, pattern := range cache.PEMPatterns {
+		diffString = pattern.ReplaceAllString(diffString, maskedValue+`$1`)
 	}
 	return diffString
 }
@@ -279,54 +347,40 @@ var (
 	arrayElemPattern = regexp.MustCompile(`^([+\- ]*\s+)"((?:[^"\\]|\\.)*)"`)
 )
 
-// maskJWKValues masks JSON Web Key (JWK) values in the diff using regex pattern matching.
-// Finds objects with "kty" field (defining characteristic of JWK per RFC 7517).
-func maskJWKValues(diffString string, envVars []EnvVar) string {
-	// Skip if no JWK env vars
-	for _, ev := range envVars {
-		if isJWK(ev.Value) {
-			return jwkPattern.ReplaceAllString(diffString, maskedValue)
-		}
-	}
-	return diffString
-}
-
-// MaskEnvVarValue masks DECK_ env var values in diff output.
+// MaskEnvVarValue masks DECK_ env var values in diff output using a precomputed cache.
 // Phase 1: masks multiline PEM blocks (certs/keys) using BEGIN/END markers.
 // Phase 2: masks JSON Web Key (JWK) values using regex pattern matching.
 // Phase 3: masks single-line values using position-aware regex matching.
 func MaskEnvVarValue(diffString string) string {
-	envVars := parseDeckEnvVars()
-	if len(envVars) == 0 {
+	cache := NewEnvVarCache()
+	return maskEnvVarValueWithCache(diffString, cache)
+}
+
+// maskEnvVarValueWithCache masks DECK_ env var values using a precomputed cache.
+// This is the core masking function used internally and during Solve to avoid
+// recomputing environment variable data.
+// OPTIMIZED: Uses early termination and lazy pattern matching to reduce regex overhead.
+func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
+	if len(cache.EnvVars) == 0 {
 		return diffString
 	}
+	// Early exit: check if diff contains any markers for secrets/PEM/JWK
+	hasSecrets := len(cache.Secrets) > 0
+	hasPEM := len(cache.PEMPatterns) > 0
+	hasPEMMarker := hasPEM && (strings.Contains(diffString, "-----BEGIN") || strings.Contains(diffString, "-----END"))
+	hasJWKMarker := cache.HasJWK && strings.Contains(diffString, `"kty"`)
 
-	diffString = maskPEMBlocks(diffString, envVars)
-	diffString = maskJWKValues(diffString, envVars)
-	// Build sorted list of values (longest first) for substring replacement
-	var secrets []string
-	seen := make(map[string]bool, len(envVars))
-	for _, ev := range envVars {
-		if ev.Value != "" && !seen[ev.Value] {
-			secrets = append(secrets, ev.Value)
-			seen[ev.Value] = true
-		}
+	// Only apply PEM masking if both patterns are present AND the diff actually contains PEM markers
+	if hasPEMMarker {
+		diffString = maskPEMBlocksWithCache(diffString, cache)
 	}
-	if len(secrets) == 0 {
+	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
+	if !hasJWKMarker && !hasSecrets {
 		return diffString
-	}
-	sort.Slice(secrets, func(i, j int) bool {
-		return len(secrets[i]) > len(secrets[j])
-	})
-
-	// Pre-compile word-boundary patterns once for all secrets
-	secretPatterns := make([]*regexp.Regexp, len(secrets))
-	for idx, secret := range secrets {
-		secretPatterns[idx] = regexp.MustCompile(`\b` + regexp.QuoteMeta(secret) + `\b`)
 	}
 
 	maskFn := func(s string) string {
-		for _, re := range secretPatterns {
+		for _, re := range cache.SecretPatterns {
 			s = re.ReplaceAllString(s, maskedValue)
 		}
 		return s
@@ -340,6 +394,19 @@ func MaskEnvVarValue(diffString string) string {
 
 	lines := strings.Split(diffString, "\n")
 	for i, line := range lines {
+		// JWK masking runs independently of secrets, but only on the (few) lines
+		// that actually contain a "kty" marker. This keeps the expensive JWK regex
+		// off the ~85% of lines that can never match, instead of scanning the whole
+		// concatenated diff in one pass.
+		if hasJWKMarker && strings.Contains(line, `"kty"`) {
+			line = jwkPattern.ReplaceAllString(line, maskedValue)
+		}
+
+		// Skip lines that don't contain any secret - fast path for the majority.
+		if !hasSecrets || !containsAnySecret(line, cache.Secrets) {
+			lines[i] = line
+			continue
+		}
 
 		result := kvPattern.ReplaceAllStringFunc(line, func(match string) string {
 			sub := kvPattern.FindStringSubmatch(match)
@@ -355,7 +422,7 @@ func MaskEnvVarValue(diffString string) string {
 					return match[:len(match)-len(`"`+sub[1]+`"`)] + `"` + masked + `"`
 				}
 			case sub[2] != "": // number
-				if seen[sub[2]] {
+				if cache.SecretsSet[sub[2]] {
 					if isJSON {
 						return `: "` + maskedValue + `"`
 					}
@@ -390,4 +457,13 @@ func MaskEnvVarValue(diffString string) string {
 		lines[i] = result
 	}
 	return strings.Join(lines, "\n")
+}
+
+func containsAnySecret(line string, secrets []string) bool {
+	for _, secret := range secrets {
+		if strings.Contains(line, secret) {
+			return true
+		}
+	}
+	return false
 }

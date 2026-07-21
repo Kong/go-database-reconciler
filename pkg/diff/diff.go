@@ -26,7 +26,7 @@ import (
 
 // TODO https://github.com/Kong/go-database-reconciler/issues/22 Body is an any type field. It is set here
 // but apparently never used. It only ever contains the "old"/"new" map with the old and new object from
-// the event above. We use the event directly in generateDiffString, so it's not clear what its intended
+// the event above. We use the event directly in generateDiffStringWithCache, so it's not clear what its intended
 // purpose was. We should probably do a breaking change to either remove it or change it to a more
 // structured type. The latter makes sense if we want downstream to be able to calculate its own diffs
 // from structs for whatever reason, e.g. to print a partial diff rather than the complete diff string.
@@ -166,6 +166,10 @@ type Syncer struct {
 	// schemaRegistry is the central schema manager used for fetching and caching
 	// all entity schemas (plugins, partials, vaults, generic entities).
 	schemaRegistry *schema.Registry
+
+	// envVarCache holds precomputed environment variable data to avoid redundant
+	// parsing, sorting, and regex compilation during masking operations.
+	envVarCache *EnvVarCache
 }
 
 type SyncerOpts struct {
@@ -600,9 +604,10 @@ type Stats struct {
 	DeleteOps *utils.AtomicInt32Counter
 }
 
-// Generete Diff output for 'sync' and 'diff' commands
-func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
-	defaults ...map[string]any,
+// generateDiffStringWithCache is like prev generateDiffString but uses a precomputed
+// environment variable cache to avoid redundant masking computations.
+func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
+	envVarCache *EnvVarCache, defaults ...map[string]any,
 ) (string, error) {
 	var diffString string
 	var err error
@@ -623,7 +628,11 @@ func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
 		return "", err
 	}
 	if !noMaskValues {
-		diffString = MaskEnvVarValue(diffString)
+		if envVarCache == nil {
+			diffString = MaskEnvVarValue(diffString)
+		} else {
+			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
+		}
 	}
 	return diffString, err
 }
@@ -696,6 +705,14 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 	// TODO https://github.com/Kong/go-database-reconciler/issues/22/
 	// this can probably be extracted to clients (only deck uses it) by having clients count events through the result
 	// channel, rather than returning them from Solve.
+
+	// Precompute environment variables once before processing any events.
+	// This avoids redundant parsing, sorting, and regex compilation during
+	// potentially thousands of masking operations.
+	if !sc.noMaskValues {
+		sc.envVarCache = NewEnvVarCache()
+	}
+
 	stats := Stats{
 		CreateOps: &utils.AtomicInt32Counter{},
 		UpdateOps: &utils.AtomicInt32Counter{},
@@ -860,7 +877,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if sc.skipSchemaDefaults {
 				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
-			diffString, err := generateDiffString(e, false, sc.noMaskValues, entityDefaults)
+			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
 			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
 			// prints and JSON blob building will be moved to the deck client.
