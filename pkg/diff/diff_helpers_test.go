@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/kong/go-database-reconciler/pkg/konnect"
@@ -441,6 +442,42 @@ MIIC/zCCAeegAwIBAgIUM/0MUZ+PAmeXXrzFb1pKkfzZbEkwDQYJKoZIhvcNAQEL
 			args: `{"key":{"name":"test","value":"data"}}`,
 			want: `{"key":{"name":"test","value":"data"}}`,
 		},
+		{
+			name: "Multi-line JWK with newlines is masked",
+			envVars: map[string]string{
+				"DECK_JWK_MULTILINE": `{"kty":"RSA","use":"sig","kid":"key-1",` +
+					`"n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR",` +
+					`"e":"AQAB"}`,
+			},
+			args: ` {
+   "id": "key-001",
+   "jwk": {"kty":"RSA","use":"sig","kid":"key-1",
+   "n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR",
+   "e":"AQAB"}
+ }`,
+			want: ` {
+   "id": "key-001",
+   "jwk": [masked]
+ }`,
+		},
+		{
+			name: "Multi-line JWK in diff with +/- markers is masked",
+			envVars: map[string]string{
+				"DECK_JWK_KEY": `{"kty":"EC","crv":"P-256","use":"sig","e":"AQAB"}`,
+			},
+			args: ` {
+   "id": "key-001",
+-  "jwk": {"kty":"EC","crv":"P-256","use":"sig",
+-  "e":"AQAB"},
++  "jwk": {"kty":"EC","crv":"P-256","use":"enc",
++  "e":"AQAB"}
+ }`,
+			want: ` {
+   "id": "key-001",
+-  "jwk": [masked],
++  "jwk": [masked]
+ }`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -449,6 +486,79 @@ MIIC/zCCAeegAwIBAgIUM/0MUZ+PAmeXXrzFb1pKkfzZbEkwDQYJKoZIhvcNAQEL
 			}
 			if got := MaskEnvVarValue(tt.args); got != tt.want {
 				t.Errorf("maskEnvVarValue() = %v\nwant %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestSecretVsNonSecretVariableDistinction verifies that the system correctly
+// distinguishes between secret and non-secret DECK variables. Non-secret variables
+// (configuration items, flags, paths, URLs) should NOT appear in masked output,
+// while actual secrets (tokens, passwords, API keys) SHOULD be masked.
+func TestSecretVsNonSecretVariableDistinction(t *testing.T) {
+	tests := []struct {
+		name           string
+		envVars        map[string]string
+		input          string
+		shouldBeMasked bool
+	}{
+		{
+			name: "Non-secret flag DECK_ANALYTICS should not be masked",
+			envVars: map[string]string{
+				"DECK_ANALYTICS": "true",
+			},
+			input:          `"analytics": "true"`,
+			shouldBeMasked: false,
+		},
+		{
+			name: "Non-secret URL DECK_KONNECT_ADDR should not be masked",
+			envVars: map[string]string{
+				"DECK_KONNECT_ADDR": "https://konnect.example.com",
+			},
+			input:          `"addr": "https://konnect.example.com"`,
+			shouldBeMasked: false,
+		},
+		{
+			name: "Non-secret path DECK_OUTPUT should not be masked",
+			envVars: map[string]string{
+				"DECK_OUTPUT": "/output/config.yaml",
+			},
+			input:          `"output": "/output/config.yaml"`,
+			shouldBeMasked: false,
+		},
+		{
+			name: "Secret password DECK_DATABASE_PASSWORD should be masked",
+			envVars: map[string]string{
+				"DECK_DATABASE_PASSWORD": "super_secret_pass",
+			},
+			input:          `"password": "super_secret_pass"`,
+			shouldBeMasked: true,
+		},
+		{
+			name: "Secret API key DECK_API_TOKEN should be masked",
+			envVars: map[string]string{
+				"DECK_API_TOKEN": "sk-1234567890abcdefghijklmnop",
+			},
+			input:          `"api_key": "sk-1234567890abcdefghijklmnop"`,
+			shouldBeMasked: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
+			}
+
+			output := MaskEnvVarValue(tt.input)
+			isMasked := strings.Contains(output, "[masked]")
+
+			if isMasked != tt.shouldBeMasked {
+				if tt.shouldBeMasked {
+					t.Errorf("Expected %q to be masked, but got: %s", tt.input, output)
+				} else {
+					t.Errorf("Expected %q to NOT be masked, but got: %s", tt.input, output)
+				}
 			}
 		})
 	}

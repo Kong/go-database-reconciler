@@ -636,13 +636,15 @@ func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
 	if err != nil {
 		return "", err
 	}
+
+	// If masking is needed, cache must be initialized by the caller
 	if !noMaskValues {
 		if envVarCache == nil {
-			diffString = MaskEnvVarValue(diffString)
-		} else {
-			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
+			return "", fmt.Errorf("env var cache not initialized for masking")
 		}
+		diffString = maskEnvVarValueWithCache(diffString, envVarCache)
 	}
+
 	return diffString, err
 }
 

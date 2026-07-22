@@ -254,6 +254,41 @@ func NewEnvVarCache() *EnvVarCache {
 	return cache
 }
 
+// nonSecretDeckVars is a whitelist of DECK_ configuration variables that should NOT be masked.
+// Only variables in this list are treated as non-secrets; all others are masked.
+var nonSecretDeckVars = map[string]bool{
+	// Flags
+	"DECK_ANALYTICS":            true,
+	"DECK_SKIP_DEFAULTS_FILL":   true,
+	"DECK_KONNECT":              true,
+	"DECK_VERBOSE":              true,
+	"DECK_DEBUG":                true,
+	"DECK_SKIP_CA_VERIFICATION": true,
+	"DECK_INSECURE":             true,
+
+	// Public URLs
+	"DECK_KONNECT_ADDR": true,
+	"DECK_KONG_ADDR":    true,
+
+	// Configuration
+	"DECK_OUTPUT":                     true,
+	"DECK_INPUT":                      true,
+	"DECK_WORKSPACE":                  true,
+	"DECK_PROFILE":                    true,
+	"DECK_FORMAT":                     true,
+	"DECK_KONNECT_RUNTIME_GROUP_NAME": true,
+	"DECK_KONNECT_CONTROL_PLANE_NAME": true,
+
+	// TLS file paths (not the contents)
+	"DECK_CA_CERT_FILE":         true,
+	"DECK_TLS_CLIENT_CERT_FILE": true,
+	"DECK_TLS_CLIENT_KEY_FILE":  true,
+	"DECK_TLS_SERVER_NAME":      true,
+
+	// Timing
+	"DECK_TIMEOUT": true,
+}
+
 func parseDeckEnvVars() []EnvVar {
 	const envVarPrefix = "DECK_"
 	var parsedEnvVars []EnvVar
@@ -261,6 +296,11 @@ func parseDeckEnvVars() []EnvVar {
 	for _, envVarStr := range os.Environ() {
 		envPair := strings.SplitN(envVarStr, "=", 2)
 		if strings.HasPrefix(envPair[0], envVarPrefix) {
+			// Skip non-secret configuration variables
+			if nonSecretDeckVars[envPair[0]] {
+				continue
+			}
+
 			envVar := EnvVar{}
 			envVar.Key = envPair[0]
 			envVar.Value = envPair[1]
@@ -308,10 +348,13 @@ func pemTypeFromValue(v string) string {
 	return block.Type
 }
 
+// jwkPattern matches JWK on both single and multiple lines.
+// Allows whitespace (including newlines) between elements, and handles escaped
+// quotes and nested objects properly.
 var jwkPattern = regexp.MustCompile(
-	`\{(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*` +
+	`\{(?:[^"{}]|\s|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*` +
 		`"kty"\s*:\s*"[^"]*"` +
-		`(?:[^"{}]|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*\}`,
+		`(?:[^"{}]|\s|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*\}`,
 )
 
 // maskPEMBlocksWithCache finds PEM blocks in the diff output and replaces them
@@ -323,6 +366,13 @@ func maskPEMBlocksWithCache(diffString string, cache *EnvVarCache) string {
 		diffString = pattern.ReplaceAllString(diffString, maskedValue+`$1`)
 	}
 	return diffString
+}
+
+// maskJWKBlocks masks JWK objects in the diff, handling both single-line and
+// multi-line formats. This is called before line-by-line processing to catch
+// JWKs that may span multiple lines.
+func maskJWKBlocks(diffString string) string {
+	return jwkPattern.ReplaceAllString(diffString, maskedValue)
 }
 
 // Compiled patterns for identifying values in diff output.
@@ -374,8 +424,13 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	if hasPEMMarker {
 		diffString = maskPEMBlocksWithCache(diffString, cache)
 	}
+
+	if hasJWKMarker {
+		diffString = maskJWKBlocks(diffString)
+	}
+
 	// Early exit if there is nothing left to mask (no JWK in this diff and no secrets).
-	if !hasJWKMarker && !hasSecrets {
+	if !hasSecrets {
 		return diffString
 	}
 
@@ -394,16 +449,10 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 
 	lines := strings.Split(diffString, "\n")
 	for i, line := range lines {
-		// JWK masking runs independently of secrets, but only on the (few) lines
-		// that actually contain a "kty" marker. This keeps the expensive JWK regex
-		// off the ~85% of lines that can never match, instead of scanning the whole
-		// concatenated diff in one pass.
-		if hasJWKMarker && strings.Contains(line, `"kty"`) {
-			line = jwkPattern.ReplaceAllString(line, maskedValue)
-		}
 
 		// Skip lines that don't contain any secret - fast path for the majority.
-		if !hasSecrets || !containsAnySecret(line, cache.Secrets) {
+		// This optimization avoids expensive regex matching on lines unlikely to contain secrets.
+		if !containsAnySecret(line, cache.Secrets) {
 			lines[i] = line
 			continue
 		}
