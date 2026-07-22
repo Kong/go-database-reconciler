@@ -258,6 +258,13 @@ func NewSyncer(opts SyncerOpts) (*Syncer, error) {
 		s.schemaRegistry = schema.NewRegistry(opts.KongClient, opts.IsKonnect)
 	}
 
+	// Precompute environment variables once before processing any events.
+	// This avoids redundant parsing, sorting, and regex compilation during
+	// potentially thousands of masking operations.
+	if !s.noMaskValues {
+		s.envVarCache = NewEnvVarCache()
+	}
+
 	return s, nil
 }
 
@@ -707,13 +714,6 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 	// TODO https://github.com/Kong/go-database-reconciler/issues/22/
 	// this can probably be extracted to clients (only deck uses it) by having clients count events through the result
 	// channel, rather than returning them from Solve.
-
-	// Precompute environment variables once before processing any events.
-	// This avoids redundant parsing, sorting, and regex compilation during
-	// potentially thousands of masking operations.
-	if !sc.noMaskValues {
-		sc.envVarCache = NewEnvVarCache()
-	}
 
 	stats := Stats{
 		CreateOps: &utils.AtomicInt32Counter{},
