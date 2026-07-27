@@ -519,14 +519,6 @@ func TestSecretVsNonSecretVariableDistinction(t *testing.T) {
 			shouldBeMasked: false,
 		},
 		{
-			name: "Non-secret path DECK_OUTPUT should not be masked",
-			envVars: map[string]string{
-				"DECK_OUTPUT": "/output/config.yaml",
-			},
-			input:          `"output": "/output/config.yaml"`,
-			shouldBeMasked: false,
-		},
-		{
 			name: "Secret password DECK_DATABASE_PASSWORD should be masked",
 			envVars: map[string]string{
 				"DECK_DATABASE_PASSWORD": "super_secret_pass",

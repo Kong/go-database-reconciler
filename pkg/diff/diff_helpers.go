@@ -260,21 +260,13 @@ var nonSecretDeckVars = map[string]bool{
 	// Flags
 	"DECK_ANALYTICS":            true,
 	"DECK_SKIP_DEFAULTS_FILL":   true,
-	"DECK_KONNECT":              true,
-	"DECK_VERBOSE":              true,
-	"DECK_DEBUG":                true,
 	"DECK_SKIP_CA_VERIFICATION": true,
-	"DECK_INSECURE":             true,
 
 	// Public URLs
 	"DECK_KONNECT_ADDR": true,
 	"DECK_KONG_ADDR":    true,
 
 	// Configuration
-	"DECK_OUTPUT":                     true,
-	"DECK_INPUT":                      true,
-	"DECK_WORKSPACE":                  true,
-	"DECK_PROFILE":                    true,
 	"DECK_FORMAT":                     true,
 	"DECK_KONNECT_RUNTIME_GROUP_NAME": true,
 	"DECK_KONNECT_CONTROL_PLANE_NAME": true,
