@@ -19,6 +19,15 @@ import (
 
 var differ = gojsondiff.New()
 
+// PEM block type constants for certificate and key masking
+const (
+	pemBlockBegin = "-----BEGIN"
+	pemBlockEnd   = "-----END"
+)
+
+// JWK (JSON Web Key) field constant
+const jwkTypeField = "kty"
+
 func getDocumentDiff(a, b *state.Document) (string, error) {
 	aCopy := a.ShallowCopy()
 	bCopy := a.ShallowCopy()
@@ -245,8 +254,8 @@ func NewEnvVarCache() *EnvVarCache {
 	// submatch tracking and re-substitution of the entire prefix on every block.
 	for pemType := range pemTypes {
 		cache.PEMPatterns = append(cache.PEMPatterns, regexp.MustCompile(
-			`(?s)-----BEGIN\s+`+regexp.QuoteMeta(pemType)+
-				`\s*-----.*?-----END\s+`+regexp.QuoteMeta(pemType)+
+			`(?s)`+regexp.QuoteMeta(pemBlockBegin)+`\s+`+regexp.QuoteMeta(pemType)+
+				`\s*-----.*?`+regexp.QuoteMeta(pemBlockEnd)+`\s+`+regexp.QuoteMeta(pemType)+
 				`\s*-----(["',]*)`,
 		))
 	}
@@ -317,7 +326,7 @@ func isJWK(v string) bool {
 	if err := json.Unmarshal([]byte(trimmed), &obj); err != nil {
 		return false
 	}
-	_, hasKty := obj["kty"]
+	_, hasKty := obj[jwkTypeField]
 	return hasKty
 }
 
@@ -345,7 +354,7 @@ func pemTypeFromValue(v string) string {
 // quotes and nested objects properly.
 var jwkPattern = regexp.MustCompile(
 	`\{(?:[^"{}]|\s|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*` +
-		`"kty"\s*:\s*"[^"]*"` +
+		`"` + jwkTypeField + `"\s*:\s*"[^"]*"` +
 		`(?:[^"{}]|\s|"(?:\\.|[^"\\])*"|(?:\{[^{}]*\}))*\}`,
 )
 
@@ -409,8 +418,8 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	// Early exit: check if diff contains any markers for secrets/PEM/JWK
 	hasSecrets := len(cache.Secrets) > 0
 	hasPEM := len(cache.PEMPatterns) > 0
-	hasPEMMarker := hasPEM && (strings.Contains(diffString, "-----BEGIN") || strings.Contains(diffString, "-----END"))
-	hasJWKMarker := cache.HasJWK && strings.Contains(diffString, `"kty"`)
+	hasPEMMarker := hasPEM && (strings.Contains(diffString, pemBlockBegin) || strings.Contains(diffString, pemBlockEnd))
+	hasJWKMarker := cache.HasJWK && strings.Contains(diffString, `"`+jwkTypeField+`"`)
 
 	// Only apply PEM masking if both patterns are present AND the diff actually contains PEM markers
 	if hasPEMMarker {
