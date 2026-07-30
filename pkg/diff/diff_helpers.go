@@ -319,6 +319,16 @@ const maskedValue = "[masked]"
 
 func isJWK(v string) bool {
 	trimmed := strings.TrimSpace(v)
+	// Strip a single layer of surrounding quotes (e.g. env vars set as
+	// DECK_JWK_KEY='{"kty":"RSA",...}') so the plain-JSON check below can
+	// see the leading '{'.
+	if len(trimmed) >= 2 {
+		if (trimmed[0] == '\'' && trimmed[len(trimmed)-1] == '\'') ||
+			(trimmed[0] == '"' && trimmed[len(trimmed)-1] == '"') {
+			trimmed = trimmed[1 : len(trimmed)-1]
+		}
+	}
+
 	if !strings.HasPrefix(trimmed, "{") {
 		return false
 	}
@@ -370,8 +380,8 @@ func maskPEMBlocksWithCache(diffString string, cache *EnvVarCache) string {
 }
 
 // maskJWKBlocks masks JWK objects in the diff, handling both single-line and
-// multi-line formats. This is called before line-by-line processing to catch
-// JWKs that may span multiple lines.
+// multi-line formats. This also handles JSON-encoded JWK strings (where JWK
+// is stored as an escaped JSON string).
 func maskJWKBlocks(diffString string) string {
 	return jwkPattern.ReplaceAllString(diffString, maskedValue)
 }
@@ -419,7 +429,8 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	hasSecrets := len(cache.Secrets) > 0
 	hasPEM := len(cache.PEMPatterns) > 0
 	hasPEMMarker := hasPEM && (strings.Contains(diffString, pemBlockBegin) || strings.Contains(diffString, pemBlockEnd))
-	hasJWKMarker := cache.HasJWK && strings.Contains(diffString, `"`+jwkTypeField+`"`)
+	// Check for both plain JSON JWK ("kty") and JSON-encoded JWK string (\"kty\")
+	hasJWKMarker := cache.HasJWK && (strings.Contains(diffString, `"`+jwkTypeField+`"`))
 
 	// Only apply PEM masking if both patterns are present AND the diff actually contains PEM markers
 	if hasPEMMarker {
