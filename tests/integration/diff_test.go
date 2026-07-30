@@ -550,7 +550,7 @@ Summary:
        "ssl_verify": false,
        "username": null
      },
-     "cluster_cache_strategy": "[masked]",
+     "cluster_cache_strategy": "off",
      "consumer_by": [
        "username",
        "custom_id"
@@ -655,8 +655,8 @@ Summary:
      ],
      "preserve_query_args": false,
      "proof_of_possession_auth_methods_validation": true,
-     "proof_of_possession_dpop": "[masked]",
-     "proof_of_possession_mtls": "[masked]",
+     "proof_of_possession_dpop": "off",
+     "proof_of_possession_mtls": "off",
      "pushed_authorization_request_endpoint": null,
      "pushed_authorization_request_endpoint_auth_method": null,
      "redirect_uri": null,
@@ -1003,7 +1003,7 @@ Summary:
        "ssl_verify": false,
        "username": null
      },
-     "cluster_cache_strategy": "[masked]",
+     "cluster_cache_strategy": "off",
      "consumer_by": [
        "username",
        "custom_id"
@@ -1108,8 +1108,8 @@ Summary:
      ],
      "preserve_query_args": false,
      "proof_of_possession_auth_methods_validation": true,
-     "proof_of_possession_dpop": "[masked]",
-     "proof_of_possession_mtls": "[masked]",
+     "proof_of_possession_dpop": "off",
+     "proof_of_possession_mtls": "off",
      "pushed_authorization_request_endpoint": null,
      "pushed_authorization_request_endpoint_auth_method": null,
      "redirect_uri": null,
@@ -1531,7 +1531,7 @@ Summary:
        "ssl_verify": false,
        "username": null
      },
-     "cluster_cache_strategy": "[masked]",
+     "cluster_cache_strategy": "off",
      "consumer_by": [
        "username",
        "custom_id"
@@ -1637,8 +1637,8 @@ Summary:
      ],
      "preserve_query_args": false,
      "proof_of_possession_auth_methods_validation": true,
-     "proof_of_possession_dpop": "[masked]",
-     "proof_of_possession_mtls": "[masked]",
+     "proof_of_possession_dpop": "off",
+     "proof_of_possession_mtls": "off",
      "pushed_authorization_request_endpoint": null,
      "pushed_authorization_request_endpoint_auth_method": null,
      "redirect_uri": null,
@@ -1887,7 +1887,7 @@ Summary:
        "ssl_verify": false,
        "username": null
      },
-     "cluster_cache_strategy": "[masked]",
+     "cluster_cache_strategy": "off",
      "consumer_by": [
        "username",
        "custom_id"
@@ -1995,8 +1995,8 @@ Summary:
      ],
      "preserve_query_args": false,
      "proof_of_possession_auth_methods_validation": true,
-     "proof_of_possession_dpop": "[masked]",
-     "proof_of_possession_mtls": "[masked]",
+     "proof_of_possession_dpop": "off",
+     "proof_of_possession_mtls": "off",
      "pushed_authorization_request_endpoint": null,
      "pushed_authorization_request_endpoint_auth_method": null,
      "redirect_uri": null,
@@ -2449,7 +2449,7 @@ Summary:
        "ssl_verify": false,
        "username": null
      },
-     "cluster_cache_strategy": "[masked]",
+     "cluster_cache_strategy": "off",
      "consumer_by": [
        "username",
        "custom_id"
@@ -2555,8 +2555,8 @@ Summary:
      ],
      "preserve_query_args": false,
      "proof_of_possession_auth_methods_validation": true,
-     "proof_of_possession_dpop": "[masked]",
-     "proof_of_possession_mtls": "[masked]",
+     "proof_of_possession_dpop": "off",
+     "proof_of_possession_mtls": "off",
      "pushed_authorization_request_endpoint": null,
      "pushed_authorization_request_endpoint_auth_method": null,
      "redirect_uri": null,
@@ -2805,7 +2805,7 @@ Summary:
        "ssl_verify": false,
        "username": null
      },
-     "cluster_cache_strategy": "[masked]",
+     "cluster_cache_strategy": "off",
      "consumer_by": [
        "username",
        "custom_id"
@@ -2913,8 +2913,8 @@ Summary:
      ],
      "preserve_query_args": false,
      "proof_of_possession_auth_methods_validation": true,
-     "proof_of_possession_dpop": "[masked]",
-     "proof_of_possession_mtls": "[masked]",
+     "proof_of_possession_dpop": "off",
+     "proof_of_possession_mtls": "off",
      "pushed_authorization_request_endpoint": null,
      "pushed_authorization_request_endpoint_auth_method": null,
      "redirect_uri": null,
