@@ -12,6 +12,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/kong/go-database-reconciler/pkg/cprint"
 	"github.com/kong/go-database-reconciler/pkg/crud"
+	"github.com/kong/go-database-reconciler/pkg/file"
 	"github.com/kong/go-database-reconciler/pkg/konnect"
 	"github.com/kong/go-database-reconciler/pkg/schema"
 	"github.com/kong/go-database-reconciler/pkg/state"
@@ -170,6 +171,19 @@ type Syncer struct {
 	// envVarCache holds precomputed environment variable data to avoid redundant
 	// parsing, sorting, and regex compilation during masking operations.
 	envVarCache *EnvVarCache
+
+	// secretMap records, per entity instance, which of its field names are
+	// backed by a DECK_* env var reference (built from a mock-rendered parse
+	// of the state file). When set, masking targets exactly these fields on
+	// exactly these entities instead of scanning values.
+	secretMap file.SecretMap
+}
+
+// SetSecretMap sets the per-entity secret field map used for masking.
+// Callers build this via file.BuildSecretMap on a mock-rendered Content
+// (see file.EnvVarsMock) before calling Solve.
+func (sc *Syncer) SetSecretMap(m file.SecretMap) {
+	sc.secretMap = m
 }
 
 type SyncerOpts struct {
@@ -616,33 +630,107 @@ type Stats struct {
 // generateDiffStringWithCache is like prev generateDiffString but uses a precomputed
 // environment variable cache to avoid redundant masking computations.
 func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
-	envVarCache *EnvVarCache, defaults ...map[string]any,
+	envVarCache *EnvVarCache, secretMap file.SecretMap, defaults ...map[string]any,
 ) (string, error) {
 	var diffString string
 	var err error
-	if oldObj, ok := e.OldObj.(*state.Document); ok {
-		if !isDelete {
-			diffString, err = getDocumentDiff(oldObj, e.Obj.(*state.Document))
-		} else {
-			diffString, err = getDocumentDiff(e.Obj.(*state.Document), oldObj)
-		}
-	} else {
-		if !isDelete {
-			diffString, err = getDiff(e.OldObj, e.Obj, defaults...)
-		} else {
-			diffString, err = getDiff(e.Obj, e.OldObj, defaults...)
-		}
-	}
-	if err != nil {
-		return "", err
-	}
 
-	// If masking is needed, cache must be initialized by the caller
-	if !noMaskValues {
-		if envVarCache == nil {
-			return "", fmt.Errorf("env var cache not initialized for masking")
+	// Mask the two objects BEFORE diffing, on throwaway clones — the real
+	// e.OldObj/e.Obj are untouched and still used for the actual sync.
+	//
+	// Preferred path: mask by field name, scoped to this exact entity
+	// instance (secretMap), so only fields actually templated in the source
+	// file are ever touched — never a coincidental value match.
+	//
+	// Fallback to value-based masking whenever field-name masking can't be
+	// trusted to have run: either the entity type isn't covered by
+	// resolveEntityKey, OR secretMap itself was never wired by the caller
+	// (nil — SetSecretMap was never called). The nil check matters: without
+	// it, an unwired secretMap looks identical to "this entity legitimately
+	// has no secrets," which would silently disable masking entirely rather
+	// than fail safe.
+	oldObj, newObj := e.OldObj, e.Obj
+	entityResolved := false // Track if entity was resolved by field-based masking
+
+	// Route to masking strategy
+	strategy := GetMaskingStrategy()
+
+	switch strategy {
+	case StrategyFieldBased:
+		// Field-based masking: mask by field name (per-entity secret tracking)
+		if !noMaskValues {
+			keys, ok := resolveEntityKeys(e.Obj)
+
+			if ok && secretMap != nil {
+				// Try candidates in priority order (id-based, then scope/name-
+				// based) — see resolveEntityKeys for why both are needed.
+				for _, key := range keys {
+					if fields := secretMap[key]; len(fields) > 0 {
+						// Field-based masking: masks entire fields marked as templated
+						oldObj, newObj = maskEntityPairByFieldNames(oldObj, newObj, fields)
+						entityResolved = true
+						break
+					} else {
+						// Entity was found in secretMap but has no secrets recorded
+						// This means the entity type is covered, just no templated fields
+						entityResolved = true
+					}
+				}
+			}
 		}
-		diffString = maskEnvVarValueWithCache(diffString, envVarCache)
+
+		// Get diff
+		if oldDoc, ok := oldObj.(*state.Document); ok {
+			if !isDelete {
+				diffString, err = getDocumentDiff(oldDoc, newObj.(*state.Document))
+			} else {
+				diffString, err = getDocumentDiff(newObj.(*state.Document), oldDoc)
+			}
+		} else {
+			if !isDelete {
+				diffString, err = getDiff(oldObj, newObj, defaults...)
+			} else {
+				diffString, err = getDiff(newObj, oldObj, defaults...)
+			}
+		}
+		if err != nil {
+			return "", err
+		}
+
+		// Clean invisible change-detection markers from the output
+		if !noMaskValues {
+			diffString = cleanMaskedValueMarkers(diffString)
+		}
+
+		// Apply string-level masking as fallback only for entities not covered by field-based masking
+		if !noMaskValues && !entityResolved && envVarCache != nil {
+			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
+		}
+
+	case StrategyValueBased:
+		// Value-based masking: mask by value matching (regex-based)
+		// Get diff first (without field-based masking)
+		if oldDoc, ok := oldObj.(*state.Document); ok {
+			if !isDelete {
+				diffString, err = getDocumentDiff(oldDoc, newObj.(*state.Document))
+			} else {
+				diffString, err = getDocumentDiff(newObj.(*state.Document), oldDoc)
+			}
+		} else {
+			if !isDelete {
+				diffString, err = getDiff(oldObj, newObj, defaults...)
+			} else {
+				diffString, err = getDiff(newObj, oldObj, defaults...)
+			}
+		}
+		if err != nil {
+			return "", err
+		}
+
+		// Apply value-based masking to diff output
+		if !noMaskValues && envVarCache != nil {
+			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
+		}
 	}
 
 	return diffString, err
@@ -881,9 +969,10 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if sc.skipSchemaDefaults {
 				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
-			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache, entityDefaults)
+			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache, sc.secretMap, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
-			// actions channel or direct console outputs to allow a phased transition to the channel only. Existing console
+			// actions channel or direct console outputs to allow a phased transition to the channel only.
+			//Existing console
 			// prints and JSON blob building will be moved to the deck client.
 			if sc.enableEntityActions {
 				actionResult.Action = UpdateAction
