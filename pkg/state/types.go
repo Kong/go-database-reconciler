@@ -721,6 +721,12 @@ func sortNestedArraysBasedOnSchema(m map[string]any, schema gjson.Result) map[st
 	for k, v := range m {
 		switch value := v.(type) {
 		case []any:
+			// Normalize empty arrays to nil so an explicit `[]` and an absent/nil field compare equal at every depth of the config tree.
+			if len(value) == 0 {
+				sortedMap[k] = nil
+				continue
+			}
+
 			currSchema := getSchemaForFieldName(schema, k)
 			// For list types like array or set, get the element schema
 			elementsSchema := currSchema.Get("elements")
