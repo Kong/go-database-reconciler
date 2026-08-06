@@ -36,8 +36,16 @@ func BuildSecretMap(mock *Content) SecretMap {
 		recordSecrets(svc, SimpleKey("service", svcName, ""), sm)
 
 		for _, p := range svc.Plugins {
+			// If service name is templated, also record without service scope for diff-time fallback
+			isTemplatedSvcName := strings.HasPrefix(svcName, "${{") || rawTemplateEnvPattern.MatchString(svcName)
+
 			key := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, "", "", "", deref(p.ID))
 			recordSecrets(p, key, sm)
+
+			if isTemplatedSvcName {
+				keyNoService := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", "", "", deref(p.ID))
+				recordSecrets(p, keyNoService, sm)
+			}
 		}
 		for _, r := range svc.Routes {
 			recordNestedRoute(r, sm)
@@ -83,6 +91,8 @@ func BuildSecretMap(mock *Content) SecretMap {
 		consumerName := deref(c.Username)
 		consumerID := deref(c.ID)
 
+		isTemplatedConsumerName := strings.HasPrefix(consumerName, "${{") || rawTemplateEnvPattern.MatchString(consumerName)
+
 		if consumerID != "" {
 			recordSecrets(c, SimpleKey("consumer", consumerName, consumerID), sm)
 		}
@@ -91,26 +101,50 @@ func BuildSecretMap(mock *Content) SecretMap {
 		for _, p := range c.Plugins {
 			key := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", consumerName, "", deref(p.ID))
 			recordSecrets(p, key, sm)
+			if isTemplatedConsumerName {
+				keyNoConsumer := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", "", "", deref(p.ID))
+				recordSecrets(p, keyNoConsumer, sm)
+			}
 		}
 		for _, cred := range c.BasicAuths {
 			key := CredentialKey("basicauth_credential", deref(cred.Username), consumerName, deref(cred.ID))
 			recordSecrets(cred, key, sm)
+			if isTemplatedConsumerName {
+				keyNoConsumer := CredentialKey("basicauth_credential", deref(cred.Username), "", deref(cred.ID))
+				recordSecrets(cred, keyNoConsumer, sm)
+			}
 		}
 		for _, cred := range c.KeyAuths {
 			key := CredentialKey("keyauth_credential", deref(cred.Key), consumerName, deref(cred.ID))
 			recordSecrets(cred, key, sm)
+			if isTemplatedConsumerName {
+				keyNoConsumer := CredentialKey("keyauth_credential", deref(cred.Key), "", deref(cred.ID))
+				recordSecrets(cred, keyNoConsumer, sm)
+			}
 		}
 		for _, cred := range c.HMACAuths {
 			key := CredentialKey("hmacauth_credential", deref(cred.Username), consumerName, deref(cred.ID))
 			recordSecrets(cred, key, sm)
+			if isTemplatedConsumerName {
+				keyNoConsumer := CredentialKey("hmacauth_credential", deref(cred.Username), "", deref(cred.ID))
+				recordSecrets(cred, keyNoConsumer, sm)
+			}
 		}
 		for _, cred := range c.JWTAuths {
 			key := CredentialKey("jwt_secret", deref(cred.Key), consumerName, deref(cred.ID))
 			recordSecrets(cred, key, sm)
+			if isTemplatedConsumerName {
+				keyNoConsumer := CredentialKey("jwt_secret", deref(cred.Key), "", deref(cred.ID))
+				recordSecrets(cred, keyNoConsumer, sm)
+			}
 		}
 		for _, cred := range c.Oauth2Creds {
 			key := CredentialKey("oauth2_credential", deref(cred.ClientID), consumerName, deref(cred.ID))
 			recordSecrets(cred, key, sm)
+			if isTemplatedConsumerName {
+				keyNoConsumer := CredentialKey("oauth2_credential", deref(cred.ClientID), "", deref(cred.ID))
+				recordSecrets(cred, keyNoConsumer, sm)
+			}
 		}
 	}
 
@@ -238,8 +272,29 @@ func BuildSecretMap(mock *Content) SecretMap {
 		if p.ConsumerGroup != nil {
 			cgName = deref(p.ConsumerGroup.Name)
 		}
+
+		// Check which scopes have templated names
+		isTemplatedSvc := strings.HasPrefix(svcName, "${{") || rawTemplateEnvPattern.MatchString(svcName)
+		isTemplatedRoute := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
+		isTemplatedConsumer := strings.HasPrefix(consumerName, "${{") || rawTemplateEnvPattern.MatchString(consumerName)
+		isTemplatedCG := strings.HasPrefix(cgName, "${{") || rawTemplateEnvPattern.MatchString(cgName)
+
 		key := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, routeName, consumerName, cgName, deref(p.ID))
 		recordSecrets(p, key, sm)
+
+		// Record fallback keys without templated scopes so diff-time lookup succeeds
+		// even when parent entity names are templated
+		if isTemplatedSvc || isTemplatedRoute || isTemplatedConsumer || isTemplatedCG {
+			// Try without each templated scope
+			keyNoSvc := PluginKey(deref(p.Name), deref(p.InstanceName), "", routeName, consumerName, cgName, deref(p.ID))
+			recordSecrets(p, keyNoSvc, sm)
+			keyNoRoute := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, "", consumerName, cgName, deref(p.ID))
+			recordSecrets(p, keyNoRoute, sm)
+			keyNoConsumer := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, routeName, "", cgName, deref(p.ID))
+			recordSecrets(p, keyNoConsumer, sm)
+			keyNoCG := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, routeName, consumerName, "", deref(p.ID))
+			recordSecrets(p, keyNoCG, sm)
+		}
 	}
 
 	return sm
@@ -260,8 +315,20 @@ func recordNestedRoute(r *FRoute, sm SecretMap) {
 	recordSecrets(r, SimpleKey("route", routeName, ""), sm)
 
 	for _, p := range r.Plugins {
+		// If route name is templated (e.g. ${{env "DECK_..."}}, at diff time
+		// Kong will have resolved it to the actual value, but the extraction key
+		// has the literal template string. Record with both the template-scoped
+		// key and a fallback without route scope so lookup matches either way.
+		isTemplatedName := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
+
 		key := PluginKey(deref(p.Name), deref(p.InstanceName), "", routeName, "", "", deref(p.ID))
 		recordSecrets(p, key, sm)
+
+		if isTemplatedName {
+			// Also record without route scope for templated names
+			keyNoRoute := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", "", "", deref(p.ID))
+			recordSecrets(p, keyNoRoute, sm)
+		}
 	}
 }
 
