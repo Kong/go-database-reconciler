@@ -655,6 +655,20 @@ func TestCompareMaps(t *testing.T) {
 			},
 			expected: map[string]any{},
 		},
+		{
+			name: "field explicitly set to nil differs from a non-nil default",
+			fieldMap: map[string]any{
+				fieldTimeout: 5000,
+				fieldName:    nil,
+			},
+			defaultMap: map[string]any{
+				fieldTimeout: 5000,
+				fieldName:    "default-host",
+			},
+			expected: map[string]any{
+				fieldName: nil,
+			},
+		},
 	}
 
 	for _, tt := range tests {

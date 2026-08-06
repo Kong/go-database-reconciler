@@ -523,12 +523,21 @@ func compareMaps(fieldMap, defaultMap reflect.Value) any {
 			continue // Skip unexported fields
 		}
 
-		fieldVal = reflect.ValueOf(fieldVal.Interface())
-		defaultVal = reflect.ValueOf(defaultVal.Interface())
+		fieldIface := fieldVal.Interface()
+		defaultIface := defaultVal.Interface()
 
-		if !fieldVal.IsValid() || !defaultVal.IsValid() {
+		// An explicit null set by the user must be compared against the default,
+		// not discarded: reflect.ValueOf(nil) is an invalid Value with no Kind,
+		// so it has to be handled here before any Kind-based branching below.
+		if fieldIface == nil || defaultIface == nil {
+			if !compareValues(fieldIface, defaultIface) {
+				newMap[key.String()] = fieldIface
+			}
 			continue
 		}
+
+		fieldVal = reflect.ValueOf(fieldIface)
+		defaultVal = reflect.ValueOf(defaultIface)
 
 		if fieldVal.Kind() == reflect.Map && defaultVal.Kind() == reflect.Map {
 			nestedResult := compareMaps(fieldVal, defaultVal)
