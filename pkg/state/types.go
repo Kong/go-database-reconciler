@@ -722,7 +722,11 @@ func sortNestedArraysBasedOnSchema(m map[string]any, schema gjson.Result) map[st
 		switch value := v.(type) {
 		case []any:
 			// Normalize empty arrays to nil so an explicit `[]`
-			// and an absent/nil field compare equal at every depth of the config tree.
+			// Normalize empty arrays to nil so an explicit `[]` and an
+			// explicit nil value for the same key compare equal at every
+			// depth of the config tree. Note this does not equate `[]` with
+			// an absent key: a key that isn't present is never added to the
+			// map, so it stays distinct from an explicit empty array/nil.
 			if len(value) == 0 {
 				sortedMap[k] = nil
 				continue
