@@ -1,6 +1,9 @@
 package file
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 // SecretMap records, per entity instance, which of its own field names are
 // backed by a DECK_* environment variable reference. Built once from a
@@ -262,10 +265,28 @@ func recordNestedRoute(r *FRoute, sm SecretMap) {
 	}
 }
 
+// rawTemplateEnvPattern matches an unrendered `env "DECK_..."` reference
+// inside a template expression, e.g. `${{ env "DECK_RATE_LIMIT_0" }}`. This
+// lets BuildSecretMap detect secrets when the caller renders with
+// EnvVarsSkip (raw, unrendered template text left in place) rather than
+// EnvVarsMock (bare env var name) — both are valid inputs to this function.
+var rawTemplateEnvPattern = regexp.MustCompile(`env\s+"(DECK_[^"]*)"`)
+
+// isSecretFieldValue reports whether a field's rendered value indicates it
+// was templated from a DECK_-prefixed environment variable, under either
+// EnvVarsMock rendering (bare name, e.g. "DECK_X") or EnvVarsSkip rendering
+// (raw template text, e.g. `${{ env "DECK_X" }}`).
+func isSecretFieldValue(s string) bool {
+	if strings.HasPrefix(s, "DECK_") {
+		return true
+	}
+	return rawTemplateEnvPattern.MatchString(s)
+}
+
 func recordSecrets(entity interface{}, key EntityKey, sm SecretMap) {
 	walkObject(entity, "", func(fieldName string, value interface{}) {
 		s, ok := value.(string)
-		if !ok || !strings.HasPrefix(s, "DECK_") {
+		if !ok || !isSecretFieldValue(s) {
 			return
 		}
 		if sm[key] == nil {
