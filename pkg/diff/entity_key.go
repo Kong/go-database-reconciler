@@ -45,6 +45,36 @@ func resolveEntityKeys(obj any) ([]file.EntityKey, bool) {
 			keys = append(keys, file.PluginKey(name, instanceName, service, route, consumer, consumerGroup, id))
 		}
 		keys = append(keys, file.PluginKey(name, instanceName, service, route, consumer, consumerGroup, ""))
+		// Fallback: try without route scope. If the route name was templated in
+		// the state file, the secretMap won't have an entry with the resolved
+		// route name — only with the templated string or without route scope.
+		if route != "" {
+			if id := derefStr(e.ID); id != "" {
+				keys = append(keys, file.PluginKey(name, instanceName, service, "", consumer, consumerGroup, id))
+			}
+			keys = append(keys, file.PluginKey(name, instanceName, service, "", consumer, consumerGroup, ""))
+		}
+		// Fallback: try without service scope for templated service names
+		if service != "" {
+			if id := derefStr(e.ID); id != "" {
+				keys = append(keys, file.PluginKey(name, instanceName, "", route, consumer, consumerGroup, id))
+			}
+			keys = append(keys, file.PluginKey(name, instanceName, "", route, consumer, consumerGroup, ""))
+		}
+		// Fallback: try without consumer scope for templated consumer names
+		if consumer != "" {
+			if id := derefStr(e.ID); id != "" {
+				keys = append(keys, file.PluginKey(name, instanceName, service, route, "", consumerGroup, id))
+			}
+			keys = append(keys, file.PluginKey(name, instanceName, service, route, "", consumerGroup, ""))
+		}
+		// Fallback: try without consumer group scope for templated consumer group names
+		if consumerGroup != "" {
+			if id := derefStr(e.ID); id != "" {
+				keys = append(keys, file.PluginKey(name, instanceName, service, route, consumer, "", id))
+			}
+			keys = append(keys, file.PluginKey(name, instanceName, service, route, consumer, "", ""))
+		}
 		return keys, true
 
 	case *state.Certificate:
