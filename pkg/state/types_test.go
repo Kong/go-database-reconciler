@@ -720,6 +720,30 @@ func TestSortNestedArrays(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "empty array normalized to nil",
+			input: map[string]any{
+				testKey1: []any{},
+			},
+			expected: map[string]any{
+				testKey1: nil,
+			},
+		},
+		{
+			name: "empty array normalized to nil at nested depth",
+			input: map[string]any{
+				testKey1: []any{"b", "a"},
+				testKey2: map[string]any{
+					"nestedKey1": []any{},
+				},
+			},
+			expected: map[string]any{
+				testKey1: []any{"a", "b"},
+				testKey2: map[string]any{
+					"nestedKey1": nil,
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -729,6 +753,29 @@ func TestSortNestedArrays(t *testing.T) {
 				t.Errorf("expected %v, got %v", tt.expected, result)
 			}
 		})
+	}
+}
+
+func TestSortNestedArraysEmptyEqualsNil(t *testing.T) {
+	withEmptyArray := map[string]any{
+		testKey1: []any{},
+	}
+	withNilField := map[string]any{
+		testKey1: nil,
+	}
+	withoutField := map[string]any{}
+
+	sortedEmpty := sortNestedArraysBasedOnSchema(withEmptyArray, gjson.Result{})
+	sortedNil := sortNestedArraysBasedOnSchema(withNilField, gjson.Result{})
+	sortedAbsent := sortNestedArraysBasedOnSchema(withoutField, gjson.Result{})
+
+	if !reflect.DeepEqual(sortedEmpty, sortedNil) {
+		t.Errorf("expected empty array and nil field to normalize equally, got %v vs %v", sortedEmpty, sortedNil)
+	}
+
+	// Absent field is never added to the map, so it should not be treated as equal to an explicit nil/empty array.
+	if reflect.DeepEqual(sortedEmpty, sortedAbsent) {
+		t.Errorf("expected explicit empty array %v to differ from an absent field %v", sortedEmpty, sortedAbsent)
 	}
 }
 
