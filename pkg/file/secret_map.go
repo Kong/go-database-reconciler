@@ -315,19 +315,44 @@ func recordNestedRoute(r *FRoute, sm SecretMap) {
 	recordSecrets(r, SimpleKey("route", routeName, ""), sm)
 
 	for _, p := range r.Plugins {
-		// If route name is templated (e.g. ${{env "DECK_..."}}, at diff time
-		// Kong will have resolved it to the actual value, but the extraction key
-		// has the literal template string. Record with both the template-scoped
-		// key and a fallback without route scope so lookup matches either way.
-		isTemplatedName := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
+		// If route name or instance_name is templated (e.g. ${{env "DECK_..."}},
+		// at diff time Kong will have resolved it to the actual value, but the
+		// extraction key has the literal template string. Record multiple keys so
+		// lookup can succeed even when templated fields differ at diff time.
+		pluginInstanceName := deref(p.InstanceName)
+		pluginID := deref(p.ID)
+		pluginName := deref(p.Name)
+		isTemplatedRoute := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
+		isTemplatedInstance := strings.HasPrefix(pluginInstanceName, "${{") || rawTemplateEnvPattern.MatchString(pluginInstanceName)
 
-		key := PluginKey(deref(p.Name), deref(p.InstanceName), "", routeName, "", "", deref(p.ID))
+		// Primary key: includes the exact templated values as they appear in the file
+		key := PluginKey(pluginName, pluginInstanceName, "", routeName, "", "", pluginID)
 		recordSecrets(p, key, sm)
 
-		if isTemplatedName {
-			// Also record without route scope for templated names
-			keyNoRoute := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", "", "", deref(p.ID))
-			recordSecrets(p, keyNoRoute, sm)
+		// When any part of the identity is templated, also record fallback keys
+		// These allow matching at diff time when Kong has resolved the templated values
+		if isTemplatedRoute || isTemplatedInstance {
+			// Fallback 1: match by plugin name + route scope only
+			if !isTemplatedRoute && isTemplatedInstance {
+				keyNoInstance := PluginKey(pluginName, "", "", routeName, "", "", pluginID)
+				recordSecrets(p, keyNoInstance, sm)
+			}
+
+			// Fallback 2: match by plugin name + instance_name only
+			if isTemplatedRoute && !isTemplatedInstance {
+				keyNoRoute := PluginKey(pluginName, pluginInstanceName, "", "", "", "", pluginID)
+				recordSecrets(p, keyNoRoute, sm)
+			}
+
+			// Fallback 3: match by plugin name alone
+			keyNameOnly := PluginKey(pluginName, "", "", "", "", "", "")
+			recordSecrets(p, keyNameOnly, sm)
+
+			// Fallback 4: if there's an ID, also try with just name + ID (no scopes/instance_name)
+			if pluginID != "" {
+				keyNameID := PluginKey(pluginName, "", "", "", "", "", pluginID)
+				recordSecrets(p, keyNameID, sm)
+			}
 		}
 	}
 }
