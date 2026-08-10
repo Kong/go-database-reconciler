@@ -75,6 +75,12 @@ func resolveEntityKeys(obj any) ([]file.EntityKey, bool) {
 			}
 			keys = append(keys, file.PluginKey(name, instanceName, service, route, consumer, "", ""))
 		}
+		// Final fallback: try with just plugin name (no scopes, no instance_name, no ID)
+		keys = append(keys, file.PluginKey(name, "", "", "", "", "", ""))
+		// Also try with plugin name + ID (no scopes/instance_name) if ID exists
+		if id := derefStr(e.ID); id != "" {
+			keys = append(keys, file.PluginKey(name, "", "", "", "", "", id))
+		}
 		return keys, true
 
 	case *state.Certificate:
