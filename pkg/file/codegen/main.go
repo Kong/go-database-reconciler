@@ -148,7 +148,7 @@ func main() {
 	schema.Definitions["FCustomPluginDefinition"].Required = []string{nameField, "schema", "handler"}
 
 	// AI model definitions
-	schema.Definitions["FAIModel"].Required = []string{nameField, "alias"}
+	schema.Definitions["FAIModel"].Required = []string{nameField}
 
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
