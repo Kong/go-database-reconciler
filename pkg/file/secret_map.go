@@ -1,360 +1,43 @@
 package file
 
 import (
+	"reflect"
 	"regexp"
 	"strings"
+
+	"sigs.k8s.io/yaml"
 )
 
 // SecretMap records, per entity instance, which of its own field names are
 // backed by a DECK_* environment variable reference. Built once from a
-// mock-rendered Content (env var refs left as their bare name instead of
-// their real value — see EnvVarsMock) and consulted at diff time via the
+// mock-rendered YAML string (env var refs left as their bare name instead of
+// their real value — see EnvVarsSkip or EnvVarsMock) and consulted at diff time via the
 // same EntityKey constructors, so masking can target the exact field on the
 // exact entity that was actually templated, never a coincidental value match.
 type SecretMap map[EntityKey]map[string]bool
 
-// BuildSecretMap walks a mock-rendered Content and records, per entity
-// instance, which field names are secret.
-func BuildSecretMap(mock *Content) SecretMap {
+// BuildSecretMap takes a rendered template string (with DECK_* env var names visible)
+// and walks through the structure to record which field names are secret.
+// Works with any YAML content, including type mismatches (e.g., string values in int fields),
+// by parsing into a generic map and extracting secrets without strict struct unmarshaling.
+func BuildSecretMap(mockYAML string) SecretMap {
 	sm := make(SecretMap)
-	if mock == nil {
+	if mockYAML == "" {
 		return sm
 	}
 
-	for i := range mock.Services {
-		svc := &mock.Services[i]
-		svcName := deref(svc.Name)
-		svcID := deref(svc.ID)
-
-		// The service's OWN fields (any field can be templated, not just
-		// ones we'd expect to be secret — a user can template anything).
-		// Record on both ID-based and name-based candidates, so diff-time
-		// resolveEntityKeys finds the field whichever candidate it tries first.
-		if svcID != "" {
-			recordSecrets(svc, SimpleKey("service", svcName, svcID), sm)
-		}
-		recordSecrets(svc, SimpleKey("service", svcName, ""), sm)
-
-		for _, p := range svc.Plugins {
-			// If service name is templated, also record without service scope for diff-time fallback
-			isTemplatedSvcName := strings.HasPrefix(svcName, "${{") || rawTemplateEnvPattern.MatchString(svcName)
-
-			key := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, "", "", "", deref(p.ID))
-			recordSecrets(p, key, sm)
-
-			if isTemplatedSvcName {
-				keyNoService := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", "", "", deref(p.ID))
-				recordSecrets(p, keyNoService, sm)
-			}
-		}
-		for _, r := range svc.Routes {
-			recordNestedRoute(r, sm)
-		}
+	// Parse YAML into a generic map/interface{} to detect templated fields
+	// without being blocked by type mismatches or schema validation.
+	var genericContent map[string]any
+	err := yaml.Unmarshal([]byte(mockYAML), &genericContent)
+	if err != nil {
+		// If YAML parsing fails, return empty map (no secrets found)
+		return sm
 	}
 
-	// Top-level routes have no structural parent in the file.
-	for i := range mock.Routes {
-		recordNestedRoute(&mock.Routes[i], sm)
-	}
-
-	for i := range mock.Upstreams {
-		u := &mock.Upstreams[i]
-		upstreamName := deref(u.Name)
-		upstreamID := deref(u.ID)
-		if upstreamID != "" {
-			recordSecrets(u, SimpleKey("upstream", upstreamName, upstreamID), sm)
-		}
-		recordSecrets(u, SimpleKey("upstream", upstreamName, ""), sm)
-
-		for _, t := range u.Targets {
-			targetID := deref(t.ID)
-			targetName := deref(t.Target.Target)
-			if targetID != "" {
-				recordSecrets(t, SimpleKey("target", targetName, targetID), sm)
-			}
-			recordSecrets(t, SimpleKey("target", targetName, ""), sm)
-		}
-	}
-
-	for i := range mock.ConsumerGroups {
-		cg := &mock.ConsumerGroups[i]
-		cgName := deref(cg.Name)
-		cgID := deref(cg.ID)
-		if cgID != "" {
-			recordSecrets(cg, SimpleKey("consumer_group", cgName, cgID), sm)
-		}
-		recordSecrets(cg, SimpleKey("consumer_group", cgName, ""), sm)
-	}
-
-	for i := range mock.Consumers {
-		c := &mock.Consumers[i]
-		consumerName := deref(c.Username)
-		consumerID := deref(c.ID)
-
-		isTemplatedConsumerName := strings.HasPrefix(consumerName, "${{") || rawTemplateEnvPattern.MatchString(consumerName)
-
-		if consumerID != "" {
-			recordSecrets(c, SimpleKey("consumer", consumerName, consumerID), sm)
-		}
-		recordSecrets(c, SimpleKey("consumer", consumerName, ""), sm)
-
-		for _, p := range c.Plugins {
-			key := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", consumerName, "", deref(p.ID))
-			recordSecrets(p, key, sm)
-			if isTemplatedConsumerName {
-				keyNoConsumer := PluginKey(deref(p.Name), deref(p.InstanceName), "", "", "", "", deref(p.ID))
-				recordSecrets(p, keyNoConsumer, sm)
-			}
-		}
-		for _, cred := range c.BasicAuths {
-			key := CredentialKey("basicauth_credential", deref(cred.Username), consumerName, deref(cred.ID))
-			recordSecrets(cred, key, sm)
-			if isTemplatedConsumerName {
-				keyNoConsumer := CredentialKey("basicauth_credential", deref(cred.Username), "", deref(cred.ID))
-				recordSecrets(cred, keyNoConsumer, sm)
-			}
-		}
-		for _, cred := range c.KeyAuths {
-			key := CredentialKey("keyauth_credential", deref(cred.Key), consumerName, deref(cred.ID))
-			recordSecrets(cred, key, sm)
-			if isTemplatedConsumerName {
-				keyNoConsumer := CredentialKey("keyauth_credential", deref(cred.Key), "", deref(cred.ID))
-				recordSecrets(cred, keyNoConsumer, sm)
-			}
-		}
-		for _, cred := range c.HMACAuths {
-			key := CredentialKey("hmacauth_credential", deref(cred.Username), consumerName, deref(cred.ID))
-			recordSecrets(cred, key, sm)
-			if isTemplatedConsumerName {
-				keyNoConsumer := CredentialKey("hmacauth_credential", deref(cred.Username), "", deref(cred.ID))
-				recordSecrets(cred, keyNoConsumer, sm)
-			}
-		}
-		for _, cred := range c.JWTAuths {
-			key := CredentialKey("jwt_secret", deref(cred.Key), consumerName, deref(cred.ID))
-			recordSecrets(cred, key, sm)
-			if isTemplatedConsumerName {
-				keyNoConsumer := CredentialKey("jwt_secret", deref(cred.Key), "", deref(cred.ID))
-				recordSecrets(cred, keyNoConsumer, sm)
-			}
-		}
-		for _, cred := range c.Oauth2Creds {
-			key := CredentialKey("oauth2_credential", deref(cred.ClientID), consumerName, deref(cred.ID))
-			recordSecrets(cred, key, sm)
-			if isTemplatedConsumerName {
-				keyNoConsumer := CredentialKey("oauth2_credential", deref(cred.ClientID), "", deref(cred.ID))
-				recordSecrets(cred, keyNoConsumer, sm)
-			}
-		}
-	}
-
-	for i := range mock.Certificates {
-		c := &mock.Certificates[i]
-		recordSecrets(c, SimpleKey("certificate", "", deref(c.ID)), sm)
-
-		// SNIs are nested under certificates
-		for _, sni := range c.SNIs {
-			sniName := deref(sni.Name)
-			sniID := deref(sni.ID)
-			if sniID != "" {
-				recordSecrets(sni, SimpleKey("sni", sniName, sniID), sm)
-			}
-			recordSecrets(sni, SimpleKey("sni", sniName, ""), sm)
-		}
-	}
-
-	for i := range mock.CACertificates {
-		ca := &mock.CACertificates[i]
-		recordSecrets(ca, SimpleKey("ca_certificate", "", deref(ca.ID)), sm)
-	}
-
-	for i := range mock.Keys {
-		k := &mock.Keys[i]
-		keyName := deref(k.Name)
-		keyID := deref(k.ID)
-		if keyID != "" {
-			recordSecrets(k, SimpleKey("key", keyName, keyID), sm)
-		}
-		recordSecrets(k, SimpleKey("key", keyName, ""), sm)
-	}
-
-	for i := range mock.Vaults {
-		v := &mock.Vaults[i]
-		vaultName := deref(v.Name)
-		vaultID := deref(v.ID)
-		// Vault.Config is freeform, like plugin Config — vault backend
-		// credentials can legitimately live there.
-		if vaultID != "" {
-			recordSecrets(v, SimpleKey("vault", vaultName, vaultID), sm)
-		}
-		recordSecrets(v, SimpleKey("vault", vaultName, ""), sm)
-	}
-
-	for i := range mock.FilterChains {
-		fc := &mock.FilterChains[i]
-		filterChainName := deref(fc.Name)
-		filterChainID := deref(fc.ID)
-		if filterChainID != "" {
-			recordSecrets(fc, SimpleKey("filter_chain", filterChainName, filterChainID), sm)
-		}
-		recordSecrets(fc, SimpleKey("filter_chain", filterChainName, ""), sm)
-	}
-
-	for i := range mock.Licenses {
-		l := &mock.Licenses[i]
-		recordSecrets(l, SimpleKey("license", "", deref(l.ID)), sm)
-	}
-
-	for i := range mock.Partials {
-		p := &mock.Partials[i]
-		partialName := deref(p.Name)
-		partialID := deref(p.ID)
-		if partialID != "" {
-			recordSecrets(p, SimpleKey("partial", partialName, partialID), sm)
-		}
-		recordSecrets(p, SimpleKey("partial", partialName, ""), sm)
-	}
-
-	for i := range mock.RBACRoles {
-		r := &mock.RBACRoles[i]
-		recordSecrets(r, SimpleKey("rbac_role", "", deref(r.ID)), sm)
-	}
-
-	for i := range mock.KeySets {
-		ks := &mock.KeySets[i]
-		keySetName := deref(ks.Name)
-		keySetID := deref(ks.ID)
-		if keySetID != "" {
-			recordSecrets(ks, SimpleKey("key_set", keySetName, keySetID), sm)
-		}
-		recordSecrets(ks, SimpleKey("key_set", keySetName, ""), sm)
-	}
-
-	for i := range mock.AIModels {
-		am := &mock.AIModels[i]
-		aiModelName := deref(am.Name)
-		aiModelID := deref(am.ID)
-		if aiModelID != "" {
-			recordSecrets(am, SimpleKey("ai_model", aiModelName, aiModelID), sm)
-		}
-		recordSecrets(am, SimpleKey("ai_model", aiModelName, ""), sm)
-	}
-
-	for i := range mock.CustomEntities {
-		ce := &mock.CustomEntities[i]
-		recordSecrets(ce, SimpleKey("custom_entity", "", deref(ce.ID)), sm)
-	}
-
-	for i := range mock.ServicePackages {
-		sp := &mock.ServicePackages[i]
-		spName := deref(sp.Name)
-		spID := deref(sp.ID)
-		if spID != "" {
-			recordSecrets(sp, SimpleKey("service_package", spName, spID), sm)
-		}
-		recordSecrets(sp, SimpleKey("service_package", spName, ""), sm)
-	}
-
-	// Top-level plugins have no structural parent — their scope comes from
-	// their own Service/Route/Consumer/ConsumerGroup reference fields.
-	for i := range mock.Plugins {
-		p := &mock.Plugins[i]
-		var svcName, routeName, consumerName, cgName string
-		if p.Service != nil {
-			svcName = deref(p.Service.Name)
-		}
-		if p.Route != nil {
-			routeName = deref(p.Route.Name)
-		}
-		if p.Consumer != nil {
-			consumerName = deref(p.Consumer.Username)
-		}
-		if p.ConsumerGroup != nil {
-			cgName = deref(p.ConsumerGroup.Name)
-		}
-
-		// Check which scopes have templated names
-		isTemplatedSvc := strings.HasPrefix(svcName, "${{") || rawTemplateEnvPattern.MatchString(svcName)
-		isTemplatedRoute := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
-		isTemplatedConsumer := strings.HasPrefix(consumerName, "${{") || rawTemplateEnvPattern.MatchString(consumerName)
-		isTemplatedCG := strings.HasPrefix(cgName, "${{") || rawTemplateEnvPattern.MatchString(cgName)
-
-		key := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, routeName, consumerName, cgName, deref(p.ID))
-		recordSecrets(p, key, sm)
-
-		// Record fallback keys without templated scopes so diff-time lookup succeeds
-		// even when parent entity names are templated
-		if isTemplatedSvc || isTemplatedRoute || isTemplatedConsumer || isTemplatedCG {
-			// Try without each templated scope
-			keyNoSvc := PluginKey(deref(p.Name), deref(p.InstanceName), "", routeName, consumerName, cgName, deref(p.ID))
-			recordSecrets(p, keyNoSvc, sm)
-			keyNoRoute := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, "", consumerName, cgName, deref(p.ID))
-			recordSecrets(p, keyNoRoute, sm)
-			keyNoConsumer := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, routeName, "", cgName, deref(p.ID))
-			recordSecrets(p, keyNoConsumer, sm)
-			keyNoCG := PluginKey(deref(p.Name), deref(p.InstanceName), svcName, routeName, consumerName, "", deref(p.ID))
-			recordSecrets(p, keyNoCG, sm)
-		}
-	}
-
-	return sm
-}
-
-// recordNestedRoute records a route's own fields (any field can be
-// templated — e.g. methods, hosts, paths — not just ones we'd expect to be
-// secret) plus its nested plugins. A route-scoped plugin's reconciled
-// object carries only its Route reference, never also Service — even
-// when nested under a service in the file — so no service scope here.
-func recordNestedRoute(r *FRoute, sm SecretMap) {
-	routeName := deref(r.Name)
-	routeID := deref(r.ID)
-	// Record on both ID-based and name-based candidates.
-	if routeID != "" {
-		recordSecrets(r, SimpleKey("route", routeName, routeID), sm)
-	}
-	recordSecrets(r, SimpleKey("route", routeName, ""), sm)
-
-	for _, p := range r.Plugins {
-		// If route name or instance_name is templated (e.g. ${{env "DECK_..."}},
-		// at diff time Kong will have resolved it to the actual value, but the
-		// extraction key has the literal template string. Record multiple keys so
-		// lookup can succeed even when templated fields differ at diff time.
-		pluginInstanceName := deref(p.InstanceName)
-		pluginID := deref(p.ID)
-		pluginName := deref(p.Name)
-		isTemplatedRoute := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
-		isTemplatedInstance := strings.HasPrefix(pluginInstanceName, "${{") || rawTemplateEnvPattern.MatchString(pluginInstanceName)
-
-		// Primary key: includes the exact templated values as they appear in the file
-		key := PluginKey(pluginName, pluginInstanceName, "", routeName, "", "", pluginID)
-		recordSecrets(p, key, sm)
-
-		// When any part of the identity is templated, also record fallback keys
-		// These allow matching at diff time when Kong has resolved the templated values
-		if isTemplatedRoute || isTemplatedInstance {
-			// Fallback 1: match by plugin name + route scope only
-			if !isTemplatedRoute && isTemplatedInstance {
-				keyNoInstance := PluginKey(pluginName, "", "", routeName, "", "", pluginID)
-				recordSecrets(p, keyNoInstance, sm)
-			}
-
-			// Fallback 2: match by plugin name + instance_name only
-			if isTemplatedRoute && !isTemplatedInstance {
-				keyNoRoute := PluginKey(pluginName, pluginInstanceName, "", "", "", "", pluginID)
-				recordSecrets(p, keyNoRoute, sm)
-			}
-
-			// Fallback 3: match by plugin name alone
-			keyNameOnly := PluginKey(pluginName, "", "", "", "", "", "")
-			recordSecrets(p, keyNameOnly, sm)
-
-			// Fallback 4: if there's an ID, also try with just name + ID (no scopes/instance_name)
-			if pluginID != "" {
-				keyNameID := PluginKey(pluginName, "", "", "", "", "", pluginID)
-				recordSecrets(p, keyNameID, sm)
-			}
-		}
-	}
+	// Use generic extraction for all cases - handles all entity types, nested structures,
+	// and type mismatches consistently without needing strict struct unmarshalling.
+	return buildSecretMapFromGeneric(genericContent)
 }
 
 // rawTemplateEnvPattern matches an unrendered `env "DECK_..."` reference
@@ -375,19 +58,6 @@ func isSecretFieldValue(s string) bool {
 	return rawTemplateEnvPattern.MatchString(s)
 }
 
-func recordSecrets(entity interface{}, key EntityKey, sm SecretMap) {
-	walkObject(entity, "", func(fieldName string, value interface{}) {
-		s, ok := value.(string)
-		if !ok || !isSecretFieldValue(s) {
-			return
-		}
-		if sm[key] == nil {
-			sm[key] = make(map[string]bool)
-		}
-		sm[key][leafFieldName(fieldName)] = true
-	})
-}
-
 // leafFieldName extracts the plain field name masking looks up by (the JSON
 // key a struct field serializes as), from a full walk path. For a slice
 // field like "methods", walkObject produces per-element paths such as
@@ -401,4 +71,492 @@ func leafFieldName(fieldName string) string {
 		last = last[:idx]
 	}
 	return last
+}
+
+// discoverConsumerCredentials uses reflection to extract credential metadata from FConsumer.
+// It reads the "credential" struct tag (format: "credentialType,identifyingField") and
+// returns a map from YAML field name to credential type and identifying field.
+// This ensures credentials are always in sync with the FConsumer struct definition.
+func discoverConsumerCredentials() map[string]struct {
+	credType         string
+	identifyingField string
+} {
+	result := make(map[string]struct {
+		credType         string
+		identifyingField string
+	})
+
+	// Reflect on FConsumer struct to find credential fields
+	var consumer FConsumer
+	t := reflect.TypeOf(consumer)
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		// Check for "credential" tag (e.g., "keyauth_credential,key")
+		credTag, hasTag := field.Tag.Lookup("credential")
+		if !hasTag || credTag == "" {
+			continue
+		}
+
+		// Parse the tag format: "credentialType,identifyingField"
+		parts := strings.Split(credTag, ",")
+		if len(parts) != 2 {
+			continue
+		}
+
+		credType := strings.TrimSpace(parts[0])
+		identifyingField := strings.TrimSpace(parts[1])
+
+		// Get the YAML field name from the json tag
+		jsonTag, ok := field.Tag.Lookup("json")
+		if !ok || jsonTag == "" {
+			continue
+		}
+
+		// Extract just the field name (before any commas)
+		yamlFieldName := strings.Split(jsonTag, ",")[0]
+		if yamlFieldName == "" || yamlFieldName == "-" {
+			continue
+		}
+
+		result[yamlFieldName] = struct {
+			credType         string
+			identifyingField string
+		}{
+			credType:         credType,
+			identifyingField: identifyingField,
+		}
+	}
+
+	return result
+}
+
+// buildSecretMapFromGeneric extracts secret field information from a generic
+// map/interface{} structure parsed from YAML. Used as a fallback when strict
+// struct unmarshaling fails due to type mismatches (e.g., string values in
+// int fields from EnvVarsExpand-rendered templates).
+// This walks the generic structure for ALL entity types and records any field
+// containing a DECK_* prefix or template expression as a secret field.
+func buildSecretMapFromGeneric(content map[string]any) SecretMap {
+	sm := make(SecretMap)
+
+	// Helper to recursively detect and record secrets in any value
+	var walkForSecrets func(path string, val any, baseKey EntityKey)
+	walkForSecrets = func(path string, val any, baseKey EntityKey) {
+		switch v := val.(type) {
+		case map[string]any:
+			for k, child := range v {
+				childPath := k
+				if path != "" {
+					childPath = path + "." + k
+				}
+				walkForSecrets(childPath, child, baseKey)
+			}
+		case []any:
+			for _, child := range v {
+				walkForSecrets(path, child, baseKey)
+			}
+		case string:
+			// Check if this value is a secret (DECK_ prefix or template pattern)
+			if isSecretFieldValue(v) {
+				fieldName := leafFieldName(path)
+				if sm[baseKey] == nil {
+					sm[baseKey] = make(map[string]bool)
+				}
+				sm[baseKey][fieldName] = true
+			}
+		}
+	}
+
+	// Process services and their nested entities
+	if services, ok := content["services"].([]any); ok {
+		for _, svcVal := range services {
+			if svcMap, ok := svcVal.(map[string]any); ok {
+				svcName := getStringField(svcMap, "name")
+				svcID := getStringField(svcMap, "id")
+
+				// Process service's own fields (excluding nested routes/plugins)
+				svcMapCopy := excludeNestedEntities(svcMap, "routes", "plugins")
+				if svcID != "" {
+					walkForSecrets("", svcMapCopy, SimpleKey("service", svcName, svcID))
+				}
+				walkForSecrets("", svcMapCopy, SimpleKey("service", svcName, ""))
+
+				// Process nested routes within this service
+				if routes, ok := svcMap["routes"].([]any); ok {
+					for _, routeVal := range routes {
+						if routeMap, ok := routeVal.(map[string]any); ok {
+							routeName := getStringField(routeMap, "name")
+							routeID := getStringField(routeMap, "id")
+
+							// Process route's own fields (excluding nested plugins)
+							routeMapCopy := excludeNestedEntities(routeMap, "plugins")
+							if routeID != "" {
+								walkForSecrets("", routeMapCopy, SimpleKey("route", routeName, routeID))
+							}
+							walkForSecrets("", routeMapCopy, SimpleKey("route", routeName, ""))
+
+							// Process nested plugins within this route
+							if plugins, ok := routeMap["plugins"].([]any); ok {
+								for _, pluginVal := range plugins {
+									if pluginMap, ok := pluginVal.(map[string]any); ok {
+										processGenericPlugin(pluginMap, "", routeName, "", "", "", sm, walkForSecrets)
+									}
+								}
+							}
+						}
+					}
+				}
+
+				// Process nested plugins within this service
+				if plugins, ok := svcMap["plugins"].([]any); ok {
+					for _, pluginVal := range plugins {
+						if pluginMap, ok := pluginVal.(map[string]any); ok {
+							processGenericPlugin(pluginMap, svcName, "", "", "", "", sm, walkForSecrets)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Process routes
+	if routes, ok := content["routes"].([]any); ok {
+		for _, routeVal := range routes {
+			if routeMap, ok := routeVal.(map[string]any); ok {
+				routeName := getStringField(routeMap, "name")
+				routeID := getStringField(routeMap, "id")
+				if routeID != "" {
+					walkForSecrets("", routeMap, SimpleKey("route", routeName, routeID))
+				}
+				walkForSecrets("", routeMap, SimpleKey("route", routeName, ""))
+			}
+		}
+	}
+
+	// Process consumers and their nested entities
+	if consumers, ok := content["consumers"].([]any); ok {
+		for _, consumerVal := range consumers {
+			if consumerMap, ok := consumerVal.(map[string]any); ok {
+				consumerName := getStringField(consumerMap, "username")
+				consumerID := getStringField(consumerMap, "id")
+
+				// Process consumer's own fields (excluding nested credentials/plugins)
+				consumerMapCopy := excludeNestedEntities(consumerMap, "basicauth_credentials", "keyauth_credentials",
+					"hmacauth_credentials", "jwt_secrets", "oauth2_credentials", "plugins")
+				if consumerID != "" {
+					walkForSecrets("", consumerMapCopy, SimpleKey("consumer", consumerName, consumerID))
+				}
+				walkForSecrets("", consumerMapCopy, SimpleKey("consumer", consumerName, ""))
+
+				// Process nested credentials discovered via reflection from FConsumer struct tags
+				consumerCredentialTypes := discoverConsumerCredentials()
+				for yamlFieldName, credInfo := range consumerCredentialTypes {
+					if creds, ok := consumerMap[yamlFieldName].([]any); ok {
+						for _, credVal := range creds {
+							if credMap, ok := credVal.(map[string]any); ok {
+								// Extract the credential's identifying field (discovered from struct tag)
+								credKey := getStringField(credMap, credInfo.identifyingField)
+								credID := getStringField(credMap, "id")
+
+								// Record with consumer scope using the credential type from struct tag
+								if credID != "" {
+									walkForSecrets("", credMap, CredentialKey(credInfo.credType, credKey, consumerName, credID))
+								}
+								walkForSecrets("", credMap, CredentialKey(credInfo.credType, credKey, consumerName, ""))
+							}
+						}
+					}
+				}
+
+				// Process nested plugins within this consumer
+				if plugins, ok := consumerMap["plugins"].([]any); ok {
+					for _, pluginVal := range plugins {
+						if pluginMap, ok := pluginVal.(map[string]any); ok {
+							processGenericPlugin(pluginMap, "", "", "", consumerName, "", sm, walkForSecrets)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Process consumer_groups
+	if consumerGroups, ok := content["consumer_groups"].([]any); ok {
+		for _, cgVal := range consumerGroups {
+			if cgMap, ok := cgVal.(map[string]any); ok {
+				cgName := getStringField(cgMap, "name")
+				cgID := getStringField(cgMap, "id")
+				if cgID != "" {
+					walkForSecrets("", cgMap, SimpleKey("consumer_group", cgName, cgID))
+				}
+				walkForSecrets("", cgMap, SimpleKey("consumer_group", cgName, ""))
+			}
+		}
+	}
+
+	// Process certificates
+	if certificates, ok := content["certificates"].([]any); ok {
+		for _, certVal := range certificates {
+			if certMap, ok := certVal.(map[string]any); ok {
+				certID := getStringField(certMap, "id")
+				walkForSecrets("", certMap, SimpleKey("certificate", "", certID))
+			}
+		}
+	}
+
+	// Process ca_certificates
+	if caCerts, ok := content["ca_certificates"].([]any); ok {
+		for _, caCertVal := range caCerts {
+			if caCertMap, ok := caCertVal.(map[string]any); ok {
+				caCertID := getStringField(caCertMap, "id")
+				walkForSecrets("", caCertMap, SimpleKey("ca_certificate", "", caCertID))
+			}
+		}
+	}
+
+	// Process keys
+	if keys, ok := content["keys"].([]any); ok {
+		for _, keyVal := range keys {
+			if keyMap, ok := keyVal.(map[string]any); ok {
+				keyName := getStringField(keyMap, "name")
+				keyID := getStringField(keyMap, "id")
+				if keyID != "" {
+					walkForSecrets("", keyMap, SimpleKey("key", keyName, keyID))
+				}
+				walkForSecrets("", keyMap, SimpleKey("key", keyName, ""))
+			}
+		}
+	}
+
+	// Process key_sets
+	if keySets, ok := content["key_sets"].([]any); ok {
+		for _, ksVal := range keySets {
+			if ksMap, ok := ksVal.(map[string]any); ok {
+				ksName := getStringField(ksMap, "name")
+				ksID := getStringField(ksMap, "id")
+				if ksID != "" {
+					walkForSecrets("", ksMap, SimpleKey("key_set", ksName, ksID))
+				}
+				walkForSecrets("", ksMap, SimpleKey("key_set", ksName, ""))
+			}
+		}
+	}
+
+	// Process upstreams
+	if upstreams, ok := content["upstreams"].([]any); ok {
+		for _, upstreamVal := range upstreams {
+			if upstreamMap, ok := upstreamVal.(map[string]any); ok {
+				upstreamName := getStringField(upstreamMap, "name")
+				upstreamID := getStringField(upstreamMap, "id")
+				if upstreamID != "" {
+					walkForSecrets("", upstreamMap, SimpleKey("upstream", upstreamName, upstreamID))
+				}
+				walkForSecrets("", upstreamMap, SimpleKey("upstream", upstreamName, ""))
+			}
+		}
+	}
+
+	// Process vaults
+	if vaults, ok := content["vaults"].([]any); ok {
+		for _, vaultVal := range vaults {
+			if vaultMap, ok := vaultVal.(map[string]any); ok {
+				vaultName := getStringField(vaultMap, "name")
+				vaultID := getStringField(vaultMap, "id")
+				if vaultID != "" {
+					walkForSecrets("", vaultMap, SimpleKey("vault", vaultName, vaultID))
+				}
+				walkForSecrets("", vaultMap, SimpleKey("vault", vaultName, ""))
+			}
+		}
+	}
+
+	// Process filter_chains
+	if filterChains, ok := content["filter_chains"].([]any); ok {
+		for _, fcVal := range filterChains {
+			if fcMap, ok := fcVal.(map[string]any); ok {
+				fcName := getStringField(fcMap, "name")
+				fcID := getStringField(fcMap, "id")
+				if fcID != "" {
+					walkForSecrets("", fcMap, SimpleKey("filter_chain", fcName, fcID))
+				}
+				walkForSecrets("", fcMap, SimpleKey("filter_chain", fcName, ""))
+			}
+		}
+	}
+
+	// Process licenses
+	if licenses, ok := content["licenses"].([]any); ok {
+		for _, licenseVal := range licenses {
+			if licenseMap, ok := licenseVal.(map[string]any); ok {
+				licenseID := getStringField(licenseMap, "id")
+				walkForSecrets("", licenseMap, SimpleKey("license", "", licenseID))
+			}
+		}
+	}
+
+	// Process rbac_roles
+	if rbacRoles, ok := content["rbac_roles"].([]any); ok {
+		for _, roleVal := range rbacRoles {
+			if roleMap, ok := roleVal.(map[string]any); ok {
+				roleID := getStringField(roleMap, "id")
+				walkForSecrets("", roleMap, SimpleKey("rbac_role", "", roleID))
+			}
+		}
+	}
+
+	// Process ai_models
+	if aiModels, ok := content["ai_models"].([]any); ok {
+		for _, modelVal := range aiModels {
+			if modelMap, ok := modelVal.(map[string]any); ok {
+				modelName := getStringField(modelMap, "name")
+				modelID := getStringField(modelMap, "id")
+				if modelID != "" {
+					walkForSecrets("", modelMap, SimpleKey("ai_model", modelName, modelID))
+				}
+				walkForSecrets("", modelMap, SimpleKey("ai_model", modelName, ""))
+			}
+		}
+	}
+
+	// Process custom_entities
+	if customEntities, ok := content["custom_entities"].([]any); ok {
+		for _, ceVal := range customEntities {
+			if ceMap, ok := ceVal.(map[string]any); ok {
+				ceID := getStringField(ceMap, "id")
+				walkForSecrets("", ceMap, SimpleKey("custom_entity", "", ceID))
+			}
+		}
+	}
+
+	// Process service_packages
+	if servicePackages, ok := content["service_packages"].([]any); ok {
+		for _, spVal := range servicePackages {
+			if spMap, ok := spVal.(map[string]any); ok {
+				spName := getStringField(spMap, "name")
+				spID := getStringField(spMap, "id")
+				if spID != "" {
+					walkForSecrets("", spMap, SimpleKey("service_package", spName, spID))
+				}
+				walkForSecrets("", spMap, SimpleKey("service_package", spName, ""))
+			}
+		}
+	}
+
+	// Process partials
+	if partials, ok := content["partials"].([]any); ok {
+		for _, partialVal := range partials {
+			if partialMap, ok := partialVal.(map[string]any); ok {
+				partialName := getStringField(partialMap, "name")
+				partialID := getStringField(partialMap, "id")
+				if partialID != "" {
+					walkForSecrets("", partialMap, SimpleKey("partial", partialName, partialID))
+				}
+				walkForSecrets("", partialMap, SimpleKey("partial", partialName, ""))
+			}
+		}
+	}
+
+	// Process plugins (top-level)
+	if plugins, ok := content["plugins"].([]any); ok {
+		for _, pluginVal := range plugins {
+			if pluginMap, ok := pluginVal.(map[string]any); ok {
+				pluginName := getStringField(pluginMap, "name")
+				pluginID := getStringField(pluginMap, "id")
+				baseKey := PluginKey(pluginName, "", "", "", "", "", pluginID)
+				walkForSecrets("", pluginMap, baseKey)
+			}
+		}
+	}
+
+	// Process cloned_plugins
+	if clonedPlugins, ok := content["cloned_plugins"].([]any); ok {
+		for _, cpVal := range clonedPlugins {
+			if cpMap, ok := cpVal.(map[string]any); ok {
+				cpID := getStringField(cpMap, "id")
+				walkForSecrets("", cpMap, SimpleKey("cloned_plugin", "", cpID))
+			}
+		}
+	}
+
+	// Process custom_plugins
+	if customPlugins, ok := content["custom_plugins"].([]any); ok {
+		for _, customVal := range customPlugins {
+			if customMap, ok := customVal.(map[string]any); ok {
+				customID := getStringField(customMap, "id")
+				walkForSecrets("", customMap, SimpleKey("custom_plugin", "", customID))
+			}
+		}
+	}
+
+	return sm
+}
+
+// getStringField safely extracts a string field from a generic map.
+func getStringField(m map[string]any, fieldName string) string {
+	if v, ok := m[fieldName]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
+// excludeNestedEntities returns a copy of the map without specified nested entity fields.
+// Used to process an entity's own secrets without recursing into nested entities.
+func excludeNestedEntities(m map[string]any, excludeFields ...string) map[string]any {
+	excludeSet := make(map[string]bool)
+	for _, field := range excludeFields {
+		excludeSet[field] = true
+	}
+
+	result := make(map[string]any)
+	for k, v := range m {
+		if !excludeSet[k] {
+			result[k] = v
+		}
+	}
+	return result
+}
+
+// processGenericPlugin processes a plugin from a generic map with proper scope.
+// This is used by buildSecretMapFromGeneric to handle nested plugins with the correct keys.
+func processGenericPlugin(pluginMap map[string]any, svcName, routeName, cgName, consumerName, instanceName string,
+	sm SecretMap, walkFunc func(string, any, EntityKey)) {
+	pluginName := getStringField(pluginMap, "name")
+	pluginID := getStringField(pluginMap, "id")
+
+	// Create plugin key with proper scope
+	key := PluginKey(pluginName, instanceName, svcName, routeName, consumerName, cgName, pluginID)
+
+	// Process plugin's own fields
+	pluginMapCopy := excludeNestedEntities(pluginMap)
+	walkFunc("", pluginMapCopy, key)
+
+	// Record fallback keys for templated scopes
+	isTemplatedSvc := strings.HasPrefix(svcName, "${{") || rawTemplateEnvPattern.MatchString(svcName)
+	isTemplatedRoute := strings.HasPrefix(routeName, "${{") || rawTemplateEnvPattern.MatchString(routeName)
+	isTemplatedConsumer := strings.HasPrefix(consumerName, "${{") || rawTemplateEnvPattern.MatchString(consumerName)
+	isTemplatedCG := strings.HasPrefix(cgName, "${{") || rawTemplateEnvPattern.MatchString(cgName)
+
+	if isTemplatedSvc || isTemplatedRoute || isTemplatedConsumer || isTemplatedCG {
+		// Try without each templated scope
+		if isTemplatedSvc {
+			keyNoSvc := PluginKey(pluginName, instanceName, "", routeName, consumerName, cgName, pluginID)
+			walkFunc("", pluginMapCopy, keyNoSvc)
+		}
+		if isTemplatedRoute {
+			keyNoRoute := PluginKey(pluginName, instanceName, svcName, "", consumerName, cgName, pluginID)
+			walkFunc("", pluginMapCopy, keyNoRoute)
+		}
+		if isTemplatedConsumer {
+			keyNoConsumer := PluginKey(pluginName, instanceName, svcName, routeName, "", cgName, pluginID)
+			walkFunc("", pluginMapCopy, keyNoConsumer)
+		}
+		if isTemplatedCG {
+			keyNoCG := PluginKey(pluginName, instanceName, svcName, routeName, consumerName, "", pluginID)
+			walkFunc("", pluginMapCopy, keyNoCG)
+		}
+	}
 }

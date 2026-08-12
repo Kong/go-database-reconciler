@@ -36,26 +36,9 @@ func maskEntityPairByFieldNames(oldEntity, newEntity any, secretFields map[strin
 	newClone := cloneForMasking(newEntity)
 
 	oldVal, newVal := reflect.ValueOf(oldClone), reflect.ValueOf(newClone)
-	if oldVal.Kind() != newVal.Kind() || (oldVal.IsValid() && newVal.IsValid() && oldVal.Type() != newVal.Type()) {
-		return maskEntityByFieldNames(oldEntity, secretFields), maskEntityByFieldNames(newEntity, secretFields)
-	}
 
 	maskFieldPairByName(oldVal, newVal, secretFields)
 	return oldClone, newClone
-}
-
-// maskEntityByFieldNames masks a single object by field name — used as the
-// fallback above, and directly by tests that only need one side.
-func maskEntityByFieldNames(entity any, secretFields map[string]bool) any {
-	if entity == nil || len(secretFields) == 0 {
-		return entity
-	}
-	clone := cloneForMasking(entity)
-	if clone == nil {
-		return entity
-	}
-	maskFieldsByName(reflect.ValueOf(clone), secretFields)
-	return clone
 }
 
 func maskFieldPairByName(oldV, newV reflect.Value, secretFields map[string]bool) {
@@ -300,63 +283,6 @@ func toStringAnyMap(m any) (map[string]any, bool) {
 	return orig, true
 }
 
-func maskFieldsByName(v reflect.Value, secretFields map[string]bool) {
-	if !v.IsValid() {
-		return
-	}
-
-	switch v.Kind() { //nolint:exhaustive
-	case reflect.Pointer:
-		if !v.IsNil() {
-			maskFieldsByName(v.Elem(), secretFields)
-		}
-	case reflect.Struct:
-		t := v.Type()
-		// Cache field name lookups to avoid repeated string parsing.
-		fieldNames := make([]string, t.NumField())
-		for i := 0; i < t.NumField(); i++ {
-			fieldNames[i] = jsonFieldName(t.Field(i))
-		}
-
-		for i := 0; i < v.NumField(); i++ {
-			fv := v.Field(i)
-			if !fv.CanInterface() {
-				continue // unexported field
-			}
-
-			// Freeform maps (e.g. plugin Config, which is map[string]any)
-			// are matched key-by-key, since any key name could be the
-			// templated field. Typed maps (e.g. kong.Route.Headers,
-			// map[string][]string) are NOT freeform — their value type
-			// isn't interface{}, so a masked map[string]any could never be
-			// assigned back into the field. Those fall through to the
-			// normal name-check-and-recurse path below instead.
-			if fv.Kind() == reflect.Map && fv.Type().Key().Kind() == reflect.String &&
-				fv.Type().Elem().Kind() == reflect.Interface {
-				if masked, ok := maskMapValue(fv.Interface(), secretFields); ok && fv.CanSet() {
-					fv.Set(reflect.ValueOf(masked))
-				}
-				continue
-			}
-
-			name := fieldNames[i]
-			if secretFields[name] {
-				setMasked(fv)
-				continue
-			}
-			maskFieldsByName(fv, secretFields)
-		}
-	case reflect.Slice, reflect.Array:
-		for i := 0; i < v.Len(); i++ {
-			maskFieldsByName(v.Index(i), secretFields)
-		}
-	case reflect.Interface:
-		if !v.IsNil() {
-			maskFieldsByName(v.Elem(), secretFields)
-		}
-	}
-}
-
 // jsonFieldName returns the JSON key a struct field serializes as.
 func jsonFieldName(field reflect.StructField) string {
 	tag := field.Tag.Get("json")
@@ -364,13 +290,6 @@ func jsonFieldName(field reflect.StructField) string {
 		return field.Name
 	}
 	return strings.Split(tag, ",")[0]
-}
-
-// setMasked overwrites a *string field with the masked placeholder. Other
-// pointer/scalar kinds are left as-is — secret fields in practice are
-// always strings (env var values).
-func setMasked(v reflect.Value) {
-	setMaskedValue(v, false)
 }
 
 // maskMapValue masks a map[string]any value key-by-key: a key that matches

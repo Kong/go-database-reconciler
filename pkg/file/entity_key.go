@@ -50,11 +50,3 @@ func SimpleKey(kind, name, explicitID string) EntityKey {
 	}
 	return EntityKey{Kind: kind, Name: name}
 }
-
-// deref safely dereferences a *string, returning "" for nil.
-func deref(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}

@@ -93,6 +93,8 @@ func resolveEntityKeys(obj any) ([]file.EntityKey, bool) {
 	case *state.Key:
 		return simpleKeys("key", derefStr(e.Name), derefStr(e.ID)), true
 
+	// Consumer credential types. Credential identifying fields and types must match
+	// the consumerCredentials registry in pkg/file/secret_map.go.
 	case *state.KeyAuth:
 		return credentialKeys("keyauth_credential", derefStr(e.Key), consumerName(e.Consumer), derefStr(e.ID)), true
 	case *state.BasicAuth:
@@ -103,6 +105,9 @@ func resolveEntityKeys(obj any) ([]file.EntityKey, bool) {
 		return credentialKeys("jwt_secret", derefStr(e.Key), consumerName(e.Consumer), derefStr(e.ID)), true
 	case *state.Oauth2Credential:
 		return credentialKeys("oauth2_credential", derefStr(e.ClientID), consumerName(e.Consumer), derefStr(e.ID)), true
+
+	case *state.MTLSAuth:
+		return credentialKeys("mtls_auth_credential", derefStr(e.SubjectName), consumerName(e.Consumer), derefStr(e.ID)), true
 
 	case *state.Vault:
 		// Vault.Config is a freeform map (like plugin Config) — vault

@@ -629,6 +629,12 @@ type Stats struct {
 
 // generateDiffStringWithCache is like prev generateDiffString but uses a precomputed
 // environment variable cache to avoid redundant masking computations.
+// isErrorValue checks if a value is an error (used to detect masking failures)
+func isErrorValue(v any) bool {
+	_, ok := v.(error)
+	return ok
+}
+
 func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
 	envVarCache *EnvVarCache, secretMap file.SecretMap, defaults ...map[string]any,
 ) (string, error) {
@@ -650,87 +656,65 @@ func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
 	// has no secrets," which would silently disable masking entirely rather
 	// than fail safe.
 	oldObj, newObj := e.OldObj, e.Obj
-	entityResolved := false // Track if entity was resolved by field-based masking
+	fieldMaskingSucceeded := false // Track if field-based masking completed successfully
 
-	// Route to masking strategy
-	strategy := GetMaskingStrategy()
+	if !noMaskValues {
+		keys, ok := resolveEntityKeys(e.Obj)
 
-	switch strategy {
-	case StrategyFieldBased:
-		// Field-based masking: mask by field name (per-entity secret tracking)
-		if !noMaskValues {
-			keys, ok := resolveEntityKeys(e.Obj)
+		if ok && secretMap != nil {
+			// Try candidates in priority order (id-based, then scope/name-
+			// based) — see resolveEntityKeys for why both are needed.
+			for _, key := range keys {
+				if fields := secretMap[key]; len(fields) > 0 {
+					// Field-based masking: masks entire fields marked as templated
+					maskedOld, maskedNew := maskEntityPairByFieldNames(oldObj, newObj, fields)
 
-			if ok && secretMap != nil {
-				// Try candidates in priority order (id-based, then scope/name-
-				// based) — see resolveEntityKeys for why both are needed.
-				for _, key := range keys {
-					if fields := secretMap[key]; len(fields) > 0 {
-						// Field-based masking: masks entire fields marked as templated
-						oldObj, newObj = maskEntityPairByFieldNames(oldObj, newObj, fields)
-						entityResolved = true
+					// Check if masking succeeded (didn't return nil or error)
+					// If either side is nil or an error, fall back to value-based
+					if maskedOld != nil && maskedNew != nil && !isErrorValue(maskedOld) && !isErrorValue(maskedNew) {
+						oldObj, newObj = maskedOld, maskedNew
+						fieldMaskingSucceeded = true
 						break
-					} else {
-						// Entity was found in secretMap but has no secrets recorded
-						// This means the entity type is covered, just no templated fields
-						entityResolved = true
 					}
+					// If field-based masking failed, continue to fallback below
+				} else {
+					// Entity was found in secretMap but has no secrets recorded
+					// This means the entity type is covered, just no templated fields
+					fieldMaskingSucceeded = true
+					break
 				}
 			}
 		}
+	}
 
-		// Get diff
-		if oldDoc, ok := oldObj.(*state.Document); ok {
-			if !isDelete {
-				diffString, err = getDocumentDiff(oldDoc, newObj.(*state.Document))
-			} else {
-				diffString, err = getDocumentDiff(newObj.(*state.Document), oldDoc)
-			}
+	// Get diff
+	if oldDoc, ok := oldObj.(*state.Document); ok {
+		if !isDelete {
+			diffString, err = getDocumentDiff(oldDoc, newObj.(*state.Document))
 		} else {
-			if !isDelete {
-				diffString, err = getDiff(oldObj, newObj, defaults...)
-			} else {
-				diffString, err = getDiff(newObj, oldObj, defaults...)
-			}
+			diffString, err = getDocumentDiff(newObj.(*state.Document), oldDoc)
 		}
-		if err != nil {
-			return "", err
-		}
-
-		// Clean invisible change-detection markers from the output
-		if !noMaskValues {
-			diffString = cleanMaskedValueMarkers(diffString)
-		}
-
-		// Apply string-level masking as fallback only for entities not covered by field-based masking
-		if !noMaskValues && !entityResolved && envVarCache != nil {
-			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
-		}
-
-	case StrategyValueBased:
-		// Value-based masking: mask by value matching (regex-based)
-		// Get diff first (without field-based masking)
-		if oldDoc, ok := oldObj.(*state.Document); ok {
-			if !isDelete {
-				diffString, err = getDocumentDiff(oldDoc, newObj.(*state.Document))
-			} else {
-				diffString, err = getDocumentDiff(newObj.(*state.Document), oldDoc)
-			}
+	} else {
+		if !isDelete {
+			diffString, err = getDiff(oldObj, newObj, defaults...)
 		} else {
-			if !isDelete {
-				diffString, err = getDiff(oldObj, newObj, defaults...)
-			} else {
-				diffString, err = getDiff(newObj, oldObj, defaults...)
-			}
+			diffString, err = getDiff(newObj, oldObj, defaults...)
 		}
-		if err != nil {
-			return "", err
-		}
+	}
+	if err != nil {
+		return "", err
+	}
 
-		// Apply value-based masking to diff output
-		if !noMaskValues && envVarCache != nil {
-			diffString = maskEnvVarValueWithCache(diffString, envVarCache)
-		}
+	// Clean invisible change-detection markers from the output
+	if !noMaskValues && fieldMaskingSucceeded {
+		diffString = cleanMaskedValueMarkers(diffString)
+	}
+
+	// Apply string-level masking as fallback when:
+	// 1. Field-based masking wasn't attempted (entity not in secretMap or nil secretMap)
+	// 2. Field-based masking failed (returned nil/error)
+	if !noMaskValues && !fieldMaskingSucceeded && envVarCache != nil {
+		diffString = maskEnvVarValueWithCache(diffString, envVarCache)
 	}
 
 	return diffString, err
