@@ -21,23 +21,23 @@ func TestMaskEntityPairByFieldNames_Entity_Plugin(t *testing.T) {
 		Plugin: kong.Plugin{
 			Name: kong.String("rate-limiting"),
 			Config: kong.Configuration{
-				"minute": "5",
-				"key":    "old-key",
+				fieldMinute: "5",
+				fieldKey:    "old-key",
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name: kong.String("rate-limiting"),
 			Config: kong.Configuration{
-				"minute": "10",
-				"key":    "new-key",
+				fieldMinute: "10",
+				fieldKey:    "new-key",
 			},
 		},
 	}
-	secretFields := map[string]bool{"key": true}
+	secretFields := map[string]bool{fieldKey: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 	fmt.Println(oldMasked)
 	fmt.Println(newMasked)
 
@@ -53,7 +53,7 @@ func TestMaskEntityPairByFieldNames_Entity_Service(t *testing.T) {
 			Protocol: kong.String("http"),
 		},
 	}
-	new := &state.Service{
+	newService := &state.Service{
 		Service: kong.Service{
 			Name:     kong.String("my-service"),
 			Host:     kong.String("new.example.com"),
@@ -62,7 +62,7 @@ func TestMaskEntityPairByFieldNames_Entity_Service(t *testing.T) {
 	}
 	secretFields := map[string]bool{"host": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newService, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -75,7 +75,7 @@ func TestMaskEntityPairByFieldNames_Entity_Route(t *testing.T) {
 			Paths: []*string{kong.String("/api/v1")},
 		},
 	}
-	new := &state.Route{
+	newRoute := &state.Route{
 		Route: kong.Route{
 			Name:  kong.String("api-route"),
 			Paths: []*string{kong.String("/api/v2")},
@@ -83,7 +83,7 @@ func TestMaskEntityPairByFieldNames_Entity_Route(t *testing.T) {
 	}
 	secretFields := map[string]bool{"paths": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newRoute, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -97,16 +97,16 @@ func TestMaskEntityPairByFieldNames_Entity_Certificate(t *testing.T) {
 			Key:  kong.String("old-key"),
 		},
 	}
-	new := &state.Certificate{
+	newCert := &state.Certificate{
 		Certificate: kong.Certificate{
 			ID:   kong.String("cert-1"),
 			Cert: kong.String("new-cert"),
 			Key:  kong.String("new-key"),
 		},
 	}
-	secretFields := map[string]bool{"cert": true, "key": true}
+	secretFields := map[string]bool{"cert": true, fieldKey: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newCert, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -119,7 +119,7 @@ func TestMaskEntityPairByFieldNames_Entity_Consumer(t *testing.T) {
 			CustomID: kong.String("old-custom-id"),
 		},
 	}
-	new := &state.Consumer{
+	newConsumer := &state.Consumer{
 		Consumer: kong.Consumer{
 			Username: kong.String("user1"),
 			CustomID: kong.String("new-custom-id"),
@@ -127,7 +127,7 @@ func TestMaskEntityPairByFieldNames_Entity_Consumer(t *testing.T) {
 	}
 	secretFields := map[string]bool{"custom_id": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newConsumer, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -140,7 +140,7 @@ func TestMaskEntityPairByFieldNames_Entity_BasicAuthCredential(t *testing.T) {
 			Password: kong.String("oldpass"),
 		},
 	}
-	new := &state.BasicAuth{
+	newAuth := &state.BasicAuth{
 		BasicAuth: kong.BasicAuth{
 			Username: kong.String("newuser"),
 			Password: kong.String("newpass"),
@@ -148,7 +148,7 @@ func TestMaskEntityPairByFieldNames_Entity_BasicAuthCredential(t *testing.T) {
 	}
 	secretFields := map[string]bool{"username": true, "password": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newAuth, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -160,14 +160,14 @@ func TestMaskEntityPairByFieldNames_Entity_KeyAuthCredential(t *testing.T) {
 			Key: kong.String("oldkey123"),
 		},
 	}
-	new := &state.KeyAuth{
+	newKeyAuth := &state.KeyAuth{
 		KeyAuth: kong.KeyAuth{
 			Key: kong.String("newkey456"),
 		},
 	}
-	secretFields := map[string]bool{"key": true}
+	secretFields := map[string]bool{fieldKey: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newKeyAuth, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -180,15 +180,15 @@ func TestMaskEntityPairByFieldNames_Entity_JWTCredential(t *testing.T) {
 			Secret: kong.String("oldsecret"),
 		},
 	}
-	new := &state.JWTAuth{
+	newJWT := &state.JWTAuth{
 		JWTAuth: kong.JWTAuth{
 			Key:    kong.String("newkey"),
 			Secret: kong.String("newsecret"),
 		},
 	}
-	secretFields := map[string]bool{"key": true, "secret": true}
+	secretFields := map[string]bool{fieldKey: true, "secret": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newJWT, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -201,7 +201,7 @@ func TestMaskEntityPairByFieldNames_Entity_HMACAuthCredential(t *testing.T) {
 			Secret:   kong.String("oldsecret"),
 		},
 	}
-	new := &state.HMACAuth{
+	newHMAC := &state.HMACAuth{
 		HMACAuth: kong.HMACAuth{
 			Username: kong.String("newuser"),
 			Secret:   kong.String("newsecret"),
@@ -209,7 +209,7 @@ func TestMaskEntityPairByFieldNames_Entity_HMACAuthCredential(t *testing.T) {
 	}
 	secretFields := map[string]bool{"username": true, "secret": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newHMAC, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -221,14 +221,14 @@ func TestMaskEntityPairByFieldNames_Entity_MTLSAuthCredential(t *testing.T) {
 			SubjectName: kong.String("oldsubject"),
 		},
 	}
-	new := &state.MTLSAuth{
+	newMTLS := &state.MTLSAuth{
 		MTLSAuth: kong.MTLSAuth{
 			SubjectName: kong.String("newsubject"),
 		},
 	}
 	secretFields := map[string]bool{"subject_name": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newMTLS, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -240,14 +240,14 @@ func TestMaskEntityPairByFieldNames_Entity_Upstream(t *testing.T) {
 			Name: kong.String("backend-upstream"),
 		},
 	}
-	new := &state.Upstream{
+	newUpstream := &state.Upstream{
 		Upstream: kong.Upstream{
 			Name: kong.String("backend-upstream"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newUpstream, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -259,14 +259,14 @@ func TestMaskEntityPairByFieldNames_Entity_Target(t *testing.T) {
 			Target: kong.String("oldhost:8080"),
 		},
 	}
-	new := &state.Target{
+	newTarget := &state.Target{
 		Target: kong.Target{
 			Target: kong.String("newhost:8080"),
 		},
 	}
 	secretFields := map[string]bool{"target": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newTarget, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -279,12 +279,12 @@ func TestMaskEntityPairByFieldNames_Entity_PluginServiceScoped(t *testing.T) {
 			Service: &kong.Service{Name: kong.String("api-svc")},
 			Config: kong.Configuration{
 				"remove": map[string]interface{}{
-					"headers": []interface{}{"X-Auth"},
+					fieldHeaders: []interface{}{"X-Auth"},
 				},
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name:    kong.String("request-transformer"),
 			Service: &kong.Service{Name: kong.String("api-svc")},
@@ -297,7 +297,7 @@ func TestMaskEntityPairByFieldNames_Entity_PluginServiceScoped(t *testing.T) {
 	}
 	secretFields := map[string]bool{"headers": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -313,7 +313,7 @@ func TestMaskEntityPairByFieldNames_Entity_PluginRouteScoped(t *testing.T) {
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name:  kong.String("request-size-limiting"),
 			Route: &kong.Route{Name: kong.String("api-route")},
@@ -324,7 +324,7 @@ func TestMaskEntityPairByFieldNames_Entity_PluginRouteScoped(t *testing.T) {
 	}
 	secretFields := map[string]bool{"size_limit": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -336,14 +336,14 @@ func TestMaskEntityPairByFieldNames_Entity_ConsumerGroup(t *testing.T) {
 			Name: kong.String("admin-group"),
 		},
 	}
-	new := &state.ConsumerGroup{
+	newGroup := &state.ConsumerGroup{
 		ConsumerGroup: kong.ConsumerGroup{
 			Name: kong.String("admin-group"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newGroup, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -355,14 +355,14 @@ func TestMaskEntityPairByFieldNames_Entity_CACertificate(t *testing.T) {
 			Cert: kong.String("old-ca-cert-data"),
 		},
 	}
-	new := &state.CACertificate{
+	newCACert := &state.CACertificate{
 		CACertificate: kong.CACertificate{
 			Cert: kong.String("new-ca-cert-data"),
 		},
 	}
 	secretFields := map[string]bool{"cert": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newCACert, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -374,14 +374,14 @@ func TestMaskEntityPairByFieldNames_Entity_RBACRole(t *testing.T) {
 			Name: kong.String("admin"),
 		},
 	}
-	new := &state.RBACRole{
+	newRole := &state.RBACRole{
 		RBACRole: kong.RBACRole{
 			Name: kong.String("admin"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newRole, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -393,14 +393,14 @@ func TestMaskEntityPairByFieldNames_Entity_ServicePackage(t *testing.T) {
 			Name: kong.String("api-pkg"),
 		},
 	}
-	new := &state.ServicePackage{
+	newPkg := &state.ServicePackage{
 		ServicePackage: konnect.ServicePackage{
 			Name: kong.String("api-pkg"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPkg, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -412,14 +412,14 @@ func TestMaskEntityPairByFieldNames_Entity_AIModel(t *testing.T) {
 			Name: kong.String("gpt-4"),
 		},
 	}
-	new := &state.AIModel{
+	newModel := &state.AIModel{
 		AIModel: kong.AIModel{
 			Name: kong.String("gpt-4"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newModel, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -435,7 +435,7 @@ func TestMaskEntityPairByFieldNames_Entity_Vault(t *testing.T) {
 			},
 		},
 	}
-	new := &state.Vault{
+	newVault := &state.Vault{
 		Vault: kong.Vault{
 			Name:   kong.String("my-vault"),
 			Prefix: kong.String("vault://"),
@@ -446,7 +446,7 @@ func TestMaskEntityPairByFieldNames_Entity_Vault(t *testing.T) {
 	}
 	secretFields := map[string]bool{"uri": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newVault, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -458,14 +458,14 @@ func TestMaskEntityPairByFieldNames_Entity_License(t *testing.T) {
 			Payload: kong.String("old-license-payload"),
 		},
 	}
-	new := &state.License{
+	newLicense := &state.License{
 		License: kong.License{
 			Payload: kong.String("new-license-payload"),
 		},
 	}
 	secretFields := map[string]bool{"payload": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newLicense, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -478,7 +478,7 @@ func TestMaskEntityPairByFieldNames_Entity_Key(t *testing.T) {
 			KID:  kong.String("kid-old"),
 		},
 	}
-	new := &state.Key{
+	newKey := &state.Key{
 		Key: kong.Key{
 			Name: kong.String("signing-key"),
 			KID:  kong.String("kid-new"),
@@ -486,7 +486,7 @@ func TestMaskEntityPairByFieldNames_Entity_Key(t *testing.T) {
 	}
 	secretFields := map[string]bool{"kid": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newKey, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -498,14 +498,14 @@ func TestMaskEntityPairByFieldNames_Entity_KeySet(t *testing.T) {
 			Name: kong.String("keyset-1"),
 		},
 	}
-	new := &state.KeySet{
+	newKeySet := &state.KeySet{
 		KeySet: kong.KeySet{
 			Name: kong.String("keyset-1"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newKeySet, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -517,14 +517,14 @@ func TestMaskEntityPairByFieldNames_Entity_Partial(t *testing.T) {
 			Name: kong.String("partial-config"),
 		},
 	}
-	new := &state.Partial{
+	newPartial := &state.Partial{
 		Partial: kong.Partial{
 			Name: kong.String("partial-config"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPartial, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -538,7 +538,7 @@ func TestMaskEntityPairByFieldNames_Entity_ClonedPluginDefinition(t *testing.T) 
 			Ref:  kong.String("old-ref"),
 		},
 	}
-	new := &state.ClonedPluginDefinition{
+	newCloned := &state.ClonedPluginDefinition{
 		ClonedPluginDefinition: kong.ClonedPluginDefinition{
 			ID:   kong.String("cloned-1"),
 			Name: kong.String("clone-1"),
@@ -547,7 +547,7 @@ func TestMaskEntityPairByFieldNames_Entity_ClonedPluginDefinition(t *testing.T) 
 	}
 	secretFields := map[string]bool{"ref": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newCloned, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -562,7 +562,7 @@ func TestMaskEntityPairByFieldNames_Entity_CustomPluginDefinition(t *testing.T) 
 			Schema:  kong.String("old-schema.json"),
 		},
 	}
-	new := &state.CustomPluginDefinition{
+	newCustom := &state.CustomPluginDefinition{
 		CustomPluginDefinition: kong.CustomPluginDefinition{
 			ID:      kong.String("custom-plugin-1"),
 			Name:    kong.String("my-custom-plugin"),
@@ -572,7 +572,7 @@ func TestMaskEntityPairByFieldNames_Entity_CustomPluginDefinition(t *testing.T) 
 	}
 	secretFields := map[string]bool{"handler": true, "schema": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newCustom, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -584,14 +584,14 @@ func TestMaskEntityPairByFieldNames_Entity_FilterChain(t *testing.T) {
 			Name: kong.String("my-filter-chain"),
 		},
 	}
-	new := &state.FilterChain{
+	newChain := &state.FilterChain{
 		FilterChain: kong.FilterChain{
 			Name: kong.String("my-filter-chain"),
 		},
 	}
-	secretFields := map[string]bool{"name": true}
+	secretFields := map[string]bool{fieldName: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newChain, secretFields)
 
 	assert.NotNil(t, oldMasked)
 	assert.NotNil(t, newMasked)
@@ -607,7 +607,7 @@ func TestMaskEntityPairByFieldNames_SecretField_Masked(t *testing.T) {
 			Protocol: kong.String("https"),
 		},
 	}
-	new := &state.Service{
+	newService := &state.Service{
 		Service: kong.Service{
 			Name:     kong.String("api-svc"),
 			Host:     kong.String("secret-host.internal"),
@@ -617,7 +617,7 @@ func TestMaskEntityPairByFieldNames_SecretField_Masked(t *testing.T) {
 	}
 	secretFields := map[string]bool{"host": true}
 
-	oldMasked, _ := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, _ := maskEntityPairByFieldNames(old, newService, secretFields)
 
 	oldResult := oldMasked.(*state.Service)
 	assert.Equal(t, stringPtr(maskedValue), oldResult.Host)
@@ -632,7 +632,7 @@ func TestMaskEntityPairByFieldNames_NonSecretField_Visible(t *testing.T) {
 			Protocol: kong.String("https"),
 		},
 	}
-	new := &state.Service{
+	newService := &state.Service{
 		Service: kong.Service{
 			Name:     kong.String("api-svc"),
 			Host:     kong.String("api.example.com"),
@@ -641,7 +641,7 @@ func TestMaskEntityPairByFieldNames_NonSecretField_Visible(t *testing.T) {
 	}
 	secretFields := map[string]bool{}
 
-	oldMasked, _ := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, _ := maskEntityPairByFieldNames(old, newService, secretFields)
 
 	oldResult := oldMasked.(*state.Service)
 	assert.Equal(t, kong.String("api.example.com"), oldResult.Host)
@@ -654,7 +654,7 @@ func TestMaskEntityPairByFieldNames_CoincidentalValue_NotMasked(t *testing.T) {
 			Paths: []*string{kong.String("/api")},
 		},
 	}
-	new := &state.Route{
+	newRoute := &state.Route{
 		Route: kong.Route{
 			Name:  kong.String("DECK_OLD_ROUTE"),
 			Paths: []*string{kong.String("/api")},
@@ -662,7 +662,7 @@ func TestMaskEntityPairByFieldNames_CoincidentalValue_NotMasked(t *testing.T) {
 	}
 	secretFields := map[string]bool{}
 
-	oldMasked, _ := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, _ := maskEntityPairByFieldNames(old, newRoute, secretFields)
 
 	oldResult := oldMasked.(*state.Route)
 	assert.Equal(t, kong.String("DECK_OLD_ROUTE"), oldResult.Name)
@@ -678,7 +678,7 @@ func TestMaskEntityPairByFieldNames_Mixed_Fields(t *testing.T) {
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name: kong.String("key-auth"),
 			Config: kong.Configuration{
@@ -689,7 +689,7 @@ func TestMaskEntityPairByFieldNames_Mixed_Fields(t *testing.T) {
 	}
 	secretFields := map[string]bool{"key_names": true}
 
-	oldMasked, _ := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, _ := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	oldResult := oldMasked.(*state.Plugin)
 	assert.Equal(t, kong.String("key-auth"), oldResult.Name)
@@ -702,7 +702,7 @@ func TestMaskEntityPairByFieldNames_Nested_ChildSecret(t *testing.T) {
 			CustomID: kong.String("secret-custom-id"),
 		},
 	}
-	new := &state.Consumer{
+	newConsumer := &state.Consumer{
 		Consumer: kong.Consumer{
 			Username: kong.String("user1"),
 			CustomID: kong.String("secret-custom-id"),
@@ -710,7 +710,7 @@ func TestMaskEntityPairByFieldNames_Nested_ChildSecret(t *testing.T) {
 	}
 	secretFields := map[string]bool{"custom_id": true}
 
-	oldMasked, _ := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, _ := maskEntityPairByFieldNames(old, newConsumer, secretFields)
 
 	oldResult := oldMasked.(*state.Consumer)
 	assert.Equal(t, stringPtr(maskedValue), oldResult.CustomID)
@@ -721,7 +721,7 @@ func TestMaskEntityPairByFieldNames_EnvVar_MaskSecretFieldOnlyWithSimilarNonSecr
 		Plugin: kong.Plugin{
 			Name: kong.String("rate-limiting"),
 			Config: kong.Configuration{
-				"hour": "200",
+				fieldHour: "200",
 			},
 		},
 	}
@@ -729,11 +729,11 @@ func TestMaskEntityPairByFieldNames_EnvVar_MaskSecretFieldOnlyWithSimilarNonSecr
 		Plugin: kong.Plugin{
 			Name: kong.String("rate-limiting"),
 			Config: kong.Configuration{
-				"minute": "200",
+				fieldMinute: "200",
 			},
 		},
 	}
-	secretFields := map[string]bool{"minute": true}
+	secretFields := map[string]bool{fieldMinute: true}
 
 	oldMasked, newMasked := maskEntityPairByFieldNames(oldConfig, newConfig, secretFields)
 
@@ -751,22 +751,22 @@ func TestMaskEntityPairByFieldNames_EnvVar_ServiceScopedPlugin(t *testing.T) {
 			Name:    kong.String("rate-limiting"),
 			Service: &kong.Service{Name: kong.String("api-service")},
 			Config: kong.Configuration{
-				"minute": "100",
+				fieldMinute: "100",
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name:    kong.String("rate-limiting"),
 			Service: &kong.Service{Name: kong.String("api-service")},
 			Config: kong.Configuration{
-				"minute": "100",
+				fieldMinute: "100",
 			},
 		},
 	}
-	secretFields := map[string]bool{"minute": true}
+	secretFields := map[string]bool{fieldMinute: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	oldResult := oldMasked.(*state.Plugin)
 	newResult := newMasked.(*state.Plugin)
@@ -783,22 +783,22 @@ func TestMaskEntityPairByFieldNames_EnvVar_RouteScopedPlugin(t *testing.T) {
 			Name:  kong.String("rate-limiting"),
 			Route: &kong.Route{Name: kong.String("api-route")},
 			Config: kong.Configuration{
-				"minute": "100",
+				fieldMinute: "100",
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name:  kong.String("rate-limiting"),
 			Route: &kong.Route{Name: kong.String("api-route")},
 			Config: kong.Configuration{
-				"minute": "100",
+				fieldMinute: "100",
 			},
 		},
 	}
-	secretFields := map[string]bool{"minute": true}
+	secretFields := map[string]bool{fieldMinute: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	oldResult := oldMasked.(*state.Plugin)
 	newResult := newMasked.(*state.Plugin)
@@ -832,7 +832,7 @@ func TestMaskEntityPairByFieldNames_NilPointerField(t *testing.T) {
 			ClientCertificate: nil,
 		},
 	}
-	new := &state.Service{
+	newService := &state.Service{
 		Service: kong.Service{
 			Name:              kong.String("service1"),
 			ClientCertificate: nil,
@@ -840,7 +840,7 @@ func TestMaskEntityPairByFieldNames_NilPointerField(t *testing.T) {
 	}
 	secretFields := map[string]bool{"client_certificate": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newService, secretFields)
 
 	oldResult := oldMasked.(*state.Service)
 	newResult := newMasked.(*state.Service)
@@ -856,7 +856,7 @@ func TestMaskEntityPairByFieldNames_EmptySecretMap_NoMasking(t *testing.T) {
 			Paths: []*string{kong.String("/api/v1")},
 		},
 	}
-	new := &state.Route{
+	newRoute := &state.Route{
 		Route: kong.Route{
 			Name:  kong.String("route1"),
 			Paths: []*string{kong.String("/api/v2")},
@@ -864,7 +864,7 @@ func TestMaskEntityPairByFieldNames_EmptySecretMap_NoMasking(t *testing.T) {
 	}
 	secretFields := map[string]bool{}
 
-	oldMasked, _ := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, _ := maskEntityPairByFieldNames(old, newRoute, secretFields)
 
 	oldResult := oldMasked.(*state.Route)
 	assert.Equal(t, kong.String("route1"), oldResult.Name)
@@ -879,7 +879,7 @@ func TestCloneForMasking_ComplexType(t *testing.T) {
 
 	obj := &Plugin{
 		Name:   "test",
-		Config: kong.Configuration{"key": "value"},
+		Config: kong.Configuration{fieldKey: "value"},
 	}
 
 	clone := cloneForMasking(obj)
@@ -903,7 +903,7 @@ func TestMaskEntityPairByFieldNames_Nested_Plugin_WithService(t *testing.T) {
 			},
 		},
 	}
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name: kong.String("oauth2"),
 			Service: &kong.Service{
@@ -917,7 +917,7 @@ func TestMaskEntityPairByFieldNames_Nested_Plugin_WithService(t *testing.T) {
 	}
 	secretFields := map[string]bool{"host": true, "client_secret": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	oldResult := oldMasked.(*state.Plugin)
 	newResult := newMasked.(*state.Plugin)
@@ -934,7 +934,7 @@ func TestMaskEntityPairByFieldNames_Nested_Consumer_WithCustomID(t *testing.T) {
 			CustomID: kong.String("old-custom-id"),
 		},
 	}
-	new := &state.Consumer{
+	newConsumer := &state.Consumer{
 		Consumer: kong.Consumer{
 			Username: kong.String("user1"),
 			CustomID: kong.String("new-custom-id"),
@@ -942,7 +942,7 @@ func TestMaskEntityPairByFieldNames_Nested_Consumer_WithCustomID(t *testing.T) {
 	}
 	secretFields := map[string]bool{"custom_id": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newConsumer, secretFields)
 
 	oldResult := oldMasked.(*state.Consumer)
 	newResult := newMasked.(*state.Consumer)
@@ -958,7 +958,7 @@ func TestMaskEntityPairByFieldNames_Nested_Route_WithPaths(t *testing.T) {
 			Paths: []*string{kong.String("/old/api"), kong.String("/old/v1")},
 		},
 	}
-	new := &state.Route{
+	newRoute := &state.Route{
 		Route: kong.Route{
 			Name:  kong.String("api-route"),
 			Paths: []*string{kong.String("/new/api"), kong.String("/new/v1")},
@@ -966,7 +966,7 @@ func TestMaskEntityPairByFieldNames_Nested_Route_WithPaths(t *testing.T) {
 	}
 	secretFields := map[string]bool{"paths": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newRoute, secretFields)
 
 	oldResult := oldMasked.(*state.Route)
 	newResult := newMasked.(*state.Route)
@@ -989,7 +989,7 @@ func TestMaskEntityPairByFieldNames_Nested_Certificate_WithSNIs(t *testing.T) {
 			SNIs: []*string{kong.String("old.example.com"), kong.String("old-api.com")},
 		},
 	}
-	new := &state.Certificate{
+	newCert := &state.Certificate{
 		Certificate: kong.Certificate{
 			ID:   kong.String("cert-1"),
 			Cert: kong.String("new-cert-data"),
@@ -998,7 +998,7 @@ func TestMaskEntityPairByFieldNames_Nested_Certificate_WithSNIs(t *testing.T) {
 	}
 	secretFields := map[string]bool{"cert": true, "snis": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newCert, secretFields)
 
 	oldResult := oldMasked.(*state.Certificate)
 	newResult := newMasked.(*state.Certificate)
@@ -1023,7 +1023,7 @@ func TestMaskEntityPairByFieldNames_Nested_Service_WithClientCertificate(t *test
 			},
 		},
 	}
-	new := &state.Service{
+	newService := &state.Service{
 		Service: kong.Service{
 			Name: kong.String("secure-service"),
 			Host: kong.String("api.example.com"),
@@ -1034,9 +1034,9 @@ func TestMaskEntityPairByFieldNames_Nested_Service_WithClientCertificate(t *test
 			},
 		},
 	}
-	secretFields := map[string]bool{"cert": true, "key": true}
+	secretFields := map[string]bool{"cert": true, fieldKey: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newService, secretFields)
 
 	oldResult := oldMasked.(*state.Service)
 	newResult := newMasked.(*state.Service)
@@ -1081,13 +1081,13 @@ func TestMaskEntityPairByFieldNames_Nested_FourLevelDeep_ServiceRoutePluginConfi
 			},
 			// Level 4: Nested Config with secret field
 			Config: kong.Configuration{
-				"minute": "5000",
-				"policy": "local",
+				fieldMinute: "5000",
+				"policy":    "local",
 			},
 		},
 	}
 
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name: kong.String("rate-limiting"),
 			Service: &kong.Service{
@@ -1101,15 +1101,15 @@ func TestMaskEntityPairByFieldNames_Nested_FourLevelDeep_ServiceRoutePluginConfi
 				Methods: []*string{kong.String("GET")},
 			},
 			Config: kong.Configuration{
-				"minute": "5000",
-				"policy": "local",
+				fieldMinute: "5000",
+				"policy":    "local",
 			},
 		},
 	}
 
-	secretFields := map[string]bool{"minute": true}
+	secretFields := map[string]bool{fieldMinute: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	oldResult := oldMasked.(*state.Plugin)
 	newResult := newMasked.(*state.Plugin)
@@ -1155,12 +1155,12 @@ func TestMaskEntityPairByFieldNames_Nested_FourLevel_WithChangedSecret(t *testin
 				Paths: []*string{kong.String("/test")},
 			},
 			Config: kong.Configuration{
-				"minute": "5000",
+				fieldMinute: "5000",
 			},
 		},
 	}
 
-	new := &state.Plugin{
+	newPlugin := &state.Plugin{
 		Plugin: kong.Plugin{
 			Name: kong.String("rate-limiting"),
 			Service: &kong.Service{
@@ -1172,14 +1172,14 @@ func TestMaskEntityPairByFieldNames_Nested_FourLevel_WithChangedSecret(t *testin
 				Paths: []*string{kong.String("/test")},
 			},
 			Config: kong.Configuration{
-				"minute": "4000",
+				fieldMinute: "4000",
 			},
 		},
 	}
 
-	secretFields := map[string]bool{"minute": true}
+	secretFields := map[string]bool{fieldMinute: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newPlugin, secretFields)
 
 	oldResult := oldMasked.(*state.Plugin)
 	newResult := newMasked.(*state.Plugin)
@@ -1206,7 +1206,7 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_Unchanged(t *testing.T) {
 			Password: kong.String("same-password"),
 		},
 	}
-	new := &state.BasicAuth{
+	newAuth := &state.BasicAuth{
 		BasicAuth: kong.BasicAuth{
 			Username: kong.String("user1"),
 			Password: kong.String("same-password"),
@@ -1214,7 +1214,7 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_Unchanged(t *testing.T) {
 	}
 	secretFields := map[string]bool{"password": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newAuth, secretFields)
 
 	oldResult := oldMasked.(*state.BasicAuth)
 	newResult := newMasked.(*state.BasicAuth)
@@ -1230,7 +1230,7 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_Changed(t *testing.T) {
 			Password: kong.String("old-password"),
 		},
 	}
-	new := &state.BasicAuth{
+	newAuth := &state.BasicAuth{
 		BasicAuth: kong.BasicAuth{
 			Username: kong.String("user1"),
 			Password: kong.String("new-password"),
@@ -1238,7 +1238,7 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_Changed(t *testing.T) {
 	}
 	secretFields := map[string]bool{"password": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newAuth, secretFields)
 
 	oldResult := oldMasked.(*state.BasicAuth)
 	newResult := newMasked.(*state.BasicAuth)
@@ -1254,14 +1254,14 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_PointerChanged(t *testing.T)
 			Key: stringPtr("old-key"),
 		},
 	}
-	new := &state.KeyAuth{
+	newKeyAuth := &state.KeyAuth{
 		KeyAuth: kong.KeyAuth{
 			Key: stringPtr("new-key"),
 		},
 	}
-	secretFields := map[string]bool{"key": true}
+	secretFields := map[string]bool{fieldKey: true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newKeyAuth, secretFields)
 
 	oldResult := oldMasked.(*state.KeyAuth)
 	newResult := newMasked.(*state.KeyAuth)
@@ -1277,7 +1277,7 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_NonSecretVisible(t *testing.
 			CustomID: kong.String("secret-id-1"),
 		},
 	}
-	new := &state.Consumer{
+	newConsumer := &state.Consumer{
 		Consumer: kong.Consumer{
 			Username: kong.String("new-username"),
 			CustomID: kong.String("secret-id-2"),
@@ -1285,7 +1285,7 @@ func TestMaskEntityPairByFieldNames_ChangeDetection_NonSecretVisible(t *testing.
 	}
 	secretFields := map[string]bool{"custom_id": true}
 
-	oldMasked, newMasked := maskEntityPairByFieldNames(old, new, secretFields)
+	oldMasked, newMasked := maskEntityPairByFieldNames(old, newConsumer, secretFields)
 
 	oldResult := oldMasked.(*state.Consumer)
 	newResult := newMasked.(*state.Consumer)

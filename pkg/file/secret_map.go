@@ -201,7 +201,7 @@ func buildSecretMapFromGeneric(content map[string]any) SecretMap {
 							if plugins, ok := routeMap["plugins"].([]any); ok {
 								for _, pluginVal := range plugins {
 									if pluginMap, ok := pluginVal.(map[string]any); ok {
-										processGenericPlugin(pluginMap, "", routeName, "", "", "", sm, walkForSecrets)
+										processGenericPlugin(pluginMap, "", routeName, "", "", "", walkForSecrets)
 									}
 								}
 							}
@@ -213,7 +213,7 @@ func buildSecretMapFromGeneric(content map[string]any) SecretMap {
 				if plugins, ok := svcMap["plugins"].([]any); ok {
 					for _, pluginVal := range plugins {
 						if pluginMap, ok := pluginVal.(map[string]any); ok {
-							processGenericPlugin(pluginMap, svcName, "", "", "", "", sm, walkForSecrets)
+							processGenericPlugin(pluginMap, svcName, "", "", "", "", walkForSecrets)
 						}
 					}
 				}
@@ -274,7 +274,7 @@ func buildSecretMapFromGeneric(content map[string]any) SecretMap {
 				if plugins, ok := consumerMap["plugins"].([]any); ok {
 					for _, pluginVal := range plugins {
 						if pluginMap, ok := pluginVal.(map[string]any); ok {
-							processGenericPlugin(pluginMap, "", "", "", consumerName, "", sm, walkForSecrets)
+							processGenericPlugin(pluginMap, "", "", "", consumerName, "", walkForSecrets)
 						}
 					}
 				}
@@ -523,7 +523,8 @@ func excludeNestedEntities(m map[string]any, excludeFields ...string) map[string
 // processGenericPlugin processes a plugin from a generic map with proper scope.
 // This is used by buildSecretMapFromGeneric to handle nested plugins with the correct keys.
 func processGenericPlugin(pluginMap map[string]any, svcName, routeName, cgName, consumerName, instanceName string,
-	sm SecretMap, walkFunc func(string, any, EntityKey)) {
+	walkFunc func(string, any, EntityKey),
+) {
 	pluginName := getStringField(pluginMap, "name")
 	pluginID := getStringField(pluginMap, "id")
 

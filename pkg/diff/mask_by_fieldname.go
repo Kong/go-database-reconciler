@@ -22,11 +22,6 @@ var maskedValueChanged = maskedValue + string(rune(0x200D))
 // identically on both sides; changed ones get a visually-identical but
 // byte-different placeholder on the new side, preserving the "this changed"
 // signal without revealing what changed.
-//
-// Falls back to independent masking (maskEntityByFieldNames) if the two
-// objects aren't the same concrete type — this shouldn't happen in
-// practice (old/new are always the same entity kind) but is a safe default.
-//
 // Neither original object is mutated.
 func maskEntityPairByFieldNames(oldEntity, newEntity any, secretFields map[string]bool) (any, any) {
 	if len(secretFields) == 0 {

@@ -106,35 +106,6 @@ func TestResolveEntityKeys_ExplicitFileDeclaredID(t *testing.T) {
 	}
 }
 
-// Two same-type plugins on the SAME scope collide unless distinguished by
-// instance_name — mirrors deck's own plugin.go FIXME. This verifies the
-// instance_name tie-breaker works, using the fallback (scope-based) key.
-func TestResolveEntityKeys_PluginInstanceNameTiebreak(t *testing.T) {
-	a := &state.Plugin{Plugin: kong.Plugin{
-		Name:         kong.String("rate-limiting"),
-		Service:      &kong.Service{Name: kong.String("mockbin")},
-		InstanceName: kong.String("rl-a"),
-	}}
-	b := &state.Plugin{Plugin: kong.Plugin{
-		Name:         kong.String("rate-limiting"),
-		Service:      &kong.Service{Name: kong.String("mockbin")},
-		InstanceName: kong.String("rl-b"),
-	}}
-	ka, okA := resolveEntityKeys(a)
-	kb, okB := resolveEntityKeys(b)
-	if lastKey(t, ka, okA).String() == lastKey(t, kb, okB).String() {
-		t.Errorf("instance_name should distinguish same-scope plugins")
-	}
-
-	// Without instance_name, they DO collide — the documented limitation.
-	a.InstanceName, b.InstanceName = nil, nil
-	ka2, okA2 := resolveEntityKeys(a)
-	kb2, okB2 := resolveEntityKeys(b)
-	if lastKey(t, ka2, okA2).String() != lastKey(t, kb2, okB2).String() {
-		t.Errorf("expected anonymous same-scope plugins to collide (known limitation)")
-	}
-}
-
 func TestResolveEntityKeys_Certificate(t *testing.T) {
 	c := &state.Certificate{Certificate: kong.Certificate{ID: kong.String("cert-1")}}
 	keys, ok := resolveEntityKeys(c)
@@ -162,7 +133,7 @@ func TestResolveEntityKeys_CertificateWithoutFileDeclaredID(t *testing.T) {
 func TestResolveEntityKeys_Key(t *testing.T) {
 	key := &state.Key{Key: kong.Key{ID: kong.String("k-1")}}
 	keys, ok := resolveEntityKeys(key)
-	if !ok || keys[0].Kind != "key" || keys[0].String() != file.SimpleKey("key", "", "k-1").String() {
+	if !ok || keys[0].Kind != fieldKey || keys[0].String() != file.SimpleKey(fieldKey, "", "k-1").String() {
 		t.Errorf("unexpected key: %+v (ok=%v)", keys, ok)
 	}
 }

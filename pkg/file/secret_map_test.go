@@ -172,10 +172,8 @@ services:
 	keyWithoutService := PluginKey("rate-limiting", "", "", "", "", "", "")
 
 	// At least one of these should have the secret recorded
-	found := false
-	if sm[keyWithService] != nil && sm[keyWithService]["minute"] {
-		found = true
-	}
+	found := sm[keyWithService] != nil && sm[keyWithService]["minute"]
+
 	if sm[keyWithoutService] != nil && sm[keyWithoutService]["minute"] {
 		found = true
 	}

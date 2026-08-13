@@ -953,10 +953,11 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if sc.skipSchemaDefaults {
 				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
-			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache, sc.secretMap, entityDefaults)
+			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache,
+				sc.secretMap, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
 			// actions channel or direct console outputs to allow a phased transition to the channel only.
-			//Existing console
+			// Existing console
 			// prints and JSON blob building will be moved to the deck client.
 			if sc.enableEntityActions {
 				actionResult.Action = UpdateAction
