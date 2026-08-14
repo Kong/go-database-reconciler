@@ -87,11 +87,9 @@ func discoverConsumerCredentials() map[string]struct {
 	})
 
 	// Reflect on FConsumer struct to find credential fields
-	var consumer FConsumer
-	t := reflect.TypeOf(consumer)
+	t := reflect.TypeFor[FConsumer]()
 
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
+	for field := range t.Fields() {
 
 		// Check for "credential" tag (e.g., "keyauth_credential,key")
 		credTag, hasTag := field.Tag.Lookup("credential")
@@ -100,13 +98,13 @@ func discoverConsumerCredentials() map[string]struct {
 		}
 
 		// Parse the tag format: "credentialType,identifyingField"
-		parts := strings.Split(credTag, ",")
-		if len(parts) != 2 {
+		credType, identifyingField, ok := strings.Cut(credTag, ",")
+		if !ok {
 			continue
 		}
 
-		credType := strings.TrimSpace(parts[0])
-		identifyingField := strings.TrimSpace(parts[1])
+		credType = strings.TrimSpace(credType)
+		identifyingField = strings.TrimSpace(identifyingField)
 
 		// Get the YAML field name from the json tag
 		jsonTag, ok := field.Tag.Lookup("json")
@@ -115,7 +113,7 @@ func discoverConsumerCredentials() map[string]struct {
 		}
 
 		// Extract just the field name (before any commas)
-		yamlFieldName := strings.Split(jsonTag, ",")[0]
+		yamlFieldName, _, _ := strings.Cut(jsonTag, ",")
 		if yamlFieldName == "" || yamlFieldName == "-" {
 			continue
 		}

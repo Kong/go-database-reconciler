@@ -50,7 +50,7 @@ func TestFieldNameMasking_SameFieldMixedSecrecy(t *testing.T) {
 
 	newPlugin := func(svcName string, minute, hour any, errorCode any) *state.Plugin {
 		p := &state.Plugin{Plugin: kong.Plugin{
-			Name: kong.String("rate-limiting"),
+			Name: new("rate-limiting"),
 			Config: kong.Configuration{
 				fieldMinute:  minute,
 				fieldHour:    hour,
@@ -59,7 +59,7 @@ func TestFieldNameMasking_SameFieldMixedSecrecy(t *testing.T) {
 			},
 		}}
 		if svcName != "" {
-			p.Service = &kong.Service{Name: kong.String(svcName)}
+			p.Service = &kong.Service{Name: new(svcName)}
 		}
 		return p
 	}
@@ -117,11 +117,11 @@ func TestFieldNameMasking_RealObjectUntouched(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldObj := &state.Plugin{Plugin: kong.Plugin{
-		ID: kong.String("p1"), Name: kong.String("key-auth"),
+		ID: new("p1"), Name: new("key-auth"),
 		Config: kong.Configuration{"key": "old-key-value"},
 	}}
 	newObj := &state.Plugin{Plugin: kong.Plugin{
-		ID: kong.String("p1"), Name: kong.String("key-auth"),
+		ID: new("p1"), Name: new("key-auth"),
 		Config: kong.Configuration{"key": "real-secret-abc123"},
 	}}
 
@@ -146,8 +146,8 @@ func TestFieldNameMasking_ChangedSecretShowsAsDiff(t *testing.T) {
 
 	newPlugin := func(minute any) *state.Plugin {
 		return &state.Plugin{Plugin: kong.Plugin{
-			Name:    kong.String("rate-limiting"),
-			Service: &kong.Service{Name: kong.String("mockbin")},
+			Name:    new("rate-limiting"),
+			Service: &kong.Service{Name: new("mockbin")},
 			Config:  kong.Configuration{fieldMinute: minute, fieldHour: float64(4)},
 		}}
 	}
@@ -173,7 +173,7 @@ func TestFieldNameMasking_ChangedSecretShowsAsDiff(t *testing.T) {
 // starts (after leading whitespace) with the given diff marker ("-" or "+")
 // and contains the given JSON field name.
 func containsLineWithMarkerAndField(diffString, marker, field string) bool {
-	for _, line := range strings.Split(diffString, "\n") {
+	for line := range strings.SplitSeq(diffString, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, marker) && strings.Contains(trimmed, `"`+field+`"`) {
 			return true
@@ -193,8 +193,8 @@ func TestFieldNameMasking_UnchangedSecretDoesNotFalselyShowAsDiff(t *testing.T) 
 
 	newPlugin := func(hour any) *state.Plugin {
 		return &state.Plugin{Plugin: kong.Plugin{
-			Name:    kong.String("rate-limiting"),
-			Service: &kong.Service{Name: kong.String("mockbin")},
+			Name:    new("rate-limiting"),
+			Service: &kong.Service{Name: new("mockbin")},
 			Config:  kong.Configuration{fieldMinute: "same-secret-value", fieldHour: hour},
 		}}
 	}
@@ -227,10 +227,10 @@ func TestFieldNameMasking_RouteOwnFieldGetsMaskedWhenTemplated(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldObj := &state.Route{Route: kong.Route{
-		Name: kong.String("test"), Methods: []*string{kong.String("old-real-secret-method")},
+		Name: new("test"), Methods: []*string{new("old-real-secret-method")},
 	}}
 	newObj := &state.Route{Route: kong.Route{
-		Name: kong.String("test"), Methods: []*string{kong.String("new-real-secret-method")},
+		Name: new("test"), Methods: []*string{new("new-real-secret-method")},
 	}}
 
 	diffString, err := generateDiffStringWithCache(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
@@ -255,13 +255,13 @@ func TestGenerateDiffStringWithCache_NoMaskValues_Disabled(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldPlugin := &state.Plugin{Plugin: kong.Plugin{
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config:  kong.Configuration{fieldMinute: "secret-old-value", fieldHour: float64(4)},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config:  kong.Configuration{fieldMinute: "secret-new-value", fieldHour: float64(5)},
 	}}
 
@@ -285,15 +285,15 @@ func TestGenerateDiffStringWithCache_IsDelete_ReversedDiffOrder(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("p1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config:  kong.Configuration{fieldMinute: "old-secret"},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("p1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config:  kong.Configuration{fieldMinute: "new-secret"},
 	}}
 
@@ -319,18 +319,18 @@ func TestGenerateDiffStringWithCache_Service_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldService := &state.Service{Service: kong.Service{
-		ID:   kong.String("svc-1"),
-		Name: kong.String("my-service"),
-		Host: kong.String("example.com"),
-		Path: kong.String("/secret-path-old"),
-		Port: kong.Int(80),
+		ID:   new("svc-1"),
+		Name: new("my-service"),
+		Host: new("example.com"),
+		Path: new("/secret-path-old"),
+		Port: new(80),
 	}}
 	newService := &state.Service{Service: kong.Service{
-		ID:   kong.String("svc-1"),
-		Name: kong.String("my-service"),
-		Host: kong.String("example.com"),
-		Path: kong.String("/secret-path-new"),
-		Port: kong.Int(80),
+		ID:   new("svc-1"),
+		Name: new("my-service"),
+		Host: new("example.com"),
+		Path: new("/secret-path-new"),
+		Port: new(80),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -355,14 +355,14 @@ func TestGenerateDiffStringWithCache_Consumer_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldConsumer := &state.Consumer{Consumer: kong.Consumer{
-		ID:       kong.String("c1"),
-		Username: kong.String("john-doe"),
-		CustomID: kong.String("secret-custom-id-old"),
+		ID:       new("c1"),
+		Username: new("john-doe"),
+		CustomID: new("secret-custom-id-old"),
 	}}
 	newConsumer := &state.Consumer{Consumer: kong.Consumer{
-		ID:       kong.String("c1"),
-		Username: kong.String("john-doe"),
-		CustomID: kong.String("secret-custom-id-new"),
+		ID:       new("c1"),
+		Username: new("john-doe"),
+		CustomID: new("secret-custom-id-new"),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -386,16 +386,16 @@ func TestGenerateDiffStringWithCache_Upstream_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldUpstream := &state.Upstream{Upstream: kong.Upstream{
-		ID:         kong.String("up1"),
-		Name:       kong.String("backend-pool"),
-		HostHeader: kong.String("secret-header-old.internal"),
-		Slots:      kong.Int(10),
+		ID:         new("up1"),
+		Name:       new("backend-pool"),
+		HostHeader: new("secret-header-old.internal"),
+		Slots:      new(10),
 	}}
 	newUpstream := &state.Upstream{Upstream: kong.Upstream{
-		ID:         kong.String("up1"),
-		Name:       kong.String("backend-pool"),
-		HostHeader: kong.String("secret-header-new.internal"),
-		Slots:      kong.Int(10),
+		ID:         new("up1"),
+		Name:       new("backend-pool"),
+		HostHeader: new("secret-header-new.internal"),
+		Slots:      new(10),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -419,16 +419,16 @@ func TestGenerateDiffStringWithCache_Target_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldTarget := &state.Target{Target: kong.Target{
-		ID:       kong.String("tgt1"),
-		Target:   kong.String("secret-backend-old:8080"),
-		Weight:   kong.Int(100),
-		Upstream: &kong.Upstream{ID: kong.String("up1")},
+		ID:       new("tgt1"),
+		Target:   new("secret-backend-old:8080"),
+		Weight:   new(100),
+		Upstream: &kong.Upstream{ID: new("up1")},
 	}}
 	newTarget := &state.Target{Target: kong.Target{
-		ID:       kong.String("tgt1"),
-		Target:   kong.String("secret-backend-new:8080"),
-		Weight:   kong.Int(100),
-		Upstream: &kong.Upstream{ID: kong.String("up1")},
+		ID:       new("tgt1"),
+		Target:   new("secret-backend-new:8080"),
+		Weight:   new(100),
+		Upstream: &kong.Upstream{ID: new("up1")},
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -451,17 +451,17 @@ func TestGenerateDiffStringWithCache_Vault_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldVault := &state.Vault{Vault: kong.Vault{
-		ID:     kong.String("v1"),
-		Name:   kong.String("aws-vault"),
-		Prefix: kong.String("SECRET_PREFIX_OLD"),
+		ID:     new("v1"),
+		Name:   new("aws-vault"),
+		Prefix: new("SECRET_PREFIX_OLD"),
 		Config: kong.Configuration{
 			"api_key": "some-api-key",
 		},
 	}}
 	newVault := &state.Vault{Vault: kong.Vault{
-		ID:     kong.String("v1"),
-		Name:   kong.String("aws-vault"),
-		Prefix: kong.String("SECRET_PREFIX_NEW"),
+		ID:     new("v1"),
+		Name:   new("aws-vault"),
+		Prefix: new("SECRET_PREFIX_NEW"),
 		Config: kong.Configuration{
 			"api_key": "some-api-key",
 		},
@@ -487,14 +487,14 @@ func TestGenerateDiffStringWithCache_Key_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldKey := &state.Key{Key: kong.Key{
-		ID:   kong.String("k1"),
-		Name: kong.String("api-key"),
-		JWK:  kong.String(`{"kty":"RSA","old":"secret"}`),
+		ID:   new("k1"),
+		Name: new("api-key"),
+		JWK:  new(`{"kty":"RSA","old":"secret"}`),
 	}}
 	newKey := &state.Key{Key: kong.Key{
-		ID:   kong.String("k1"),
-		Name: kong.String("api-key"),
-		JWK:  kong.String(`{"kty":"RSA","new":"secret"}`),
+		ID:   new("k1"),
+		Name: new("api-key"),
+		JWK:  new(`{"kty":"RSA","new":"secret"}`),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -517,12 +517,12 @@ func TestGenerateDiffStringWithCache_ConsumerGroup_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldCG := &state.ConsumerGroup{ConsumerGroup: kong.ConsumerGroup{
-		ID:   kong.String("cg1"),
-		Name: kong.String("secret-consumer-group-old"),
+		ID:   new("cg1"),
+		Name: new("secret-consumer-group-old"),
 	}}
 	newCG := &state.ConsumerGroup{ConsumerGroup: kong.ConsumerGroup{
-		ID:   kong.String("cg1"),
-		Name: kong.String("secret-consumer-group-new"),
+		ID:   new("cg1"),
+		Name: new("secret-consumer-group-new"),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -545,12 +545,12 @@ func TestGenerateDiffStringWithCache_SNI_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldSNI := &state.SNI{SNI: kong.SNI{
-		ID:   kong.String("sni1"),
-		Name: kong.String("secret-example-old.com"),
+		ID:   new("sni1"),
+		Name: new("secret-example-old.com"),
 	}}
 	newSNI := &state.SNI{SNI: kong.SNI{
-		ID:   kong.String("sni1"),
-		Name: kong.String("secret-example-new.com"),
+		ID:   new("sni1"),
+		Name: new("secret-example-new.com"),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -573,12 +573,12 @@ func TestGenerateDiffStringWithCache_CACertificate_Entity(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldCACert := &state.CACertificate{CACertificate: kong.CACertificate{
-		ID:   kong.String("ca1"),
-		Cert: kong.String("-----BEGIN CERTIFICATE-----\nold-secret-cert-data"),
+		ID:   new("ca1"),
+		Cert: new("-----BEGIN CERTIFICATE-----\nold-secret-cert-data"),
 	}}
 	newCACert := &state.CACertificate{CACertificate: kong.CACertificate{
-		ID:   kong.String("ca1"),
-		Cert: kong.String("-----BEGIN CERTIFICATE-----\nnew-secret-cert-data"),
+		ID:   new("ca1"),
+		Cert: new("-----BEGIN CERTIFICATE-----\nnew-secret-cert-data"),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -606,11 +606,11 @@ func TestGenerateDiffStringWithCache_MultipleKey_Fallback(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	plugin := &state.Plugin{Plugin: kong.Plugin{
-		Name:   kong.String("rate-limiting"),
+		Name:   new("rate-limiting"),
 		Config: kong.Configuration{fieldMinute: "secret-value-old", fieldHour: float64(4)},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		Name:   kong.String("rate-limiting"),
+		Name:   new("rate-limiting"),
 		Config: kong.Configuration{fieldMinute: "secret-value-new", fieldHour: float64(5)},
 	}}
 
@@ -665,15 +665,15 @@ func TestGenerateDiffStringWithCache_CleanMaskedMarkers(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("p1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config:  kong.Configuration{fieldMinute: "secret-old", fieldHour: float64(4)},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("p1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config:  kong.Configuration{fieldMinute: "secret-new", fieldHour: float64(5)},
 	}}
 
@@ -701,9 +701,9 @@ func TestGenerateDiffStringWithCache_MultipleChangedFields(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("jwt1"),
-		Name:    kong.String("jwt"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("jwt1"),
+		Name:    new("jwt"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config: kong.Configuration{
 			"secret":    "old-secret-1",
 			"key":       "old-key-1",
@@ -711,9 +711,9 @@ func TestGenerateDiffStringWithCache_MultipleChangedFields(t *testing.T) {
 		},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("jwt1"),
-		Name:    kong.String("jwt"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("jwt1"),
+		Name:    new("jwt"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config: kong.Configuration{
 			"secret":    "new-secret-2",
 			"key":       "new-key-2",
@@ -755,9 +755,9 @@ func TestGenerateDiffStringWithCache_PartialChanges(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("rl1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("rl1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config: kong.Configuration{
 			fieldMinute: "secret-limit-same",
 			fieldHour:   float64(100),
@@ -765,9 +765,9 @@ func TestGenerateDiffStringWithCache_PartialChanges(t *testing.T) {
 		},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("rl1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("test-svc")},
+		ID:      new("rl1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("test-svc")},
 		Config: kong.Configuration{
 			fieldMinute: "secret-limit-same", // unchanged
 			fieldHour:   float64(200),        // changed
@@ -816,18 +816,18 @@ func TestGenerateDiffStringWithCache_MultiplePlugins(t *testing.T) {
 
 	// First plugin: rate-limiting with minute and hour as secrets (field-based)
 	plugin1Old := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("svc1")},
+		ID:      new("p1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("svc1")},
 		Config: kong.Configuration{
 			fieldMinute: "100",
 			fieldHour:   "1000",
 		},
 	}}
 	plugin1New := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("svc1")},
+		ID:      new("p1"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("svc1")},
 		Config: kong.Configuration{
 			fieldMinute: "200",
 			fieldHour:   "2000",
@@ -836,24 +836,24 @@ func TestGenerateDiffStringWithCache_MultiplePlugins(t *testing.T) {
 
 	// Second plugin: request-transformer with env var (value-based masking)
 	plugin2Old := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p2"),
-		Name:    kong.String("request-transformer"),
-		Service: &kong.Service{Name: kong.String("svc1")},
+		ID:      new("p2"),
+		Name:    new("request-transformer"),
+		Service: &kong.Service{Name: new("svc1")},
 		Config: kong.Configuration{
-			"add": map[string]interface{}{
-				fieldHeaders: []interface{}{
+			"add": map[string]any{
+				fieldHeaders: []any{
 					"Authorization:Bearer ${{ env \"DECK_BEARER_TOKEN\" }}",
 				},
 			},
 		},
 	}}
 	plugin2New := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p2"),
-		Name:    kong.String("request-transformer"),
-		Service: &kong.Service{Name: kong.String("svc1")},
+		ID:      new("p2"),
+		Name:    new("request-transformer"),
+		Service: &kong.Service{Name: new("svc1")},
 		Config: kong.Configuration{
-			"add": map[string]interface{}{
-				fieldHeaders: []interface{}{
+			"add": map[string]any{
+				fieldHeaders: []any{
 					"Authorization:Bearer ${{ env \"DECK_BEARER_TOKEN\" }}",
 				},
 			},
@@ -951,14 +951,14 @@ func TestGenerateDiffStringWithCache_EmptySecretFieldsMap(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldService := &state.Service{Service: kong.Service{
-		ID:   kong.String("svc1"),
-		Name: kong.String("my-service"),
-		Host: kong.String("api.example.com"),
+		ID:   new("svc1"),
+		Name: new("my-service"),
+		Host: new("api.example.com"),
 	}}
 	newService := &state.Service{Service: kong.Service{
-		ID:   kong.String("svc1"),
-		Name: kong.String("my-service"),
-		Host: kong.String("api.example.com"),
+		ID:   new("svc1"),
+		Name: new("my-service"),
+		Host: new("api.example.com"),
 	}}
 
 	diffString, err := generateDiffStringWithCache(
@@ -983,14 +983,14 @@ func TestGenerateDiffStringWithCache_NestedConfigMasking(t *testing.T) {
 	cache := NewEnvVarCache()
 
 	oldPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("custom-plugin"),
-		Service: &kong.Service{Name: kong.String("svc1")},
+		ID:      new("p1"),
+		Name:    new("custom-plugin"),
+		Service: &kong.Service{Name: new("svc1")},
 		Config: kong.Configuration{
-			"database": map[string]interface{}{
+			"database": map[string]any{
 				"host": "db.example.com",
 				"port": float64(5432),
-				"credentials": map[string]interface{}{
+				"credentials": map[string]any{
 					"username": "${{ env \"DECK_DB_USERNAME\" }}",
 					"password": "${{ env \"DECK_DB_PASSWORD\" }}",
 				},
@@ -998,14 +998,14 @@ func TestGenerateDiffStringWithCache_NestedConfigMasking(t *testing.T) {
 		},
 	}}
 	newPlugin := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("p1"),
-		Name:    kong.String("custom-plugin"),
-		Service: &kong.Service{Name: kong.String("svc1")},
+		ID:      new("p1"),
+		Name:    new("custom-plugin"),
+		Service: &kong.Service{Name: new("svc1")},
 		Config: kong.Configuration{
-			"database": map[string]interface{}{
+			"database": map[string]any{
 				"host": "db.example.com",
 				"port": float64(5432),
-				"credentials": map[string]interface{}{
+				"credentials": map[string]any{
 					"username": "${{ env \"DECK_DB_USERNAME\" }}",
 					"password": "${{ env \"DECK_DB_PASSWORD\" }}",
 				},

@@ -2,6 +2,7 @@ package diff
 
 import (
 	"encoding/json"
+	"math"
 	"reflect"
 	"strings"
 )
@@ -211,6 +212,13 @@ func setMaskedValue(v reflect.Value, changed bool) {
 	}
 }
 
+func combinedMapKeysCap(oldLen, newLen int) int {
+	if newLen > math.MaxInt-oldLen {
+		return math.MaxInt
+	}
+	return oldLen + newLen
+}
+
 // maskMapPair masks a matched pair of freeform map[string]any fields
 // (e.g. plugin Config) key by key, marking changed secret values distinctly.
 // Creates new masked maps to avoid mutating originals (shallow copy shares refs).
@@ -221,7 +229,8 @@ func maskMapPair(oldF, newF reflect.Value, secretFields map[string]bool) {
 	maskedOld := make(map[string]any, len(oldMap))
 	maskedNew := make(map[string]any, len(newMap))
 
-	keys := make(map[string]bool, len(oldMap)+len(newMap))
+	keysCap := combinedMapKeysCap(len(oldMap), len(newMap))
+	keys := make(map[string]bool, keysCap)
 	for k := range oldMap {
 		keys[k] = true
 	}

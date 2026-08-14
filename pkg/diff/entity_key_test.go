@@ -26,20 +26,20 @@ func lastKey(t *testing.T, keys []file.EntityKey, ok bool) file.EntityKey {
 // declared id — this is the exact bug that broke production masking.
 func TestResolveEntityKeys_PluginsDistinctByScope(t *testing.T) {
 	svcScoped := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("11111111-1111-1111-1111-111111111111"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("mockbin")},
+		ID:      new("11111111-1111-1111-1111-111111111111"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("mockbin")},
 	}}
 	// A real route-scoped plugin carries only its Route reference, never
 	// also Service — confirmed empirically against a live Kong instance.
 	routeScoped := &state.Plugin{Plugin: kong.Plugin{
-		ID:    kong.String("22222222-2222-2222-2222-222222222222"),
-		Name:  kong.String("rate-limiting"),
-		Route: &kong.Route{Name: kong.String("test")},
+		ID:    new("22222222-2222-2222-2222-222222222222"),
+		Name:  new("rate-limiting"),
+		Route: &kong.Route{Name: new("test")},
 	}}
 	global := &state.Plugin{Plugin: kong.Plugin{
-		ID:   kong.String("33333333-3333-3333-3333-333333333333"),
-		Name: kong.String("rate-limiting"),
+		ID:   new("33333333-3333-3333-3333-333333333333"),
+		Name: new("rate-limiting"),
 	}}
 
 	seen := map[string]bool{}
@@ -65,9 +65,9 @@ func TestResolveEntityKeys_ExistingPluginWithoutFileDeclaredID(t *testing.T) {
 	// Simulates the reconciled object: has a real ID (matched against Kong),
 	// but that ID was never in the file — extraction has no way to know it.
 	reconciled := &state.Plugin{Plugin: kong.Plugin{
-		ID:      kong.String("5421eb40-5ca7-45fc-a116-e4e9960865e7"),
-		Name:    kong.String("rate-limiting"),
-		Service: &kong.Service{Name: kong.String("mockbin")},
+		ID:      new("5421eb40-5ca7-45fc-a116-e4e9960865e7"),
+		Name:    new("rate-limiting"),
+		Service: &kong.Service{Name: new("mockbin")},
 	}}
 
 	// What extraction would have computed from the raw file (no id declared).
@@ -95,8 +95,8 @@ func TestResolveEntityKeys_ExistingPluginWithoutFileDeclaredID(t *testing.T) {
 // directly — no scope information required.
 func TestResolveEntityKeys_ExplicitFileDeclaredID(t *testing.T) {
 	reconciled := &state.Plugin{Plugin: kong.Plugin{
-		ID:   kong.String("declared-in-file-id"),
-		Name: kong.String("rate-limiting"),
+		ID:   new("declared-in-file-id"),
+		Name: new("rate-limiting"),
 	}}
 	extractionKey := file.PluginKey("rate-limiting", "", "", "", "", "", "declared-in-file-id")
 
@@ -107,7 +107,7 @@ func TestResolveEntityKeys_ExplicitFileDeclaredID(t *testing.T) {
 }
 
 func TestResolveEntityKeys_Certificate(t *testing.T) {
-	c := &state.Certificate{Certificate: kong.Certificate{ID: kong.String("cert-1")}}
+	c := &state.Certificate{Certificate: kong.Certificate{ID: new("cert-1")}}
 	keys, ok := resolveEntityKeys(c)
 	if !ok || keys[0].Kind != "certificate" || keys[0].String() != file.SimpleKey("certificate", "", "cert-1").String() {
 		t.Errorf("unexpected certificate keys: %+v (ok=%v)", keys, ok)
@@ -118,7 +118,7 @@ func TestResolveEntityKeys_Certificate(t *testing.T) {
 // without one) must still resolve to the shared type-level fallback key
 // used by extraction, so cert/key masking still applies.
 func TestResolveEntityKeys_CertificateWithoutFileDeclaredID(t *testing.T) {
-	reconciled := &state.Certificate{Certificate: kong.Certificate{ID: kong.String("auto-assigned-id")}}
+	reconciled := &state.Certificate{Certificate: kong.Certificate{ID: new("auto-assigned-id")}}
 	extractionKey := file.SimpleKey("certificate", "", "")
 
 	keys, ok := resolveEntityKeys(reconciled)
@@ -131,7 +131,7 @@ func TestResolveEntityKeys_CertificateWithoutFileDeclaredID(t *testing.T) {
 }
 
 func TestResolveEntityKeys_Key(t *testing.T) {
-	key := &state.Key{Key: kong.Key{ID: kong.String("k-1")}}
+	key := &state.Key{Key: kong.Key{ID: new("k-1")}}
 	keys, ok := resolveEntityKeys(key)
 	if !ok || keys[0].Kind != fieldKey || keys[0].String() != file.SimpleKey(fieldKey, "", "k-1").String() {
 		t.Errorf("unexpected key: %+v (ok=%v)", keys, ok)
@@ -142,14 +142,14 @@ func TestResolveEntityKeys_Key(t *testing.T) {
 // consumers must resolve to distinct fallback keys (parent-scoped identity).
 func TestResolveEntityKeys_CredentialScopedToConsumer(t *testing.T) {
 	c1 := &state.BasicAuth{BasicAuth: kong.BasicAuth{
-		ID:       kong.String("id-1"), // simulates a reconciled, already-existing credential
-		Username: kong.String("admin"),
-		Consumer: &kong.Consumer{Username: kong.String("alice")},
+		ID:       new("id-1"), // simulates a reconciled, already-existing credential
+		Username: new("admin"),
+		Consumer: &kong.Consumer{Username: new("alice")},
 	}}
 	c2 := &state.BasicAuth{BasicAuth: kong.BasicAuth{
-		ID:       kong.String("id-2"),
-		Username: kong.String("admin"),
-		Consumer: &kong.Consumer{Username: kong.String("bob")},
+		ID:       new("id-2"),
+		Username: new("admin"),
+		Consumer: &kong.Consumer{Username: new("bob")},
 	}}
 	k1, ok1 := resolveEntityKeys(c1)
 	k2, ok2 := resolveEntityKeys(c2)
@@ -178,17 +178,17 @@ func TestResolveEntityKeys_UnknownEntityReturnsFalse(t *testing.T) {
 // unrelated DECK_HOST env var.
 func TestResolveEntityKeys_NoSecretEntityTypesAreCovered(t *testing.T) {
 	entities := []any{
-		&state.Service{Service: kong.Service{Name: kong.String("svc")}},
-		&state.Route{Route: kong.Route{Name: kong.String("route")}},
-		&state.Upstream{Upstream: kong.Upstream{Name: kong.String("up")}},
-		&state.Target{Target: kong.Target{Target: kong.String("1.2.3.4:80")}},
-		&state.Consumer{Consumer: kong.Consumer{Username: kong.String("alice")}},
-		&state.ConsumerGroup{ConsumerGroup: kong.ConsumerGroup{Name: kong.String("cg")}},
-		&state.SNI{SNI: kong.SNI{Name: kong.String("sni")}},
-		&state.CACertificate{CACertificate: kong.CACertificate{ID: kong.String("ca-1")}},
-		&state.FilterChain{FilterChain: kong.FilterChain{Name: kong.String("fc")}},
-		&state.Vault{Vault: kong.Vault{Name: kong.String("vault")}},
-		&state.License{License: kong.License{ID: kong.String("id")}},
+		&state.Service{Service: kong.Service{Name: new("svc")}},
+		&state.Route{Route: kong.Route{Name: new("route")}},
+		&state.Upstream{Upstream: kong.Upstream{Name: new("up")}},
+		&state.Target{Target: kong.Target{Target: new("1.2.3.4:80")}},
+		&state.Consumer{Consumer: kong.Consumer{Username: new("alice")}},
+		&state.ConsumerGroup{ConsumerGroup: kong.ConsumerGroup{Name: new("cg")}},
+		&state.SNI{SNI: kong.SNI{Name: new("sni")}},
+		&state.CACertificate{CACertificate: kong.CACertificate{ID: new("ca-1")}},
+		&state.FilterChain{FilterChain: kong.FilterChain{Name: new("fc")}},
+		&state.Vault{Vault: kong.Vault{Name: new("vault")}},
+		&state.License{License: kong.License{ID: new("id")}},
 	}
 	for _, e := range entities {
 		if _, ok := resolveEntityKeys(e); !ok {
