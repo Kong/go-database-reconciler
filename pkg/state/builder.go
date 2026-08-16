@@ -619,10 +619,17 @@ func buildDegraphqlRouteFromCustomEntity(kongState *KongState, entity map[string
 		if err != nil {
 			return DegraphqlRoute{}, err
 		}
-		if !ok {
-			return DegraphqlRoute{}, fmt.Errorf("service must be of type object with a valid string id or name")
+		if ok {
+			degraphqlRoute.Service = s
+		} else {
+			// degraphql_routes are a global entity and can reference a
+			// service outside the current workspace boundary, so its existence
+			// cannot always be validated against the in-memory state.
+			cprint.UpdatePrintlnStdErr(fmt.Sprintf(
+				"Warning: service %v referenced by degraphql_route not found in state "+
+					"(it may belong to a different workspace).", serviceID))
+			degraphqlRoute.Service = &kong.Service{ID: new(serviceID)}
 		}
-		degraphqlRoute.Service = s
 	}
 
 	if entity["uri"] != nil {
@@ -689,13 +696,18 @@ func buildGraphqlRateLimitingCostDecorationFromCustomEntity(kongState *KongState
 		if err != nil {
 			return GraphqlRateLimitingCostDecoration{}, err
 		}
-		if !ok {
-			return GraphqlRateLimitingCostDecoration{},
-				fmt.Errorf("service must be of type object with a valid string id or name")
-		}
-
-		decoration.Service = &kong.Service{
-			ID: s.ID,
+		if ok {
+			decoration.Service = &kong.Service{
+				ID: s.ID,
+			}
+		} else {
+			// graphql_ratelimiting_cost_decorations are a global entity
+			// and can reference a service outside the current workspace boundary,
+			// so its existence cannot always be validated against the in-memory state.
+			cprint.UpdatePrintlnStdErr(fmt.Sprintf(
+				"Warning: service %v referenced by graphql_ratelimiting_cost_decoration not found in state "+
+					"(it may belong to a different workspace).", serviceID))
+			decoration.Service = &kong.Service{ID: new(serviceID)}
 		}
 	}
 
