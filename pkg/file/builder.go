@@ -1565,6 +1565,11 @@ func (b *stateBuilder) aiModels() {
 			am.CreatedAt = aiModel.CreatedAt
 		}
 
+		// AIModel.Alias defaults to AIModel.Name if not set, so we should set it to avoid drift
+		if utils.Empty(am.Alias) {
+			am.Alias = new(*am.Name)
+		}
+
 		utils.MustMergeTags(&am.AIModel, b.selectTags)
 
 		err = b.intermediate.AIModels.AddIgnoringDuplicates(state.AIModel{AIModel: am.AIModel})

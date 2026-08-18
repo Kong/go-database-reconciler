@@ -427,7 +427,6 @@
     },
     "FAIModel": {
       "required": [
-        "alias",
         "name"
       ],
       "properties": {

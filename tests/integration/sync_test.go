@@ -11545,7 +11545,7 @@ func Test_Sync_AIModels(t *testing.T) {
 				AIModels: []*kong.AIModel{
 					{
 						Name:  kong.String("openai-gpt"),
-						Alias: kong.String("gpt-4o"),
+						Alias: kong.String("openai-gpt"), // input does not have alias, so alias is set to name
 						Tags:  kong.StringSlice("select-me", "tag1"),
 					},
 				},
