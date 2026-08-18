@@ -67,7 +67,7 @@ func TestFieldNameMasking_SameFieldMixedSecrecy(t *testing.T) {
 	oldSecret := newPlugin("mockbin", "4", float64(3), float64(429))
 	newSecret := newPlugin("mockbin", "super-secret-limit-value", float64(4), float64(429))
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldSecret, newSecret), false, false, cache, secretMap,
 	)
 	if err != nil {
@@ -95,7 +95,7 @@ func TestFieldNameMasking_SameFieldMixedSecrecy(t *testing.T) {
 	newPlain := newPlugin("", float64(10), float64(4), float64(429))
 
 	_ = plainPluginKey
-	plainDiff, err := generateDiffStringWithCache(
+	plainDiff, err := generateDiffString(
 		crudEventFor(oldPlain, newPlain), false, false, cache, secretMap,
 	)
 	if err != nil {
@@ -125,7 +125,7 @@ func TestFieldNameMasking_RealObjectUntouched(t *testing.T) {
 		Config: kong.Configuration{"key": "real-secret-abc123"},
 	}}
 
-	_, err := generateDiffStringWithCache(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
+	_, err := generateDiffString(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -155,7 +155,7 @@ func TestFieldNameMasking_ChangedSecretShowsAsDiff(t *testing.T) {
 	oldObj := newPlugin("old-real-secret")
 	newObj := newPlugin("new-real-secret")
 
-	diffString, err := generateDiffStringWithCache(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
+	diffString, err := generateDiffString(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -202,7 +202,7 @@ func TestFieldNameMasking_UnchangedSecretDoesNotFalselyShowAsDiff(t *testing.T) 
 	oldObj := newPlugin(float64(4))
 	newObj := newPlugin(float64(8)) // only hour changes; minute stays the same
 
-	diffString, err := generateDiffStringWithCache(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
+	diffString, err := generateDiffString(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -233,7 +233,7 @@ func TestFieldNameMasking_RouteOwnFieldGetsMaskedWhenTemplated(t *testing.T) {
 		Name: new("test"), Methods: []*string{new("new-real-secret-method")},
 	}}
 
-	diffString, err := generateDiffStringWithCache(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
+	diffString, err := generateDiffString(crudEventFor(oldObj, newObj), false, false, cache, secretMap)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -266,7 +266,7 @@ func TestGenerateDiffStringWithCache_NoMaskValues_Disabled(t *testing.T) {
 	}}
 
 	// With noMaskValues=true, masking should be disabled
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldPlugin, newPlugin), false, true, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -298,7 +298,7 @@ func TestGenerateDiffStringWithCache_IsDelete_ReversedDiffOrder(t *testing.T) {
 	}}
 
 	// isDelete=true should reverse the diff order
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldPlugin, newPlugin), true, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -333,7 +333,7 @@ func TestGenerateDiffStringWithCache_Service_Entity(t *testing.T) {
 		Port: new(80),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldService, newService), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -365,7 +365,7 @@ func TestGenerateDiffStringWithCache_Consumer_Entity(t *testing.T) {
 		CustomID: new("secret-custom-id-new"),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldConsumer, newConsumer), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -398,7 +398,7 @@ func TestGenerateDiffStringWithCache_Upstream_Entity(t *testing.T) {
 		Slots:      new(10),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldUpstream, newUpstream), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -431,7 +431,7 @@ func TestGenerateDiffStringWithCache_Target_Entity(t *testing.T) {
 		Upstream: &kong.Upstream{ID: new("up1")},
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldTarget, newTarget), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -467,7 +467,7 @@ func TestGenerateDiffStringWithCache_Vault_Entity(t *testing.T) {
 		},
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldVault, newVault), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -497,7 +497,7 @@ func TestGenerateDiffStringWithCache_Key_Entity(t *testing.T) {
 		JWK:  new(`{"kty":"RSA","new":"secret"}`),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldKey, newKey), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -525,7 +525,7 @@ func TestGenerateDiffStringWithCache_ConsumerGroup_Entity(t *testing.T) {
 		Name: new("secret-consumer-group-new"),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldCG, newCG), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -553,7 +553,7 @@ func TestGenerateDiffStringWithCache_SNI_Entity(t *testing.T) {
 		Name: new("secret-example-new.com"),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldSNI, newSNI), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -581,7 +581,7 @@ func TestGenerateDiffStringWithCache_CACertificate_Entity(t *testing.T) {
 		Cert: new("-----BEGIN CERTIFICATE-----\nnew-secret-cert-data"),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldCACert, newCACert), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -615,7 +615,7 @@ func TestGenerateDiffStringWithCache_MultipleKey_Fallback(t *testing.T) {
 	}}
 
 	// Should fall back to no-scope key when service-scoped key not found
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(plugin, newPlugin), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -646,7 +646,7 @@ func TestGenerateDiffStringWithCache_EntityNotInResolveKeys(t *testing.T) {
 		Name:   "test-custom",
 	}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(unknownEntity, unknownEntity), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -677,7 +677,7 @@ func TestGenerateDiffStringWithCache_CleanMaskedMarkers(t *testing.T) {
 		Config:  kong.Configuration{fieldMinute: "secret-new", fieldHour: float64(5)},
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldPlugin, newPlugin), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -721,7 +721,7 @@ func TestGenerateDiffStringWithCache_MultipleChangedFields(t *testing.T) {
 		},
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldPlugin, newPlugin), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -775,7 +775,7 @@ func TestGenerateDiffStringWithCache_PartialChanges(t *testing.T) {
 		},
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldPlugin, newPlugin), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -861,7 +861,7 @@ func TestGenerateDiffStringWithCache_MultiplePlugins(t *testing.T) {
 	}}
 
 	// Test plugin 1 - field-based masking
-	diff1, err := generateDiffStringWithCache(
+	diff1, err := generateDiffString(
 		crudEventFor(plugin1Old, plugin1New), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -872,7 +872,7 @@ func TestGenerateDiffStringWithCache_MultiplePlugins(t *testing.T) {
 	require.Contains(t, diff1, maskedValue)
 
 	// Test plugin 2 - value-based masking
-	diff2, err := generateDiffStringWithCache(
+	diff2, err := generateDiffString(
 		crudEventFor(plugin2Old, plugin2New), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -900,7 +900,7 @@ func TestGenerateDiffStringWithCache_InvalidEntityTypeInSecretMap(t *testing.T) 
 		PublicField: "public-value",
 	}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(customEntity, customEntity), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -931,7 +931,7 @@ func TestGenerateDiffStringWithCache_GetDiffError(t *testing.T) {
 	event := crudEventFor(oldEntity, newEntity)
 
 	// This should either return an error or handle gracefully
-	diffString, err := generateDiffStringWithCache(event, false, false, cache, secretMap)
+	diffString, err := generateDiffString(event, false, false, cache, secretMap)
 
 	// Should handle the error gracefully - either returning empty diff or error
 	// The important thing is it doesn't crash
@@ -961,7 +961,7 @@ func TestGenerateDiffStringWithCache_EmptySecretFieldsMap(t *testing.T) {
 		Host: new("api.example.com"),
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldService, newService), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)
@@ -1013,7 +1013,7 @@ func TestGenerateDiffStringWithCache_NestedConfigMasking(t *testing.T) {
 		},
 	}}
 
-	diffString, err := generateDiffStringWithCache(
+	diffString, err := generateDiffString(
 		crudEventFor(oldPlugin, newPlugin), false, false, cache, secretMap,
 	)
 	require.NoError(t, err)

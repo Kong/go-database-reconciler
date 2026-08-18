@@ -225,10 +225,22 @@ func buildSecretMapFromGeneric(content map[string]any) SecretMap {
 			if routeMap, ok := routeVal.(map[string]any); ok {
 				routeName := getStringField(routeMap, "name")
 				routeID := getStringField(routeMap, "id")
+
+				// Process route's own fields (excluding nested plugins)
+				routeMapCopy := excludeNestedEntities(routeMap, "plugins")
 				if routeID != "" {
-					walkForSecrets("", routeMap, SimpleKey("route", routeName, routeID))
+					walkForSecrets("", routeMapCopy, SimpleKey("route", routeName, routeID))
 				}
-				walkForSecrets("", routeMap, SimpleKey("route", routeName, ""))
+				walkForSecrets("", routeMapCopy, SimpleKey("route", routeName, ""))
+
+				// Process nested plugins within this route
+				if plugins, ok := routeMap["plugins"].([]any); ok {
+					for _, pluginVal := range plugins {
+						if pluginMap, ok := pluginVal.(map[string]any); ok {
+							processGenericPlugin(pluginMap, "", routeName, "", "", "", walkForSecrets)
+						}
+					}
+				}
 			}
 		}
 	}

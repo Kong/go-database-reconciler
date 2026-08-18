@@ -180,8 +180,6 @@ type Syncer struct {
 }
 
 // SetSecretMap sets the per-entity secret field map used for masking.
-// Callers build this via file.BuildSecretMap on a mock-rendered Content
-// (see file.EnvVarsMock) before calling Solve.
 func (sc *Syncer) SetSecretMap(m file.SecretMap) {
 	sc.secretMap = m
 }
@@ -627,15 +625,13 @@ type Stats struct {
 	DeleteOps *utils.AtomicInt32Counter
 }
 
-// generateDiffStringWithCache is like prev generateDiffString but uses a precomputed
-// environment variable cache to avoid redundant masking computations.
 // isErrorValue checks if a value is an error (used to detect masking failures)
 func isErrorValue(v any) bool {
 	_, ok := v.(error)
 	return ok
 }
 
-func generateDiffStringWithCache(e crud.Event, isDelete bool, noMaskValues bool,
+func generateDiffString(e crud.Event, isDelete bool, noMaskValues bool,
 	envVarCache *EnvVarCache, secretMap file.SecretMap, defaults ...map[string]any,
 ) (string, error) {
 	var diffString string
@@ -953,7 +949,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			if sc.skipSchemaDefaults {
 				entityDefaults = sc.getEntityDefaults(ctx, e)
 			}
-			diffString, err := generateDiffStringWithCache(e, false, sc.noMaskValues, sc.envVarCache,
+			diffString, err := generateDiffString(e, false, sc.noMaskValues, sc.envVarCache,
 				sc.secretMap, entityDefaults)
 			// TODO https://github.com/Kong/go-database-reconciler/issues/22 this currently supports either the entity
 			// actions channel or direct console outputs to allow a phased transition to the channel only.
