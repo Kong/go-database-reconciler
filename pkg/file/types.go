@@ -1072,7 +1072,15 @@ func copyFromDegraphqlRoute(dRoute DegraphqlRoute, fcEntity *FCustomEntity) erro
 
 	if dRoute.Service != nil && dRoute.Service.ID != nil {
 		serviceMap := make(map[string]any)
-		serviceMap["name"] = *dRoute.Service.Name
+		if dRoute.Service.Name != nil {
+			// degraphql_routes are only ever serialized with the "name" field, so
+			// prefer it whenever the service is resolvable within the workspace.
+			serviceMap["name"] = *dRoute.Service.Name
+		} else {
+			// The service may belong to a different workspace than the one being
+			// dumped, in which case only its ID is known.
+			serviceMap["id"] = *dRoute.Service.ID
+		}
 		fcEntity.Fields["service"] = serviceMap
 	}
 
