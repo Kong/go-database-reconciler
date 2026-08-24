@@ -31,6 +31,7 @@ type Client struct {
 	Documents             *DocumentService
 	ControlPlanes         *ControlPlaneService
 	ControlPlaneRelations *ControlPlaneRelationsService
+	Organization          *OrganizationService
 	logger                io.Writer
 	debug                 bool
 	token                 string
@@ -63,6 +64,7 @@ func NewClient(httpClient *http.Client, opts ClientOpts) (*Client, error) {
 	client.Documents = (*DocumentService)(&client.common)
 	client.ControlPlanes = (*ControlPlaneService)(&client.common)
 	client.ControlPlaneRelations = (*ControlPlaneRelationsService)(&client.common)
+	client.Organization = (*OrganizationService)(&client.common)
 	client.logger = os.Stderr
 
 	client.RuntimeGroups = (*RuntimeGroupService)(&client.common)
