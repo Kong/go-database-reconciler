@@ -247,16 +247,14 @@ func NewEnvVarCache() *EnvVarCache {
 			regexp.MustCompile(`\b`+regexp.QuoteMeta(secret)+`\b`))
 	}
 
-	// Precompile the (expensive) PEM block patterns once, one per sensitive type.
-	// Note: we intentionally do NOT capture the text preceding the block. RE2's
-	// unanchored search already locates the block efficiently, and ReplaceAll
-	// leaves unmatched (preceding) text in place — capturing it would force
-	// submatch tracking and re-substitution of the entire prefix on every block.
+	// Build one regex per PEM type (CERTIFICATE, PRIVATE KEY, etc.) to find and
+	// mask those blocks in the diff. `[ \t]*` grabs any spaces/tabs right
+	// before "-----BEGIN" so an indented cert gets replaced cleanly.
 	for pemType := range pemTypes {
 		cache.PEMPatterns = append(cache.PEMPatterns, regexp.MustCompile(
-			`(?s)`+regexp.QuoteMeta(pemBlockBegin)+`\s+`+regexp.QuoteMeta(pemType)+
-				`\s*-----.*?`+regexp.QuoteMeta(pemBlockEnd)+`\s+`+regexp.QuoteMeta(pemType)+
-				`\s*-----(["',]*)`,
+			`[ \t]*`+regexp.QuoteMeta(pemBlockBegin)+`\s+`+regexp.QuoteMeta(pemType)+
+				`(?s)\s*-----.*?`+regexp.QuoteMeta(pemBlockEnd)+`\s+`+regexp.QuoteMeta(pemType)+
+				`\s*-----`,
 		))
 	}
 
@@ -340,13 +338,21 @@ func isJWK(v string) bool {
 	return hasKty
 }
 
-// normalizeForPEMDetection strips surrounding double-quotes and converts literal
-// \n escapes to real newlines so we can find PEM headers in env var values.
+// normalizeForPEMDetection cleans up a cert/key value so Go's PEM parser can
+// recognize it. The parser is strict: it only works if each line starts at
+// the very left edge, with no quotes or leading spaces. So this removes
+// wrapping quotes and any indentation .
 func normalizeForPEMDetection(v string) string {
 	if len(v) >= 2 && v[0] == '"' && v[len(v)-1] == '"' {
 		v = v[1 : len(v)-1]
 	}
-	return strings.ReplaceAll(v, `\n`, "\n")
+	v = strings.ReplaceAll(v, `\n`, "\n")
+
+	lines := strings.Split(v, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimLeft(line, " \t")
+	}
+	return strings.Join(lines, "\n")
 }
 
 // pemTypeFromValue extracts the PEM block type (e.g. "CERTIFICATE", "PRIVATE KEY")

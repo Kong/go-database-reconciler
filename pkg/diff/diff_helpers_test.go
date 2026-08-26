@@ -35,6 +35,16 @@ const (
 		`AoIBAQCm7M8qWILmeFftsYEZbDJILZN1J7fXaA0Dd6QsgZi63/bJV6f2qE892pUY\n` +
 		`-----END CERTIFICATE-----"`
 
+	// testCertIndented mirrors a cert pasted from an indented `cat` output,
+	// where the BEGIN/END marker lines themselves carry leading whitespace
+	// (not just the base64 body).
+	testCertIndented = `"      -----BEGIN CERTIFICATE-----\n` +
+		`      MIIC/zCCAeegAwIBAgIUM/0MUZ+PAmeXXrzFb1pKkfzZbEkwDQYJKoZIhvcNAQEL\n` +
+		`      BQAwDzENMAsGA1UEAwwEdGVzdDAeFw0yNjA3MDgwNzA1NTBaFw0yNzA3MDgwNzA1\n` +
+		`      NTBaMA8xDTALBgNVBAMMBHRlc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK\n` +
+		`      AoIBAQCm7M8qWILmeFftsYEZbDJILZN1J7fXaA0Dd6QsgZi63/bJV6f2qE892pUY\n` +
+		`      -----END CERTIFICATE-----"`
+
 	testKeyShort = `"-----BEGIN PRIVATE KEY-----\n` +
 		`MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCm7M8qWILmeFft\n` +
 		`sYEZbDJILZN1J7fXaA0Dd6QsgZi63/bJV6f2qE892pUYTO5M/paORzziovA0T97o\n` +
@@ -286,6 +296,25 @@ BQAwDzENMAsGA1UEAwwEdGVzdDAeFw0yNjA3MDgwNzA1NTBaFw0yNzA3MDgwNzA1
 NTBaMA8xDTALBgNVBAMMBHRlc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
 AoIBAQCm7M8qWILmeFftsYEZbDJILZN1J7fXaA0Dd6QsgZi63/bJV6f2qE892pUY
 -----END CERTIFICATE-----"
+ }`,
+			want: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+   "cert": "[masked]"
+ }`,
+		},
+		{
+			name: "indented PEM cert (BEGIN/END lines carry leading whitespace) is still masked",
+			envVars: map[string]string{
+				"DECK_CLIENT_CERT": testCertIndented,
+			},
+			args: ` {
+   "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+   "cert": "      -----BEGIN CERTIFICATE-----
+      MIIC/zCCAeegAwIBAgIUM/0MUZ+PAmeXXrzFb1pKkfzZbEkwDQYJKoZIhvcNAQEL
+      BQAwDzENMAsGA1UEAwwEdGVzdDAeFw0yNjA3MDgwNzA1NTBaFw0yNzA3MDgwNzA1
+      NTBaMA8xDTALBgNVBAMMBHRlc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+      AoIBAQCm7M8qWILmeFftsYEZbDJILZN1J7fXaA0Dd6QsgZi63/bJV6f2qE892pUY
+      -----END CERTIFICATE-----"
  }`,
 			want: ` {
    "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
