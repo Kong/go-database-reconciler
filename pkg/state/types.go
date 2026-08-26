@@ -112,14 +112,14 @@ func (s1 *Service) EqualWithOpts(s2 *Service,
 	// Cassandra can sometimes mess up tag order, but tag order doesn't actually matter: tags are sets
 	// even though we represent them with slices. Sort before comparison to avoid spurious diff detection.
 	// Same is true for CACertificates.
-	sort.Slice(s1Copy.Tags, func(i, j int) bool { return *(s1Copy.Tags[i]) < *(s1Copy.Tags[j]) })
-	sort.Slice(s2Copy.Tags, func(i, j int) bool { return *(s2Copy.Tags[i]) < *(s2Copy.Tags[j]) })
+	sort.Slice(s1Copy.Tags, func(i, j int) bool { return *s1Copy.Tags[i] < *s1Copy.Tags[j] })
+	sort.Slice(s2Copy.Tags, func(i, j int) bool { return *s2Copy.Tags[i] < *s2Copy.Tags[j] })
 
 	sort.Slice(s1Copy.CACertificates, func(i, j int) bool {
-		return *(s1Copy.CACertificates[i]) < *(s1Copy.CACertificates[j])
+		return *s1Copy.CACertificates[i] < *s1Copy.CACertificates[j]
 	})
 	sort.Slice(s2Copy.CACertificates, func(i, j int) bool {
-		return *(s2Copy.CACertificates[i]) < *(s2Copy.CACertificates[j])
+		return *s2Copy.CACertificates[i] < *s2Copy.CACertificates[j]
 	})
 
 	if ignoreID {
@@ -179,8 +179,8 @@ func (r1 *Route) EqualWithOpts(r2 *Route, ignoreID,
 		r2Copy.Tags = nil
 	}
 
-	sort.Slice(r1Copy.Tags, func(i, j int) bool { return *(r1Copy.Tags[i]) < *(r1Copy.Tags[j]) })
-	sort.Slice(r2Copy.Tags, func(i, j int) bool { return *(r2Copy.Tags[i]) < *(r2Copy.Tags[j]) })
+	sort.Slice(r1Copy.Tags, func(i, j int) bool { return *r1Copy.Tags[i] < *r1Copy.Tags[j] })
+	sort.Slice(r2Copy.Tags, func(i, j int) bool { return *r2Copy.Tags[i] < *r2Copy.Tags[j] })
 
 	// A nil Headers map and an empty (non-nil) one are semantically identical,
 	// but reflect.DeepEqual below treats them as different, causing deck to
@@ -260,8 +260,8 @@ func (u1 *Upstream) EqualWithOpts(u2 *Upstream,
 		u2Copy.Tags = nil
 	}
 
-	sort.Slice(u1Copy.Tags, func(i, j int) bool { return *(u1Copy.Tags[i]) < *(u1Copy.Tags[j]) })
-	sort.Slice(u2Copy.Tags, func(i, j int) bool { return *(u2Copy.Tags[i]) < *(u2Copy.Tags[j]) })
+	sort.Slice(u1Copy.Tags, func(i, j int) bool { return *u1Copy.Tags[i] < *u1Copy.Tags[j] })
+	sort.Slice(u2Copy.Tags, func(i, j int) bool { return *u2Copy.Tags[i] < *u2Copy.Tags[j] })
 
 	if ignoreID {
 		u1Copy.ID = nil
@@ -321,8 +321,8 @@ func (t1 *Target) EqualWithOpts(t2 *Target, ignoreID,
 		t2Copy.Tags = nil
 	}
 
-	sort.Slice(t1Copy.Tags, func(i, j int) bool { return *(t1Copy.Tags[i]) < *(t1Copy.Tags[j]) })
-	sort.Slice(t2Copy.Tags, func(i, j int) bool { return *(t2Copy.Tags[i]) < *(t2Copy.Tags[j]) })
+	sort.Slice(t1Copy.Tags, func(i, j int) bool { return *t1Copy.Tags[i] < *t1Copy.Tags[j] })
+	sort.Slice(t2Copy.Tags, func(i, j int) bool { return *t2Copy.Tags[i] < *t2Copy.Tags[j] })
 
 	if ignoreID {
 		t1Copy.ID = nil
@@ -382,8 +382,8 @@ func (c1 *Certificate) EqualWithOpts(c2 *Certificate,
 		c2Copy.Tags = nil
 	}
 
-	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
-	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *c1Copy.Tags[i] < *c1Copy.Tags[j] })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *c2Copy.Tags[i] < *c2Copy.Tags[j] })
 
 	if ignoreID {
 		c1Copy.ID = nil
@@ -439,8 +439,8 @@ func (s1 *SNI) EqualWithOpts(s2 *SNI, ignoreID,
 		s2Copy.Tags = nil
 	}
 
-	sort.Slice(s1Copy.Tags, func(i, j int) bool { return *(s1Copy.Tags[i]) < *(s1Copy.Tags[j]) })
-	sort.Slice(s2Copy.Tags, func(i, j int) bool { return *(s2Copy.Tags[i]) < *(s2Copy.Tags[j]) })
+	sort.Slice(s1Copy.Tags, func(i, j int) bool { return *s1Copy.Tags[i] < *s1Copy.Tags[j] })
+	sort.Slice(s2Copy.Tags, func(i, j int) bool { return *s2Copy.Tags[i] < *s2Copy.Tags[j] })
 
 	if ignoreID {
 		s1Copy.ID = nil
@@ -491,8 +491,8 @@ func (p1 *FilterChain) EqualWithOpts(p2 *FilterChain, ignoreID,
 	p1Copy := p1.DeepCopy()
 	p2Copy := p2.DeepCopy()
 
-	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
-	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
+	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *p1Copy.Tags[i] < *p1Copy.Tags[j] })
+	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *p2Copy.Tags[i] < *p2Copy.Tags[j] })
 
 	if ignoreID {
 		p1Copy.ID = nil
@@ -596,11 +596,11 @@ func (p1 *Plugin) EqualWithOpts(p2 *Plugin, ignoreID,
 		p2Copy.Tags = nil
 	}
 
-	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
-	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
+	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *p1Copy.Tags[i] < *p1Copy.Tags[j] })
+	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *p2Copy.Tags[i] < *p2Copy.Tags[j] })
 
-	sort.Slice(p1Copy.Protocols, func(i, j int) bool { return *(p1Copy.Protocols[i]) < *(p1Copy.Protocols[j]) })
-	sort.Slice(p2Copy.Protocols, func(i, j int) bool { return *(p2Copy.Protocols[i]) < *(p2Copy.Protocols[j]) })
+	sort.Slice(p1Copy.Protocols, func(i, j int) bool { return *p1Copy.Protocols[i] < *p1Copy.Protocols[j] })
+	sort.Slice(p2Copy.Protocols, func(i, j int) bool { return *p2Copy.Protocols[i] < *p2Copy.Protocols[j] })
 
 	const pluginConfigKey = "fields.#(config).config"
 	configSchema := schema.Get(pluginConfigKey)
@@ -820,8 +820,8 @@ func (c1 *Consumer) EqualWithOpts(c2 *Consumer,
 		c2Copy.Tags = nil
 	}
 
-	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
-	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *c1Copy.Tags[i] < *c1Copy.Tags[j] })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *c2Copy.Tags[i] < *c2Copy.Tags[j] })
 
 	if ignoreID {
 		c1Copy.ID = nil
@@ -942,8 +942,8 @@ func (c1 *ConsumerGroup) EqualWithOpts(c2 *ConsumerGroup,
 		u2Copy.Tags = nil
 	}
 
-	sort.Slice(u1Copy.Tags, func(i, j int) bool { return *(u1Copy.Tags[i]) < *(u1Copy.Tags[j]) })
-	sort.Slice(u2Copy.Tags, func(i, j int) bool { return *(u2Copy.Tags[i]) < *(u2Copy.Tags[j]) })
+	sort.Slice(u1Copy.Tags, func(i, j int) bool { return *u1Copy.Tags[i] < *u1Copy.Tags[j] })
+	sort.Slice(u2Copy.Tags, func(i, j int) bool { return *u2Copy.Tags[i] < *u2Copy.Tags[j] })
 
 	return reflect.DeepEqual(u1Copy, u2Copy)
 }
@@ -1007,10 +1007,10 @@ func (c1 *ConsumerGroupConsumer) EqualWithOpts(c2 *ConsumerGroupConsumer,
 	}
 
 	sort.Slice(c1Copy.ConsumerGroup.Tags, func(i, j int) bool {
-		return *(c1Copy.ConsumerGroup.Tags[i]) < *(c1Copy.ConsumerGroup.Tags[j])
+		return *c1Copy.ConsumerGroup.Tags[i] < *c1Copy.ConsumerGroup.Tags[j]
 	})
 	sort.Slice(c2Copy.ConsumerGroup.Tags, func(i, j int) bool {
-		return *(c2Copy.ConsumerGroup.Tags[i]) < *(c2Copy.ConsumerGroup.Tags[j])
+		return *c2Copy.ConsumerGroup.Tags[i] < *c2Copy.ConsumerGroup.Tags[j]
 	})
 
 	if len(c1Copy.Consumer.Tags) == 0 {
@@ -1022,10 +1022,10 @@ func (c1 *ConsumerGroupConsumer) EqualWithOpts(c2 *ConsumerGroupConsumer,
 	}
 
 	sort.Slice(c1Copy.Consumer.Tags, func(i, j int) bool {
-		return *(c1Copy.Consumer.Tags[i]) < *(c1Copy.Consumer.Tags[j])
+		return *c1Copy.Consumer.Tags[i] < *c1Copy.Consumer.Tags[j]
 	})
 	sort.Slice(c2Copy.Consumer.Tags, func(i, j int) bool {
-		return *(c2Copy.Consumer.Tags[i]) < *(c2Copy.Consumer.Tags[j])
+		return *c2Copy.Consumer.Tags[i] < *c2Copy.Consumer.Tags[j]
 	})
 
 	return reflect.DeepEqual(c1Copy, c2Copy)
@@ -1083,8 +1083,8 @@ func (c1 *ConsumerGroupPlugin) EqualWithOpts(c2 *ConsumerGroupPlugin,
 		c2Copy.Tags = nil
 	}
 
-	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
-	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *c1Copy.Tags[i] < *c1Copy.Tags[j] })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *c2Copy.Tags[i] < *c2Copy.Tags[j] })
 
 	return reflect.DeepEqual(c1Copy, c2Copy)
 }
@@ -1133,8 +1133,8 @@ func (k1 *KeyAuth) EqualWithOpts(k2 *KeyAuth, ignoreID,
 		k2Copy.Tags = nil
 	}
 
-	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *(k1Copy.Tags[i]) < *(k1Copy.Tags[j]) })
-	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *(k2Copy.Tags[i]) < *(k2Copy.Tags[j]) })
+	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *k1Copy.Tags[i] < *k1Copy.Tags[j] })
+	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *k2Copy.Tags[i] < *k2Copy.Tags[j] })
 
 	if ignoreID {
 		k1Copy.ID = nil
@@ -1218,8 +1218,8 @@ func (h1 *HMACAuth) EqualWithOpts(h2 *HMACAuth, ignoreID,
 		h2Copy.Tags = nil
 	}
 
-	sort.Slice(h1Copy.Tags, func(i, j int) bool { return *(h1Copy.Tags[i]) < *(h1Copy.Tags[j]) })
-	sort.Slice(h2Copy.Tags, func(i, j int) bool { return *(h2Copy.Tags[i]) < *(h2Copy.Tags[j]) })
+	sort.Slice(h1Copy.Tags, func(i, j int) bool { return *h1Copy.Tags[i] < *h1Copy.Tags[j] })
+	sort.Slice(h2Copy.Tags, func(i, j int) bool { return *h2Copy.Tags[i] < *h2Copy.Tags[j] })
 
 	if ignoreID {
 		h1Copy.ID = nil
@@ -1303,8 +1303,8 @@ func (j1 *JWTAuth) EqualWithOpts(j2 *JWTAuth, ignoreID,
 		j2Copy.Tags = nil
 	}
 
-	sort.Slice(j1Copy.Tags, func(i, j int) bool { return *(j1Copy.Tags[i]) < *(j1Copy.Tags[j]) })
-	sort.Slice(j2Copy.Tags, func(i, j int) bool { return *(j2Copy.Tags[i]) < *(j2Copy.Tags[j]) })
+	sort.Slice(j1Copy.Tags, func(i, j int) bool { return *j1Copy.Tags[i] < *j1Copy.Tags[j] })
+	sort.Slice(j2Copy.Tags, func(i, j int) bool { return *j2Copy.Tags[i] < *j2Copy.Tags[j] })
 
 	if ignoreID {
 		j1Copy.ID = nil
@@ -1389,8 +1389,8 @@ func (b1 *BasicAuth) EqualWithOpts(b2 *BasicAuth, ignoreID,
 		b2Copy.Tags = nil
 	}
 
-	sort.Slice(b1Copy.Tags, func(i, j int) bool { return *(b1Copy.Tags[i]) < *(b1Copy.Tags[j]) })
-	sort.Slice(b2Copy.Tags, func(i, j int) bool { return *(b2Copy.Tags[i]) < *(b2Copy.Tags[j]) })
+	sort.Slice(b1Copy.Tags, func(i, j int) bool { return *b1Copy.Tags[i] < *b1Copy.Tags[j] })
+	sort.Slice(b2Copy.Tags, func(i, j int) bool { return *b2Copy.Tags[i] < *b2Copy.Tags[j] })
 
 	if ignoreID {
 		b1Copy.ID = nil
@@ -1478,8 +1478,8 @@ func (b1 *ACLGroup) EqualWithOpts(b2 *ACLGroup, ignoreID,
 		b2Copy.Tags = nil
 	}
 
-	sort.Slice(b1Copy.Tags, func(i, j int) bool { return *(b1Copy.Tags[i]) < *(b1Copy.Tags[j]) })
-	sort.Slice(b2Copy.Tags, func(i, j int) bool { return *(b2Copy.Tags[i]) < *(b2Copy.Tags[j]) })
+	sort.Slice(b1Copy.Tags, func(i, j int) bool { return *b1Copy.Tags[i] < *b1Copy.Tags[j] })
+	sort.Slice(b2Copy.Tags, func(i, j int) bool { return *b2Copy.Tags[i] < *b2Copy.Tags[j] })
 
 	if ignoreID {
 		b1Copy.ID = nil
@@ -1545,8 +1545,8 @@ func (c1 *CACertificate) EqualWithOpts(c2 *CACertificate,
 		c2Copy.Tags = nil
 	}
 
-	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
-	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *c1Copy.Tags[i] < *c1Copy.Tags[j] })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *c2Copy.Tags[i] < *c2Copy.Tags[j] })
 
 	if ignoreID {
 		c1Copy.ID = nil
@@ -1597,8 +1597,8 @@ func (k1 *Oauth2Credential) EqualWithOpts(k2 *Oauth2Credential, ignoreID,
 		k2Copy.Tags = nil
 	}
 
-	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *(k1Copy.Tags[i]) < *(k1Copy.Tags[j]) })
-	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *(k2Copy.Tags[i]) < *(k2Copy.Tags[j]) })
+	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *k1Copy.Tags[i] < *k1Copy.Tags[j] })
+	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *k2Copy.Tags[i] < *k2Copy.Tags[j] })
 
 	if ignoreID {
 		k1Copy.ID = nil
@@ -1682,8 +1682,8 @@ func (b1 *MTLSAuth) EqualWithOpts(b2 *MTLSAuth, ignoreID,
 		b2Copy.Tags = nil
 	}
 
-	sort.Slice(b1Copy.Tags, func(i, j int) bool { return *(b1Copy.Tags[i]) < *(b1Copy.Tags[j]) })
-	sort.Slice(b2Copy.Tags, func(i, j int) bool { return *(b2Copy.Tags[i]) < *(b2Copy.Tags[j]) })
+	sort.Slice(b1Copy.Tags, func(i, j int) bool { return *b1Copy.Tags[i] < *b1Copy.Tags[j] })
+	sort.Slice(b2Copy.Tags, func(i, j int) bool { return *b2Copy.Tags[i] < *b2Copy.Tags[j] })
 
 	if ignoreID {
 		b1Copy.ID = nil
@@ -1878,8 +1878,8 @@ func (v1 *Vault) EqualWithOpts(v2 *Vault, ignoreID, ignoreTS bool) bool {
 		v2Copy.Tags = nil
 	}
 
-	sort.Slice(v1Copy.Tags, func(i, j int) bool { return *(v1Copy.Tags[i]) < *(v1Copy.Tags[j]) })
-	sort.Slice(v2Copy.Tags, func(i, j int) bool { return *(v2Copy.Tags[i]) < *(v2Copy.Tags[j]) })
+	sort.Slice(v1Copy.Tags, func(i, j int) bool { return *v1Copy.Tags[i] < *v1Copy.Tags[j] })
+	sort.Slice(v2Copy.Tags, func(i, j int) bool { return *v2Copy.Tags[i] < *v2Copy.Tags[j] })
 
 	if ignoreID {
 		v1Copy.ID = nil
@@ -2088,8 +2088,8 @@ func (p *Partial) EqualWithOpts(p2 *Partial, ignoreID, ignoreTS bool) bool {
 		p2Copy.Tags = nil
 	}
 
-	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *(p1Copy.Tags[i]) < *(p1Copy.Tags[j]) })
-	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *(p2Copy.Tags[i]) < *(p2Copy.Tags[j]) })
+	sort.Slice(p1Copy.Tags, func(i, j int) bool { return *p1Copy.Tags[i] < *p1Copy.Tags[j] })
+	sort.Slice(p2Copy.Tags, func(i, j int) bool { return *p2Copy.Tags[i] < *p2Copy.Tags[j] })
 	return reflect.DeepEqual(p1Copy, p2Copy)
 }
 
@@ -2135,8 +2135,8 @@ func (k1 *Key) EqualWithOpts(k2 *Key, ignoreID, ignoreTS bool) bool {
 	if len(k2Copy.Tags) == 0 {
 		k2Copy.Tags = nil
 	}
-	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *(k1Copy.Tags[i]) < *(k1Copy.Tags[j]) })
-	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *(k2Copy.Tags[i]) < *(k2Copy.Tags[j]) })
+	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *k1Copy.Tags[i] < *k1Copy.Tags[j] })
+	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *k2Copy.Tags[i] < *k2Copy.Tags[j] })
 	if ignoreID {
 		k1Copy.ID = nil
 		k2Copy.ID = nil
@@ -2192,8 +2192,8 @@ func (ks1 *KeySet) EqualWithOpts(ks2 *KeySet, ignoreID, ignoreTS bool) bool {
 	if len(ks2Copy.Tags) == 0 {
 		ks2Copy.Tags = nil
 	}
-	sort.Slice(ks1Copy.Tags, func(i, j int) bool { return *(ks1Copy.Tags[i]) < *(ks1Copy.Tags[j]) })
-	sort.Slice(ks2Copy.Tags, func(i, j int) bool { return *(ks2Copy.Tags[i]) < *(ks2Copy.Tags[j]) })
+	sort.Slice(ks1Copy.Tags, func(i, j int) bool { return *ks1Copy.Tags[i] < *ks1Copy.Tags[j] })
+	sort.Slice(ks2Copy.Tags, func(i, j int) bool { return *ks2Copy.Tags[i] < *ks2Copy.Tags[j] })
 	if ignoreID {
 		ks1Copy.ID = nil
 		ks2Copy.ID = nil
@@ -2246,8 +2246,8 @@ func (c1 *ClonedPluginDefinition) EqualWithOpts(c2 *ClonedPluginDefinition, igno
 	if len(c2Copy.Tags) == 0 {
 		c2Copy.Tags = nil
 	}
-	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
-	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *c1Copy.Tags[i] < *c1Copy.Tags[j] })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *c2Copy.Tags[i] < *c2Copy.Tags[j] })
 
 	if ignoreID {
 		c1Copy.ID = nil
@@ -2301,8 +2301,8 @@ func (c1 *CustomPluginDefinition) EqualWithOpts(c2 *CustomPluginDefinition, igno
 	if len(c2Copy.Tags) == 0 {
 		c2Copy.Tags = nil
 	}
-	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *(c1Copy.Tags[i]) < *(c1Copy.Tags[j]) })
-	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *(c2Copy.Tags[i]) < *(c2Copy.Tags[j]) })
+	sort.Slice(c1Copy.Tags, func(i, j int) bool { return *c1Copy.Tags[i] < *c1Copy.Tags[j] })
+	sort.Slice(c2Copy.Tags, func(i, j int) bool { return *c2Copy.Tags[i] < *c2Copy.Tags[j] })
 
 	if ignoreID {
 		c1Copy.ID = nil
@@ -2356,8 +2356,8 @@ func (a1 *AIModel) EqualWithOpts(a2 *AIModel, ignoreID, ignoreTS bool) bool {
 	if len(a2Copy.Tags) == 0 {
 		a2Copy.Tags = nil
 	}
-	sort.Slice(a1Copy.Tags, func(i, j int) bool { return *(a1Copy.Tags[i]) < *(a1Copy.Tags[j]) })
-	sort.Slice(a2Copy.Tags, func(i, j int) bool { return *(a2Copy.Tags[i]) < *(a2Copy.Tags[j]) })
+	sort.Slice(a1Copy.Tags, func(i, j int) bool { return *a1Copy.Tags[i] < *a1Copy.Tags[j] })
+	sort.Slice(a2Copy.Tags, func(i, j int) bool { return *a2Copy.Tags[i] < *a2Copy.Tags[j] })
 
 	if ignoreID {
 		a1Copy.ID = nil

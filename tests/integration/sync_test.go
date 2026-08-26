@@ -11152,6 +11152,7 @@ func Test_Sync_ConsumerGroupNotFoundForConsumer(t *testing.T) {
 		})
 	}
 }
+
 func Test_Sync_Plugin_Conditional(t *testing.T) {
 	runWhen(t, "enterprise", ">=3.14.0")
 	client, err := getTestClient()

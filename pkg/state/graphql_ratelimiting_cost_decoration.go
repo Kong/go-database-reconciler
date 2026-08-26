@@ -64,7 +64,7 @@ func (k *GraphqlRateLimitingCostDecorationsCollection) GetByTypePath(
 
 // Add adds a graphql ratelimiting cost decoration to the collection
 func (k *GraphqlRateLimitingCostDecorationsCollection) Add(decoration GraphqlRateLimitingCostDecoration) error {
-	e := (customEntity)(&decoration)
+	e := customEntity(&decoration)
 	return k.customEntitiesCollection.Add(e)
 }
 
@@ -84,7 +84,7 @@ func (k *GraphqlRateLimitingCostDecorationsCollection) Get(id string) (*GraphqlR
 
 // Update updates an existing graphql ratelimiting cost decoration
 func (k *GraphqlRateLimitingCostDecorationsCollection) Update(decoration GraphqlRateLimitingCostDecoration) error {
-	e := (customEntity)(&decoration)
+	e := customEntity(&decoration)
 	return k.customEntitiesCollection.Update(e)
 }
 
