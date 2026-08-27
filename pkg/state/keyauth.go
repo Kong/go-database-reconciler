@@ -16,7 +16,7 @@ func newKeyAuthsCollection(common collection) *KeyAuthsCollection {
 
 // Add adds a key-auth credential to KeyAuthsCollection
 func (k *KeyAuthsCollection) Add(keyAuth KeyAuth) error {
-	cred := (entity)(&keyAuth)
+	cred := entity(&keyAuth)
 	return k.credentialsCollection.Add(cred)
 }
 
@@ -57,7 +57,7 @@ func (k *KeyAuthsCollection) GetAllByConsumerID(id string) ([]*KeyAuth,
 
 // Update updates an existing key-auth credential.
 func (k *KeyAuthsCollection) Update(keyAuth KeyAuth) error {
-	cred := (entity)(&keyAuth)
+	cred := entity(&keyAuth)
 	return k.credentialsCollection.Update(cred)
 }
 

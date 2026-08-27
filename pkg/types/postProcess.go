@@ -100,7 +100,7 @@ func (crud *upstreamPostAction) Create(_ context.Context, args ...crud.Arg) (cru
 }
 
 func (crud *upstreamPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Upstreams.Delete(*((args[0].(*state.Upstream)).ID))
+	return nil, crud.currentState.Upstreams.Delete(*args[0].(*state.Upstream).ID)
 }
 
 func (crud *upstreamPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -133,7 +133,7 @@ func (crud *certificatePostAction) Create(_ context.Context, args ...crud.Arg) (
 }
 
 func (crud *certificatePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Certificates.Delete(*((args[0].(*state.Certificate)).ID))
+	return nil, crud.currentState.Certificates.Delete(*args[0].(*state.Certificate).ID)
 }
 
 func (crud *certificatePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -166,7 +166,7 @@ func (crud *caCertificatePostAction) Create(_ context.Context, args ...crud.Arg)
 }
 
 func (crud *caCertificatePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.CACertificates.Delete(*((args[0].(*state.CACertificate)).ID))
+	return nil, crud.currentState.CACertificates.Delete(*args[0].(*state.CACertificate).ID)
 }
 
 func (crud *caCertificatePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -182,7 +182,7 @@ func (crud *pluginPostAction) Create(_ context.Context, args ...crud.Arg) (crud.
 }
 
 func (crud *pluginPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Plugins.Delete(*((args[0].(*state.Plugin)).ID))
+	return nil, crud.currentState.Plugins.Delete(*args[0].(*state.Plugin).ID)
 }
 
 func (crud *pluginPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -226,7 +226,7 @@ func (crud *consumerGroupPostAction) Create(_ context.Context, args ...crud.Arg)
 }
 
 func (crud *consumerGroupPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.ConsumerGroups.Delete(*((args[0].(*state.ConsumerGroup)).ID))
+	return nil, crud.currentState.ConsumerGroups.Delete(*args[0].(*state.ConsumerGroup).ID)
 }
 
 func (crud *consumerGroupPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -243,8 +243,8 @@ func (crud *consumerGroupConsumerPostAction) Create(_ context.Context, args ...c
 
 func (crud *consumerGroupConsumerPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.ConsumerGroupConsumers.Delete(
-		*((args[0].(*state.ConsumerGroupConsumer)).Consumer.ID),
-		*((args[0].(*state.ConsumerGroupConsumer)).ConsumerGroup.ID),
+		*args[0].(*state.ConsumerGroupConsumer).Consumer.ID,
+		*args[0].(*state.ConsumerGroupConsumer).ConsumerGroup.ID,
 	)
 }
 
@@ -262,8 +262,8 @@ func (crud *consumerGroupPluginPostAction) Create(_ context.Context, args ...cru
 
 func (crud *consumerGroupPluginPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.ConsumerGroupPlugins.Delete(
-		*((args[0].(*state.ConsumerGroupPlugin)).ID),
-		*((args[0].(*state.ConsumerGroupConsumer)).ConsumerGroup.ID),
+		*args[0].(*state.ConsumerGroupPlugin).ID,
+		*args[0].(*state.ConsumerGroupConsumer).ConsumerGroup.ID,
 	)
 }
 
@@ -280,7 +280,7 @@ func (crud *keyAuthPostAction) Create(_ context.Context, args ...crud.Arg) (crud
 }
 
 func (crud *keyAuthPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.KeyAuths.Delete(*((args[0].(*state.KeyAuth)).ID))
+	return nil, crud.currentState.KeyAuths.Delete(*args[0].(*state.KeyAuth).ID)
 }
 
 func (crud *keyAuthPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -296,7 +296,7 @@ func (crud hmacAuthPostAction) Create(_ context.Context, args ...crud.Arg) (crud
 }
 
 func (crud hmacAuthPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.HMACAuths.Delete(*((args[0].(*state.HMACAuth)).ID))
+	return nil, crud.currentState.HMACAuths.Delete(*args[0].(*state.HMACAuth).ID)
 }
 
 func (crud hmacAuthPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -312,7 +312,7 @@ func (crud jwtAuthPostAction) Create(_ context.Context, args ...crud.Arg) (crud.
 }
 
 func (crud jwtAuthPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.JWTAuths.Delete(*((args[0].(*state.JWTAuth)).ID))
+	return nil, crud.currentState.JWTAuths.Delete(*args[0].(*state.JWTAuth).ID)
 }
 
 func (crud jwtAuthPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -328,7 +328,7 @@ func (crud basicAuthPostAction) Create(_ context.Context, args ...crud.Arg) (cru
 }
 
 func (crud basicAuthPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.BasicAuths.Delete(*((args[0].(*state.BasicAuth)).ID))
+	return nil, crud.currentState.BasicAuths.Delete(*args[0].(*state.BasicAuth).ID)
 }
 
 func (crud basicAuthPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -344,7 +344,7 @@ func (crud aclGroupPostAction) Create(_ context.Context, args ...crud.Arg) (crud
 }
 
 func (crud aclGroupPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.ACLGroups.Delete(*((args[0].(*state.ACLGroup)).ID))
+	return nil, crud.currentState.ACLGroups.Delete(*args[0].(*state.ACLGroup).ID)
 }
 
 func (crud aclGroupPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -360,7 +360,7 @@ func (crud oauth2CredPostAction) Create(_ context.Context, args ...crud.Arg) (cr
 }
 
 func (crud oauth2CredPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Oauth2Creds.Delete(*((args[0].(*state.Oauth2Credential)).ID))
+	return nil, crud.currentState.Oauth2Creds.Delete(*args[0].(*state.Oauth2Credential).ID)
 }
 
 func (crud oauth2CredPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -376,7 +376,7 @@ func (crud *mtlsAuthPostAction) Create(_ context.Context, args ...crud.Arg) (cru
 }
 
 func (crud *mtlsAuthPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.MTLSAuths.Delete(*((args[0].(*state.MTLSAuth)).ID))
+	return nil, crud.currentState.MTLSAuths.Delete(*args[0].(*state.MTLSAuth).ID)
 }
 
 func (crud *mtlsAuthPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -392,7 +392,7 @@ func (crud *rbacRolePostAction) Create(_ context.Context, args ...crud.Arg) (cru
 }
 
 func (crud *rbacRolePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.RBACRoles.Delete(*((args[0].(*state.RBACRole)).ID))
+	return nil, crud.currentState.RBACRoles.Delete(*args[0].(*state.RBACRole).ID)
 }
 
 func (crud *rbacRolePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -424,7 +424,7 @@ func (crud servicePackagePostAction) Create(_ context.Context, args ...crud.Arg)
 }
 
 func (crud servicePackagePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.ServicePackages.Delete(*((args[0].(*state.ServicePackage)).ID))
+	return nil, crud.currentState.ServicePackages.Delete(*args[0].(*state.ServicePackage).ID)
 }
 
 func (crud servicePackagePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -474,7 +474,7 @@ func (crud vaultPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Ar
 }
 
 func (crud vaultPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Vaults.Delete(*((args[0].(*state.Vault)).ID))
+	return nil, crud.currentState.Vaults.Delete(*args[0].(*state.Vault).ID)
 }
 
 func (crud vaultPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -490,7 +490,7 @@ func (crud licensePostAction) Create(_ context.Context, args ...crud.Arg) (crud.
 }
 
 func (crud licensePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Licenses.Delete(*((args[0].(*state.License)).ID))
+	return nil, crud.currentState.Licenses.Delete(*args[0].(*state.License).ID)
 }
 
 func (crud licensePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -506,7 +506,7 @@ func (crud *filterChainPostAction) Create(_ context.Context, args ...crud.Arg) (
 }
 
 func (crud *filterChainPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.FilterChains.Delete(*((args[0].(*state.FilterChain)).ID))
+	return nil, crud.currentState.FilterChains.Delete(*args[0].(*state.FilterChain).ID)
 }
 
 func (crud *filterChainPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -522,7 +522,7 @@ func (crud *degraphqlRoutePostAction) Create(_ context.Context, args ...crud.Arg
 }
 
 func (crud *degraphqlRoutePostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.DegraphqlRoutes.Delete(*((args[0].(*state.DegraphqlRoute)).ID))
+	return nil, crud.currentState.DegraphqlRoutes.Delete(*args[0].(*state.DegraphqlRoute).ID)
 }
 
 func (crud *degraphqlRoutePostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -540,7 +540,7 @@ func (crud *graphqlRateLimitingCostDecorationPostAction) Create(_ context.Contex
 
 func (crud *graphqlRateLimitingCostDecorationPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
 	return nil, crud.currentState.GraphqlRateLimitingCostDecorations.Delete(
-		*((args[0].(*state.GraphqlRateLimitingCostDecoration)).ID))
+		*args[0].(*state.GraphqlRateLimitingCostDecoration).ID)
 }
 
 func (crud *graphqlRateLimitingCostDecorationPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -557,7 +557,7 @@ func (crud partialPostAction) Create(_ context.Context, args ...crud.Arg) (crud.
 }
 
 func (crud partialPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Partials.Delete(*((args[0].(*state.Partial)).ID))
+	return nil, crud.currentState.Partials.Delete(*args[0].(*state.Partial).ID)
 }
 
 func (crud partialPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -573,7 +573,7 @@ func (crud keyPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg,
 }
 
 func (crud keyPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.Keys.Delete(*((args[0].(*state.Key)).ID))
+	return nil, crud.currentState.Keys.Delete(*args[0].(*state.Key).ID)
 }
 
 func (crud keyPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -589,7 +589,7 @@ func (crud keySetPostAction) Create(_ context.Context, args ...crud.Arg) (crud.A
 }
 
 func (crud keySetPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.KeySets.Delete(*((args[0].(*state.KeySet)).ID))
+	return nil, crud.currentState.KeySets.Delete(*args[0].(*state.KeySet).ID)
 }
 
 func (crud keySetPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -605,7 +605,7 @@ func (crud clonedPluginDefinitionPostAction) Create(_ context.Context, args ...c
 }
 
 func (crud clonedPluginDefinitionPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.ClonedPluginDefinitions.Delete(*((args[0].(*state.ClonedPluginDefinition)).ID))
+	return nil, crud.currentState.ClonedPluginDefinitions.Delete(*args[0].(*state.ClonedPluginDefinition).ID)
 }
 
 func (crud clonedPluginDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -621,7 +621,7 @@ func (crud customPluginDefinitionPostAction) Create(_ context.Context, args ...c
 }
 
 func (crud customPluginDefinitionPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.CustomPluginDefinitions.Delete(*((args[0].(*state.CustomPluginDefinition)).ID))
+	return nil, crud.currentState.CustomPluginDefinitions.Delete(*args[0].(*state.CustomPluginDefinition).ID)
 }
 
 func (crud customPluginDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
@@ -637,7 +637,7 @@ func (crud aiModelDefinitionPostAction) Create(_ context.Context, args ...crud.A
 }
 
 func (crud aiModelDefinitionPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
-	return nil, crud.currentState.AIModels.Delete(*((args[0].(*state.AIModel)).ID))
+	return nil, crud.currentState.AIModels.Delete(*args[0].(*state.AIModel).ID)
 }
 
 func (crud aiModelDefinitionPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {

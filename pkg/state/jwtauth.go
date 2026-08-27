@@ -16,7 +16,7 @@ func newJWTAuthsCollection(common collection) *JWTAuthsCollection {
 
 // Add adds a jwt-auth credential to JWTAuthsCollection
 func (k *JWTAuthsCollection) Add(jwtAuth JWTAuth) error {
-	cred := (entity)(&jwtAuth)
+	cred := entity(&jwtAuth)
 	return k.credentialsCollection.Add(cred)
 }
 
@@ -57,7 +57,7 @@ func (k *JWTAuthsCollection) GetAllByConsumerID(id string) ([]*JWTAuth,
 
 // Update updates an existing jwt-auth credential.
 func (k *JWTAuthsCollection) Update(jwtAuth JWTAuth) error {
-	cred := (entity)(&jwtAuth)
+	cred := entity(&jwtAuth)
 	return k.credentialsCollection.Update(cred)
 }
 

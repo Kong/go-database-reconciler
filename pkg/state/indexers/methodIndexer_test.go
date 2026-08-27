@@ -43,7 +43,7 @@ func TestMethodIndexer(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(val)
 
-	idInterface := (ID)(b)
+	idInterface := ID(b)
 	ok, val, err = in.FromObject(idInterface)
 	assert.True(ok)
 	require.NoError(t, err)

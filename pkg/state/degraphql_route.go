@@ -65,7 +65,7 @@ func (k *DegraphqlRoutesCollection) GetByURIQuery(uri,
 
 // Add adds a degraphql route to DegraphqlRoutesCollection
 func (k *DegraphqlRoutesCollection) Add(degraphqlRoute DegraphqlRoute) error {
-	e := (customEntity)(&degraphqlRoute)
+	e := customEntity(&degraphqlRoute)
 	return k.customEntitiesCollection.Add(e)
 }
 
@@ -85,7 +85,7 @@ func (k *DegraphqlRoutesCollection) Get(id string) (*DegraphqlRoute, error) {
 
 // Update updates an existing degraphql route
 func (k *DegraphqlRoutesCollection) Update(degraphqlRoute DegraphqlRoute) error {
-	e := (customEntity)(&degraphqlRoute)
+	e := customEntity(&degraphqlRoute)
 	return k.customEntitiesCollection.Update(e)
 }
 
