@@ -16,7 +16,7 @@ func newMTLSAuthsCollection(common collection) *MTLSAuthsCollection {
 
 // Add adds a mtls-auth credential to MTLSAuthsCollection
 func (k *MTLSAuthsCollection) Add(mtlsAuth MTLSAuth) error {
-	cred := (entity)(&mtlsAuth)
+	cred := entity(&mtlsAuth)
 	return k.credentialsCollection.Add(cred)
 }
 
@@ -57,7 +57,7 @@ func (k *MTLSAuthsCollection) GetAllByConsumerID(id string) ([]*MTLSAuth,
 
 // Update updates an existing mtls-auth credential.
 func (k *MTLSAuthsCollection) Update(mtlsAuth MTLSAuth) error {
-	cred := (entity)(&mtlsAuth)
+	cred := entity(&mtlsAuth)
 	return k.credentialsCollection.Update(cred)
 }
 

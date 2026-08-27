@@ -16,7 +16,7 @@ func newBasicAuthsCollection(common collection) *BasicAuthsCollection {
 
 // Add adds a basic-auth credential to BasicAuthsCollection
 func (k *BasicAuthsCollection) Add(basicAuth BasicAuth) error {
-	cred := (entity)(&basicAuth)
+	cred := entity(&basicAuth)
 	return k.credentialsCollection.Add(cred)
 }
 
@@ -63,7 +63,7 @@ func (k *BasicAuthsCollection) GetAllByConsumerID(id string) ([]*BasicAuth,
 
 // Update updates an existing basic-auth credential.
 func (k *BasicAuthsCollection) Update(basicAuth BasicAuth) error {
-	cred := (entity)(&basicAuth)
+	cred := entity(&basicAuth)
 	return k.credentialsCollection.Update(cred)
 }
 

@@ -130,7 +130,7 @@ func TestGenerateExpectedFiles(t *testing.T) {
 
 		output := renderYAMLFile(t, inputPath)
 
-		err := os.WriteFile(expectedPath, []byte(output), 0644)
+		err := os.WriteFile(expectedPath, []byte(output), 0o644)
 		require.NoError(t, err, "Failed to write expected file: %s", expectedPath)
 
 		t.Logf("Generated: %s", expectedPath)

@@ -16,7 +16,7 @@ func newHMACAuthsCollection(common collection) *HMACAuthsCollection {
 
 // Add adds a hmac-auth credential to HMACAuthsCollection
 func (k *HMACAuthsCollection) Add(hmacAuth HMACAuth) error {
-	cred := (entity)(&hmacAuth)
+	cred := entity(&hmacAuth)
 	return k.credentialsCollection.Add(cred)
 }
 
@@ -57,7 +57,7 @@ func (k *HMACAuthsCollection) GetAllByConsumerID(id string) ([]*HMACAuth,
 
 // Update updates an existing hmac-auth credential.
 func (k *HMACAuthsCollection) Update(hmacAuth HMACAuth) error {
-	cred := (entity)(&hmacAuth)
+	cred := entity(&hmacAuth)
 	return k.credentialsCollection.Update(cred)
 }
 

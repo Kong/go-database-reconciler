@@ -16,7 +16,7 @@ func newOauth2CredsCollection(common collection) *Oauth2CredsCollection {
 
 // Add adds a oauth2 credential to Oauth2CredsCollection
 func (k *Oauth2CredsCollection) Add(keyAuth Oauth2Credential) error {
-	cred := (entity)(&keyAuth)
+	cred := entity(&keyAuth)
 	return k.credentialsCollection.Add(cred)
 }
 
@@ -57,7 +57,7 @@ func (k *Oauth2CredsCollection) GetAllByConsumerID(id string) ([]*Oauth2Credenti
 
 // Update updates an existing oauth2 credential.
 func (k *Oauth2CredsCollection) Update(keyAuth Oauth2Credential) error {
-	cred := (entity)(&keyAuth)
+	cred := entity(&keyAuth)
 	return k.credentialsCollection.Update(cred)
 }
 

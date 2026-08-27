@@ -430,7 +430,7 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 	hasPEM := len(cache.PEMPatterns) > 0
 	hasPEMMarker := hasPEM && (strings.Contains(diffString, pemBlockBegin) || strings.Contains(diffString, pemBlockEnd))
 	// Check for both plain JSON JWK ("kty") and JSON-encoded JWK string (\"kty\")
-	hasJWKMarker := cache.HasJWK && (strings.Contains(diffString, `"`+jwkTypeField+`"`))
+	hasJWKMarker := cache.HasJWK && strings.Contains(diffString, `"`+jwkTypeField+`"`)
 
 	// Only apply PEM masking if both patterns are present AND the diff actually contains PEM markers
 	if hasPEMMarker {
