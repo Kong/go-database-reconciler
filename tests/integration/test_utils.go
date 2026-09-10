@@ -66,7 +66,7 @@ func getTestClient() (*kong.Client, error) {
 		Token:            os.Getenv("DECK_KONNECT_TOKEN"),
 		ControlPlaneName: controlPlaneName,
 	}
-	if (konnectConfig.Email != "" && konnectConfig.Password != "") || konnectConfig.Token != "" {
+	if isKonnectEnv() {
 		return cmd.GetKongClientForKonnectMode(ctx, &konnectConfig)
 	}
 	return utils.GetKongClient(utils.KongClientConfig{
@@ -74,12 +74,15 @@ func getTestClient() (*kong.Client, error) {
 	})
 }
 
+func isKonnectEnv() bool {
+	return (os.Getenv("DECK_KONNECT_EMAIL") != "" && os.Getenv("DECK_KONNECT_PASSWORD") != "") ||
+		os.Getenv("DECK_KONNECT_TOKEN") != ""
+}
+
 func runWhenKonnect(t *testing.T) {
 	t.Helper()
 
-	if os.Getenv("DECK_KONNECT_EMAIL") == "" &&
-		os.Getenv("DECK_KONNECT_PASSWORD") == "" &&
-		os.Getenv("DECK_KONNECT_TOKEN") == "" {
+	if !isKonnectEnv() {
 		t.Skip("non-Konnect test instance, skipping")
 	}
 }
@@ -87,9 +90,7 @@ func runWhenKonnect(t *testing.T) {
 func skipWhenKonnect(t *testing.T) {
 	t.Helper()
 
-	if os.Getenv("DECK_KONNECT_EMAIL") != "" ||
-		os.Getenv("DECK_KONNECT_PASSWORD") != "" ||
-		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+	if isKonnectEnv() {
 		t.Skip("non-Kong test instance, skipping")
 	}
 }
@@ -97,9 +98,7 @@ func skipWhenKonnect(t *testing.T) {
 func runWhenKongOrKonnect(t *testing.T, kongSemverRange string) {
 	t.Helper()
 
-	if (os.Getenv("DECK_KONNECT_EMAIL") != "" &&
-		os.Getenv("DECK_KONNECT_PASSWORD") != "") ||
-		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+	if isKonnectEnv() {
 		return
 	}
 	kong.RunWhenKong(t, kongSemverRange)
@@ -108,9 +107,7 @@ func runWhenKongOrKonnect(t *testing.T, kongSemverRange string) {
 func runWhenEnterpriseOrKonnect(t *testing.T, kongSemverRange string) {
 	t.Helper()
 
-	if (os.Getenv("DECK_KONNECT_EMAIL") != "" &&
-		os.Getenv("DECK_KONNECT_PASSWORD") != "") ||
-		os.Getenv("DECK_KONNECT_TOKEN") != "" {
+	if isKonnectEnv() {
 		return
 	}
 	kong.RunWhenEnterprise(t, kongSemverRange, kong.RequiredFeatures{})
@@ -477,9 +474,7 @@ func getKongVersion(ctx context.Context, t *testing.T, client *kong.Client) semv
 	// so client.Root() isn't usable there. Konnect always runs the latest Kong,
 	// so use a hardcoded version, matching deck's own fetchKonnectKongVersion.
 	versionStr := "3.15.0.0"
-	if (os.Getenv("DECK_KONNECT_EMAIL") == "" ||
-		os.Getenv("DECK_KONNECT_PASSWORD") == "") &&
-		os.Getenv("DECK_KONNECT_TOKEN") == "" {
+	if !isKonnectEnv() {
 		root, err := client.Root(ctx)
 		require.NoError(t, err, "Should get no error in getting root endpoint of Kong")
 		versionStr = kong.VersionFromInfo(root)

@@ -4018,8 +4018,9 @@ func Test_Diff_Partials(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	dumpConfig := deckDump.Config{
-		KonnectControlPlane: resolveControlPlaneName(),
+	dumpConfig := deckDump.Config{}
+	if isKonnectEnv() {
+		dumpConfig.KonnectControlPlane = resolveControlPlaneName()
 	}
 
 	mustResetKongState(ctx, t, client, dumpConfig)
