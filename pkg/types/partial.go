@@ -182,6 +182,11 @@ func (d *partialDiffer) createUpdatePartial(partial *state.Partial) (*crud.Event
 		if err != nil {
 			return nil, fmt.Errorf("failed processing default fields for partial: %w", err)
 		}
+
+		err = kong.FillPartialDefaults(&currentPartial.Partial, schema)
+		if err != nil {
+			return nil, fmt.Errorf("failed processing default fields for partial: %w", err)
+		}
 	}
 
 	if !currentPartial.EqualWithOpts(partialWithDefaults, false, true) {

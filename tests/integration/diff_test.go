@@ -4013,12 +4013,15 @@ func Test_Diff_NoDeletes_3x(t *testing.T) {
 }
 
 func Test_Diff_Partials(t *testing.T) {
-	runWhen(t, "enterprise", ">=3.10.0")
+	runWhenEnterpriseOrKonnect(t, ">=3.10.0")
 	client, err := getTestClient()
 	require.NoError(t, err)
 
 	ctx := context.Background()
 	dumpConfig := deckDump.Config{}
+	if isKonnectEnv() {
+		dumpConfig.KonnectControlPlane = resolveControlPlaneName()
+	}
 
 	mustResetKongState(ctx, t, client, dumpConfig)
 	currentState, err := fetchCurrentState(ctx, client, dumpConfig)
@@ -4040,6 +4043,20 @@ func Test_Diff_Partials(t *testing.T) {
 	assert.Equal(t, int32(2), stats.CreateOps.Count())
 	assert.Equal(t, int32(0), stats.DeleteOps.Count())
 	assert.Equal(t, int32(0), stats.UpdateOps.Count())
+}
+
+func Test_Diff_Partials_NoDriftAfterSync(t *testing.T) {
+	runWhenEnterpriseOrKonnect(t, ">=3.10.0")
+	setup(t)
+
+	kongFile := "testdata/sync/038-partials/kong.yaml"
+
+	require.NoError(t, sync(kongFile))
+
+	out, err := diff(kongFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+
 }
 
 func Test_Diff_Services_CACertificate_Order(t *testing.T) {
