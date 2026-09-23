@@ -181,6 +181,35 @@ func TestRouteEqual_HeadersNilVsEmpty(t *testing.T) {
 	assert.False(r1.Equal(&r2))
 }
 
+func TestRouteConsole(t *testing.T) {
+	assert := assert.New(t)
+
+	var r Route
+	r.ID = new("018e1c1e-...")
+
+	// with no name and nothing else to go on, falls back to the ID
+	assert.Equal("018e1c1e-...", r.Console())
+
+	// a name always wins
+	r.Name = new("my-route")
+	assert.Equal("my-route", r.Console())
+	r.Name = nil
+
+	// without a name, an unnamed route is described by its paths/methods/hosts/service
+	// instead of its ID, since the ID is meaningless in source config without --with-id
+	r.Paths = kong.StringSlice("/foo", "/bar")
+	assert.Equal("route (paths: /foo,/bar)", r.Console())
+
+	r.Methods = kong.StringSlice("GET", "POST")
+	assert.Equal("route (paths: /foo,/bar; methods: GET,POST)", r.Console())
+
+	r.Hosts = kong.StringSlice("example.com")
+	assert.Equal("route (paths: /foo,/bar; methods: GET,POST; hosts: example.com)", r.Console())
+
+	r.Service = &kong.Service{Name: new("my-service")}
+	assert.Equal("route (paths: /foo,/bar; methods: GET,POST; hosts: example.com; service: my-service)", r.Console())
+}
+
 func TestUpstreamEqual(t *testing.T) {
 	assert := assert.New(t)
 
