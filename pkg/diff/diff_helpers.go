@@ -521,6 +521,17 @@ func maskEnvVarValueWithCache(diffString string, cache *EnvVarCache) string {
 			})
 		}
 
+		// Final safety net: mask any remaining raw occurrence of a secret
+		// regardless of its position in the line (e.g. after "=", inside a
+		// compound value, or as free text). Structured masking above keeps
+		// formatting-aware replacements; this pass guarantees no DECK_ env
+		// var value is ever printed verbatim. See Kong/deck#1379.
+		if containsAnySecret(result, cache.Secrets) {
+			for _, re := range cache.SecretPatterns {
+				result = re.ReplaceAllString(result, maskedValue)
+			}
+		}
+
 		lines[i] = result
 	}
 	return strings.Join(lines, "\n")
