@@ -60,6 +60,14 @@ func GetContentFromFilesWithEnvVars(filenames []string, mode RenderEnvVarsMode) 
 	return getContent(filenames, mode)
 }
 
+func GetMockContentFromFiles(filenames []string, mode RenderEnvVarsMode) (string, error) {
+	if len(filenames) == 0 {
+		return "", ErrorFilenameEmpty
+	}
+
+	return getMockContent(filenames, mode)
+}
+
 // GetContentFromReader reads and validates a single Content from reader, applying
 // the same template rendering (per mode) and schema validation as
 // GetContentFromFilesWithEnvVars, without requiring a file on disk.

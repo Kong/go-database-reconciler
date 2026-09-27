@@ -534,3 +534,11 @@ func containsAnySecret(line string, secrets []string) bool {
 	}
 	return false
 }
+
+// cleanMaskedValueMarkers removes the invisible change-detection marker (U+200D)
+// from the diff output. The marker is needed for gojsondiff to detect that a
+// masked value changed (byte-different), but it should not appear in the final
+// rendered output to avoid rendering as visible space in terminals.
+func cleanMaskedValueMarkers(diffString string) string {
+	return strings.ReplaceAll(diffString, string(rune(0x200D)), "")
+}
