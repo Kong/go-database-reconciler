@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.66.1
+	github.com/kong/deck v1.67.0
 	github.com/kong/go-kong v0.78.0
 	github.com/samber/lo v1.53.0
 	github.com/shirou/gopsutil/v3 v3.24.5
@@ -38,7 +38,7 @@ require (
 	charm.land/bubbles/v2 v2.1.1 // indirect
 	charm.land/bubbletea/v2 v2.0.8 // indirect
 	charm.land/lipgloss/v2 v2.0.5 // indirect
-	github.com/Kong/ai-deck-converter v0.17.1 // indirect
+	github.com/Kong/ai-deck-converter v0.18.11 // indirect
 	github.com/Kong/go-diff v1.2.2 // indirect
 	github.com/Kong/sdk-konnect-go v0.3.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/daveshanley/vacuum v0.30.0 // indirect
+	github.com/daveshanley/vacuum v0.30.3 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dop251/goja v0.0.0-20260701091749-b07b74453ea9 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20260212111938-1f56ff5bcf14 // indirect
@@ -107,7 +107,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
-	github.com/pb33f/doctor v0.0.79 // indirect
+	github.com/pb33f/doctor v0.0.80 // indirect
 	github.com/pb33f/jsonpath v0.8.3 // indirect
 	github.com/pb33f/libasyncapi v0.0.2 // indirect
 	github.com/pb33f/libopenapi v0.38.7 // indirect
