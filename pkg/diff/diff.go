@@ -796,10 +796,7 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 				// only fill auto fields for the configuration sent to Kong
 				// this is done because we want to avoid Kong to auto generate fields, which
 				// would make decK's configuration no longer fully "declarative"
-				if err := kong.FillPluginsDefaultsWithOpts(&plugin.Plugin, schema, kong.FillRecordOptions{
-					FillDefaults: false,
-					FillAuto:     true,
-				}); err != nil {
+				if err := kong.FillPluginImplicitDefaults(&plugin.Plugin, schema); err != nil {
 					return nil, fmt.Errorf("failed processing auto fields: %w", err)
 				}
 
