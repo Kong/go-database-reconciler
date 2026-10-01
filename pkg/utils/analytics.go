@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v4/host"
 )
 
 const (
