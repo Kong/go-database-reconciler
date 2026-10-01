@@ -4184,3 +4184,100 @@ func Test_Diff_PluginConfigReorderArraySetValues(t *testing.T) {
 		})
 	}
 }
+
+func runDualTestWithSkipDefaults(t *testing.T, testName string, testFunc func(t *testing.T)) {
+	t.Run(testName+" (default fill)", func(t *testing.T) {
+		testFunc(t)
+	})
+
+	t.Run(testName+" (skip defaults fill)", func(t *testing.T) {
+		t.Setenv("DECK_SKIP_DEFAULTS_FILL", "true")
+		testFunc(t)
+	})
+}
+
+type skipDefaultsPluginDiffCase struct {
+	name             string
+	stateFile        string
+	updatedFile      string
+	pluginUpdateLine string
+	changedValue     string
+}
+
+var skipDefaultsPluginDiffCases = []skipDefaultsPluginDiffCase{
+	{
+		// `enabled` is a hardcoded go-kong default rather than a schema-derived
+		// one, so RemoveDefaultsFromState never stripped it: the decision pass
+		// read the omission as a change while the display pass re-filled the
+		// default on both sides and rendered nothing.
+		name:             "implicit enabled default",
+		stateFile:        "testdata/diff/008-skip-defaults-plugin-implicit-enabled/kong.yaml",
+		updatedFile:      "testdata/diff/008-skip-defaults-plugin-implicit-enabled/kong-updated.yaml",
+		pluginUpdateLine: "updating plugin post-function",
+		changedValue:     "MASKED",
+	},
+	{
+		// openid-connect's deprecated `consumer_claim` is returned by Kong as
+		// `consumer_claims`; the decision path skipped
+		// ClearUnmatchingDeprecations while the display path still ran it, so the
+		// update was decided but nothing was rendered.
+		name:             "deprecated config field",
+		stateFile:        "testdata/diff/009-skip-defaults-plugin-deprecated-field/kong.yaml",
+		updatedFile:      "testdata/diff/009-skip-defaults-plugin-deprecated-field/kong-updated.yaml",
+		pluginUpdateLine: "updating plugin openid-connect",
+		changedValue:     "changed-issuer.example.com",
+	},
+}
+
+func Test_Diff_SkipDefaultsFill_PluginNoFakeUpdate(t *testing.T) {
+	runWhenKonnect(t)
+
+	for _, tc := range skipDefaultsPluginDiffCases {
+		runDualTestWithSkipDefaults(t, "PluginNoFakeUpdate/"+tc.name, func(t *testing.T) {
+			testDiffSkipDefaultsFillPluginNoFakeUpdateImpl(t, tc)
+		})
+	}
+}
+
+func testDiffSkipDefaultsFillPluginNoFakeUpdateImpl(t *testing.T, tc skipDefaultsPluginDiffCase) {
+	setup(t)
+
+	for i := range 2 {
+		require.NoError(t, sync(tc.stateFile))
+
+		out, err := diff(tc.stateFile)
+		require.NoError(t, err)
+		assert.Equal(t, expectedOutputNoChange, out, "diff after sync %d reported changes", i+1)
+		assert.NotContains(t, out, tc.pluginUpdateLine,
+			"reconciled field must not produce a fake plugin update")
+	}
+}
+
+func Test_Diff_SkipDefaultsFill_PluginRealChangeStillDetected(t *testing.T) {
+	runWhenKonnect(t)
+
+	for _, tc := range skipDefaultsPluginDiffCases {
+		runDualTestWithSkipDefaults(t, "PluginRealChangeStillDetected/"+tc.name, func(t *testing.T) {
+			testDiffSkipDefaultsFillPluginRealChangeStillDetectedImpl(t, tc)
+		})
+	}
+}
+
+func testDiffSkipDefaultsFillPluginRealChangeStillDetectedImpl(t *testing.T, tc skipDefaultsPluginDiffCase) {
+	setup(t)
+
+	require.NoError(t, sync(tc.stateFile))
+
+	out, err := diff(tc.updatedFile)
+	require.NoError(t, err)
+	assert.NotEqual(t, expectedOutputNoChange, out)
+	assert.Contains(t, out, tc.pluginUpdateLine)
+	assert.Contains(t, out, tc.changedValue)
+
+	// once applied, the updated state diffs clean
+	require.NoError(t, sync(tc.updatedFile))
+
+	out, err = diff(tc.updatedFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+}

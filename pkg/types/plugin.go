@@ -209,10 +209,17 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		if err != nil {
 			return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
 		}
-
-		if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
-			return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+	} else {
+		if err := kong.FillPluginImplicitDefaults(&pluginWithDefaults.Plugin, schema); err != nil {
+			return nil, fmt.Errorf("failed processing implicit defaults for plugin %q: %w", *plugin.Name, err)
 		}
+		if err := kong.FillPluginImplicitDefaults(&currentPlugin.Plugin, schema); err != nil {
+			return nil, fmt.Errorf("failed processing implicit defaults for plugin %q: %w", *plugin.Name, err)
+		}
+	}
+
+	if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
+		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
 	}
 
 	jsonb, _ := json.Marshal(&schema)
