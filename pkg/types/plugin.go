@@ -205,7 +205,7 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 			return nil, err
 		}
 
-		err = kong.FillPluginWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
+		err = kong.FillPluginsDefaultsWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
 		if err != nil {
 			return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
 		}
