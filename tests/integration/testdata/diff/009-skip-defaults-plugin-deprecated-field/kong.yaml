@@ -2,8 +2,8 @@ _format_version: "3.0"
 services:
 - name: example
   host: example.com
-_plugin_configs:
-  my-oidc-config:
+plugins:
+- config:
     session_memcached_ssl: false
     consumer_by:
     - custom_id
@@ -13,8 +13,6 @@ _plugin_configs:
     cache_tokens_salt: xxxxxx
     auth_methods:
     - bearer
-plugins:
-- _config: my-oidc-config
   enabled: true
   name: openid-connect
   protocols:
