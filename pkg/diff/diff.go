@@ -772,59 +772,31 @@ func (sc *Syncer) Solve(ctx context.Context, parallelism int, dry bool, isJSONOu
 			e.Obj = pluginCopy
 
 			if workspaceExists {
-				schema, err := sc.schemaRegistry.GetPluginSchema(ctx, *pluginCopy.Name)
+				schema, err := sc.schemaRegistry.GetPluginSchema(ctx, *plugin.Name)
 				if err != nil {
 					return nil, err
-				}
-
-				if sc.skipSchemaDefaults {
-					if err := kong.FillPluginImplicitDefaults(&pluginCopy.Plugin, schema); err != nil {
-						return nil, fmt.Errorf("failed processing implicit defaults for plugin: %w", err)
-					}
-				} else {
-					linkedPartialConfig, err := utils.FindLinkedPartials(ctx, sc.kongClient, &pluginCopy.Plugin)
-					if err != nil {
-						return nil, err
-					}
-
-					err = kong.FillPluginsDefaultsWithPartials(&pluginCopy.Plugin, schema, linkedPartialConfig)
-					if err != nil {
-						return nil, fmt.Errorf("failed processing auto fields: %w", err)
-					}
 				}
 
 				// only fill auto fields for the configuration sent to Kong
 				// this is done because we want to avoid Kong to auto generate fields, which
 				// would make decK's configuration no longer fully "declarative"
 				if err := kong.FillPluginImplicitDefaults(&plugin.Plugin, schema); err != nil {
-					return nil, fmt.Errorf("failed processing auto fields: %w", err)
+					return nil, fmt.Errorf("failed processing auto fields for plugin %q: %w", *plugin.Name, err)
 				}
 
-				// `oldPlugin` contains both new and deprecated fields.
-				// If `plugin` (the new plugin) contains only deprecated fields,
-				// we need to remove the new fields from `oldPlugin` to ensure both configurations align correctly.
+				var oldPluginCopy *kong.Plugin
 				if oldPlugin, ok := e.OldObj.(*state.Plugin); ok {
-					oldPluginCopy := &state.Plugin{Plugin: *oldPlugin.DeepCopy()}
-					e.OldObj = oldPluginCopy
-					if sc.skipSchemaDefaults {
-						if err := kong.FillPluginImplicitDefaults(&oldPluginCopy.Plugin, schema); err != nil {
-							return nil, fmt.Errorf("failed processing implicit defaults for plugin: %w", err)
-						}
-					} else {
-						linkedPartialConfig, err := utils.FindLinkedPartials(ctx, sc.kongClient, &oldPluginCopy.Plugin)
-						if err != nil {
-							return nil, err
-						}
+					oldCopy := &state.Plugin{Plugin: *oldPlugin.DeepCopy()}
+					e.OldObj = oldCopy
+					oldPluginCopy = &oldCopy.Plugin
+				}
 
-						err = kong.FillPluginsDefaultsWithPartials(&oldPluginCopy.Plugin, schema, linkedPartialConfig)
-						if err != nil {
-							return nil, fmt.Errorf("failed processing auto fields: %w", err)
-						}
-					}
-
-					if err := kong.ClearUnmatchingDeprecations(&pluginCopy.Plugin, &oldPluginCopy.Plugin, schema); err != nil {
-						return nil, fmt.Errorf("failed processing auto fields: %w", err)
-					}
+				// Normalize exactly as the update decision did, so a decided update
+				// never renders with an empty diff body. This also fills the implicit
+				// defaults sent to Kong into the copy.
+				if err := utils.NormalizePluginsForDiff(ctx, sc.kongClient,
+					&pluginCopy.Plugin, oldPluginCopy, schema, sc.skipSchemaDefaults); err != nil {
+					return nil, fmt.Errorf("failed normalizing plugin %q for diff: %w", *plugin.Name, err)
 				}
 			}
 		}

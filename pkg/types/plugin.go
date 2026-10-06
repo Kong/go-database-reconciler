@@ -187,45 +187,22 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		return nil, fmt.Errorf("failed getting schema: %w", err)
 	}
 	pluginWithDefaults := &state.Plugin{Plugin: *plugin.DeepCopy()}
+	// Normalize a copy so OldObj stays as Kong returned it: Solve normalizes
+	// the event's objects itself, and must start from the same raw inputs.
+	currentWithDefaults := &state.Plugin{Plugin: *currentPlugin.DeepCopy()}
 
-	// Skip schema-based default filling if configured to do so
-	if !d.skipSchemaDefaults {
-		linkedPartialConfig, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &plugin.Plugin)
-		if err != nil {
-			return nil, err
-		}
-
-		err = kong.FillPluginsDefaultsWithPartials(&pluginWithDefaults.Plugin, schema, linkedPartialConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed processing auto fields defaultPluginFill: %w", err)
-		}
-
-		linkedPartialConfigCurrentPlugin, err := utils.FindLinkedPartials(context.TODO(), d.kongClient, &currentPlugin.Plugin)
-		if err != nil {
-			return nil, err
-		}
-
-		err = kong.FillPluginsDefaultsWithPartials(&currentPlugin.Plugin, schema, linkedPartialConfigCurrentPlugin)
-		if err != nil {
-			return nil, fmt.Errorf("failed processing auto fields currentPlugin: %w", err)
-		}
-	} else {
-		if err := kong.FillPluginImplicitDefaults(&pluginWithDefaults.Plugin, schema); err != nil {
-			return nil, fmt.Errorf("failed processing implicit defaults for plugin %q: %w", *plugin.Name, err)
-		}
-		if err := kong.FillPluginImplicitDefaults(&currentPlugin.Plugin, schema); err != nil {
-			return nil, fmt.Errorf("failed processing implicit defaults for plugin %q: %w", *plugin.Name, err)
-		}
-	}
-
-	if err := kong.ClearUnmatchingDeprecations(&pluginWithDefaults.Plugin, &currentPlugin.Plugin, schema); err != nil {
-		return nil, fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+	// The current plugin gets the same defaults as the desired one, so a field
+	// added to the schema after the plugin was persisted (absent from the
+	// current plugin) doesn't show up as a false-positive update.
+	if err := utils.NormalizePluginsForDiff(context.TODO(), d.kongClient,
+		&pluginWithDefaults.Plugin, &currentWithDefaults.Plugin, schema, d.skipSchemaDefaults); err != nil {
+		return nil, fmt.Errorf("failed normalizing plugin %q for diff: %w", *plugin.Name, err)
 	}
 
 	jsonb, _ := json.Marshal(&schema)
 	gjsonSchema := gjson.ParseBytes(jsonb)
 
-	if !currentPlugin.EqualWithOpts(pluginWithDefaults, false, true, false, gjsonSchema) {
+	if !currentWithDefaults.EqualWithOpts(pluginWithDefaults, false, true, false, gjsonSchema) {
 		return &crud.Event{
 			Op:     crud.Update,
 			Kind:   d.kind,

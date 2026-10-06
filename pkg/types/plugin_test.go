@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testOldField = "old_field"
+	testClientID = "clientId"
+)
+
 // schemaWithNewDefaultedField simulates a /schemas response after a Kong upgrade that
 // introduced "new_field" with a default value.
 func schemaWithNewDefaultedField() map[string]any {
@@ -21,7 +26,7 @@ func schemaWithNewDefaultedField() map[string]any {
 			map[string]any{
 				"config": map[string]any{
 					"fields": []any{
-						map[string]any{"old_field": map[string]any{"type": "string"}},
+						map[string]any{testOldField: map[string]any{"type": "string"}},
 						map[string]any{
 							"new_field": map[string]any{"type": "string", "default": "new-default"},
 						},
@@ -41,7 +46,7 @@ func schemaWithNewFieldNoDefault() map[string]any {
 			map[string]any{
 				"config": map[string]any{
 					"fields": []any{
-						map[string]any{"old_field": map[string]any{"type": "string"}},
+						map[string]any{testOldField: map[string]any{"type": "string"}},
 						map[string]any{"new_field_no_default": map[string]any{"type": "string"}},
 					},
 				},
@@ -109,20 +114,20 @@ func newTestPluginDiffer(
 func TestCreateUpdatePlugin_NewSchemaFieldMissingFromCurrent(t *testing.T) {
 	current := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"old_field": "custom-value"},
+			Enabled:   new(true),
+			Config:    kong.Configuration{testOldField: "custom-value"},
 		},
 	}
 	target := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("4bfcb11f-c962-4817-83e5-9433cf20b663"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("4bfcb11f-c962-4817-83e5-9433cf20b663"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"old_field": "custom-value"},
+			Enabled:   new(true),
+			Config:    kong.Configuration{testOldField: "custom-value"},
 		},
 	}
 
@@ -140,20 +145,20 @@ func TestCreateUpdatePlugin_NewSchemaFieldMissingFromCurrent(t *testing.T) {
 func TestCreateUpdatePlugin_NewSchemaFieldNoDefaultMissingFromCurrent(t *testing.T) {
 	current := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"old_field": "custom-value"},
+			Enabled:   new(true),
+			Config:    kong.Configuration{testOldField: "custom-value"},
 		},
 	}
 	target := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"old_field": "custom-value"},
+			Enabled:   new(true),
+			Config:    kong.Configuration{testOldField: "custom-value"},
 		},
 	}
 
@@ -169,23 +174,23 @@ func TestCreateUpdatePlugin_NewSchemaFieldNoDefaultMissingFromCurrent(t *testing
 func TestCreateUpdatePlugin_ExplicitValueDifferingFromDefault_StillDetected(t *testing.T) {
 	current := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
+			Enabled:   new(true),
 			Config: kong.Configuration{
-				"old_field": "custom-value",
-				"new_field": "explicit-other-value",
+				testOldField: "custom-value",
+				"new_field":  "explicit-other-value",
 			},
 		},
 	}
 	target := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("f7e64af5-e438-4a9b-8ff8-ec6f5f06dccb"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"old_field": "custom-value"},
+			Enabled:   new(true),
+			Config:    kong.Configuration{testOldField: "custom-value"},
 		},
 	}
 
@@ -197,26 +202,24 @@ func TestCreateUpdatePlugin_ExplicitValueDifferingFromDefault_StillDetected(t *t
 	assert.Equal(t, crud.Update, event.Op)
 }
 
-// skipSchemaDefaults=true: createUpdatePlugin (plugin.go:192) skips the block that normalizes
-// "enabled" to true, so a target omitting "enabled" (nil) never matches current's persisted
-// explicit true.
+// skipSchemaDefaults=true: schema defaults are not filled, but implicit plugin-level defaults
+// still are, so a target omitting "enabled" (nil) matches current's persisted explicit true.
 func TestCreateUpdatePlugin_SkipSchemaDefaults_ImplicitEnabledOmitted(t *testing.T) {
-	t.Skip("not being worked on right now")
 	current := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("b2d6e6b1-28d1-4e2b-9f0a-f4a9b7c1a111"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("b2d6e6b1-28d1-4e2b-9f0a-f4a9b7c1a111"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"consumer_claims": []any{"clientId"}},
+			Enabled:   new(true),
+			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
 		},
 	}
 	target := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("c3e7f7c2-39e2-4f3c-8f1b-f5bac8c2b222"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("b2d6e6b1-28d1-4e2b-9f0a-f4a9b7c1a111"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Config:    kong.Configuration{"consumer_claims": []any{"clientId"}},
+			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
 		},
 	}
 
@@ -227,30 +230,29 @@ func TestCreateUpdatePlugin_SkipSchemaDefaults_ImplicitEnabledOmitted(t *testing
 	assert.Nil(t, event)
 }
 
-// Same gating also skips ClearUnmatchingDeprecations: Kong mirrors a deprecated field under its
-// new name once set, so current carries "consumer_claims" alongside "consumer_claim" even though
-// the target only ever set the deprecated name.
+// skipSchemaDefaults=true: ClearUnmatchingDeprecations still runs. Kong mirrors a deprecated field
+// under its new name once set, so current carries "consumer_claims" alongside "consumer_claim"
+// even though the target only ever set the deprecated name.
 func TestCreateUpdatePlugin_SkipSchemaDefaults_DeprecatedFieldPair(t *testing.T) {
-	t.Skip("not being worked on right now")
 	current := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("d4f8a8d3-4af3-4f4d-9f2c-f6cbd9d3c333"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("d4f8a8d3-4af3-4f4d-9f2c-f6cbd9d3c333"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("https"),
-			Enabled:   kong.Bool(true),
+			Enabled:   new(true),
 			Config: kong.Configuration{
-				"consumer_claim":  []any{"clientId"},
-				"consumer_claims": []any{"clientId"},
+				"consumer_claim":  []any{testClientID},
+				"consumer_claims": []any{testClientID},
 			},
 		},
 	}
 	target := &state.Plugin{
 		Plugin: kong.Plugin{
-			ID:        kong.String("e5a9b9e4-5bf4-4a5e-8e3d-f7dcead4d444"),
-			Name:      kong.String("my-plugin"),
+			ID:        new("d4f8a8d3-4af3-4f4d-9f2c-f6cbd9d3c333"),
+			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("https"),
-			Enabled:   kong.Bool(true),
-			Config:    kong.Configuration{"consumer_claim": []any{"clientId"}},
+			Enabled:   new(true),
+			Config:    kong.Configuration{"consumer_claim": []any{testClientID}},
 		},
 	}
 
@@ -259,4 +261,105 @@ func TestCreateUpdatePlugin_SkipSchemaDefaults_DeprecatedFieldPair(t *testing.T)
 	event, err := d.createUpdatePlugin(target)
 	require.NoError(t, err)
 	assert.Nil(t, event)
+}
+
+// skipSchemaDefaults=false: the schema-defaults path must clear mirrored
+// deprecations too, otherwise the extra "consumer_claims" on current makes a
+// no-op look like an update.
+func TestCreateUpdatePlugin_SchemaDefaults_DeprecatedFieldPair(t *testing.T) {
+	current := &state.Plugin{
+		Plugin: kong.Plugin{
+			ID:        new("e5a9b9e4-5bf4-4a5e-8e3d-f7dcead4d444"),
+			Name:      new("my-plugin"),
+			Protocols: kong.StringSlice("https"),
+			Enabled:   new(true),
+			Config: kong.Configuration{
+				"consumer_claim":  []any{testClientID},
+				"consumer_claims": []any{testClientID},
+			},
+		},
+	}
+	target := &state.Plugin{
+		Plugin: kong.Plugin{
+			ID:        new("e5a9b9e4-5bf4-4a5e-8e3d-f7dcead4d444"),
+			Name:      new("my-plugin"),
+			Protocols: kong.StringSlice("https"),
+			Enabled:   new(true),
+			Config:    kong.Configuration{"consumer_claim": []any{testClientID}},
+		},
+	}
+
+	d := newTestPluginDiffer(t, current, target, false, schemaWithDeprecatedField())
+
+	event, err := d.createUpdatePlugin(target)
+	require.NoError(t, err)
+	assert.Nil(t, event)
+}
+
+// skipSchemaDefaults=false: implicit plugin-level defaults are still filled, so
+// a target omitting "enabled" (nil) matches current's persisted explicit true.
+func TestCreateUpdatePlugin_SchemaDefaults_ImplicitEnabledOmitted(t *testing.T) {
+	current := &state.Plugin{
+		Plugin: kong.Plugin{
+			ID:        new("f6bafaf5-6cf5-4b6f-9f4e-08edbfe4e555"),
+			Name:      new("my-plugin"),
+			Protocols: kong.StringSlice("http", "https"),
+			Enabled:   new(true),
+			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
+		},
+	}
+	target := &state.Plugin{
+		Plugin: kong.Plugin{
+			ID:        new("f6bafaf5-6cf5-4b6f-9f4e-08edbfe4e555"),
+			Name:      new("my-plugin"),
+			Protocols: kong.StringSlice("http", "https"),
+			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
+		},
+	}
+
+	d := newTestPluginDiffer(t, current, target, false, schemaWithDeprecatedField())
+
+	event, err := d.createUpdatePlugin(target)
+	require.NoError(t, err)
+	assert.Nil(t, event)
+}
+
+// The event must carry the raw current plugin (as Kong returned it) in OldObj.
+// Solve re-normalizes OldObj itself, so createUpdatePlugin must not leak filled
+// defaults into it: doing so would normalize twice and could render an update
+// with an empty diff body.
+func TestCreateUpdatePlugin_OldObjStaysRaw(t *testing.T) {
+	current := &state.Plugin{
+		Plugin: kong.Plugin{
+			ID:        new("a7cbfbf6-7df6-4c7f-8f5f-19fecff5f666"),
+			Name:      new("my-plugin"),
+			Protocols: kong.StringSlice("http", "https"),
+			Enabled:   new(true),
+			Config:    kong.Configuration{testOldField: "custom-value"},
+		},
+	}
+	target := &state.Plugin{
+		Plugin: kong.Plugin{
+			ID:        new("a7cbfbf6-7df6-4c7f-8f5f-19fecff5f666"),
+			Name:      new("my-plugin"),
+			Protocols: kong.StringSlice("http", "https"),
+			Enabled:   new(true),
+			Config: kong.Configuration{
+				testOldField: "custom-value",
+				"new_field":  "explicit-other-value",
+			},
+		},
+	}
+
+	d := newTestPluginDiffer(t, current, target, false, schemaWithNewDefaultedField())
+
+	event, err := d.createUpdatePlugin(target)
+	require.NoError(t, err)
+	require.NotNil(t, event)
+
+	old, ok := event.OldObj.(*state.Plugin)
+	require.True(t, ok)
+	assert.NotContains(t, old.Config, "new_field",
+		"OldObj must stay raw (no schema defaults); Solve normalizes it itself")
+	assert.Equal(t, kong.Configuration{testOldField: "custom-value"}, old.Config)
 }
