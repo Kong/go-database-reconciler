@@ -64,7 +64,13 @@ func schemaWithDeprecatedField() map[string]any {
 			map[string]any{
 				"config": map[string]any{
 					"fields": []any{
-						map[string]any{"consumer_claims": map[string]any{"type": "array"}},
+						map[string]any{"consumer_claims": map[string]any{
+							"type": "array",
+							"elements": map[string]any{
+								"type":     "array",
+								"elements": map[string]any{"type": "string"},
+							},
+						}},
 					},
 					"shorthand_fields": []any{
 						map[string]any{
@@ -211,7 +217,7 @@ func TestCreateUpdatePlugin_SkipSchemaDefaults_ImplicitEnabledOmitted(t *testing
 			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
 			Enabled:   new(true),
-			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
+			Config:    kong.Configuration{"consumer_claims": []any{[]any{testClientID}}},
 		},
 	}
 	target := &state.Plugin{
@@ -219,7 +225,7 @@ func TestCreateUpdatePlugin_SkipSchemaDefaults_ImplicitEnabledOmitted(t *testing
 			ID:        new("b2d6e6b1-28d1-4e2b-9f0a-f4a9b7c1a111"),
 			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
+			Config:    kong.Configuration{"consumer_claims": []any{[]any{testClientID}}},
 		},
 	}
 
@@ -242,7 +248,7 @@ func TestCreateUpdatePlugin_SkipSchemaDefaults_DeprecatedFieldPair(t *testing.T)
 			Enabled:   new(true),
 			Config: kong.Configuration{
 				"consumer_claim":  []any{testClientID},
-				"consumer_claims": []any{testClientID},
+				"consumer_claims": []any{[]any{testClientID}},
 			},
 		},
 	}
@@ -275,7 +281,7 @@ func TestCreateUpdatePlugin_SchemaDefaults_DeprecatedFieldPair(t *testing.T) {
 			Enabled:   new(true),
 			Config: kong.Configuration{
 				"consumer_claim":  []any{testClientID},
-				"consumer_claims": []any{testClientID},
+				"consumer_claims": []any{[]any{testClientID}},
 			},
 		},
 	}
@@ -305,7 +311,7 @@ func TestCreateUpdatePlugin_SchemaDefaults_ImplicitEnabledOmitted(t *testing.T) 
 			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
 			Enabled:   new(true),
-			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
+			Config:    kong.Configuration{"consumer_claims": []any{[]any{testClientID}}},
 		},
 	}
 	target := &state.Plugin{
@@ -313,7 +319,7 @@ func TestCreateUpdatePlugin_SchemaDefaults_ImplicitEnabledOmitted(t *testing.T) 
 			ID:        new("f6bafaf5-6cf5-4b6f-9f4e-08edbfe4e555"),
 			Name:      new("my-plugin"),
 			Protocols: kong.StringSlice("http", "https"),
-			Config:    kong.Configuration{"consumer_claims": []any{testClientID}},
+			Config:    kong.Configuration{"consumer_claims": []any{[]any{testClientID}}},
 		},
 	}
 
