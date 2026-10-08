@@ -1,0 +1,20 @@
+_format_version: "3.0"
+services:
+- name: example
+  host: example.com
+plugins:
+- config:
+    session_memcached_ssl: false
+    consumer_by:
+    - custom_id
+    consumer_claim:
+    - clientId
+    issuer: https://changed-issuer.example.com
+    cache_tokens_salt: xxxxxx
+    auth_methods:
+    - bearer
+  enabled: true
+  name: openid-connect
+  protocols:
+  - https
+  service: example

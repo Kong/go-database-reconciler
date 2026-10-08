@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -8,7 +9,9 @@ import (
 	"testing"
 
 	"github.com/blang/semver/v4"
+	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmpty(t *testing.T) {
@@ -345,4 +348,26 @@ func Test_IsPathRegexLike(t *testing.T) {
 			)
 		}
 	}
+}
+
+func TestNormalizePluginsForDiff_HandlesNilSides(t *testing.T) {
+	schema := map[string]any{
+		"fields": []any{
+			map[string]any{
+				"config": map[string]any{
+					"fields": []any{},
+				},
+			},
+		},
+	}
+
+	desired := &kong.Plugin{Name: new("my-plugin"), Config: kong.Configuration{}}
+	require.NoError(t, NormalizePluginsForDiff(context.Background(), nil, desired, nil, schema, true))
+	assert.True(t, *desired.Enabled, "desired should receive implicit enabled default")
+
+	current := &kong.Plugin{Name: new("my-plugin"), Config: kong.Configuration{}}
+	require.NoError(t, NormalizePluginsForDiff(context.Background(), nil, nil, current, schema, true))
+	assert.True(t, *current.Enabled, "current should receive implicit enabled default")
+
+	require.NoError(t, NormalizePluginsForDiff(context.Background(), nil, nil, nil, schema, true))
 }

@@ -310,3 +310,56 @@ func FindLinkedPartials(ctx context.Context, kongClient *kong.Client, plugin *ko
 
 	return linkedPartialConfig, nil
 }
+
+// NormalizePluginsForDiff normalizes desired and current plugins identically for fair comparison.
+// Used by both update decision and diff rendering—they must agree or update proceeds with empty diff.
+// With skipSchemaDefaults: only fill implicit defaults (enabled, protocols), not schema defaults.
+// Always clear mismatched deprecated fields.
+func NormalizePluginsForDiff(ctx context.Context, kongClient *kong.Client,
+	desired, current *kong.Plugin, schema map[string]any, skipSchemaDefaults bool,
+) error {
+	sides := []struct {
+		name   string
+		plugin *kong.Plugin
+	}{{"desired", desired}, {"current", current}}
+	for _, side := range sides {
+		if side.plugin == nil {
+			continue
+		}
+		if err := fillPluginForDiff(ctx, kongClient, side.plugin, schema, skipSchemaDefaults); err != nil {
+			return fmt.Errorf("%s plugin: %w", side.name, err)
+		}
+	}
+
+	if desired == nil || current == nil {
+		return nil
+	}
+	if err := kong.ClearUnmatchingDeprecations(desired, current, schema); err != nil {
+		return fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
+	}
+	return nil
+}
+
+func fillPluginForDiff(ctx context.Context, kongClient *kong.Client,
+	plugin *kong.Plugin, schema map[string]any, skipSchemaDefaults bool,
+) error {
+	// When skipping schema defaults: config paths (e.g. config.redis) aren't filled
+	// anyway, so skip linked partial lookup (saves Kong call) and only fill implicit defaults.
+	if skipSchemaDefaults {
+		if err := kong.FillPluginImplicitDefaults(plugin, schema); err != nil {
+			return fmt.Errorf("failed processing implicit defaults for plugin: %w", err)
+		}
+		return nil
+	}
+
+	// Filling schema defaults requires fetching linked partials to populate config paths
+	// Kong returns empty, ensuring both sides match.
+	linkedPartials, err := FindLinkedPartials(ctx, kongClient, plugin)
+	if err != nil {
+		return err
+	}
+	if err := kong.FillPluginsDefaultsWithPartials(plugin, schema, linkedPartials); err != nil {
+		return fmt.Errorf("failed processing auto fields: %w", err)
+	}
+	return nil
+}
