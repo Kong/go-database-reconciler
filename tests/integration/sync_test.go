@@ -11590,3 +11590,60 @@ func Test_Sync_AIModels(t *testing.T) {
 		})
 	}
 }
+
+func Test_Sync_Plugin_Expressions(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.16.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-expressions.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	plugins, err := client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, plugins, 1)
+	assert.Equal(t, "rate-limiting-advanced", *plugins[0].Name)
+	assert.Equal(t, kong.PluginExpressions{
+		"custom_key": nil,
+		"limit":      []any{"5*10"},
+	}, plugins[0].Expressions)
+
+	// Kong returns unset expressions as null; that must not show up as a diff
+	out, err := diff(kongFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+}
+
+func Test_Sync_Plugin_Without_Expressions(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.16.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-no-expressions.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	// a plugin that supports expressions but doesn't use them must not
+	// diff against the all-null expressions Kong returns
+	out, err := diff(kongFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+
+	// removing expressions from the file clears them in Kong
+	require.NoError(t, sync("testdata/sync/003-create-a-plugin/kong-expressions.yaml"))
+	require.NoError(t, sync(kongFile))
+
+	plugins, err := client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, plugins, 1)
+	assert.Nil(t, plugins[0].Expressions["limit"])
+
+	out, err = diff(kongFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+}

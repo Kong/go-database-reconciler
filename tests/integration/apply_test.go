@@ -9,6 +9,7 @@ import (
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -649,4 +650,30 @@ func Test_Apply_AIModels(t *testing.T) {
 			testKongState(t, client, false, tc.expectedState, nil)
 		})
 	}
+}
+
+func Test_Apply_Plugin_Expressions(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.16.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-expressions.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	plugins, err := client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, plugins, 1)
+	assert.Equal(t, []any{"5*10"}, plugins[0].Expressions["limit"])
+
+	// apply command to change expressions
+	updatedFile := "testdata/apply/010-plugin-expressions/updated.yaml"
+	require.NoError(t, sync(updatedFile))
+
+	plugins, err = client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, plugins, 1)
+	assert.Equal(t, []any{"7*10"}, plugins[0].Expressions["limit"])
 }

@@ -371,3 +371,78 @@ func TestNormalizePluginsForDiff_HandlesNilSides(t *testing.T) {
 
 	require.NoError(t, NormalizePluginsForDiff(context.Background(), nil, nil, nil, schema, true))
 }
+
+func TestNormalizePluginsForDiff_PrunesEmptyExpressions(t *testing.T) {
+	schema := map[string]any{
+		"fields": []any{
+			map[string]any{
+				"config": map[string]any{
+					"fields": []any{},
+				},
+			},
+		},
+	}
+
+	desired := &kong.Plugin{
+		Name:        new("my-plugin"),
+		Config:      kong.Configuration{},
+		Expressions: kong.PluginExpressions{"limit": []any{"7*10"}},
+	}
+	current := &kong.Plugin{
+		Name:   new("my-plugin"),
+		Config: kong.Configuration{},
+		Expressions: kong.PluginExpressions{
+			"custom_key": nil,
+			"limit":      []any{"5*10"},
+		},
+	}
+	require.NoError(t, NormalizePluginsForDiff(context.Background(), nil, desired, current, schema, true))
+	assert.Equal(t, kong.PluginExpressions{"limit": []any{"7*10"}}, desired.Expressions)
+	assert.Equal(t, kong.PluginExpressions{"limit": []any{"5*10"}}, current.Expressions)
+
+	current.Expressions = kong.PluginExpressions{"custom_key": nil, "limit": nil}
+	require.NoError(t, NormalizePluginsForDiff(context.Background(), nil, nil, current, schema, true))
+	assert.Nil(t, current.Expressions)
+}
+
+func TestPruneEmptyPluginExpressions(t *testing.T) {
+	tests := []struct {
+		name     string
+		in       kong.PluginExpressions
+		expected kong.PluginExpressions
+	}{
+		{
+			name:     "nil expressions",
+			in:       nil,
+			expected: nil,
+		},
+		{
+			name:     "unset expressions returned as null by Kong",
+			in:       kong.PluginExpressions{"custom_key": nil, "limit": []any{"5*10"}},
+			expected: kong.PluginExpressions{"limit": []any{"5*10"}},
+		},
+		{
+			name:     "all expressions null",
+			in:       kong.PluginExpressions{"custom_key": nil, "limit": nil},
+			expected: nil,
+		},
+		{
+			name:     "rate-limiting expression set",
+			in:       kong.PluginExpressions{"second": nil, "minute": "5*10", "custom_key": nil},
+			expected: kong.PluginExpressions{"minute": "5*10"},
+		},
+		{
+			name:     "empty expressions map",
+			in:       kong.PluginExpressions{},
+			expected: nil,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			in := tc.in.DeepCopy()
+			assert.Equal(t, tc.expected, PruneEmptyPluginExpressions(in))
+			// pruning must not mutate its input
+			assert.Equal(t, tc.in, in)
+		})
+	}
+}

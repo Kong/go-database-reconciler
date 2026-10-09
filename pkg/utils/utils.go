@@ -329,6 +329,9 @@ func NormalizePluginsForDiff(ctx context.Context, kongClient *kong.Client,
 		if err := fillPluginForDiff(ctx, kongClient, side.plugin, schema, skipSchemaDefaults); err != nil {
 			return fmt.Errorf("%s plugin: %w", side.name, err)
 		}
+		// Kong returns every expression-capable field, unset ones as null,
+		// while a declarative file only lists the expressions it uses.
+		side.plugin.Expressions = PruneEmptyPluginExpressions(side.plugin.Expressions)
 	}
 
 	if desired == nil || current == nil {
@@ -338,6 +341,24 @@ func NormalizePluginsForDiff(ctx context.Context, kongClient *kong.Client,
 		return fmt.Errorf("failed clearing unmatching deprecations fields: %w", err)
 	}
 	return nil
+}
+
+// PruneEmptyPluginExpressions drops nil values from plugin expressions, so an
+// unset expression and an absent one compare equal. Expressions are a flat
+// record, so no recursion is needed. It returns nil if nothing is left, since
+// Kong returns null for a plugin without expressions.
+func PruneEmptyPluginExpressions(e kong.PluginExpressions) kong.PluginExpressions {
+	var pruned kong.PluginExpressions
+	for k, v := range e {
+		if v == nil {
+			continue
+		}
+		if pruned == nil {
+			pruned = make(kong.PluginExpressions, len(e))
+		}
+		pruned[k] = v
+	}
+	return pruned
 }
 
 func fillPluginForDiff(ctx context.Context, kongClient *kong.Client,
