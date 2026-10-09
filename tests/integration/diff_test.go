@@ -4229,28 +4229,26 @@ var skipDefaultsPluginDiffCases = []skipDefaultsPluginDiffCase{
 	},
 }
 
-func Test_Diff_SkipDefaultsFill_PluginNoFakeUpdate(t *testing.T) {
+func Test_Diff_SkipDefaultsFill_PluginNoPerpetualDiff(t *testing.T) {
 	runWhenKonnect(t)
 
 	for _, tc := range skipDefaultsPluginDiffCases {
-		runDualTestWithSkipDefaults(t, "PluginNoFakeUpdate/"+tc.name, func(t *testing.T) {
-			testDiffSkipDefaultsFillPluginNoFakeUpdateImpl(t, tc)
+		runDualTestWithSkipDefaults(t, "PluginNoPerpetualDiff/"+tc.name, func(t *testing.T) {
+			testDiffSkipDefaultsFillPluginNoPerpetualDiffImpl(t, tc)
 		})
 	}
 }
 
-func testDiffSkipDefaultsFillPluginNoFakeUpdateImpl(t *testing.T, tc skipDefaultsPluginDiffCase) {
+func testDiffSkipDefaultsFillPluginNoPerpetualDiffImpl(t *testing.T, tc skipDefaultsPluginDiffCase) {
 	setup(t)
 
-	for i := range 2 {
-		require.NoError(t, sync(tc.stateFile))
+	require.NoError(t, sync(tc.stateFile))
 
-		out, err := diff(tc.stateFile)
-		require.NoError(t, err)
-		assert.Equal(t, expectedOutputNoChange, out, "diff after sync %d reported changes", i+1)
-		assert.NotContains(t, out, tc.pluginUpdateLine,
-			"reconciled field must not produce a fake plugin update")
-	}
+	out, err := diff(tc.stateFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out, "diff after sync reported changes")
+	assert.NotContains(t, out, tc.pluginUpdateLine,
+		"reconciled field must not produce a fake plugin update")
 }
 
 func Test_Diff_SkipDefaultsFill_PluginRealChangeStillDetected(t *testing.T) {

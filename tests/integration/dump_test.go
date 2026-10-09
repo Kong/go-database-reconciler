@@ -4,6 +4,7 @@ package integration
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -632,3 +633,34 @@ func Test_Dump_Plugin_Conditional(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func Test_Dump_Plugin_Expressions(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.16.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-expressions.yaml"
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	dumpFile := filepath.Join(t.TempDir(), "dump.yaml")
+	_, err = dump("-o", dumpFile, "--with-id", "--yes")
+	require.NoError(t, err)
+
+	output, err := readFile(dumpFile)
+	require.NoError(t, err)
+	assert.Contains(t, output, "expressions:")
+	assert.Contains(t, output, "- 5*10")
+
+	// the dumped file matches Kong's state, so diffing it shows no changes
+	out, err := diff(dumpFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+
+	// and so does the original file
+	out, err = diff(kongFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+}
