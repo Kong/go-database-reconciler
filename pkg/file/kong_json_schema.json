@@ -978,6 +978,10 @@
         "enabled": {
           "type": "boolean"
         },
+        "expressions": {
+          "additionalProperties": true,
+          "type": "object"
+        },
         "id": {
           "type": "string"
         },
