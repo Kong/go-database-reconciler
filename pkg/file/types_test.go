@@ -387,7 +387,7 @@ expressions:
 `), &p))
 	assert.Equal(t, kong.PluginExpressions{
 		"custom_key": nil,
-		"limit":      []interface{}{"5*10"},
+		"limit":      []any{"5*10"},
 	}, p.Expressions)
 }
 
@@ -403,7 +403,7 @@ func TestPluginExpressionsUnmarshalJSON(t *testing.T) {
 }`), &p))
 	assert.Equal(t, kong.PluginExpressions{
 		"custom_key": "request.headers.x_key",
-		"limit":      []interface{}{"5*10"},
+		"limit":      []any{"5*10"},
 	}, p.Expressions)
 }
 
@@ -413,7 +413,7 @@ func TestPluginExpressionsMarshalRoundTrip(t *testing.T) {
 			Name:    new("rate-limiting-advanced"),
 			Service: &kong.Service{ID: new("foo")},
 			Expressions: kong.PluginExpressions{
-				"limit": []interface{}{"5*10"},
+				"limit": []any{"5*10"},
 			},
 		},
 	}
