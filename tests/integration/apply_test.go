@@ -9,6 +9,7 @@ import (
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
 	"github.com/kong/go-database-reconciler/pkg/utils"
 	"github.com/kong/go-kong/kong"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -647,6 +648,90 @@ func Test_Apply_AIModels(t *testing.T) {
 			require.NoError(t, sync(tc.initialFile))
 			require.NoError(t, apply(tc.updateFile))
 			testKongState(t, client, false, tc.expectedState, nil)
+		})
+	}
+}
+
+func Test_Apply_Plugin_Expressions(t *testing.T) {
+	runWhen(t, "enterprise", ">=3.16.0")
+	client, err := getTestClient()
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	kongFile := "testdata/sync/003-create-a-plugin/kong-expressions.yaml"
+	updatedFile := "testdata/apply/010-plugin-expressions/updated.yaml"
+
+	tests := []struct {
+		name string
+		// expressions expected after the initial sync
+		initialExpressions kong.PluginExpressions
+		// expressions expected after applying updatedFile
+		updatedExpressions kong.PluginExpressions
+	}{
+		{
+			// rate-limiting-advanced drives array fields, one expression per element
+			name: "rate-limiting-advanced",
+			initialExpressions: kong.PluginExpressions{
+				"custom_key": nil,
+				"limit":      []any{"5*10"},
+			},
+			updatedExpressions: kong.PluginExpressions{
+				"custom_key": nil,
+				"limit":      []any{"7*10"},
+			},
+		},
+		{
+			// rate-limiting drives scalar fields, each a single expression
+			name: "rate-limiting",
+			initialExpressions: kong.PluginExpressions{
+				"custom_key": nil,
+				"second":     nil,
+				"minute":     `consumer.tags.exists(t, t == "vip") ? 1000 : 10`,
+				"hour":       nil,
+				"day":        `consumer.tags.exists(t, t == "vip") ? 10000 : 1000`,
+				"month":      nil,
+				"year":       nil,
+			},
+			updatedExpressions: kong.PluginExpressions{
+				"custom_key": nil,
+				"second":     nil,
+				"minute":     `consumer.tags.exists(t, t == "vip") ? 20 : 5`,
+				"hour":       nil,
+				"day":        `consumer.tags.exists(t, t == "vip") ? 20000 : 5000`,
+				"month":      nil,
+				"year":       nil,
+			},
+		},
+	}
+
+	mustResetKongState(ctx, t, client, deckDump.Config{})
+	require.NoError(t, sync(kongFile))
+
+	plugins, err := client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	byName := pluginsByName(plugins)
+	require.Len(t, byName, 2)
+
+	for _, tc := range tests {
+		t.Run(tc.name+" initial", func(t *testing.T) {
+			plugin, ok := byName[tc.name]
+			require.True(t, ok, "plugin %q not found", tc.name)
+			assert.Equal(t, tc.initialExpressions, plugin.Expressions)
+		})
+	}
+
+	// apply command to change expressions
+	require.NoError(t, apply(updatedFile))
+
+	plugins, err = client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	byName = pluginsByName(plugins)
+
+	for _, tc := range tests {
+		t.Run(tc.name+" updated", func(t *testing.T) {
+			plugin, ok := byName[tc.name]
+			require.True(t, ok, "plugin %q not found", tc.name)
+			assert.Equal(t, tc.updatedExpressions, plugin.Expressions)
 		})
 	}
 }

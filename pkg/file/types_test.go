@@ -372,6 +372,82 @@ func TestPluginUnmarshalJSON(t *testing.T) {
 	}, p.Plugin)
 }
 
+func TestPluginExpressionsUnmarshalYAML(t *testing.T) {
+	var p FPlugin
+	require.NoError(t, yaml.Unmarshal([]byte(`
+name: rate-limiting-advanced
+service: foo
+config:
+  limit:
+  - 5
+expressions:
+  custom_key: null
+  limit:
+  - 5*10
+`), &p))
+	assert.Equal(t, kong.PluginExpressions{
+		"custom_key": nil,
+		"limit":      []any{"5*10"},
+	}, p.Expressions)
+}
+
+func TestPluginExpressionsUnmarshalJSON(t *testing.T) {
+	var p FPlugin
+	require.NoError(t, json.Unmarshal([]byte(`{
+  "name": "rate-limiting-advanced",
+  "service": "foo",
+  "expressions": {
+    "custom_key": "request.headers.x_key",
+    "limit": ["5*10"]
+  }
+}`), &p))
+	assert.Equal(t, kong.PluginExpressions{
+		"custom_key": "request.headers.x_key",
+		"limit":      []any{"5*10"},
+	}, p.Expressions)
+}
+
+func TestPluginExpressionsMarshalRoundTrip(t *testing.T) {
+	p := FPlugin{
+		Plugin: kong.Plugin{
+			Name:    new("rate-limiting-advanced"),
+			Service: &kong.Service{ID: new("foo")},
+			Expressions: kong.PluginExpressions{
+				"limit": []any{"5*10"},
+			},
+		},
+	}
+
+	t.Run("json", func(t *testing.T) {
+		b, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.JSONEq(t, `{
+  "name": "rate-limiting-advanced",
+  "service": "foo",
+  "expressions": {"limit": ["5*10"]}
+}`, string(b))
+
+		var got FPlugin
+		require.NoError(t, json.Unmarshal(b, &got))
+		assert.Equal(t, p.Expressions, got.Expressions)
+	})
+
+	t.Run("yaml", func(t *testing.T) {
+		b, err := yaml.Marshal(p)
+		require.NoError(t, err)
+
+		var got FPlugin
+		require.NoError(t, yaml.Unmarshal(b, &got))
+		assert.Equal(t, p.Expressions, got.Expressions)
+	})
+
+	t.Run("omitted when empty", func(t *testing.T) {
+		b, err := json.Marshal(FPlugin{Plugin: kong.Plugin{Name: new("key-auth")}})
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), "expressions")
+	})
+}
+
 func TestFilterChainUnmarshalJSON(t *testing.T) {
 	var fc FFilterChain
 	fcJSON := `{
