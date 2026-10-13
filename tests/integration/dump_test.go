@@ -9,8 +9,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
 
 	deckDump "github.com/kong/go-database-reconciler/pkg/dump"
+	"github.com/kong/go-database-reconciler/pkg/file"
 	"github.com/kong/go-kong/kong"
 	"github.com/kong/go-kong/kong/custom"
 )
@@ -651,8 +653,54 @@ func Test_Dump_Plugin_Expressions(t *testing.T) {
 
 	output, err := readFile(dumpFile)
 	require.NoError(t, err)
-	assert.Contains(t, output, "expressions:")
-	assert.Contains(t, output, "- 5*10")
+
+	// the dumped file round-trips the plugins and their expressions
+	var dumped struct {
+		Plugins []file.FPlugin `json:"plugins"`
+	}
+	require.NoError(t, yaml.Unmarshal([]byte(output), &dumped))
+	byName := make(map[string]file.FPlugin, len(dumped.Plugins))
+	for _, plugin := range dumped.Plugins {
+		byName[*plugin.Name] = plugin
+	}
+	require.Len(t, byName, 2)
+
+	tests := []struct {
+		name string
+		// expressions the dumped file is expected to round-trip, including the
+		// unset scalar fields Kong fills with null
+		expressions kong.PluginExpressions
+	}{
+		{
+			// rate-limiting-advanced drives array fields, one expression per element
+			name: "rate-limiting-advanced",
+			expressions: kong.PluginExpressions{
+				"custom_key": nil,
+				"limit":      []any{"5*10"},
+			},
+		},
+		{
+			// rate-limiting drives scalar fields, each a single expression
+			name: "rate-limiting",
+			expressions: kong.PluginExpressions{
+				"custom_key": nil,
+				"second":     nil,
+				"minute":     `consumer.tags.exists(t, t == "vip") ? 1000 : 10`,
+				"hour":       nil,
+				"day":        `consumer.tags.exists(t, t == "vip") ? 10000 : 1000`,
+				"month":      nil,
+				"year":       nil,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			plugin, ok := byName[tc.name]
+			require.True(t, ok, "plugin %q not found", tc.name)
+			assert.Equal(t, tc.expressions, plugin.Expressions)
+		})
+	}
 
 	// the dumped file matches Kong's state, so diffing it shows no changes
 	out, err := diff(dumpFile)

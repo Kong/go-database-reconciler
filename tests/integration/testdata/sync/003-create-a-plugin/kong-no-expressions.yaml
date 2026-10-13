@@ -8,3 +8,10 @@ plugins:
     strategy: local
     namespace: expressions-test
   enabled: true
+- id: 8f2c4a6e-1b3d-4e5f-9a7b-0c1d2e3f4a5b
+  name: rate-limiting
+  config:
+    policy: local
+    minute: 10
+    day: 1000
+  enabled: true

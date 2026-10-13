@@ -525,6 +525,16 @@ func stateFromFile(
 	return targetState
 }
 
+// pluginsByName indexes plugins by name, so a test can assert on a specific
+// plugin without depending on list order.
+func pluginsByName(plugins []*kong.Plugin) map[string]*kong.Plugin {
+	byName := make(map[string]*kong.Plugin, len(plugins))
+	for _, plugin := range plugins {
+		byName[*plugin.Name] = plugin
+	}
+	return byName
+}
+
 func logEntityChanges(t *testing.T, stats deckDiff.Stats, entityChanges deckDiff.EntityChanges) {
 	for _, creating := range entityChanges.Creating {
 		t.Logf("creating %s %s", creating.Kind, creating.Name)
