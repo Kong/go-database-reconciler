@@ -58,6 +58,29 @@ func getContent(filenames []string, mode RenderEnvVarsMode) (*Content, error) {
 	return &res, nil
 }
 
+func getMockContent(filenames []string, mode RenderEnvVarsMode) (string, error) {
+	var res string
+	var errs []error
+	for _, fileOrDir := range filenames {
+		readers, err := getReaders(fileOrDir)
+		if err != nil {
+			return "", err
+		}
+		for filename, r := range readers {
+			content, err := readSkipContent(r, mode)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("reading file %s: %w", filename, err))
+				continue
+			}
+			res = content
+		}
+	}
+	if len(errs) > 0 {
+		return res, utils.ErrArray{Errors: errs}
+	}
+	return res, nil
+}
+
 // getReaders returns back a map of filename:io.Reader representing all the
 // YAML and JSON files in a directory. If fileOrDir is a single file, then it
 // returns back the reader for the file.
@@ -134,6 +157,18 @@ func readContent(reader io.Reader, mode RenderEnvVarsMode) (*Content, error) {
 		return nil, err
 	}
 	return &result, nil
+}
+
+func readSkipContent(reader io.Reader, mode RenderEnvVarsMode) (string, error) {
+	contentBytes, err := io.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+	renderedContent, err := renderTemplate(string(contentBytes), mode)
+	if err != nil {
+		return "", fmt.Errorf("rendering template: %w", err)
+	}
+	return renderedContent, nil
 }
 
 // yamlUnmarshal is a wrapper around yaml.Unmarshal to ensure that the right
