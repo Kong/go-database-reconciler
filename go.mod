@@ -26,7 +26,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.1.0
 	github.com/stretchr/testify v1.12.1
-	github.com/tidwall/gjson v1.19.0
+	github.com/tidwall/gjson v1.20.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.24.0
 	golang.org/x/term v0.46.0
