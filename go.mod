@@ -29,7 +29,7 @@ require (
 	github.com/tidwall/gjson v1.20.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.24.0
-	golang.org/x/term v0.46.0
+	golang.org/x/term v0.47.0
 	k8s.io/code-generator v0.36.3
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -145,7 +145,7 @@ require (
 	golang.org/x/exp v0.0.0-20260709172345-9ea1abe57597 // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/net v0.60.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
