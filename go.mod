@@ -1,6 +1,6 @@
 module github.com/kong/go-database-reconciler
 
-go 1.26.6
+go 1.26.10
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.68.0
+	github.com/kong/deck v1.69.0
 	github.com/kong/go-kong v0.80.0
 	github.com/samber/lo v1.53.0
 	github.com/shirou/gopsutil/v3 v3.24.5
