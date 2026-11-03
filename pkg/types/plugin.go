@@ -167,6 +167,27 @@ func (d *pluginDiffer) createUpdatePlugin(plugin *state.Plugin) (*crud.Event, er
 		name, serviceID, routeID, consumerID, consumerGroupID, modelID,
 	)
 	if errors.Is(err, state.ErrNotFound) {
+		// The same plugin ID may already exist with different foreign
+		// relations (e.g. moved from service-1 to service-2). That is an
+		// update of the existing plugin, not a new one: emitting a create here
+		// makes the post-process step insert a second plugin with the same ID
+		// into the current state, which fails with ErrAlreadyExists.
+		if !utils.Empty(plugin.ID) {
+			existing, idErr := d.currentState.Plugins.Get(*plugin.ID)
+			if idErr == nil {
+				return &crud.Event{
+					Op:     crud.Update,
+					Kind:   d.kind,
+					Obj:    plugin,
+					OldObj: existing,
+				}, nil
+			}
+			if !errors.Is(idErr, state.ErrNotFound) {
+				return nil, fmt.Errorf("error looking up plugin %q: %w",
+					*plugin.ID, idErr)
+			}
+		}
+
 		// plugin not present, create it
 
 		return &crud.Event{
