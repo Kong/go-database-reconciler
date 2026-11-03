@@ -369,3 +369,53 @@ func TestCreateUpdatePlugin_OldObjStaysRaw(t *testing.T) {
 		"OldObj must stay raw (no schema defaults); Solve normalizes it itself")
 	assert.Equal(t, kong.Configuration{testOldField: "custom-value"}, old.Config)
 }
+
+// A plugin keeps its ID but moves from one service to another (Kong/go-database-reconciler#272).
+// Looking it up by name + foreign keys finds nothing, but the ID is already in the current
+// state, so this must be an update. A create event made the post-process step insert a second
+// plugin with the same ID, which failed with "entity already exists" after Kong had already
+// accepted the change.
+func TestCreateUpdatePlugin_SameIDDifferentService(t *testing.T) {
+	pluginID := "3a3e4bea-ef66-42c2-a528-68b6cfab0ef1"
+	newPlugin := func(serviceID string) *state.Plugin {
+		return &state.Plugin{
+			Plugin: kong.Plugin{
+				ID:        new(pluginID),
+				Name:      new("my-plugin"),
+				Service:   &kong.Service{ID: new(serviceID)},
+				Protocols: kong.StringSlice("http", "https"),
+				Enabled:   new(true),
+				Config:    kong.Configuration{testOldField: "custom-value"},
+			},
+		}
+	}
+	current := newPlugin("service-1")
+	target := newPlugin("service-2")
+
+	d := newTestPluginDiffer(t, current, target, false, schemaWithNewDefaultedField())
+
+	event, err := d.createUpdatePlugin(target)
+	require.NoError(t, err)
+	require.NotNil(t, event)
+	assert.Equal(t, crud.Update, event.Op)
+	old, ok := event.OldObj.(*state.Plugin)
+	require.True(t, ok)
+	assert.Equal(t, "service-1", *old.Service.ID)
+
+	// The post-process step for the emitted event must apply cleanly to the current state.
+	post := &pluginPostAction{currentState: d.currentState}
+	_, err = post.Update(context.Background(), event.Obj)
+	require.NoError(t, err)
+
+	moved, err := d.currentState.Plugins.Get(pluginID)
+	require.NoError(t, err)
+	assert.Equal(t, "service-2", *moved.Service.ID)
+
+	// And the delete pass no longer sees the plugin under its old service.
+	var deletes []crud.Event
+	require.NoError(t, d.Deletes(func(e crud.Event) error {
+		deletes = append(deletes, e)
+		return nil
+	}))
+	assert.Empty(t, deletes)
+}
