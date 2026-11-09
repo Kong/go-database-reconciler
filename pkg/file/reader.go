@@ -118,6 +118,7 @@ func Get(ctx context.Context, fileContent *Content, opt RenderConfig, dumpConfig
 	builder.isPartialApply = dumpConfig.IsPartialApply
 	builder.isConsumerGroupPolicyOverrideSet = dumpConfig.IsConsumerGroupPolicyOverrideSet
 	builder.skipHashForBasicAuth = dumpConfig.SkipHashForBasicAuth
+	builder.skipReferenceValidation = dumpConfig.SkipReferenceValidation
 	builder.skipDefaults = dumpConfig.SkipDefaults
 	builder.schemaRegistry = dumpConfig.SchemaRegistry
 	builder.diagnosticPolicy = dumpConfig.DiagnosticPolicy

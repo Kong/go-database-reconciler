@@ -82,6 +82,10 @@ type Config struct {
 
 	SkipHashForBasicAuth bool
 
+	// SkipReferenceValidation keeps plugin references to entities that are not
+	// present in the state (e.g. other control plane) instead of failing.
+	SkipReferenceValidation bool
+
 	// This flag is set to remove default values while dumping entities.
 	SkipDefaults bool
 

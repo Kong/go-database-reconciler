@@ -75,7 +75,11 @@ type stateBuilder struct {
 	isConsumerGroupPolicyOverrideSet bool
 
 	skipHashForBasicAuth bool
-	diagnosticPolicy     utils.DiagnosticPolicy
+
+	// skipReferenceValidation keeps plugin references that cannot be found in
+	// the target state (e.g. entities of another control plane) as they are.
+	skipReferenceValidation bool
+	diagnosticPolicy        utils.DiagnosticPolicy
 	// Track consumer IDs to avoid duplicates in rawState
 	consumerIDsInRawState map[string]bool
 
@@ -1751,53 +1755,73 @@ func (b *stateBuilder) plugins() {
 		if p.Consumer != nil && !utils.Empty(p.Consumer.ID) {
 			c, err := b.intermediate.Consumers.GetByIDOrUsername(*p.Consumer.ID)
 			if errors.Is(err, state.ErrNotFound) {
-				b.err = fmt.Errorf("consumer %v for plugin %v: %w",
-					p.Consumer.FriendlyName(), *p.Name, err)
+				// a reference to an entity that is not part of this state (e.g. it lives in
+				// another control plane) is kept as-is when it can be skipped.
+				if !b.canSkipReference(p.Consumer.ID) {
+					b.err = fmt.Errorf("consumer %v for plugin %v: %w",
+						p.Consumer.FriendlyName(), *p.Name, err)
 
-				return
+					return
+				}
 			} else if err != nil {
 				b.err = err
 				return
+			} else {
+				p.Consumer = utils.GetConsumerReference(c.Consumer)
 			}
-			p.Consumer = utils.GetConsumerReference(c.Consumer)
 		}
 		if p.Service != nil && !utils.Empty(p.Service.ID) {
 			s, err := b.intermediate.Services.Get(*p.Service.ID)
 			if errors.Is(err, state.ErrNotFound) {
-				b.err = fmt.Errorf("service %v for plugin %v: %w",
-					p.Service.FriendlyName(), *p.Name, err)
+				// a reference to an entity that is not part of this state (e.g. it lives in
+				// another control plane) is kept as-is when it can be skipped.
+				if !b.canSkipReference(p.Service.ID) {
+					b.err = fmt.Errorf("service %v for plugin %v: %w",
+						p.Service.FriendlyName(), *p.Name, err)
 
-				return
+					return
+				}
 			} else if err != nil {
 				b.err = err
 				return
+			} else {
+				p.Service = utils.GetServiceReference(s.Service)
 			}
-			p.Service = utils.GetServiceReference(s.Service)
 		}
 		if p.Route != nil && !utils.Empty(p.Route.ID) {
 			r, err := b.intermediate.Routes.Get(*p.Route.ID)
 			if errors.Is(err, state.ErrNotFound) {
-				b.err = fmt.Errorf("route %v for plugin %v: %w",
-					p.Route.FriendlyName(), *p.Name, err)
+				// a reference to an entity that is not part of this state (e.g. it lives in
+				// another control plane) is kept as-is when it can be skipped.
+				if !b.canSkipReference(p.Route.ID) {
+					b.err = fmt.Errorf("route %v for plugin %v: %w",
+						p.Route.FriendlyName(), *p.Name, err)
 
-				return
+					return
+				}
 			} else if err != nil {
 				b.err = err
 				return
+			} else {
+				p.Route = utils.GetRouteReference(r.Route)
 			}
-			p.Route = utils.GetRouteReference(r.Route)
 		}
 		if p.ConsumerGroup != nil && !utils.Empty(p.ConsumerGroup.ID) {
 			cg, err := b.intermediate.ConsumerGroups.Get(*p.ConsumerGroup.ID)
 			if errors.Is(err, state.ErrNotFound) {
-				b.err = fmt.Errorf("consumer-group %v for plugin %v: %w",
-					p.ConsumerGroup.FriendlyName(), *p.Name, err)
-				return
+				// a reference to an entity that is not part of this state (e.g. it lives in
+				// another control plane) is kept as-is when it can be skipped.
+				if !b.canSkipReference(p.ConsumerGroup.ID) {
+					b.err = fmt.Errorf("consumer-group %v for plugin %v: %w",
+						p.ConsumerGroup.FriendlyName(), *p.Name, err)
+					return
+				}
 			} else if err != nil {
 				b.err = err
 				return
+			} else {
+				p.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 			}
-			p.ConsumerGroup = utils.GetConsumerGroupReference(cg.ConsumerGroup)
 		}
 
 		if p.Model != nil && !utils.Empty(p.Model.ID) {
@@ -1819,6 +1843,12 @@ func (b *stateBuilder) plugins() {
 		b.err = err
 		return
 	}
+}
+
+// canSkipReference tells whether an unresolved reference can be kept as-is.
+// Only IDs are accepted: a name or username cannot be resolved on the server.
+func (b *stateBuilder) canSkipReference(id *string) bool {
+	return b.skipReferenceValidation && utils.IsValidUUID(*id)
 }
 
 func (b *stateBuilder) filterChains() {
