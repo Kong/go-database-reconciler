@@ -152,9 +152,47 @@ func (r1 *Route) Identifier() string {
 }
 
 // Console returns an entity's identity in a human
-// readable string.
+// readable string. Routes are frequently left unnamed, in which case
+// FriendlyName() falls back to the Kong-assigned ID -- a value that
+// doesn't exist in the source config and so can't be correlated back to
+// it. To keep the output useful in that case, fall back further to the
+// route's paths/methods/hosts and parent service instead of the ID.
 func (r1 *Route) Console() string {
-	return r1.FriendlyName()
+	if r1.Name != nil {
+		return *r1.Name
+	}
+
+	var details []string
+	if paths := stringPtrSliceValues(r1.Paths); len(paths) > 0 {
+		details = append(details, "paths: "+strings.Join(paths, ","))
+	}
+	if methods := stringPtrSliceValues(r1.Methods); len(methods) > 0 {
+		details = append(details, "methods: "+strings.Join(methods, ","))
+	}
+	if hosts := stringPtrSliceValues(r1.Hosts); len(hosts) > 0 {
+		details = append(details, "hosts: "+strings.Join(hosts, ","))
+	}
+	if r1.Service != nil {
+		if svcName := r1.Service.FriendlyName(); svcName != "" {
+			details = append(details, "service: "+svcName)
+		}
+	}
+
+	if len(details) == 0 {
+		return r1.FriendlyName()
+	}
+	return "route (" + strings.Join(details, "; ") + ")"
+}
+
+// stringPtrSliceValues dereferences each non-nil element of s.
+func stringPtrSliceValues(s []*string) []string {
+	values := make([]string, 0, len(s))
+	for _, v := range s {
+		if v != nil {
+			values = append(values, *v)
+		}
+	}
+	return values
 }
 
 // Equal returns true if r1 and r2 are equal.
