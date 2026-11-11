@@ -7130,3 +7130,50 @@ func Test_stateBuilder_customPluginDefinitions(t *testing.T) {
 		})
 	}
 }
+
+func Test_stateBuilder_plugins_skipReferenceValidation(t *testing.T) {
+	newPlugin := func(consumerID string) *Content {
+		return &Content{Plugins: []FPlugin{{Plugin: kong.Plugin{
+			Name:     new("rate-limiting"),
+			Consumer: &kong.Consumer{ID: new(consumerID)},
+		}}}}
+	}
+	const missingID = "2e487bc5-1452-4af3-8a9a-9e3e7d1db445"
+
+	t.Run("fails by default", func(t *testing.T) {
+		b := &stateBuilder{
+			targetContent: newPlugin(missingID),
+			currentState:  emptyState(),
+			intermediate:  emptyState(),
+			rawState:      &utils.KongRawState{},
+		}
+		b.plugins()
+		require.ErrorIs(t, b.err, state.ErrNotFound)
+	})
+
+	t.Run("keeps reference with a missing consumer ID", func(t *testing.T) {
+		b := &stateBuilder{
+			targetContent:           newPlugin(missingID),
+			currentState:            emptyState(),
+			intermediate:            emptyState(),
+			rawState:                &utils.KongRawState{},
+			skipReferenceValidation: true,
+		}
+		b.plugins()
+		require.NoError(t, b.err)
+		require.Len(t, b.rawState.Plugins, 1)
+		assert.Equal(t, missingID, *b.rawState.Plugins[0].Consumer.ID)
+	})
+
+	t.Run("still fails for a username that cannot be resolved", func(t *testing.T) {
+		b := &stateBuilder{
+			targetContent:           newPlugin("some-user"),
+			currentState:            emptyState(),
+			intermediate:            emptyState(),
+			rawState:                &utils.KongRawState{},
+			skipReferenceValidation: true,
+		}
+		b.plugins()
+		require.ErrorIs(t, b.err, state.ErrNotFound)
+	})
+}

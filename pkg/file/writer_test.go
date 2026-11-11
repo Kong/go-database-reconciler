@@ -11,6 +11,7 @@ import (
 	"github.com/kong/go-database-reconciler/pkg/state"
 	"github.com/kong/go-kong/kong"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func captureOutput(f func()) string {
@@ -451,4 +452,52 @@ func Test_getFormatVersion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPopulatePluginsSkipReferenceValidation(t *testing.T) {
+	newState := func(t *testing.T) *state.KongState {
+		ks, err := state.NewKongState()
+		require.NoError(t, err)
+		require.NoError(t, ks.Plugins.Add(state.Plugin{Plugin: kong.Plugin{
+			ID:       new("798ea654-ff29-4013-bc9f-26abb3a35916"),
+			Name:     new("rate-limiting"),
+			Consumer: &kong.Consumer{ID: new("2e487bc5-1452-4af3-8a9a-9e3e7d1db445")},
+		}}))
+		return ks
+	}
+
+	t.Run("fails by default", func(t *testing.T) {
+		err := populatePlugins(newState(t), &Content{}, WriteConfig{})
+		require.ErrorIs(t, err, state.ErrNotFound)
+	})
+
+	t.Run("keeps dangling reference as top-level plugin", func(t *testing.T) {
+		content := &Content{}
+		err := populatePlugins(newState(t), content, WriteConfig{SkipReferenceValidation: true})
+		require.NoError(t, err)
+		assert.Len(t, content.Plugins, 1)
+		assert.Equal(t, "2e487bc5-1452-4af3-8a9a-9e3e7d1db445", *content.Plugins[0].Consumer.ID)
+	})
+}
+
+func TestPopulatePluginsSkipReferenceValidationMixedReferences(t *testing.T) {
+	ks, err := state.NewKongState()
+	require.NoError(t, err)
+	require.NoError(t, ks.Services.Add(state.Service{Service: kong.Service{
+		ID:   new("a5c7a5b4-6a4b-4f6e-9a35-2b7c3b6f1f11"),
+		Name: new("svc"),
+		Host: new("example.com"),
+	}}))
+	require.NoError(t, ks.Plugins.Add(state.Plugin{Plugin: kong.Plugin{
+		ID:       new("798ea654-ff29-4013-bc9f-26abb3a35916"),
+		Name:     new("rate-limiting"),
+		Service:  &kong.Service{ID: new("a5c7a5b4-6a4b-4f6e-9a35-2b7c3b6f1f11")},
+		Consumer: &kong.Consumer{ID: new("2e487bc5-1452-4af3-8a9a-9e3e7d1db445")},
+	}}))
+
+	content := &Content{}
+	require.NoError(t, populatePlugins(ks, content, WriteConfig{SkipReferenceValidation: true}))
+	assert.Len(t, content.Plugins, 1)
+	assert.Equal(t, "2e487bc5-1452-4af3-8a9a-9e3e7d1db445", *content.Plugins[0].Consumer.ID)
+	assert.Equal(t, "svc", *content.Plugins[0].Service.ID)
 }

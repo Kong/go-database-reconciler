@@ -33,6 +33,12 @@ type WriteConfig struct {
 	// have a live Kong client should set this (e.g. by inspecting the Server
 	// header) rather than having the writer make network calls itself.
 	IsKongAIGateway bool
+	// SkipReferenceValidation keeps plugin references (consumer, service,
+	// route, consumer-group) that cannot be found in the dumped state as raw
+	// IDs instead of failing. This is needed when references can point to
+	// entities living in another control plane (Konnect). Such plugins are
+	// emitted at the top level of the file.
+	SkipReferenceValidation bool
 }
 
 func compareOrder(obj1, obj2 sortable) bool {
@@ -584,11 +590,21 @@ func populatePlugins(kongState *state.KongState, file *Content,
 	}
 	for _, p := range plugins {
 		associations := 0
+		// resolved counts the references found in the state: only those get the
+		// plugin nested under the parent entity.
+		resolved := 0
 		if p.Consumer != nil {
 			associations++
 			cID := *p.Consumer.ID
 			consumer, err := kongState.Consumers.GetByIDOrUsername(cID)
-			if err != nil {
+			switch {
+			case err == nil:
+				resolved++
+			case config.SkipReferenceValidation && errors.Is(err, state.ErrNotFound):
+				// referenced entity is not in this state (e.g. other control
+				// plane): keep the raw ID and do not nest the plugin.
+				consumer = nil
+			default:
 				return fmt.Errorf("unable to get consumer %s for plugin %s [%s]: %w", cID, *p.Name, *p.ID, err)
 			}
 			// If config.SanitizeContent is true, we wish to use IDs instead of usernames or names.
@@ -596,7 +612,7 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			// Check file/types.go#foo (shadow type for Plugin) for how we embed string references.
 			// Since the marshaling and unmarshaling of the Plugin uses "ID" field for embedding,
 			// if we overwrite it with name/username, referential integrity will be lost.
-			if !utils.Empty(consumer.Username) && !config.SanitizeContent {
+			if consumer != nil && !utils.Empty(consumer.Username) && !config.SanitizeContent {
 				cID = *consumer.Username
 			}
 			p.Consumer.ID = &cID
@@ -605,10 +621,17 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			associations++
 			sID := *p.Service.ID
 			service, err := kongState.Services.Get(sID)
-			if err != nil {
+			switch {
+			case err == nil:
+				resolved++
+			case config.SkipReferenceValidation && errors.Is(err, state.ErrNotFound):
+				// referenced entity is not in this state (e.g. other control
+				// plane): keep the raw ID and do not nest the plugin.
+				service = nil
+			default:
 				return fmt.Errorf("unable to get service %s for plugin %s [%s]: %w", sID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(service.Name) && !config.SanitizeContent {
+			if service != nil && !utils.Empty(service.Name) && !config.SanitizeContent {
 				sID = *service.Name
 			}
 			p.Service.ID = &sID
@@ -617,10 +640,17 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			associations++
 			rID := *p.Route.ID
 			route, err := kongState.Routes.Get(rID)
-			if err != nil {
+			switch {
+			case err == nil:
+				resolved++
+			case config.SkipReferenceValidation && errors.Is(err, state.ErrNotFound):
+				// referenced entity is not in this state (e.g. other control
+				// plane): keep the raw ID and do not nest the plugin.
+				route = nil
+			default:
 				return fmt.Errorf("unable to get route %s for plugin %s [%s]: %w", rID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(route.Name) && !config.SanitizeContent {
+			if route != nil && !utils.Empty(route.Name) && !config.SanitizeContent {
 				rID = *route.Name
 			}
 			p.Route.ID = &rID
@@ -629,10 +659,17 @@ func populatePlugins(kongState *state.KongState, file *Content,
 			associations++
 			cgID := *p.ConsumerGroup.ID
 			cg, err := kongState.ConsumerGroups.Get(cgID)
-			if err != nil {
+			switch {
+			case err == nil:
+				resolved++
+			case config.SkipReferenceValidation && errors.Is(err, state.ErrNotFound):
+				// referenced entity is not in this state (e.g. other control
+				// plane): keep the raw ID and do not nest the plugin.
+				cg = nil
+			default:
 				return fmt.Errorf("unable to get consumer-group %s for plugin %s [%s]: %w", cgID, *p.Name, *p.ID, err)
 			}
-			if !utils.Empty(cg.Name) && !config.SanitizeContent {
+			if cg != nil && !utils.Empty(cg.Name) && !config.SanitizeContent {
 				cgID = *cg.Name
 			}
 			p.ConsumerGroup.ID = &cgID
@@ -642,7 +679,9 @@ func populatePlugins(kongState *state.KongState, file *Content,
 		if err := resolvePluginModelReference(kongState, &p.Plugin, config); err != nil {
 			return err
 		}
-		if associations == 0 || associations > 1 {
+		// A plugin is nested under its parent entity only when it has exactly one
+		// reference and that reference was resolved; otherwise it is top-level.
+		if associations > 1 || resolved == 0 {
 			utils.ZeroOutID(p, p.Name, config.WithID)
 			utils.ZeroOutTimestamps(p)
 			p := FPlugin{Plugin: p.Plugin}
