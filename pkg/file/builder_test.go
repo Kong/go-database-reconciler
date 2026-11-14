@@ -787,7 +787,9 @@ func Test_stateBuilder_services(t *testing.T) {
 func Test_stateBuilder_ingestRoute(t *testing.T) {
 	testRand = rand.New(rand.NewSource(42))
 	type fields struct {
-		currentState *state.KongState
+		currentState     *state.KongState
+		selectTags       []string
+		lookupTagsRoutes []string
 	}
 	type args struct {
 		route FRoute
@@ -878,12 +880,105 @@ func Test_stateBuilder_ingestRoute(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "merges select tags into a route without tags",
+			fields: fields{
+				currentState: emptyState(),
+				selectTags:   []string{"select-tag"},
+			},
+			args: args{
+				route: FRoute{
+					Route: kong.Route{
+						ID:   new("0a3b0e32-5a4c-4a0b-9d7a-6f1c2b8e9a11"),
+						Name: new("foo"),
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				Routes: []*kong.Route{
+					{
+						ID:            new("0a3b0e32-5a4c-4a0b-9d7a-6f1c2b8e9a11"),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
+						Protocols:     kong.StringSlice("http", "https"),
+						Tags:          kong.StringSlice("select-tag"),
+					},
+				},
+			},
+		},
+		{
+			name: "merges select tags into a route whose tags differ from the lookup tags",
+			fields: fields{
+				currentState:     emptyState(),
+				selectTags:       []string{"select-tag"},
+				lookupTagsRoutes: []string{"lookup-tag"},
+			},
+			args: args{
+				route: FRoute{
+					Route: kong.Route{
+						ID:   new("0a3b0e32-5a4c-4a0b-9d7a-6f1c2b8e9a11"),
+						Name: new("foo"),
+						Tags: kong.StringSlice("route-tag"),
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				Routes: []*kong.Route{
+					{
+						ID:            new("0a3b0e32-5a4c-4a0b-9d7a-6f1c2b8e9a11"),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
+						Protocols:     kong.StringSlice("http", "https"),
+						Tags:          kong.StringSlice("route-tag", "select-tag"),
+					},
+				},
+			},
+		},
+		{
+			name: "does not merge select tags into a route pulled via default lookup tags",
+			fields: fields{
+				currentState:     emptyState(),
+				selectTags:       []string{"select-tag"},
+				lookupTagsRoutes: []string{"lookup-tag-b", "lookup-tag-a"},
+			},
+			args: args{
+				route: FRoute{
+					Route: kong.Route{
+						ID:   new("0a3b0e32-5a4c-4a0b-9d7a-6f1c2b8e9a11"),
+						Name: new("foo"),
+						Tags: kong.StringSlice("lookup-tag-a", "lookup-tag-b"),
+					},
+				},
+			},
+			wantErr: false,
+			wantState: &utils.KongRawState{
+				Routes: []*kong.Route{
+					{
+						ID:            new("0a3b0e32-5a4c-4a0b-9d7a-6f1c2b8e9a11"),
+						Name:          new("foo"),
+						PreserveHost:  new(false),
+						RegexPriority: new(0),
+						StripPath:     new(false),
+						Protocols:     kong.StringSlice("http", "https"),
+						Tags:          kong.StringSlice("lookup-tag-a", "lookup-tag-b"),
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			b := &stateBuilder{
-				currentState: tt.fields.currentState,
+				currentState:     tt.fields.currentState,
+				selectTags:       tt.fields.selectTags,
+				lookupTagsRoutes: tt.fields.lookupTagsRoutes,
 			}
 			b.rawState = &utils.KongRawState{}
 			d, _ := utils.GetDefaulter(ctx, defaulterTestOpts)

@@ -1998,7 +1998,6 @@ func (b *stateBuilder) ingestRoute(r FRoute) error {
 		utils.MustMergeTags(&r.Route, b.selectTags)
 	}
 
-	utils.MustMergeTags(&r, b.selectTags)
 	stripPath, err := getStripPathBasedOnProtocols(r.Route)
 	if err != nil {
 		return err
