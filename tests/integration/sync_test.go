@@ -8202,6 +8202,69 @@ func Test_Sync_ConsumerGroupConsumerFromUpstream(t *testing.T) {
 }
 
 // test scope:
+//   - 3.0.0+
+//   - non-konnect
+func Test_Sync_PluginOnRouteFromUpstreamWithDefaultLookupTags(t *testing.T) {
+	runWhen(t, "kong", ">=3.0.0")
+	setup(t)
+
+	client, err := getTestClient()
+	require.NoError(t, err)
+	ctx := t.Context()
+
+	const (
+		initialFile = "testdata/sync/051-route-lookup-tags/initial.yaml"
+		pluginFile  = "testdata/sync/051-route-lookup-tags/plugin.yaml"
+	)
+
+	// simulate the following scenario:
+	// - a route tagged by an external process, not by decK's select_tags
+	// - a file that only defines a plugin for that route, with select_tags that
+	//   differ from the route's tags and default_lookup_tags matching the route's tags
+	require.NoError(t, sync(initialFile))
+
+	routeBefore, err := client.Routes.Get(ctx, kong.String("route-1"))
+	require.NoError(t, err)
+	require.ElementsMatch(t,
+		kong.StringSlice("project:the-project", "managed-by:the-background-process"),
+		routeBefore.Tags,
+	)
+
+	// the route pulled through lookup tags must not be picked up for an update,
+	// i.e. the select_tags must not be merged into it.
+	expectedDiff := `creating plugin key-auth for route route-1
+Summary:
+  Created: 1
+  Updated: 0
+  Deleted: 0
+`
+	out, err := diff(pluginFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedDiff, out)
+
+	require.NoError(t, sync(pluginFile))
+
+	routeAfter, err := client.Routes.Get(ctx, kong.String("route-1"))
+	require.NoError(t, err)
+	assert.Equal(t, routeBefore, routeAfter, "route must not be modified by the plugin sync")
+
+	plugins, err := client.Plugins.ListAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, plugins, 1)
+	assert.Equal(t, "key-auth", *plugins[0].Name)
+	require.NotNil(t, plugins[0].Route)
+	assert.Equal(t, *routeBefore.ID, *plugins[0].Route.ID)
+	assert.ElementsMatch(t,
+		kong.StringSlice("project:the-project", "managed-by:deck"),
+		plugins[0].Tags,
+	)
+
+	out, err = diff(pluginFile)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutputNoChange, out)
+}
+
+// test scope:
 // - Enterprise & Non-Konnect
 func TestSync_License(t *testing.T) {
 	t.Setenv("DECK_KONNECT_CONTROL_PLANE_NAME", "default")
