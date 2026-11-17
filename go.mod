@@ -1,6 +1,6 @@
 module github.com/kong/go-database-reconciler
 
-go 1.26.6
+go 1.27.3
 
 replace github.com/yudai/gojsondiff v1.0.0 => github.com/Kong/gojsondiff v1.3.0
 
@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/kong/deck v1.68.0
+	github.com/kong/deck v1.70.0
 	github.com/kong/go-kong v0.80.0
 	github.com/samber/lo v1.53.0
 	github.com/shirou/gopsutil/v3 v3.24.5
@@ -29,7 +29,7 @@ require (
 	github.com/tidwall/gjson v1.20.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.24.0
-	golang.org/x/term v0.46.0
+	golang.org/x/term v0.47.0
 	k8s.io/code-generator v0.36.3
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -38,7 +38,7 @@ require (
 	charm.land/bubbles/v2 v2.2.1 // indirect
 	charm.land/bubbletea/v2 v2.0.9 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/Kong/ai-deck-converter v0.19.7 // indirect
+	github.com/Kong/ai-deck-converter v0.32.1 // indirect
 	github.com/Kong/go-diff v1.2.2 // indirect
 	github.com/Kong/sdk-konnect-go v0.3.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -144,10 +144,10 @@ require (
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
 	golang.org/x/exp v0.0.0-20260709172345-9ea1abe57597 // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.60.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
