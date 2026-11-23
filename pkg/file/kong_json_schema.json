@@ -28,7 +28,7 @@
       "type": "string"
     },
     "ai_models": {
-       "items": {
+      "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "$ref": "#/definitions/FAIModel"
       },
@@ -69,6 +69,13 @@
       },
       "type": "array"
     },
+    "custom_entities": {
+      "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$ref": "#/definitions/FCustomEntity"
+      },
+      "type": "array"
+    },
     "custom_plugins": {
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -79,13 +86,6 @@
     "filter_chains": {
       "items": {
         "$ref": "#/definitions/FFilterChain"
-      },
-      "type": "array"
-    },
-    "licenses": {
-      "items": {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "$ref": "#/definitions/FLicense"
       },
       "type": "array"
     },
@@ -103,15 +103,16 @@
       },
       "type": "array"
     },
-    "custom_entities": {
+    "licenses": {
       "items": {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "$ref": "#/definitions/FCustomEntity"
+        "$ref": "#/definitions/FLicense"
       },
       "type": "array"
     },
     "partials": {
       "items": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$ref": "#/definitions/FPartial"
       },
       "type": "array"
@@ -189,6 +190,33 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "AIModel": {
+      "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "updated_at": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,
@@ -403,21 +431,21 @@
         "id": {
           "type": "string"
         },
+        "instance_name": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
-        "instance_name": {
-          "type": "string"
+        "partials": {
+          "items": {
+            "$ref": "#/definitions/PartialLink"
+          },
+          "type": "array"
         },
         "tags": {
           "items": {
             "type": "string"
-          },
-          "type": "array"
-        },
-        "partials": {
-          "items": {
-            "type": "object"
           },
           "type": "array"
         }
@@ -451,7 +479,9 @@
         "updated_at": {
           "type": "integer"
         }
-      }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "FCACertificate": {
       "required": [
@@ -520,7 +550,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-     "FClonedPluginDefinition": {
+    "FClonedPluginDefinition": {
       "required": [
         "name",
         "ref"
@@ -547,7 +577,7 @@
           },
           "type": "array"
         },
-         "updated_at": {
+        "updated_at": {
           "type": "integer"
         }
       },
@@ -687,7 +717,30 @@
       "additionalProperties": false,
       "type": "object"
     },
-     "FCustomPluginDefinition": {
+    "FCustomEntity": {
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "fields": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FCustomPluginDefinition": {
       "required": [
         "name",
         "schema",
@@ -819,24 +872,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "FLicense": {
-      "properties": {
-        "created_at": {
-          "type": "integer"
-        },
-        "id": {
-          "type": "string"
-        },
-        "payload": {
-          "type": "string"
-        },
-        "updated_at": {
-          "type": "integer"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "FKey": {
       "properties": {
         "created_at": {
@@ -923,6 +958,24 @@
         }
       ]
     },
+    "FLicense": {
+      "properties": {
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "FPartial": {
       "required": [
         "type"
@@ -932,13 +985,13 @@
           "additionalProperties": true,
           "type": "object"
         },
+        "created_at": {
+          "type": "integer"
+        },
         "id": {
           "type": "string"
         },
         "name": {
-          "type": "string"
-        },
-        "type": {
           "type": "string"
         },
         "tags": {
@@ -946,6 +999,12 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "type": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,
@@ -979,13 +1038,20 @@
           "type": "boolean"
         },
         "expressions": {
-          "additionalProperties": true,
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
           "type": "object"
         },
         "id": {
           "type": "string"
         },
         "instance_name": {
+          "type": "string"
+        },
+        "model": {
           "type": "string"
         },
         "name": {
@@ -997,7 +1063,8 @@
         },
         "partials": {
           "items": {
-            "type": "object"
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/PartialLink"
           },
           "type": "array"
         },
@@ -1016,37 +1083,11 @@
         "service": {
           "type": "string"
         },
-        "model": {
-          "type": "string"
-        },
         "tags": {
           "items": {
             "type": "string"
           },
           "type": "array"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "FCustomEntity": {
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "fields": {
-          "patternProperties": {
-            ".*": {
-              "additionalProperties": true
-            }
-          },
-          "type": "object"
-        },
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -1321,8 +1362,7 @@
           "type": "array"
         },
         "tls_sans": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/TLSSans"
+          "$ref": "#/definitions/SANs"
         },
         "tls_verify": {
           "type": "boolean"
@@ -1414,6 +1454,9 @@
         "created_at": {
           "type": "number"
         },
+        "failover": {
+          "type": "boolean"
+        },
         "id": {
           "type": "string"
         },
@@ -1431,9 +1474,6 @@
         },
         "weight": {
           "type": "integer"
-        },
-        "failover": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -1498,6 +1538,12 @@
         "slots": {
           "type": "integer"
         },
+        "sticky_sessions_cookie": {
+          "type": "string"
+        },
+        "sticky_sessions_cookie_path": {
+          "type": "string"
+        },
         "tags": {
           "items": {
             "type": "string"
@@ -1513,12 +1559,6 @@
         },
         "use_srv_name": {
           "type": "boolean"
-        },
-        "sticky_sessions_cookie": {
-          "type": "string"
-        },
-        "sticky_sessions_cookie_path": {
-          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -1661,6 +1701,9 @@
     },
     "Info": {
       "properties": {
+        "consumer_group_policy_overrides": {
+          "type": "boolean"
+        },
         "default_lookup_tags": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/LookUpSelectorTags"
@@ -1669,17 +1712,14 @@
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/KongDefaults"
         },
+        "include_plugin_definitions": {
+          "type": "boolean"
+        },
         "select_tags": {
           "items": {
             "type": "string"
           },
           "type": "array"
-        },
-        "consumer_group_policy_overrides": {
-          "type": "boolean"
-        },
-         "include_plugin_definitions": {
-          "type": "boolean"
         },
         "skip_hash_for_basic_auth": {
           "type": "boolean"
@@ -1825,6 +1865,12 @@
     },
     "LookUpSelectorTags": {
       "properties": {
+        "ai_models": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "consumer_groups": {
           "items": {
             "type": "string"
@@ -1837,6 +1883,12 @@
           },
           "type": "array"
         },
+        "partials": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "routes": {
           "items": {
             "type": "string"
@@ -1844,12 +1896,6 @@
           "type": "array"
         },
         "services": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "partials": {
           "items": {
             "type": "string"
           },
@@ -1945,6 +1991,40 @@
         },
         "public_key": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PartialLink": {
+      "properties": {
+        "config": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "created_at": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "type": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,
@@ -2122,6 +2202,24 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "SANs": {
+      "properties": {
+        "dnsnames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "uris": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "SNI": {
       "properties": {
         "certificate": {
@@ -2197,6 +2295,10 @@
           },
           "type": "array"
         },
+        "tls_sans": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/SANs"
+        },
         "tls_verify": {
           "type": "boolean"
         },
@@ -2221,6 +2323,9 @@
         "created_at": {
           "type": "number"
         },
+        "failover": {
+          "type": "boolean"
+        },
         "id": {
           "type": "string"
         },
@@ -2238,27 +2343,6 @@
         },
         "weight": {
           "type": "integer"
-        },
-        "failover": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "TLSSans": {
-      "properties": {
-        "dnsnames": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "uris": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
         }
       },
       "additionalProperties": false,
@@ -2345,6 +2429,12 @@
         "slots": {
           "type": "integer"
         },
+        "sticky_sessions_cookie": {
+          "type": "string"
+        },
+        "sticky_sessions_cookie_path": {
+          "type": "string"
+        },
         "tags": {
           "items": {
             "type": "string"
@@ -2353,12 +2443,6 @@
         },
         "use_srv_name": {
           "type": "boolean"
-        },
-        "sticky_sessions_cookie": {
-          "type": "string"
-        },
-        "sticky_sessions_cookie_path": {
-          "type": "string"
         }
       },
       "additionalProperties": false,
