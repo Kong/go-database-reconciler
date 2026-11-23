@@ -39,7 +39,7 @@ require (
 	charm.land/bubbles/v2 v2.2.2 // indirect
 	charm.land/bubbletea/v2 v2.1.2 // indirect
 	charm.land/lipgloss/v2 v2.1.1 // indirect
-	github.com/Kong/ai-deck-converter v0.41.0 // indirect
+	github.com/Kong/ai-deck-converter v0.32.1 // indirect
 	github.com/Kong/go-diff v1.2.2 // indirect
 	github.com/Kong/sdk-konnect-go v0.89.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
