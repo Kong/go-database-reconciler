@@ -211,6 +211,17 @@ func main() {
 	// The schema describes the optional YAML representation, not a required JSON field.
 	schema.Definitions["Info"].Required = nil
 
+	// Partial links accept nullable fields. Keep their existing free-form schema so
+	// the builder reports missing references with its more specific error messages.
+	schema.Definitions["FPlugin"].Properties.Set("partials", &jsonschema.Type{
+		Type:  "array",
+		Items: &jsonschema.Type{Type: "object"},
+	})
+	schema.Definitions["ConsumerGroupPlugin"].Properties.Set("partials", &jsonschema.Type{
+		Type:  "array",
+		Items: &jsonschema.Type{Type: "object"},
+	})
+
 	// Keep the existing schema for raw filter configuration.
 	schema.Definitions["Filter"].Properties.Set("config", &jsonschema.Type{
 		Type:  "array",

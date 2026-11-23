@@ -32,7 +32,7 @@ coverage:
 
 .PHONY: modernize
 modernize:
-	modernize ./...
+	modernize -embedlit=false -plusbuild=false ./...
 
 generate-cli-docs:
 	mkdir -p $(CLI_DOCS_PATH)

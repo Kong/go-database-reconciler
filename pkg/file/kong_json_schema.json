@@ -439,7 +439,7 @@
         },
         "partials": {
           "items": {
-            "$ref": "#/definitions/PartialLink"
+            "type": "object"
           },
           "type": "array"
         },
@@ -1063,8 +1063,7 @@
         },
         "partials": {
           "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/PartialLink"
+            "type": "object"
           },
           "type": "array"
         },
