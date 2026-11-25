@@ -116,6 +116,10 @@ linters:
       - linters:
           - gomodguard
         path: tests/integration/
+      # Repeated string literals are common and harmless in tests.
+      - linters:
+          - goconst
+        path: _test\.go
       - linters:
           - prealloc
         path: .*_test\.go
