@@ -22,7 +22,10 @@ func (e *ValidationError) Error() string {
 
 func validate(content []byte) error {
 	var c map[string]any
-	err := yaml.Unmarshal(content, &c)
+	// UnmarshalStrict rejects duplicate keys (at any depth), which the lenient
+	// parser would silently resolve by keeping the last value. c is a plain
+	// map, so the strict mode's unknown-field check does not apply here.
+	err := yaml.UnmarshalStrict(content, &c)
 	if err != nil {
 		return fmt.Errorf("unmarshaling file content: %w", err)
 	}
