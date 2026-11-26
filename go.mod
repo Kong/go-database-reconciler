@@ -22,7 +22,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/iancoleman/orderedmap v0.3.0
 	github.com/kong/deck v1.70.1
-	github.com/kong/go-kong v0.80.2-0.20261123074435-2d4b9e587def
+	github.com/kong/go-kong v0.80.2
 	github.com/samber/lo v1.53.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/ssgelm/cookiejarparser v1.1.0
@@ -98,7 +98,7 @@ require (
 	github.com/itchyny/gojq v0.12.20 // indirect
 	github.com/itchyny/timefmt-go v0.1.9 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kong/go-apiops v0.4.7-0.20261123074437-68f343704fa2 // indirect
+	github.com/kong/go-apiops v0.4.8 // indirect
 	github.com/kong/go-slugify v1.0.0 // indirect
 	github.com/kong/kubernetes-configuration v1.5.3 // indirect
 	github.com/kong/semver/v4 v4.0.1 // indirect

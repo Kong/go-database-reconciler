@@ -234,10 +234,10 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/kong/deck v1.70.1 h1:GKSKpxoEC2hnaWv3cG/b/V/tSqEfYgpUp7sy8qBXLHo=
 github.com/kong/deck v1.70.1/go.mod h1:o7Ql+J+wV109JUPET3hlyH5+C+eCHVYIIAVfL5CeOkU=
-github.com/kong/go-apiops v0.4.7-0.20261123074437-68f343704fa2 h1:yxrN5P1Z74eHlnCA0eNsbDk5ZjILA7i2Y9kSPCg3ds4=
-github.com/kong/go-apiops v0.4.7-0.20261123074437-68f343704fa2/go.mod h1:sJIyCNqF7QHQn/TnjGPf5MfKZJ6AM/1c+hsCNaHpMmg=
-github.com/kong/go-kong v0.80.2-0.20261123074435-2d4b9e587def h1:DRUycdH2FGm+RHZ9uQvnigS4x7wR2awEzMaYJMlfyos=
-github.com/kong/go-kong v0.80.2-0.20261123074435-2d4b9e587def/go.mod h1:7P5yPw17VJN0PzX0PA6R+ed1pH2qAgyARgJb8Er8Ghs=
+github.com/kong/go-apiops v0.4.8 h1:2+vmKZa7QTmqV6ByCJ2udhkcbxHcd5jZTV0Edvpilws=
+github.com/kong/go-apiops v0.4.8/go.mod h1:sJIyCNqF7QHQn/TnjGPf5MfKZJ6AM/1c+hsCNaHpMmg=
+github.com/kong/go-kong v0.80.2 h1:oEijoNvi2/tRZ2Z9mWeaX6dVoXOUO3zc52uyXNHQHH4=
+github.com/kong/go-kong v0.80.2/go.mod h1:7P5yPw17VJN0PzX0PA6R+ed1pH2qAgyARgJb8Er8Ghs=
 github.com/kong/go-slugify v1.0.0 h1:vCFAyf2sdoSlBtLcrmDWUFn0ohlpKiKvQfXZkO5vSKY=
 github.com/kong/go-slugify v1.0.0/go.mod h1:dbR2h3J2QKXQ1k0aww6cN7o4cIcwlWflr6RKRdcoaiw=
 github.com/kong/kubernetes-configuration v1.5.3 h1:4Hh2ZAT5zjHHqx07VVMF5lIUZ7c2RAOUpIINpOsduZs=
