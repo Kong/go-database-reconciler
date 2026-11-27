@@ -24,7 +24,7 @@ require (
 	github.com/kong/deck v1.70.1
 	github.com/kong/go-kong v0.80.2
 	github.com/samber/lo v1.53.0
-	github.com/shirou/gopsutil/v3 v3.24.5
+	github.com/shirou/gopsutil/v4 v4.26.10
 	github.com/ssgelm/cookiejarparser v1.1.0
 	github.com/stretchr/testify v1.12.1
 	github.com/tidwall/gjson v1.20.6
@@ -65,6 +65,7 @@ require (
 	github.com/dop251/goja v0.0.0-20261122185237-35fdc4b88e39 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20260918173711-b481721df8a2 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/emicklei/go-restful/v3 v3.14.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
@@ -129,7 +130,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.8-0.20261110175422-3a370411ca06 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
-	github.com/shoenig/go-m1cpu v0.2.4 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
