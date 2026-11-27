@@ -54,5 +54,5 @@ jobs:
           go-version-file: go.mod
       - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
-          install_args: go:golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize
+          install_args: go:golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize
       - run: make modernize

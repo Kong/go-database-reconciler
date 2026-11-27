@@ -5,13 +5,52 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"sort"
 
 	"github.com/alecthomas/jsonschema"
+	"github.com/iancoleman/orderedmap"
 	"github.com/kong/go-database-reconciler/pkg/file"
 	"github.com/kong/go-kong/kong"
 )
 
 const nameField = "name"
+
+func newProperties(properties map[string]*jsonschema.Type) *orderedmap.OrderedMap {
+	result := orderedmap.New()
+	names := make([]string, 0, len(properties))
+	for name := range properties {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		result.Set(name, properties[name])
+	}
+	return result
+}
+
+func sortProperties(properties *orderedmap.OrderedMap) {
+	if properties == nil {
+		return
+	}
+	if len(properties.Keys()) == 0 {
+		return
+	}
+	properties.SortKeys(sort.Strings)
+	for _, name := range properties.Keys() {
+		value, ok := properties.Get(name)
+		if !ok {
+			continue
+		}
+		property, ok := value.(*jsonschema.Type)
+		if !ok {
+			continue
+		}
+		sortProperties(property.Properties)
+		if property.Items != nil {
+			sortProperties(property.Items.Properties)
+		}
+	}
+}
 
 var (
 	// routes and services
@@ -40,12 +79,13 @@ var (
 func main() {
 	var reflector jsonschema.Reflector
 	reflector.ExpandedStruct = true
+	reflector.RequiredFromJSONSchemaTags = true
 	reflector.TypeMapper = func(typ reflect.Type) *jsonschema.Type {
 		// plugin configuration
 		if typ == reflect.TypeFor[kong.Configuration]() {
 			return &jsonschema.Type{
-				Type:                 "object",
-				Properties:           map[string]*jsonschema.Type{},
+				Type: "object",
+
 				AdditionalProperties: []byte("true"),
 			}
 		}
@@ -57,6 +97,10 @@ func main() {
 
 	schema.Definitions["FRoute"].AnyOf = anyOfNameOrID
 
+	schema.Definitions["FKey"].AnyOf = anyOfNameOrID
+
+	schema.Definitions["FKeySet"].AnyOf = anyOfNameOrID
+
 	schema.Definitions["FConsumer"].AnyOf = anyOfUsernameOrCustomID
 
 	schema.Definitions["FUpstream"].Required = []string{nameField}
@@ -66,36 +110,36 @@ func main() {
 	schema.Definitions["FPlugin"].Required = []string{nameField}
 
 	schema.Definitions["FCertificate"].Required = []string{"id", "cert", "key"}
-	schema.Definitions["FCertificate"].Properties["snis"] = &jsonschema.Type{
+	schema.Definitions["FCertificate"].Properties.Set("snis", &jsonschema.Type{
 		Type: "array",
 		Items: &jsonschema.Type{
 			Type: "object",
-			Properties: map[string]*jsonschema.Type{
+			Properties: newProperties(map[string]*jsonschema.Type{
 				nameField: {
 					Type: "string",
 				},
-			},
+			}),
 		},
-	}
+	})
 
 	schema.Definitions["FFilterChain"].Required = []string{"filters"}
 
-	schema.Definitions["FFilterChain"].Properties["enabled"] = &jsonschema.Type{
+	schema.Definitions["FFilterChain"].Properties.Set("enabled", &jsonschema.Type{
 		Type: "boolean",
-	}
+	})
 
-	schema.Definitions["FFilterChain"].Properties["filters"] = &jsonschema.Type{
+	schema.Definitions["FFilterChain"].Properties.Set("filters", &jsonschema.Type{
 		Type: "array",
 		Items: &jsonschema.Type{
 			Ref: "#/definitions/FFilter",
 		},
-	}
+	})
 
 	schema.Definitions["FFilter"] = &jsonschema.Type{
 		Type:                 "object",
 		Required:             []string{nameField},
 		AdditionalProperties: json.RawMessage(`false`),
-		Properties: map[string]*jsonschema.Type{
+		Properties: newProperties(map[string]*jsonschema.Type{
 			nameField: {
 				Type: "string",
 			},
@@ -113,7 +157,7 @@ func main() {
 			"enabled": {
 				Type: "boolean",
 			},
-		},
+		}),
 	}
 
 	// creds
@@ -142,7 +186,7 @@ func main() {
 	schema.Definitions["FPartial"].Required = []string{"type"}
 
 	// cloned plugin definitions
-	schema.Definitions["FClonedPluginDefinition"].Required = []string{nameField, "plugin"}
+	schema.Definitions["FClonedPluginDefinition"].Required = []string{nameField, "ref"}
 
 	// custom plugin definitions
 	schema.Definitions["FCustomPluginDefinition"].Required = []string{nameField, "schema", "handler"}
@@ -152,21 +196,47 @@ func main() {
 
 	// Foreign references
 	stringType := &jsonschema.Type{Type: "string"}
-	schema.Definitions["FPlugin"].Properties["consumer"] = stringType
-	schema.Definitions["FPlugin"].Properties["service"] = stringType
-	schema.Definitions["FPlugin"].Properties["route"] = stringType
-	schema.Definitions["FPlugin"].Properties["consumer_group"] = stringType
-	schema.Definitions["FPlugin"].Properties["model"] = stringType
+	schema.Definitions["FPlugin"].Properties.Set("consumer", stringType)
+	schema.Definitions["FPlugin"].Properties.Set("service", stringType)
+	schema.Definitions["FPlugin"].Properties.Set("route", stringType)
+	schema.Definitions["FPlugin"].Properties.Set("consumer_group", stringType)
+	schema.Definitions["FPlugin"].Properties.Set("model", stringType)
 
-	schema.Definitions["FFilterChain"].Properties["service"] = stringType
-	schema.Definitions["FFilterChain"].Properties["route"] = stringType
+	schema.Definitions["FFilterChain"].Properties.Set("service", stringType)
+	schema.Definitions["FFilterChain"].Properties.Set("route", stringType)
 
-	schema.Definitions["FService"].Properties["client_certificate"] = stringType
+	schema.Definitions["FService"].Properties.Set("client_certificate", stringType)
+
+	// Info.Defaults has a JSON tag without omitempty but a YAML tag with it.
+	// The schema describes the optional YAML representation, not a required JSON field.
+	schema.Definitions["Info"].Required = nil
+
+	// Partial links accept nullable fields. Keep their existing free-form schema so
+	// the builder reports missing references with its more specific error messages.
+	schema.Definitions["FPlugin"].Properties.Set("partials", &jsonschema.Type{
+		Type:  "array",
+		Items: &jsonschema.Type{Type: "object"},
+	})
+	schema.Definitions["ConsumerGroupPlugin"].Properties.Set("partials", &jsonschema.Type{
+		Type:  "array",
+		Items: &jsonschema.Type{Type: "object"},
+	})
+
+	// Keep the existing schema for raw filter configuration.
+	schema.Definitions["Filter"].Properties.Set("config", &jsonschema.Type{
+		Type:  "array",
+		Items: &jsonschema.Type{Type: "integer"},
+	})
 
 	// konnect resources
 	schema.Definitions["FServicePackage"].Required = []string{nameField}
 	schema.Definitions["FServiceVersion"].Required = []string{"version"}
 	schema.Definitions["Implementation"].Required = []string{"type", "kong"}
+
+	sortProperties(schema.Properties)
+	for _, definition := range schema.Definitions {
+		sortProperties(definition.Properties)
+	}
 
 	jsonSchema, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
